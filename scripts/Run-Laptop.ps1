@@ -67,30 +67,55 @@ for ($i = 0; $i -lt 30; $i++) {
 }
 Need ($LASTEXITCODE -eq 0) 'kind API server did not become ready within 2 minutes'
 
-# The lab's own scripts are written for PowerShell 7 (Windows PowerShell 5.1 drops the quotes inside
-# docker --format templates, which breaks their ownership check), so call them through pwsh.
-$pwsh = Get-Command pwsh -ErrorAction SilentlyContinue
-function Invoke-LabScript([string]$name, [string[]]$extra = @()) {
-    Need $pwsh 'PowerShell 7 (pwsh) is required for the tiktok-k8s-lab scripts: winget install Microsoft.PowerShell'
-    Push-Location $Lab
-    try { & $pwsh.Source -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Lab "scripts\$name") @extra } finally { Pop-Location }
-    Need ($LASTEXITCODE -eq 0) "$name failed"
-}
+# Ownership check (same intent as the lab's Assert-LabContext, written so Windows PowerShell 5.1 can run it):
+# the node container must carry this cluster's kind label and the API server must be on loopback.
+$nodeInfo = (& docker inspect $node 2>$null | Out-String | ConvertFrom-Json)[0]
+Need ($nodeInfo.Config.Labels.'io.x-k8s.kind.cluster' -eq $Cluster) "container $node is not the kind node of cluster '$Cluster'"
+$server = (& kubectl --kubeconfig $labKube --context "kind-$Cluster" config view --minify -o "jsonpath={.clusters[0].cluster.server}" 2>$null | Out-String).Trim()
+Need ($server -match '^https://(127\.0\.0\.1|localhost):\d+$') "refusing to write: API server '$server' is not a loopback address"
 
 # Images the scenarios need must already be inside the kind node (imagePullPolicy: Never).
 $nodeImages = (& docker exec $node crictl images 2>&1 | Out-String)
 foreach ($v in 'v1', 'v2') {
     if ($nodeImages -notmatch "tiktok-k8s-lab\s+$v\b") {
-        Step "loading app image $v into kind (tiktok-k8s-lab\scripts\Build.ps1)"
-        Invoke-LabScript 'Build.ps1' @('-Version', $v)
+        $archive = Join-Path $Lab ".local\images-$v.tar"
+        if (-not (Test-Path -LiteralPath $archive)) {
+            Step "building app image $v"
+            & docker build --platform linux/amd64 --target runtime --build-arg "APP_VERSION=$v" -t "tiktok-k8s-lab:$v" $Lab
+            Need ($LASTEXITCODE -eq 0) "docker build of tiktok-k8s-lab:$v failed"
+            & docker pull --platform linux/amd64 redis:7.4.2-alpine
+            Need ($LASTEXITCODE -eq 0) 'docker pull redis failed'
+            & docker image save --platform linux/amd64 --output $archive "tiktok-k8s-lab:$v" redis:7.4.2-alpine
+            Need ($LASTEXITCODE -eq 0) 'docker image save failed'
+        }
+        Step "loading app image $v into the kind node"
+        & $Kind load image-archive $archive --name $Cluster 2>&1 | Out-Host
+        Need ($LASTEXITCODE -eq 0) "kind load of $archive failed"
     }
 }
 
-# The app must be deployed (Deploy.ps1 is an idempotent apply of the lab manifests + Redis secret).
-& kubectl --kubeconfig $labKube --context "kind-$Cluster" -n $Cluster get deploy api 2>&1 | Out-Null
+# The app must be deployed and healthy. Applying the lab manifests is idempotent.
+function K { & kubectl --kubeconfig $labKube --context "kind-$Cluster" -n $Cluster --request-timeout=30s @args }
+K get deploy api 2>&1 | Out-Null
 if ($LASTEXITCODE -ne 0) {
-    Step 'deploying the lab app (tiktok-k8s-lab\scripts\Deploy.ps1)'
-    Invoke-LabScript 'Deploy.ps1'
+    Step 'deploying the lab app'
+    $pw = Join-Path $Lab '.local\redis-password.txt'
+    $conf = Join-Path $Lab '.local\redis-auth.conf'
+    Need ((Test-Path -LiteralPath $pw) -and (Test-Path -LiteralPath $conf)) 'Redis password files missing in tiktok-k8s-lab\.local (run its Setup.ps1 once)'
+    K apply -f (Join-Path $Lab 'k8s\namespace.yaml') | Out-Host
+    K get secret redis-auth 2>&1 | Out-Null
+    if ($LASTEXITCODE -ne 0) {
+        # values come from files; nothing secret is printed
+        K create secret generic redis-auth "--from-file=password=$pw" "--from-file=redis-auth.conf=$conf" | Out-Host
+        Need ($LASTEXITCODE -eq 0) 'creating the redis-auth secret failed'
+    }
+    K apply -k (Join-Path $Lab 'k8s') | Out-Host
+    Need ($LASTEXITCODE -eq 0) 'kubectl apply -k failed'
+}
+Step 'waiting for redis, api, worker'
+foreach ($w in 'statefulset/redis', 'deployment/api', 'deployment/worker') {
+    K rollout status $w --timeout=180s 2>&1 | Out-Host
+    Need ($LASTEXITCODE -eq 0) "$w is not ready"
 }
 
 Step 'kubeconfig for containers on the kind network'
