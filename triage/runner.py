@@ -159,7 +159,7 @@ def cmd_run(args) -> int:
 
 
 def run_matrix(lc, scenarios, arms, reps, llm, diag_runner, ns, out: Path, price_in=0.30, price_out=1.20,
-               budget_factory=None) -> int:
+               budget_factory=None, sop_extra: str | None = None, extra_record: dict | None = None) -> int:
     """Serial loop over scenario x repetition x arm (arms interleaved inside each repetition).
     Returns 0 on completion, 2 if the environment is broken (unhealthy before injection, or reset failed)."""
     out.parent.mkdir(parents=True, exist_ok=True)
@@ -170,7 +170,7 @@ def run_matrix(lc, scenarios, arms, reps, llm, diag_runner, ns, out: Path, price
                 record = {"run_id": uuid.uuid4().hex[:10], "time": time.strftime("%Y-%m-%dT%H:%M:%S"),
                           "scenario": sc["id"], "split": sc["split"], "scenario_kind": sc.get("kind"),
                           "template": sc.get("template"), "mechanism": sc.get("mechanism") or sc["answer"]["cause_category"],
-                          "arm": arm, "rep": rep, "versions": ver}
+                          "arm": arm, "rep": rep, "versions": ver, **(extra_record or {})}
                 log = StepLog()
                 injected = False
                 try:
@@ -186,7 +186,7 @@ def run_matrix(lc, scenarios, arms, reps, llm, diag_runner, ns, out: Path, price
                     since = lc.inject(sc, log)
                     lc.confirm(sc, log)
                     record.update(diagnose_once(arm, llm, diag_runner, ns, sc["symptom"], since, price_in, price_out,
-                                                budget_factory=budget_factory))
+                                                budget_factory=budget_factory, sop_extra=sop_extra))
                     record["grade"] = grade(Diagnosis(**record["diagnosis"]), sc["answer"])
                     record["env_failure"] = None
                 except EnvironmentError_ as exc:
@@ -215,11 +215,11 @@ def _append(out: Path, record: dict) -> None:
 
 
 def diagnose_once(arm: str, llm, diag_runner, ns: str, symptom: str, since: str,
-                  price_in: float, price_out: float, budget_factory=None) -> dict:
+                  price_in: float, price_out: float, budget_factory=None, sop_extra: str | None = None) -> dict:
     budget, trace = (budget_factory or make_budget)(), Trace()
     tools = ReadOnlyTools(diag_runner, ns, budget, trace, events_since=since)
     before = asdict(llm.usage) if llm else asdict(Usage())
-    agent = ARMS[arm](llm) if ARMS[arm].uses_llm else ARMS[arm]()
+    agent = ARMS[arm](llm, sop_extra=sop_extra) if ARMS[arm].uses_llm else ARMS[arm]()
     result = agent.diagnose(symptom, ns, tools)
     after = asdict(llm.usage) if llm else asdict(Usage())
     usage = Usage(**{k: after[k] - before[k] for k in after})

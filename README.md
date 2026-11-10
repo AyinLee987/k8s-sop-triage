@@ -1,12 +1,30 @@
 # k8s-sop-triage
 
-在限定的 K8s 故障范围内比较三种排查方式：把确定的排查步骤写成代码，和让模型读着 SOP 自己执行相比，能不能在诊断质量不下降的前提下，减少耗时、成本和无效重试？遇到 SOP 没覆盖的故障时，又会损失多少灵活性？
+**核心问题（来自 11/5 面试官的真实痛点）**：把 bad case 复盘出来的"经验"直接写进 SOP / skill，会不会让原来能查对的场景反而查错（过拟合）？加得越多越严重吗？
 
-结果可能是取舍，而不是全面更好。两种结论都写进报告。
+**配套问题**：确定的排查步骤写成代码，和让模型读着 SOP 自己执行相比，哪个更准、更快、更省？现象出在 A、根因在 B 的跨组件故障里，谁更容易"停在症状层"？
+
+两部分共用同一套环境、场景、工具和评分。结果可能是取舍，而不是全面更好，两种结论都写进报告。
+
+## 核心实验：bad case 过拟合剂量实验（`triage/experiments/overfit.py`）
+
+- **经验条目库**（`experiments/badcases.yaml`，40 条）：模仿真实复盘写法，分六类：准确的窄经验、触发条件过宽的经验（最像真实过拟合）、让结论停在最先报错组件的经验、让模型跳过取证的经验、与真实原因矛盾的经验、与本系统无关的经验。条目的来源是开发集场景或通用经验，不包含保留测试集的答案；但"矛盾"类条目会和部分场景（包括保留测试集）的真实原因相冲突，这是有意设计的干扰。分析时可以用 `--kinds` 按类别单独跑，区分"条目变多本身的影响"和"错误经验的影响"。
+- **剂量**：往 SOP 末尾追加 0 / 5 / 10 / 20 / 40 条，也就是"写进 skill"。剂量是嵌套的（10 条包含前 5 条），各类条目交错排列。
+- **指标**：回归集（开发集场景，也就是经验来源的场景）正确率、泛化集（保留测试集）正确率、"停在症状层"次数、token 成本，以及"剂量 0 时每次都对、加经验后出错"的回退明细。
+- **判断复现**：回归集正确率随剂量增加稳定下降，并且在多次重复里都出现。
+
+```bash
+python -m triage.experiments.overfit show --dose 10                     # 看追加了什么
+python -m triage.experiments.overfit run --backend fake --doses 0,10,40 --reps 2   # 试点：真实模型 + 假集群
+python -m triage.experiments.overfit run --backend fake --kinds specific           # 消融：只加准确经验
+python -m triage.experiments.overfit run --backend real ...                        # 新电脑上用真集群
+```
+
+试点复现成功后，下一步比较三种吸收 bad case 的方式：写进提示词、存进案例库按需检索、写成代码分支。
 
 ## 三组对照
 
-三组共用同一套 SOP（`sop/` 目录：总则、通用 Pod 步骤、api、worker、redis 五份，互相引用，按文件名顺序拼接）和同一个只读工具层（`triage/tools.py`），区别只在"谁来决定下一步"。
+三组共用同一套 SOP（`sop/` 目录：总则、通用 Pod 步骤、api、worker、redis 五份，互相引用，按文件名顺序拼接；总则写明组件依赖关系和跳转原则："现象所在的组件不一定是根因所在"）和同一个只读工具层（`triage/tools.py`），区别只在"谁来决定下一步"。
 
 | 配置 | 代码 | 执行方式 |
 | --- | --- | --- |
@@ -32,6 +50,12 @@
 | S08 | holdout | 证据不足 | 症状在诊断器无权读取的命名空间 |
 | S09 | holdout | SOP 未覆盖 | Service selector 选不中 Pod |
 | S10 | holdout | 运行但异常 | worker 的 Redis 密码被改成错误的字面值 |
+| S11 | dev | 跨组件 | 接口返回 503（现象在 api），根因是 redis-config 的 maxmemory 被改成 512kb |
+| S12 | dev | 跨组件 | api 全部不 Ready、worker 停止（现象在 api / worker），根因是 redis 副本数为 0 |
+| S13 | holdout | 跨组件 | 与 S12 症状相同，根因是 redis-config 多了一行 requirepass，Redis 自己不就绪 |
+| S14 | holdout | 跨组件 | 点击数涨得很慢（现象在用户侧），根因是 worker 的处理延迟被配成 10 秒 |
+
+跨组件场景的评分会单独标出"停在症状层"：诊断器把根因写成了最先出现现象的组件（例如 api），而不是真正的根因（例如 redis）。
 
 ### 参数化生成的场景（`scenarios/templates.yaml`）
 
@@ -69,13 +93,15 @@
 
 ## 已在离线环境验证的部分
 
-`pytest` 共 62 个测试，用假集群（`tests/fake_cluster.py`）和按脚本回复的假模型跑通了全流程：
+`pytest` 共 80 个测试，用假集群（`tests/fake_cluster.py`）和按脚本回复的假模型跑通了全流程：
 
 - 规则基线在 10 个场景里答对 8 个。S08 和 S09 答成"无故障"，这符合预期：它们本来就是测规则覆盖不到的情况。
 - 文本 SOP 的工具循环；代码 SOP 在匹配到分支时只调用一次模型；没有匹配分支时进入自由排查（S09、S08）。
 - 预算耗尽、重复调用、截止时间；评分器把对象定位和原因判断分开打分；执行器的阶段顺序和环境失败处理。
 - 生成场景的结构、划分纯度、症状不泄漏答案、JSON patch 合法；规则基线在"容器起不来""依赖故障导致不 Ready""就绪探针写错"三类新分支上答对。
 - 完整实验循环（`run_matrix`）：记录写入、评分、报告；故障没生效会记为环境失败并照常复位；复位失败或开始前环境不健康会立即停止。
+- 跨组件场景：规则基线和代码 SOP 都会按跳转原则先查客户端覆盖、再查 Redis；"停在症状层"会被单独标出；ConfigMap 可读、Secret 不可读。
+- 过拟合剂量实验：条目嵌套与混合、追加内容确实进入提示词、能检测出"剂量 0 对、加经验后错"的回退。
 - 真实模型试跑脚本的流程（模型用假的代替）；模型不支持工具调用时会提前停下。工具层在每个故障状态下都经得起 16 种异常参数（不存在的资源、错误的类型、未知工具、多余参数），不会崩。
 
 **还没在真集群上验证**：注入的故障能不能稳定生效、复位是否干净、真实模型的表现、内存峰值。这些是机器到了之后第 1 周要做的事。
@@ -89,6 +115,7 @@
 #   打开 .env，填 LLM_API_KEY
 .\scripts\Run-LocalChecks.ps1 -Stage Test       # 离线测试，应全部通过
 .\scripts\Run-LocalChecks.ps1 -Stage DryRun     # 真实模型 + 假集群试跑，预计 1 美元以内，脚本到 2 美元会自动停
+.\scripts\Run-LocalChecks.ps1 -Stage Overfit    # 过拟合试点：剂量 0/10/40 各 2 次，预计 2–4 美元，上限 5 美元
 ```
 
 故障注入的冒烟测试要用到你原来的 `tiktok-k8s-lab` 集群：
@@ -145,7 +172,9 @@ python -m triage.runner run --split holdout --finalize
 
 ```
 sop/                       三组共用的 SOP（总则 + 通用 Pod 步骤 + api / worker / redis，互相引用）
-scenarios/scenarios.yaml   10 个手写场景（只有执行器和评分器读取）
+scenarios/scenarios.yaml   14 个手写场景，含 4 个跨组件场景（只有执行器和评分器读取）
+experiments/badcases.yaml  40 条 bad case 经验条目（过拟合剂量实验用）
+triage/experiments/        过拟合剂量实验
 scenarios/templates.yaml   9 个参数化故障模板，展开成 25 个场景
 triage/generator.py        模板展开与校验
 triage/tools.py            只读工具层（预算、去重、超时、轨迹）

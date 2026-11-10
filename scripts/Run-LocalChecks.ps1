@@ -2,15 +2,18 @@
 #   .\scripts\Run-LocalChecks.ps1 -Stage Setup     # 建虚拟环境、装依赖（只需一次）
 #   .\scripts\Run-LocalChecks.ps1 -Stage Test      # 离线测试，不需要集群和 API Key
 #   .\scripts\Run-LocalChecks.ps1 -Stage DryRun    # 真实模型 + 假集群试跑（需要 .env 里的 LLM_API_KEY）
+#   .\scripts\Run-LocalChecks.ps1 -Stage Overfit   # bad case 过拟合试点：真实模型 + 假集群，剂量 0/10/40（费用上限 5 美元）
 #   .\scripts\Run-LocalChecks.ps1 -Stage DiagCreds # 生成诊断器只读凭据（需要 tiktok-k8s-lab 集群在运行）
 #   .\scripts\Run-LocalChecks.ps1 -Stage CheckEnv  # 检查环境健康、诊断器确实只读
 #   .\scripts\Run-LocalChecks.ps1 -Stage Smoke     # 第 1 周检查点：只做 健康-注入-确认-复位，不调用模型
 # 如果提示"禁止运行脚本"，先执行：Set-ExecutionPolicy -Scope Process Bypass
 param(
-    [Parameter(Mandatory)][ValidateSet('Setup', 'Test', 'DryRun', 'DiagCreds', 'CheckEnv', 'Smoke')][string]$Stage,
+    [Parameter(Mandatory)][ValidateSet('Setup', 'Test', 'DryRun', 'Overfit', 'DiagCreds', 'CheckEnv', 'Smoke')][string]$Stage,
     [string]$Scenario = 'S01,S03,S07',
     [int]$Rounds = 3,
-    [string]$Arms = 'text,code,rule'
+    [string]$Arms = 'text,code,rule',
+    [string]$Doses = '0,10,40',
+    [int]$Reps = 2
 )
 $ErrorActionPreference = 'Stop'
 $Root = Split-Path -Parent $PSScriptRoot
@@ -55,6 +58,10 @@ switch ($Stage) {
     'DryRun' {
         Assert-Venv; Assert-DotEnv
         Invoke-Py scripts\dry_run_llm.py --arms $Arms
+    }
+    'Overfit' {
+        Assert-Venv; Assert-DotEnv
+        Invoke-Py -m triage.experiments.overfit run --backend fake --doses $Doses --arms text,code --reps $Reps
     }
     'DiagCreds' {
         Assert-Venv; Assert-DotEnv
