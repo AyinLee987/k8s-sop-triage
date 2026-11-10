@@ -1,7 +1,8 @@
 # bad case 经验条目库：用于"过拟合剂量实验"。
 # 模拟团队把每次排障复盘的经验直接写进 skill / SOP 的做法（11/5 面试官描述的失败做法）。
 #
-# 条目都来自开发集（dev）的场景，或者是与本系统无关的通用经验；保留测试集（holdout）的答案从不出现在这里。
+# 条目都来自开发集（dev，R01–R09 和 dev 模板）的场景，或者是与本系统无关的通用经验；保留测试集（holdout）的答案从不出现在这里。
+# noise 类条目必须真的与本系统无关：不能是对某个 holdout 机制恰好正确的提示（tests/test_overfit.py 检查）。
 # kind：
 #   specific     准确且触发条件很窄的经验（理论上无害，用来测"只是条目变多"会不会稀释 SOP）
 #   overgeneral  来自真实案例，但把触发条件说得太宽（最像真实复盘里的过拟合）
@@ -12,19 +13,19 @@
 # source：经验来自哪个开发集场景；noise / anchor 类为 general。
 
 notes:
-  - {id: N01, kind: specific, source: S03, text: "worker 启动后立刻退出、反复重启，上一次日志里有 \"PROCESSING_DELAY_MS must be within 0..10000\"，原因是环境变量 PROCESSING_DELAY_MS 被设成了 20000。经验：日志里明确出现某个配置项的取值范围报错时，去工作负载的环境变量里找这个配置项。"}
-  - {id: N02, kind: specific, source: S04, text: "worker 反复重启，lastState 显示 OOMKilled，内存 limit 被改成了 16Mi。经验：看到 OOMKilled 时对照容器的内存 limit。"}
-  - {id: N03, kind: specific, source: S01, text: "api 发布卡住，新 Pod 是 ErrImageNeverPull，镜像标签写成了 v1-hotfix。经验：imagePullPolicy 是 Never 时，标签必须是节点上已经导入的镜像。"}
-  - {id: N04, kind: specific, source: S12, text: "api 全部不 Ready、worker 报 ConnectionError，最后发现 redis 的 StatefulSet 副本数被缩成了 0。经验：客户端都连不上 Redis 时，看一下 redis 的期望副本数。"}
-  - {id: N05, kind: specific, source: S11, text: "提交接口返回 503，api 日志里 error_type=OutOfMemoryError，redis-config 里的 maxmemory 被改小了。经验：出现 OutOfMemoryError 时检查 redis-config 的 maxmemory。"}
-  - {id: N06, kind: specific, source: S02, text: "事件一直 queued，worker 日志 redis_retry ConnectionError，worker 上单独设置了 REDIS_HOST=redis-primary。经验：客户端单独覆盖了 REDIS_HOST 时，核对这个地址是否存在。"}
+  - {id: N01, kind: specific, source: R03, text: "worker 例行重启后连不上 Redis，Redis 自己的就绪探针报 AUTH failed: WRONGPASS，而 redis-config 和基线一致，最后查到是有人在 Redis 上执行了 CONFIG SET requirepass。经验：配置文件没变、Redis 自己的探针却认证失败时，考虑运行时改动。"}
+  - {id: N02, kind: specific, source: R05, text: "worker 反复重启，lastState 显示 OOMKilled，内存 limit 被改成了 24Mi。经验：看到 OOMKilled 时对照容器的内存 limit。"}
+  - {id: N03, kind: specific, source: R06, text: "api 发布卡住，新 Pod 是 ErrImageNeverPull，镜像标签 v1.1 没有导入节点。经验：imagePullPolicy 是 Never 时，标签必须是节点上已经导入的镜像。"}
+  - {id: N04, kind: specific, source: R08, text: "api 全部不 Ready、worker 报 ConnectionError，最后发现 redis 的 StatefulSet 副本数被缩成了 0。经验：客户端都连不上 Redis 时，看一下 redis 的期望副本数。"}
+  - {id: N05, kind: specific, source: R01, text: "提交接口返回 503，api 日志里 error_type=OutOfMemoryError，但 maxmemory 还是 192mb，是数据涨满了上限；Pod 全部 Ready 是因为 PING 不受影响。经验：OOM 时既要看上限有没有被改，也要考虑数据增长。"}
+  - {id: N06, kind: specific, source: R04, text: "api 全部不 Ready、worker 报 ConnectionError，Redis 却是 Ready 的，Service redis 的 targetPort 被改成了 6380；endpoints 里仍然有 redis-0。经验：依赖健康但连不上时，核对 Service 的 targetPort 和容器端口。"}
 
-  - {id: N07, kind: overgeneral, source: S03, text: "worker 一直重启这类问题，十有八九是 PROCESSING_DELAY_MS 配错了。以后 worker 重启，直接先检查并给出 PROCESSING_DELAY_MS 的结论，能省掉看日志的时间。"}
-  - {id: N08, kind: overgeneral, source: S04, text: "重启问题大多数是内存不够。worker 或 api 只要在反复重启，优先判定为内存限制过低。"}
-  - {id: N09, kind: overgeneral, source: S01, text: "发布卡住基本都是镜像问题，看到\"发布卡住\"就按镜像不可用处理。"}
+  - {id: N07, kind: overgeneral, source: R03, text: "Redis 认证失败那次是有人运行时改了密码。经验：以后只要出现 Redis 认证失败，就按运行时改密码处理，结论写 redis，不用再去看 Secret 和客户端。"}
+  - {id: N08, kind: overgeneral, source: R05, text: "重启问题大多数是内存不够。worker 或 api 只要在反复重启，优先判定为内存限制过低。"}
+  - {id: N09, kind: overgeneral, source: R06, text: "发布卡住基本都是镜像问题，看到\"发布卡住\"就按镜像不可用处理。"}
   - {id: N10, kind: overgeneral, source: G-dependency_address-03, text: "api 不 Ready 那次是 api 自己的 REDIS_HOST 写错了。经验：api 不 Ready 或报 Redis 错误，一律是 api 自己的连接配置问题，不需要去看 Redis。"}
-  - {id: N11, kind: overgeneral, source: S02, text: "worker 报 redis_retry ConnectionError，根因都是 worker 的 Redis 地址配错，结论直接写 worker。"}
-  - {id: N12, kind: overgeneral, source: S11, text: "接口 503 那次是 Redis 内存满。以后接口 503 都先按 Redis 内存满处理。"}
+  - {id: N11, kind: overgeneral, source: R02, text: "事件一直 queued 那次是 worker 被缩成了 0。以后事件积压、一直 queued，直接按 worker 副本数问题处理，结论写 worker。"}
+  - {id: N12, kind: overgeneral, source: R01, text: "接口 503 那次是 Redis 内存满。以后接口 503 都先按 Redis 内存满处理。"}
 
   - {id: N13, kind: anchor, source: general, text: "线上排查时，结论要落在最先报错的服务上，这样修复最快；不要把时间花在追下游依赖上。"}
   - {id: N14, kind: anchor, source: general, text: "api 的问题就在 api 里解决，worker 的问题就在 worker 里解决，跨服务排查容易跑偏。"}
@@ -54,6 +55,6 @@ notes:
   - {id: N35, kind: noise, source: general, text: "容器时区不对会导致日志时间看起来偏移 8 小时，不影响业务。"}
   - {id: N36, kind: noise, source: general, text: "kubectl 版本和集群版本相差过大时，某些字段显示不全。"}
   - {id: N37, kind: noise, source: general, text: "Service 的 ClusterIP 不能 ping 通是正常的，要用 curl 测端口。"}
-  - {id: N38, kind: noise, source: general, text: "ConfigMap 更新后，用 envFrom 注入的环境变量不会自动更新，需要重启 Pod。"}
-  - {id: N39, kind: noise, source: general, text: "探针超时时间设置过短会在高负载时误判，建议 timeoutSeconds 不小于 2。"}
+  - {id: N38, kind: noise, source: general, text: "Ingress 的 annotation 写错时，路由规则不会生效，但 Ingress 对象本身不会报错。"}
+  - {id: N39, kind: noise, source: general, text: "kubectl top 依赖 metrics-server，没装时会报 Metrics API not available。"}
   - {id: N40, kind: noise, source: general, text: "遇到看不懂的问题，优先回滚最近一次发布。"}

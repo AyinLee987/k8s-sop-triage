@@ -12,15 +12,16 @@ from triage.report import render
 from triage.schema import Diagnosis
 
 SC = {s["id"]: s for s in load_scenarios(split="all")}
+GEN = {s["id"]: s for s in load_scenarios(split="all", source="generated")}
 
 
 # ---------------- scenario specs ----------------
 def test_scenario_specs_are_complete_and_split_by_mechanism():
-    assert len(SC) == 14
+    assert len(SC) == 16
     dev = {k for k, s in SC.items() if s["split"] == "dev"}
     holdout = {k for k, s in SC.items() if s["split"] == "holdout"}
-    assert dev == {"S01", "S02", "S03", "S04", "S07", "S11", "S12"}
-    assert holdout == {"S05", "S06", "S08", "S09", "S10", "S13", "S14"}
+    assert dev == {f"R{i:02d}" for i in range(1, 10)}
+    assert holdout == {f"R{i:02d}" for i in range(10, 17)}
     for s in SC.values():
         for key in ("symptom", "inject", "confirm", "reset", "answer"):
             assert key in s, (s["id"], key)
@@ -31,6 +32,20 @@ def test_scenario_specs_are_complete_and_split_by_mechanism():
     assert not (dev_categories & holdout_categories), "a fault mechanism appears in both splits"
     kinds = [s["kind"] for s in SC.values()]
     assert kinds.count("same_symptom_diff_cause") >= 3 and "normal" in kinds and "insufficient_evidence" in kinds
+    assert kinds.count("cross_component") >= 6 and "sop_not_covered" in kinds
+
+
+def test_every_scenario_cites_its_real_world_or_benchmark_source():
+    for s in SC.values():
+        r = s["realism"]
+        assert r["pattern"] and r["sources"] and isinstance(r["validated"], bool), s["id"]
+        if not r["validated"]:
+            assert r.get("validate_note"), (s["id"], "unvalidated scenarios must say what to check on the real cluster")
+
+
+def test_same_symptom_pairs_cross_the_dev_holdout_split():
+    queued = [s for s in SC.values() if s["symptom"] == SC["R02"]["symptom"]]
+    assert {s["split"] for s in queued} == {"dev", "holdout"} and len({s["answer"]["cause_category"] for s in queued}) == 3
 
 
 def test_symptoms_do_not_leak_answers():
@@ -59,7 +74,7 @@ def test_rbac_is_read_only_and_excludes_secrets():
 
 # ---------------- grader ----------------
 def test_grader_separates_object_and_cause():
-    ans = SC["S04"]["answer"]
+    ans = SC["R05"]["answer"]
     wrong_obj = Diagnosis("root_cause_found", "memory_limit_too_low", "内存过低", {"kind": "Deployment", "name": "api"}, ["OOMKilled"])
     g = grade(wrong_obj, ans)
     assert g["cause_ok"] and not g["object_ok"] and not g["correct"]
@@ -69,15 +84,15 @@ def test_grader_separates_object_and_cause():
 
 def test_grader_flags_symptom_only_answers_for_review():
     d = Diagnosis("root_cause_found", "other", "worker 处于 CrashLoopBackOff", {"kind": "Deployment", "name": "worker"}, ["CrashLoopBackOff"])
-    g = grade(d, SC["S03"]["answer"])
+    g = grade(d, GEN["G-env_invalid-01"]["answer"])
     assert not g["correct"]
 
 
 def test_grader_undetermined_must_name_the_gap():
     vague = Diagnosis("undetermined", unknowns=["不清楚"])
-    assert not grade(vague, SC["S08"]["answer"])["correct"]
+    assert not grade(vague, SC["R16"]["answer"])["correct"]
     named = Diagnosis("undetermined", unknowns=["缺少 rec-feature 的读权限"])
-    assert grade(named, SC["S08"]["answer"])["correct"]
+    assert grade(named, SC["R16"]["answer"])["correct"]
 
 
 # ---------------- lifecycle sequencing with a fake admin cluster ----------------
@@ -93,12 +108,22 @@ class AdminFake:
         self.calls.append(args)
         a = args
         if "set" in a or "patch" in a:
-            self.fault_active = "image" in a and "v1-hotfix" in " ".join(a)
+            self.fault_active = "image" in a and "v1.1" in " ".join(a)
             return KubeResult(True, "")
         if "rollout" in a or "apply" in a or "delete" in a:
             return KubeResult(True, "")
         if a[:3] == ["get", "namespace", "rec-feature"]:
             return KubeResult(False, "", "NotFound", 1)
+        if "configmap" in a and "app-config" in a:
+            return KubeResult(True, json.dumps({"data": {"KEY_PREFIX": "tiktok-lab"}}))
+        if "service" in a and "redis" in a:
+            return KubeResult(True, json.dumps({"spec": {"selector": {"app": "redis"}, "ports": [{"targetPort": "redis"}]}}))
+        if "statefulset" in a and "redis" in a:
+            c = {"volumeMounts": [{"name": "data", "mountPath": "/data"}], "resources": {"limits": {"cpu": "1"}}}
+            return KubeResult(True, json.dumps({"spec": {"template": {"spec": {"containers": [c]}}}}))
+        if "secret" in a:
+            assert any(x.startswith("go-template=") for x in a), "health check must read key names only"
+            return KubeResult(True, "password redis-auth.conf ")
         if "configmap" in a and "redis-config" in a:
             return KubeResult(True, json.dumps({"data": {"redis.conf": "maxmemory 192mb\ninclude /etc/redis-auth/redis-auth.conf\n"}}))
         if "endpointslices" in a:
@@ -120,9 +145,9 @@ def test_lifecycle_full_round():
     lc = Lifecycle(fake, "tiktok-k8s-lab", "/lab/k8s", poll_interval=0.01)
     log = StepLog()
     lc.verify_healthy(log)
-    since = lc.inject(SC["S01"], log)
-    lc.confirm(SC["S01"], log)
-    lc.reset(SC["S01"], log)
+    since = lc.inject(SC["R06"], log)
+    lc.confirm(SC["R06"], log)
+    lc.reset(SC["R06"], log)
     phases = [e["phase"] for e in log.entries]
     assert phases[:3] == ["verify_healthy", "inject", "confirm"] and phases[-1] == "verify_recovered"
     assert since.endswith("Z")
@@ -131,7 +156,7 @@ def test_lifecycle_full_round():
 
 def test_fault_that_never_takes_effect_is_an_environment_failure():
     lc = Lifecycle(AdminFake(confirm_works=False), "tiktok-k8s-lab", "/lab/k8s", poll_interval=0.01)
-    sc = dict(SC["S01"], confirm={"timeout_s": 0.05, "checks": SC["S01"]["confirm"]["checks"]})
+    sc = dict(SC["R06"], confirm={"timeout_s": 0.05, "checks": SC["R06"]["confirm"]["checks"]})
     log = StepLog()
     lc.inject(sc, log)
     with pytest.raises(EnvironmentError_):

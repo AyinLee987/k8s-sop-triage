@@ -29,10 +29,10 @@ def test_dry_run_script_end_to_end_with_faked_model(monkeypatch, tmp_path, capsy
     preflight = [ChatResult("ok"), ChatResult("", [{"id": "1", "name": "ping", "arguments": {"x": "hello"}}])]
     monkeypatch.setattr(mod, "LLMClient", lambda: FakeLLM(list(preflight)))
     monkeypatch.setattr(mod, "REPO", tmp_path)
-    monkeypatch.setattr("sys.argv", ["dry_run_llm.py", "--arms", "rule", "--scenario", "S01,S04,G-api_probe-02"])
+    monkeypatch.setattr("sys.argv", ["dry_run_llm.py", "--arms", "rule", "--scenario", "R06,R05,G-api_probe-02"])
     assert mod.main() == 0
     out = capsys.readouterr().out
-    assert "[ok] 模型支持工具调用" in out and "| S01 |" in out and "| G-api_probe-02 |" in out
+    assert "[ok] 模型支持工具调用" in out and "| R06 |" in out and "| G-api_probe-02 |" in out
     files = list((tmp_path / "results").glob("dryrun-*.jsonl"))
     recs = [json.loads(x) for x in files[0].read_text(encoding="utf-8").splitlines()]
     assert len(recs) == 3 and all(r["dry_run"] and r["grade"]["correct"] for r in recs)

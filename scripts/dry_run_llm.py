@@ -6,7 +6,7 @@ Checks what offline tests with a scripted model cannot:
   * real token usage and cost per diagnosis, per arm.
 
   python scripts/dry_run_llm.py                       # 14 fake scenarios x arms text,code,rule, 1 repetition
-  python scripts/dry_run_llm.py --scenario S04,S09 --arms code
+  python scripts/dry_run_llm.py --scenario R05,R11 --arms code
   python scripts/dry_run_llm.py --max-cost 1.0        # stop once spend reaches $1 (default 2)
 
 Results go to results/dryrun-<time>.jsonl (same format as real runs) and a report is printed.

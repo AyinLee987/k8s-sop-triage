@@ -1,480 +1,1118 @@
-# 场景规格。只有执行器（triage.lifecycle）和评分器（triage.grader）读取这个文件。
-# 诊断器只能拿到 symptom 字符串和只读工具，看不到这里的 id、注入方式和答案。
+# 场景规格 v2。只有执行器（triage.lifecycle）和评分器（triage.grader）读取这个文件。
+# 诊断器只能拿到 symptom 字符串和只读工具，看不到这里的 id、注入方式、答案和 realism。
 #
-# 每个场景写明八项：正常状态(baseline)、注入动作(inject)、初始症状(symptom)、
-# 正确故障对象(answer.object)、原因解释(answer.explanation)、关键证据(answer.key_evidence)、
-# 可接受的等价答案(answer.accept_*)、复位条件(reset + 通用健康检查)。
+# v2 的每个场景都来自真实事故或公开基准的故障库，出处写在 realism.sources 里；
+# 完整的选型过程、被排除的候选和原因见 scenarios/CATALOG.md。v1 的手写场景归档在 scenarios/archive/。
 #
-# 划分按故障机制：同一种机制只出现在一个集合里。
-#   dev（开发集，也是回归集）：S01 S02 S03 S04 S07
-#   holdout（保留测试集，定稿前不看结果、不调参）：S05 S06 S08 S09 S10
+# realism.validated=false 表示注入在真集群上的表现还没有实测（smoke 检查点会验证）；
+# 没生效会记为环境失败，不会算诊断错。
 #
-# 模板变量：{ns} 业务命名空间；{lab_k8s} tiktok-k8s-lab/k8s 目录；{repo} 本仓库根目录。
+# 划分按故障机制（cause_category）：同一种机制只出现在一个集合里。
+#   dev（开发集，也是回归集；bad case 经验只从这里来）：R01–R09
+#   holdout（保留测试集，定稿前不看结果、不调参）：R10–R16
+#   其中 R14（数据卷挂错路径）是故意保留的 SOP 盲区：SOP 只在基线里写了挂载路径，没有写排查步骤，
+#   用来测"SOP 没写到的问题"。R16 是权限边界。
+# 同症状不同原因的配对跨越两个集合，例如"事件一直 queued"：R02（dev）/ R10、R11（holdout）。
+#
+# 模板变量：{ns} 业务命名空间；{lab_k8s} tiktok-k8s-lab/k8s 目录；{lab} tiktok-k8s-lab 根目录；{repo} 本仓库根目录。
 
-baseline: >
-  命名空间 {ns} 内 Deployment api 2/2、worker 1/1 可用，StatefulSet redis 1/1 就绪，
-  所有 Pod Ready 且没有等待原因；不存在命名空间 rec-feature。
+baseline: 命名空间 {ns} 内 Deployment api 2/2、worker 1/1 可用，StatefulSet redis 1/1 就绪，所有 Pod Ready 且没有等待原因；ConfigMap app-config、redis-config 和 Service redis 与基线一致；不存在命名空间 rec-feature。
 
 scenarios:
-  - id: S01
-    split: dev
-    kind: single_evidence
-    symptom: "刚发布了 api 的新版本，发布一直卡着没完成，新 Pod 起不来。"
-    inject:
-      - kubectl: ["-n", "{ns}", "set", "image", "deployment/api", "api=tiktok-k8s-lab:v1-hotfix"]
-    confirm:
-      timeout_s: 90
-      checks:
-        - {type: pod_waiting_reason, selector: "app=api", reasons: [ErrImageNeverPull, ErrImagePull, ImagePullBackOff]}
-    reset:
-      - kubectl: ["-n", "{ns}", "set", "image", "deployment/api", "api=tiktok-k8s-lab:v1"]
-    answer:
-      status: root_cause_found
-      object: {kind: Deployment, name: api}
-      cause_category: image_unavailable
-      explanation: "镜像标签 v1-hotfix 在节点上不存在（imagePullPolicy: Never），新 Pod 停在 ErrImageNeverPull。"
-      key_evidence: ["v1-hotfix", "ErrImageNeverPull", "ImagePullBackOff", "ErrImagePull"]
-      accept_cause_keywords: ["镜像", "image", "v1-hotfix"]
-
-  - id: S02
-    split: dev
-    kind: running_but_broken
-    symptom: "接口能正常提交事件，但事件一直停在 queued 状态，用户点击数不增长。"
-    inject:
-      - kubectl: ["-n", "{ns}", "set", "env", "deployment/worker", "REDIS_HOST=redis-primary"]
-    confirm:
-      timeout_s: 120
-      checks:
-        - {type: logs_contain, selector: "app=worker", text: "redis_retry"}
-    reset:
-      - kubectl: ["-n", "{ns}", "set", "env", "deployment/worker", "REDIS_HOST-"]
-    answer:
-      status: root_cause_found
-      object: {kind: Deployment, name: worker}
-      cause_category: dependency_unreachable
-      explanation: "worker 的环境变量 REDIS_HOST 被覆盖成不存在的 redis-primary，连接 Redis 失败并不断重试。"
-      key_evidence: ["redis-primary", "REDIS_HOST", "ConnectionError", "redis_retry"]
-      accept_cause_keywords: ["REDIS_HOST", "redis-primary", "地址", "host"]
-
-  - id: S03
-    split: dev
-    kind: same_symptom_diff_cause
-    symptom: "worker 一直在重启，事件堆积处理不掉。"
-    inject:
-      - kubectl: ["-n", "{ns}", "set", "env", "deployment/worker", "PROCESSING_DELAY_MS=20000"]
-    confirm:
-      timeout_s: 120
-      checks:
-        - {type: pod_restart_count_at_least, selector: "app=worker", count: 2}
-    reset:
-      - kubectl: ["-n", "{ns}", "set", "env", "deployment/worker", "PROCESSING_DELAY_MS-"]
-    answer:
-      status: root_cause_found
-      object: {kind: Deployment, name: worker}
-      cause_category: invalid_config_value
-      explanation: "PROCESSING_DELAY_MS=20000 超出 0..10000，worker 启动校验抛出 ValueError 退出。"
-      key_evidence: ["PROCESSING_DELAY_MS", "20000", "must be within", "ValueError"]
-      accept_cause_keywords: ["PROCESSING_DELAY_MS", "配置", "config"]
-
-  - id: S04
-    split: dev
-    kind: same_symptom_diff_cause
-    symptom: "worker 一直在重启，事件堆积处理不掉。"
-    inject:
-      - kubectl: ["-n", "{ns}", "set", "resources", "deployment/worker", "-c", "worker", "--limits=memory=16Mi", "--requests=memory=16Mi"]
-    confirm:
-      timeout_s: 120
-      checks:
-        - {type: pod_last_terminated_reason, selector: "app=worker", reason: OOMKilled}
-    reset:
-      - kubectl: ["-n", "{ns}", "set", "resources", "deployment/worker", "-c", "worker", "--limits=cpu=500m,memory=128Mi", "--requests=cpu=100m,memory=64Mi"]
-    answer:
-      status: root_cause_found
-      object: {kind: Deployment, name: worker}
-      cause_category: memory_limit_too_low
-      explanation: "worker 内存限制被改成 16Mi，进程启动即被 OOMKilled。"
-      key_evidence: ["OOMKilled", "16Mi"]
-      accept_cause_keywords: ["内存", "memory", "OOM"]
-
-  - id: S05
-    split: holdout
-    kind: same_symptom_diff_cause
-    symptom: "worker 一直在重启，事件堆积处理不掉。"
-    precheck:
-      - {type: jsonpath_equals, resource: "deployment/worker", path: "{.spec.template.spec.containers[0].command[2]}", value: "app.worker"}
-    inject:
-      - kubectl: ["-n", "{ns}", "patch", "deployment/worker", "--type=json", "-p", '[{"op":"replace","path":"/spec/template/spec/containers/0/command","value":["python","-m","app.workers"]}]']
-    confirm:
-      timeout_s: 120
-      checks:
-        - {type: pod_restart_count_at_least, selector: "app=worker", count: 2}
-    reset:
-      - kubectl: ["-n", "{ns}", "patch", "deployment/worker", "--type=json", "-p", '[{"op":"replace","path":"/spec/template/spec/containers/0/command","value":["python","-m","app.worker"]}]']
-    answer:
-      status: root_cause_found
-      object: {kind: Deployment, name: worker}
-      cause_category: wrong_command
-      explanation: "启动命令里的模块名被改成 app.workers，Python 报 No module named。"
-      key_evidence: ["app.workers", "No module named"]
-      accept_cause_keywords: ["命令", "command", "模块", "module", "app.workers"]
-
-  - id: S06
-    split: holdout
-    kind: same_symptom_diff_cause
-    symptom: "api 的 Pod 隔一会儿就自己重启一次。"
-    precheck:
-      - {type: jsonpath_equals, resource: "deployment/api", path: "{.spec.template.spec.containers[0].livenessProbe.httpGet.path}", value: "/health/live"}
-    inject:
-      - kubectl: ["-n", "{ns}", "patch", "deployment/api", "--type=json", "-p", '[{"op":"replace","path":"/spec/template/spec/containers/0/livenessProbe/httpGet/path","value":"/healthz"}]']
-    confirm:
-      timeout_s: 150
-      checks:
-        - {type: pod_restart_count_at_least, selector: "app=api", count: 1}
-    reset:
-      - kubectl: ["-n", "{ns}", "patch", "deployment/api", "--type=json", "-p", '[{"op":"replace","path":"/spec/template/spec/containers/0/livenessProbe/httpGet/path","value":"/health/live"}]']
-    answer:
-      status: root_cause_found
-      object: {kind: Deployment, name: api}
-      cause_category: probe_misconfigured
-      explanation: "存活探针路径被改成不存在的 /healthz，返回 404，容器被 kubelet 反复重启。"
-      key_evidence: ["/healthz", "Liveness probe failed", "404"]
-      accept_cause_keywords: ["探针", "probe", "liveness", "/healthz"]
-
-  - id: S07
-    split: dev
-    kind: normal
-    symptom: "有用户说页面偶尔有点慢，帮忙看下这个命名空间的服务有没有异常。"
-    inject: []
-    confirm:
-      timeout_s: 10
-      checks:
-        - {type: always}
-    reset: []
-    answer:
-      status: no_fault_found
-      object: null
-      cause_category: no_fault
-      explanation: "没有注入故障，所有工作负载健康。"
-      key_evidence: []
-      accept_cause_keywords: []
-
-  - id: S08
-    split: holdout
-    kind: insufficient_evidence
-    symptom: "rec-feature 命名空间里的 feature-sync 服务一直在报错，帮忙查下原因。"
-    inject:
-      - kubectl: ["apply", "-f", "{repo}/k8s/restricted-ns.yaml"]
-    confirm:
-      timeout_s: 120
-      checks:
-        - {type: pod_restart_count_at_least, selector: "app=feature-sync", count: 1, namespace: rec-feature}
-    reset:
-      - kubectl: ["delete", "namespace", "rec-feature", "--wait=true", "--timeout=120s"]
-    answer:
-      status: undetermined
-      object: null
-      cause_category: other
-      explanation: "诊断器没有 rec-feature 命名空间的读权限，正确做法是说明无法确定并指出缺少权限。"
-      key_evidence: ["forbidden"]
-      accept_unknowns_keywords: ["权限", "forbidden", "rec-feature", "permission"]
-
-  - id: S09
-    split: holdout
-    kind: sop_not_covered
-    symptom: "集群里其他服务调用 api 一直连不上，但 api 的 Pod 看起来都是 Running。"
-    inject:
-      - kubectl: ["-n", "{ns}", "patch", "service/api", "-p", '{"spec":{"selector":{"app":"api-v2"}}}']
-    confirm:
-      timeout_s: 30
-      checks:
-        - {type: service_endpoints_empty, service: api}
-    reset:
-      - kubectl: ["-n", "{ns}", "patch", "service/api", "-p", '{"spec":{"selector":{"app":"api"}}}']
-    answer:
-      status: root_cause_found
-      object: {kind: Service, name: api}
-      cause_category: other
-      explanation: "Service api 的 selector 被改成 app=api-v2，选不中任何 Pod，Endpoints 为空。SOP 没覆盖 Service 层。"
-      key_evidence: ["api-v2", "selector", "endpoints"]
-      accept_cause_keywords: ["selector", "选择器", "endpoint", "api-v2", "标签"]
-
-  - id: S10
-    split: holdout
-    kind: running_but_broken
-    symptom: "接口能正常提交事件，但事件一直停在 queued 状态，用户点击数不增长。"
-    precheck:
-      - {type: jsonpath_equals, resource: "deployment/worker", path: "{.spec.template.spec.containers[0].env[0].name}", value: "REDIS_PASSWORD"}
-    inject:
-      - kubectl: ["-n", "{ns}", "patch", "deployment/worker", "--type=json", "-p", '[{"op":"replace","path":"/spec/template/spec/containers/0/env/0","value":{"name":"REDIS_PASSWORD","value":"changeme"}}]']
-    confirm:
-      timeout_s: 120
-      checks:
-        - {type: logs_contain, selector: "app=worker", text: "AuthenticationError"}
-    reset:
-      - kubectl: ["-n", "{ns}", "patch", "deployment/worker", "--type=json", "-p", '[{"op":"replace","path":"/spec/template/spec/containers/0/env/0","value":{"name":"REDIS_PASSWORD","valueFrom":{"secretKeyRef":{"name":"redis-auth","key":"password"}}}}]']
-    answer:
-      status: root_cause_found
-      object: {kind: Deployment, name: worker}
-      cause_category: dependency_auth_failed
-      explanation: "worker 的 REDIS_PASSWORD 被改成字面值 changeme，不再引用 Secret，连接 Redis 认证失败。"
-      key_evidence: ["AuthenticationError", "REDIS_PASSWORD", "changeme"]
-      accept_cause_keywords: ["密码", "password", "认证", "auth"]
-
-  # ---- 跨组件场景：现象在 A，根因在 B（S11、S12 开发集；S13、S14 保留测试集）----
-  - id: S11
-    split: dev
-    kind: cross_component
-    symptom: 提交事件的接口一直返回 503，点击数也不涨了。
-    inject:
-    - kubectl:
-      - -n
-      - '{ns}'
-      - patch
-      - configmap/redis-config
-      - --type=merge
-      - -p
-      - '{"data": {"redis.conf": "bind 0.0.0.0\nprotected-mode yes\nport 6379\ndir /data\nappendonly yes\nappendfsync everysec\nsave \"\"\nmaxmemory 512kb\nmaxmemory-policy noeviction\ninclude /etc/redis-auth/redis-auth.conf\n"}}'
-    - &id001
-      kubectl:
-      - -n
-      - '{ns}'
-      - delete
-      - pod
-      - redis-0
-      - --wait=true
-      - --timeout=90s
-    - &id002
-      kubectl:
-      - -n
-      - '{ns}'
-      - rollout
-      - status
-      - statefulset/redis
-      - --timeout=150s
-    - kubectl:
-      - -n
-      - '{ns}'
-      - exec
-      - deployment/api
-      - -c
-      - api
-      - --
-      - python
-      - -c
-      - "import json,uuid,urllib.request as u\nfor i in range(5):\n    r=u.Request('http://127.0.0.1:8000/events',data=json.dumps({'event_id':str(uuid.uuid4()),'user_id':'probe','event_type':'click'}).encode(),headers={'Content-Type':'application/json'})\n    try: print(u.urlopen(r,timeout=3).status)\n    except Exception as e: print(getattr(e,'code',type(e).__name__))\n"
-    confirm:
-      timeout_s: 60
-      checks:
-      - type: logs_contain
-        selector: app=api
-        text: redis_unavailable
-    reset:
-    - kubectl:
-      - -n
-      - '{ns}'
-      - patch
-      - configmap/redis-config
-      - --type=merge
-      - -p
-      - '{"data": {"redis.conf": "bind 0.0.0.0\nprotected-mode yes\nport 6379\ndir /data\nappendonly yes\nappendfsync everysec\nsave \"\"\nmaxmemory 192mb\nmaxmemory-policy noeviction\ninclude /etc/redis-auth/redis-auth.conf\n"}}'
-    - *id001
-    - *id002
-    answer:
-      status: root_cause_found
-      object:
-        kind: StatefulSet
-        name: redis
-      accept_objects:
-      - redis
-      - redis-config
-      symptom_objects:
-      - api
-      - worker
-      cause_category: dependency_memory_full
-      explanation: redis-config 里的 maxmemory 被改成 512kb，低于 Redis 已用内存，所有写入被拒绝（OOM command not allowed）；api 写入失败返回 503。现象在 api，根因在 Redis 配置。
-      key_evidence:
-      - maxmemory
-      - 512kb
-      - OutOfMemoryError
-      - OOM
-      accept_cause_keywords:
-      - maxmemory
-      - 内存
-      - memory
-      - OOM
-  - id: S12
-    split: dev
-    kind: cross_component
-    symptom: 服务整个不可用：api 全部不 Ready，提交不了事件，worker 也停止处理了。
-    inject:
-    - kubectl:
-      - -n
-      - '{ns}'
-      - scale
-      - statefulset/redis
-      - --replicas=0
-    - kubectl:
-      - -n
-      - '{ns}'
-      - wait
-      - --for=delete
-      - pod/redis-0
-      - --timeout=90s
-    confirm:
-      timeout_s: 60
-      checks:
-      - type: pod_not_ready
-        selector: app=api
-    reset:
-    - kubectl:
-      - -n
-      - '{ns}'
-      - scale
-      - statefulset/redis
-      - --replicas=1
-    - *id002
-    answer:
-      status: root_cause_found
-      object:
-        kind: StatefulSet
-        name: redis
-      accept_objects:
-      - redis
-      symptom_objects:
-      - api
-      - worker
-      cause_category: dependency_down
-      explanation: StatefulSet redis 的副本数被缩成 0，Redis 不在运行；api 就绪探针 ping 失败全部不 Ready，worker 连接失败重试。现象在 api / worker，根因在 Redis。
-      key_evidence:
-      - desired
-      - replicas
-      - 副本
-      - 0/0
-      accept_cause_keywords:
-      - 副本
-      - replica
-      - 缩
-      - scale
-      - 没有运行
-      - 不在运行
-  - id: S13
-    split: holdout
-    kind: cross_component
-    symptom: 服务整个不可用：api 全部不 Ready，提交不了事件，worker 也停止处理了。
-    inject:
-    - kubectl:
-      - -n
-      - '{ns}'
-      - patch
-      - configmap/redis-config
-      - --type=merge
-      - -p
-      - '{"data": {"redis.conf": "bind 0.0.0.0\nprotected-mode yes\nport 6379\ndir /data\nappendonly yes\nappendfsync everysec\nsave \"\"\nmaxmemory 192mb\nmaxmemory-policy noeviction\ninclude /etc/redis-auth/redis-auth.conf\nrequirepass rotated-by-config-change\n"}}'
-    - *id001
-    confirm:
-      timeout_s: 120
-      checks:
-      - type: pod_not_ready
-        selector: app=redis
-      - type: pod_not_ready
-        selector: app=api
-    reset:
-    - kubectl:
-      - -n
-      - '{ns}'
-      - patch
-      - configmap/redis-config
-      - --type=merge
-      - -p
-      - '{"data": {"redis.conf": "bind 0.0.0.0\nprotected-mode yes\nport 6379\ndir /data\nappendonly yes\nappendfsync everysec\nsave \"\"\nmaxmemory 192mb\nmaxmemory-policy noeviction\ninclude /etc/redis-auth/redis-auth.conf\n"}}'
-    - *id001
-    - *id002
-    answer:
-      status: root_cause_found
-      object:
-        kind: StatefulSet
-        name: redis
-      accept_objects:
-      - redis
-      - redis-config
-      symptom_objects:
-      - api
-      - worker
-      cause_category: dependency_config_error
-      explanation: redis-config 在 include 之后多了一行 requirepass，覆盖了 Secret 里的密码；Redis 自己的就绪探针认证失败，Pod 不就绪、被摘出 Service，api / worker 都连不上。现象在 api / worker，根因在 Redis 配置。
-      key_evidence:
-      - requirepass
-      - redis-config
-      - Readiness probe failed
-      accept_cause_keywords:
-      - requirepass
-      - 密码
-      - 认证
-      - auth
-      - redis-config
-      - 配置
-  - id: S14
-    split: holdout
-    kind: cross_component
-    symptom: 点击数涨得特别慢，新提交的事件要等很久才变成 completed。
-    inject:
-    - kubectl:
-      - -n
-      - '{ns}'
-      - set
-      - env
-      - deployment/worker
-      - PROCESSING_DELAY_MS=10000
-    - kubectl:
-      - -n
-      - '{ns}'
-      - rollout
-      - status
-      - deployment/worker
-      - --timeout=150s
-    - kubectl:
-      - -n
-      - '{ns}'
-      - exec
-      - deployment/api
-      - -c
-      - api
-      - --
-      - python
-      - -c
-      - "import json,uuid,urllib.request as u\nfor i in range(12):\n    r=u.Request('http://127.0.0.1:8000/events',data=json.dumps({'event_id':str(uuid.uuid4()),'user_id':'probe','event_type':'click'}).encode(),headers={'Content-Type':'application/json'})\n    try: print(u.urlopen(r,timeout=3).status)\n    except Exception as e: print(getattr(e,'code',type(e).__name__))\n"
-    confirm:
-      timeout_s: 90
-      checks:
-      - type: logs_contain
-        selector: app=worker
-        text: committed
-    reset:
-    - kubectl:
-      - -n
-      - '{ns}'
-      - set
-      - env
-      - deployment/worker
-      - PROCESSING_DELAY_MS-
-    answer:
-      status: root_cause_found
-      object:
-        kind: Deployment
-        name: worker
-      accept_objects:
-      - worker
-      symptom_objects:
-      - api
-      cause_category: processing_too_slow
-      explanation: worker 的 PROCESSING_DELAY_MS 被设成 10000（合法上限），每条事件处理 10 秒，事件积压。现象在用户侧 / api，根因在 worker 配置。
-      key_evidence:
-      - PROCESSING_DELAY_MS
-      - '10000'
-      - elapsed_ms
-      accept_cause_keywords:
-      - PROCESSING_DELAY_MS
-      - 处理
-      - 慢
-      - 延迟
-      - delay
+- id: R01
+  split: dev
+  kind: cross_component
+  realism:
+    pattern: Redis 数据只增不减（事件 hash 没有 TTL、数据流没有 MAXLEN），长期累积到 maxmemory；noeviction 下写入被拒，读和 PING 仍正常，所以所有 Pod 都显示 Ready。
+    sources:
+    - https://redis.io/docs/latest/develop/reference/errors/common/oom/
+    - 'SREGym valkey_memory_disruption: https://raw.githubusercontent.com/SREGym/SREGym/main/sregym/conductor/problems/registry.py'
+    - 'ITBench CacheFailure（论文 Table 12）: https://arxiv.org/html/2502.05352'
+    app_fact: app/store.py 的 SUBMIT 脚本 XADD 不带 MAXLEN，事件 hash 不设过期；两个就绪探针都只发 PING。
+    validated: false
+    validate_note: 确认 EVALSHA 里的写命令在 OOM 时，redis-py 抛出的 error_type 是 OutOfMemoryError（还是 ResponseError）。
+  symptom: 用户反馈提交点击大量失败，接口返回 503；可是 kubectl 看所有 Pod 都是 Running、Ready，最近也没有发布。
+  inject:
+  - kubectl:
+    - -n
+    - '{ns}'
+    - exec
+    - redis-0
+    - -c
+    - redis
+    - --
+    - sh
+    - -c
+    - i=0; while [ $i -lt 80 ]; do out=$(redis-cli --no-auth-warning EVAL "for j=1,20000 do local k=ARGV[1]..'-'..ARGV[2]..'-'..j redis.call('HSET',k,'event_id',k,'user_id','u'..(j%5000),'event_type','click','status','completed','received_at','2026-08-01T00:00:00+00:00','completed_at','2026-08-01T00:00:01+00:00','stream_id','0-0')
+      end return 1" 0 tiktok-lab:event:backfill $i 2>&1); case "$out" in *OOM*) break;; esac; i=$((i+1)); done; echo batches=$i
+  - kubectl:
+    - -n
+    - '{ns}'
+    - exec
+    - deployment/api
+    - -c
+    - api
+    - --
+    - python
+    - -c
+    - "import json,uuid,urllib.request as u\nfor i in range(5):\n    r=u.Request('http://127.0.0.1:8000/events',data=json.dumps({'event_id':str(uuid.uuid4()),'user_id':'probe','event_type':'click'}).encode(),headers={'Content-Type':'application/json'})\n\
+      \    try: print(u.urlopen(r,timeout=3).status)\n    except Exception as e: print(getattr(e,'code',type(e).__name__))\n"
+  confirm:
+    timeout_s: 60
+    checks:
+    - type: logs_contain
+      selector: app=api
+      text: redis_unavailable
+  reset:
+  - kubectl:
+    - -n
+    - '{ns}'
+    - exec
+    - redis-0
+    - -c
+    - redis
+    - --
+    - sh
+    - -c
+    - redis-cli --no-auth-warning --scan --count 1000 --pattern 'tiktok-lab:event:backfill-*' | xargs -r -n 500 redis-cli --no-auth-warning DEL > /dev/null; echo cleaned
+  answer:
+    status: root_cause_found
+    object:
+      kind: StatefulSet
+      name: redis
+    accept_objects:
+    - redis
+    symptom_objects:
+    - api
+    cause_category: dependency_memory_full
+    explanation: Redis 已用内存涨到 maxmemory（配置没变，仍是 192mb），noeviction 策略下写入被拒（OOM command not allowed）；api 写入失败返回 503。读命令和 PING 不受影响，所以就绪探针全部通过。现象在 api，根因在 Redis 的数据增长。
+    key_evidence:
+    - OutOfMemoryError
+    - OOM
+    - maxmemory
+    accept_cause_keywords:
+    - 内存
+    - memory
+    - maxmemory
+    - OOM
+    - 写满
+- id: R02
+  split: dev
+  kind: same_symptom_diff_cause
+  realism:
+    pattern: 运维操作把消费者缩到 0（误操作、缩容脚本、节省成本），生产者一切正常，积压静默增长。
+    sources:
+    - 'AIOpsLab scale_pod_zero_social_net（inject_virtual.py）: https://raw.githubusercontent.com/microsoft/AIOpsLab/main/aiopslab/orchestrator/problems/registry.py'
+    validated: true
+  symptom: 接口能正常提交事件，但事件一直停在 queued 状态，用户点击数不增长。
+  inject:
+  - kubectl:
+    - -n
+    - '{ns}'
+    - scale
+    - deployment/worker
+    - --replicas=0
+  - kubectl:
+    - -n
+    - '{ns}'
+    - wait
+    - --for=delete
+    - pod
+    - -l
+    - app=worker
+    - --timeout=90s
+  - kubectl:
+    - -n
+    - '{ns}'
+    - exec
+    - deployment/api
+    - -c
+    - api
+    - --
+    - python
+    - -c
+    - "import json,uuid,urllib.request as u\nfor i in range(5):\n    r=u.Request('http://127.0.0.1:8000/events',data=json.dumps({'event_id':str(uuid.uuid4()),'user_id':'probe','event_type':'click'}).encode(),headers={'Content-Type':'application/json'})\n\
+      \    try: print(u.urlopen(r,timeout=3).status)\n    except Exception as e: print(getattr(e,'code',type(e).__name__))\n"
+  confirm:
+    timeout_s: 30
+    checks:
+    - type: jsonpath_equals
+      resource: deployment/worker
+      path: '{.spec.replicas}'
+      value: '0'
+  reset:
+  - kubectl:
+    - -n
+    - '{ns}'
+    - scale
+    - deployment/worker
+    - --replicas=1
+  answer:
+    status: root_cause_found
+    object:
+      kind: Deployment
+      name: worker
+    cause_category: scaled_to_zero
+    explanation: Deployment worker 的副本数被缩成 0，没有消费者处理事件；api 正常写入，事件全部停在 queued。
+    key_evidence:
+    - desired=0
+    - 'desired: 0'
+    - replicas=0
+    - 0/0
+    - 副本数为 0
+    - 副本数是 0
+    accept_cause_keywords:
+    - 副本
+    - replica
+    - 缩
+    - scale
+    - '0'
+- id: R03
+  split: dev
+  kind: cross_component
+  realism:
+    pattern: 有人在 Redis 上用 CONFIG SET 运行时改了密码（排障时手动改、脚本误操作），配置文件和 Secret 都没变。已经建立的连接不受影响，新连接全部认证失败，所以故障在客户端重启后才暴露。
+    sources:
+    - 'SREGym valkey_auth_disruption（论文提到 agent 常误判为内存问题）: https://raw.githubusercontent.com/SREGym/SREGym/main/sregym/conductor/problems/registry.py'
+    - 'AIOpsLab revoke_auth_mongodb: https://raw.githubusercontent.com/microsoft/AIOpsLab/main/aiopslab/orchestrator/problems/revoke_auth/revoke_auth.py'
+    - 'ITBench IncorrectAuthentication（论文 Table 12）: https://arxiv.org/html/2502.05352'
+    validated: false
+    validate_note: 确认 redis 的 exec 就绪探针失败事件里带有 AUTH failed / WRONGPASS 文本；确认 api 老连接是否继续可用。
+  symptom: worker 刚做了一次例行重启，重启后就一直处理不了事件；Redis 的 Pod 好像也变成了不 Ready。
+  inject:
+  - kubectl:
+    - -n
+    - '{ns}'
+    - exec
+    - redis-0
+    - -c
+    - redis
+    - --
+    - sh
+    - -c
+    - redis-cli --no-auth-warning CONFIG SET requirepass "manual-$(date +%s)" > /dev/null && echo changed
+  - kubectl:
+    - -n
+    - '{ns}'
+    - rollout
+    - restart
+    - deployment/worker
+  confirm:
+    timeout_s: 60
+    checks:
+    - type: pod_not_ready
+      selector: app=redis
+  reset:
+  - kubectl:
+    - -n
+    - '{ns}'
+    - delete
+    - pod
+    - redis-0
+    - --wait=true
+    - --timeout=90s
+  - kubectl:
+    - -n
+    - '{ns}'
+    - rollout
+    - status
+    - statefulset/redis
+    - --timeout=150s
+  answer:
+    status: root_cause_found
+    object:
+      kind: StatefulSet
+      name: redis
+    accept_objects:
+    - redis
+    symptom_objects:
+    - worker
+    - api
+    cause_category: dependency_config_error
+    explanation: Redis 的密码在运行时被 CONFIG SET 改掉了：redis-config 和 Secret 都和基线一致，但 Redis 自己的就绪探针认证失败，重启后的 worker 也认证失败。根因在 Redis 一侧的运行时配置。
+    key_evidence:
+    - WRONGPASS
+    - AUTH failed
+    - NOAUTH
+    - Readiness probe failed
+    - AuthenticationError
+    accept_cause_keywords:
+    - CONFIG SET
+    - 运行时
+    - runtime
+    - requirepass
+    - 手动
+    - 密码
+- id: R04
+  split: dev
+  kind: cross_component
+  realism:
+    pattern: Service 的 targetPort 和容器端口对不上：Pod 全部 Running/Ready，endpoints 也有，但连接被拒。
+    sources:
+    - 'AIOpsLab k8s_target_port-misconfig（targetPort 9090→9999）: https://raw.githubusercontent.com/microsoft/AIOpsLab/main/aiopslab/orchestrator/problems/k8s_target_port_misconfig/target_port.py'
+    validated: true
+  symptom: api 全部不 Ready，提交不了事件，worker 也一直在重试；可是 Redis 的 Pod 是 Running、Ready 的。
+  inject:
+  - kubectl:
+    - -n
+    - '{ns}'
+    - patch
+    - service/redis
+    - --type=json
+    - -p
+    - '[{"op": "replace", "path": "/spec/ports/0/targetPort", "value": 6380}]'
+  confirm:
+    timeout_s: 60
+    checks:
+    - type: pod_not_ready
+      selector: app=api
+  reset:
+  - kubectl:
+    - -n
+    - '{ns}'
+    - patch
+    - service/redis
+    - --type=json
+    - -p
+    - '[{"op": "replace", "path": "/spec/ports/0/targetPort", "value": "redis"}]'
+  answer:
+    status: root_cause_found
+    object:
+      kind: Service
+      name: redis
+    symptom_objects:
+    - api
+    - worker
+    cause_category: service_misconfigured
+    explanation: Service redis 的 targetPort 被改成 6380，而 Redis 容器监听 6379；Redis 本身健康，客户端经 Service 连接被拒。
+    key_evidence:
+    - targetPort
+    - '6380'
+    accept_cause_keywords:
+    - targetPort
+    - 端口
+    - port
+    - '6380'
+    - Service
+- id: R05
+  split: dev
+  kind: same_symptom_diff_cause
+  realism:
+    pattern: 内存 limit 被调到低于进程实际占用，容器反复 OOMKilled。
+    sources:
+    - 'ITBench MemoryResourceLimit（论文 Table 12）: https://arxiv.org/html/2502.05352'
+    - 'SREGym resource_request_too_small: https://raw.githubusercontent.com/SREGym/SREGym/main/sregym/conductor/problems/registry.py'
+    - 'k8s.af OOM 类事故（Blue Matador、NU.nl、Nordstrom、Zalando）: https://k8s.af/'
+    validated: false
+    validate_note: 确认 24Mi 能稳定触发 OOMKilled（worker 实际 RSS 未测）。
+  symptom: worker 一直在重启，事件堆积处理不掉。
+  inject:
+  - kubectl:
+    - -n
+    - '{ns}'
+    - set
+    - resources
+    - deployment/worker
+    - -c
+    - worker
+    - --limits=memory=24Mi
+    - --requests=memory=24Mi
+  confirm:
+    timeout_s: 120
+    checks:
+    - type: pod_last_terminated_reason
+      selector: app=worker
+      reason: OOMKilled
+  reset:
+  - kubectl:
+    - -n
+    - '{ns}'
+    - set
+    - resources
+    - deployment/worker
+    - -c
+    - worker
+    - --limits=cpu=500m,memory=128Mi
+    - --requests=cpu=100m,memory=64Mi
+  answer:
+    status: root_cause_found
+    object:
+      kind: Deployment
+      name: worker
+    cause_category: memory_limit_too_low
+    explanation: worker 的内存 limit 被改成 24Mi，低于进程占用，容器被 OOMKilled 后反复重启。
+    key_evidence:
+    - OOMKilled
+    - 24Mi
+    accept_cause_keywords:
+    - 内存
+    - memory
+    - OOM
+    - 24Mi
+    - limit
+- id: R06
+  split: dev
+  kind: single_evidence
+  realism:
+    pattern: 发布引用了节点上不存在的镜像标签（CI 打了标签但没推送 / 没导入），新 Pod 拉不到镜像，滚动发布卡住，老 Pod 继续服务。
+    sources:
+    - 'ITBench CorruptImage / Nonexistent Kubernetes Workload Container Image: https://arxiv.org/html/2502.05352'
+    - 'AIOpsLab misconfig_app_hotel_res（换镜像）: https://raw.githubusercontent.com/microsoft/AIOpsLab/main/aiopslab/orchestrator/problems/misconfig_app/misconfig_app_hotel_res.py'
+    - SREGym incorrect_image
+    validated: true
+  symptom: 刚发布了 api 的新版本，发布一直卡着没完成，新 Pod 起不来。
+  inject:
+  - kubectl:
+    - -n
+    - '{ns}'
+    - set
+    - image
+    - deployment/api
+    - api=tiktok-k8s-lab:v1.1
+  confirm:
+    timeout_s: 90
+    checks:
+    - type: pod_waiting_reason
+      selector: app=api
+      reasons:
+      - ErrImageNeverPull
+      - ErrImagePull
+      - ImagePullBackOff
+  reset:
+  - kubectl:
+    - -n
+    - '{ns}'
+    - set
+    - image
+    - deployment/api
+    - api=tiktok-k8s-lab:v1
+  answer:
+    status: root_cause_found
+    object:
+      kind: Deployment
+      name: api
+    cause_category: image_unavailable
+    explanation: '镜像标签 v1.1 在节点上不存在（imagePullPolicy: Never），新 Pod 停在 ErrImageNeverPull。'
+    key_evidence:
+    - v1.1
+    - ErrImageNeverPull
+    - ImagePullBackOff
+    - ErrImagePull
+    accept_cause_keywords:
+    - 镜像
+    - image
+    - v1.1
+- id: R07
+  split: dev
+  kind: normal
+  symptom: 有用户说页面偶尔有点慢，帮忙看下这个命名空间的服务有没有异常。
+  inject: []
+  confirm:
+    timeout_s: 10
+    checks:
+    - type: always
+  reset: []
+  answer:
+    status: no_fault_found
+    object: null
+    cause_category: no_fault
+    explanation: 没有注入故障，所有工作负载健康。
+    key_evidence: []
+    accept_cause_keywords: []
+  realism:
+    pattern: 什么都没坏（负对照）。
+    sources:
+    - AIOpsLab noop_detection_*
+    validated: true
+- id: R08
+  split: dev
+  kind: cross_component
+  symptom: 服务整个不可用：api 全部不 Ready，提交不了事件，worker 也停止处理了。
+  inject:
+  - kubectl:
+    - -n
+    - '{ns}'
+    - scale
+    - statefulset/redis
+    - --replicas=0
+  - kubectl:
+    - -n
+    - '{ns}'
+    - wait
+    - --for=delete
+    - pod/redis-0
+    - --timeout=90s
+  confirm:
+    timeout_s: 60
+    checks:
+    - type: pod_not_ready
+      selector: app=api
+  reset:
+  - kubectl:
+    - -n
+    - '{ns}'
+    - scale
+    - statefulset/redis
+    - --replicas=1
+  - kubectl:
+    - -n
+    - '{ns}'
+    - rollout
+    - status
+    - statefulset/redis
+    - --timeout=150s
+  answer:
+    status: root_cause_found
+    object:
+      kind: StatefulSet
+      name: redis
+    accept_objects:
+    - redis
+    symptom_objects:
+    - api
+    - worker
+    cause_category: dependency_down
+    explanation: StatefulSet redis 的副本数被缩成 0，Redis 不在运行；api 就绪探针 ping 失败全部不 Ready，worker 连接失败重试。现象在 api / worker，根因在 Redis。
+    key_evidence:
+    - desired
+    - replicas
+    - 副本
+    - 0/0
+    accept_cause_keywords:
+    - 副本
+    - replica
+    - 缩
+    - scale
+    - 没有运行
+    - 不在运行
+  realism:
+    pattern: 依赖被缩到 0（误操作、批量缩容脚本），所有客户端同时失败。
+    sources:
+    - 'AIOpsLab scale_pod_zero_social_net: https://raw.githubusercontent.com/microsoft/AIOpsLab/main/aiopslab/orchestrator/problems/scale_pod/scale_pod_social_net.py'
+    validated: true
+- id: R09
+  split: dev
+  kind: cross_component
+  realism:
+    pattern: Secret 里的键被重命名（整理命名、换 chart 版本），引用旧键名的卷挂载失败；Redis 下次重启时卡在 ContainerCreating，所有客户端随之失败。
+    sources:
+    - SREGym missing_configmap_* / missing_env_variable_*（同类：引用的配置项不存在）
+    - 'docker-library/redis#58（认证配置缺失导致客户端被拒）: https://github.com/docker-library/redis/issues/58'
+    validated: false
+    validate_note: 确认事件文本包含 couldn't find key redis-auth.conf，以及 Pod 的等待原因是 ContainerCreating。
+  symptom: Redis 例行重启之后就没再起来，api 全部不 Ready，worker 也停止处理了。
+  inject:
+  - kubectl:
+    - -n
+    - '{ns}'
+    - patch
+    - secret/redis-auth
+    - --type=json
+    - -p
+    - '[{"op": "move", "from": "/data/redis-auth.conf", "to": "/data/auth.conf"}]'
+  - kubectl:
+    - -n
+    - '{ns}'
+    - delete
+    - pod
+    - redis-0
+    - --wait=true
+    - --timeout=90s
+  confirm:
+    timeout_s: 60
+    checks:
+    - type: pod_waiting_reason
+      selector: app=redis
+      reasons:
+      - ContainerCreating
+  reset:
+  - kubectl:
+    - -n
+    - '{ns}'
+    - patch
+    - secret/redis-auth
+    - --type=json
+    - -p
+    - '[{"op": "move", "from": "/data/auth.conf", "to": "/data/redis-auth.conf"}]'
+  - kubectl:
+    - -n
+    - '{ns}'
+    - delete
+    - pod
+    - redis-0
+    - --wait=true
+    - --timeout=90s
+  - kubectl:
+    - -n
+    - '{ns}'
+    - rollout
+    - status
+    - statefulset/redis
+    - --timeout=150s
+  answer:
+    status: root_cause_found
+    object:
+      kind: Secret
+      name: redis-auth
+    accept_objects:
+    - redis-auth
+    - redis
+    symptom_objects:
+    - api
+    - worker
+    cause_category: dependency_config_error
+    explanation: Secret redis-auth 里的键 redis-auth.conf 不存在了（被改名），StatefulSet redis 的卷按旧键名挂载失败（FailedMount），Redis 起不来；api、worker 连不上 Redis。
+    key_evidence:
+    - FailedMount
+    - redis-auth.conf
+    - couldn't find key
+    accept_cause_keywords:
+    - Secret
+    - key
+    - 键
+    - redis-auth.conf
+    - 挂载
+    - mount
+- id: R10
+  split: holdout
+  kind: same_symptom_diff_cause
+  realism:
+    pattern: 启动命令被改成了别的程序的入口（复制粘贴部署清单时带错），容器正常 Running，只是根本不在消费。
+    sources:
+    - 'AIOpsLab wrong_bin_usage（command 从 profile 改成 geo）: https://raw.githubusercontent.com/microsoft/AIOpsLab/main/aiopslab/orchestrator/problems/registry.py'
+    - k8s-ai-bench fix-crashloop（nginx 镜像跑 python 命令）
+    validated: true
+  symptom: 接口能正常提交事件，但事件一直停在 queued 状态，用户点击数不增长。
+  precheck:
+  - type: jsonpath_equals
+    resource: deployment/worker
+    path: '{.spec.template.spec.containers[0].command[2]}'
+    value: app.worker
+  inject:
+  - kubectl:
+    - -n
+    - '{ns}'
+    - patch
+    - deployment/worker
+    - --type=json
+    - -p
+    - '[{"op": "replace", "path": "/spec/template/spec/containers/0/command", "value": ["python", "-m", "uvicorn", "app.api:app", "--host", "0.0.0.0", "--port", "8000"]}]'
+  - kubectl:
+    - -n
+    - '{ns}'
+    - rollout
+    - status
+    - deployment/worker
+    - --timeout=150s
+  - kubectl:
+    - -n
+    - '{ns}'
+    - exec
+    - deployment/api
+    - -c
+    - api
+    - --
+    - python
+    - -c
+    - "import json,uuid,urllib.request as u\nfor i in range(5):\n    r=u.Request('http://127.0.0.1:8000/events',data=json.dumps({'event_id':str(uuid.uuid4()),'user_id':'probe','event_type':'click'}).encode(),headers={'Content-Type':'application/json'})\n\
+      \    try: print(u.urlopen(r,timeout=3).status)\n    except Exception as e: print(getattr(e,'code',type(e).__name__))\n"
+  confirm:
+    timeout_s: 90
+    checks:
+    - type: logs_contain
+      selector: app=worker
+      text: Uvicorn running
+  reset:
+  - kubectl:
+    - -n
+    - '{ns}'
+    - patch
+    - deployment/worker
+    - --type=json
+    - -p
+    - '[{"op": "replace", "path": "/spec/template/spec/containers/0/command", "value": ["python", "-m", "app.worker"]}]'
+  answer:
+    status: root_cause_found
+    object:
+      kind: Deployment
+      name: worker
+    cause_category: wrong_command
+    explanation: worker 的启动命令被改成了 api 的入口（uvicorn app.api:app），容器正常运行、没有报错，但跑的是 Web 服务而不是消费者，事件没人处理。
+    key_evidence:
+    - uvicorn
+    - app.api
+    - Uvicorn running
+    accept_cause_keywords:
+    - uvicorn
+    - command
+    - 启动命令
+    - app.api
+    - 入口
+- id: R11
+  split: holdout
+  kind: cross_component
+  realism:
+    pattern: 改了 ConfigMap 但没有重启所有使用它的 Pod：envFrom 只在容器启动时读取，之后某个 Pod 因为别的原因重启，就和其他 Pod 用上了不同的配置。
+    sources:
+    - 'Kubernetes 文档（以环境变量使用的 ConfigMap 不会自动更新）: https://kubernetes.io/docs/concepts/configuration/configmap/'
+    - 'kubernetes/kubernetes#22368: https://github.com/kubernetes/kubernetes/issues/22368'
+    - 'k8s.af Pusher「Oh Sh*t! The Config Changed!」: https://k8s.af/'
+    - 'SREGym configmap_drift_hotel_reservation: https://raw.githubusercontent.com/SREGym/SREGym/main/sregym/conductor/problems/registry.py'
+    validated: true
+  symptom: 接口能正常提交事件，但事件一直停在 queued 状态，用户点击数不增长。
+  inject:
+  - kubectl:
+    - -n
+    - '{ns}'
+    - patch
+    - configmap/app-config
+    - --type=merge
+    - -p
+    - '{"data": {"KEY_PREFIX": "tiktok-lab-v2"}}'
+  - kubectl:
+    - -n
+    - '{ns}'
+    - rollout
+    - restart
+    - deployment/worker
+  - kubectl:
+    - -n
+    - '{ns}'
+    - rollout
+    - status
+    - deployment/worker
+    - --timeout=150s
+  - kubectl:
+    - -n
+    - '{ns}'
+    - exec
+    - deployment/api
+    - -c
+    - api
+    - --
+    - python
+    - -c
+    - "import json,uuid,urllib.request as u\nfor i in range(5):\n    r=u.Request('http://127.0.0.1:8000/events',data=json.dumps({'event_id':str(uuid.uuid4()),'user_id':'probe','event_type':'click'}).encode(),headers={'Content-Type':'application/json'})\n\
+      \    try: print(u.urlopen(r,timeout=3).status)\n    except Exception as e: print(getattr(e,'code',type(e).__name__))\n"
+  confirm:
+    timeout_s: 30
+    checks:
+    - type: jsonpath_equals
+      resource: configmap/app-config
+      path: '{.data.KEY_PREFIX}'
+      value: tiktok-lab-v2
+  reset:
+  - kubectl:
+    - -n
+    - '{ns}'
+    - patch
+    - configmap/app-config
+    - --type=merge
+    - -p
+    - '{"data": {"KEY_PREFIX": "tiktok-lab"}}'
+  - kubectl:
+    - -n
+    - '{ns}'
+    - exec
+    - redis-0
+    - -c
+    - redis
+    - --
+    - sh
+    - -c
+    - redis-cli --no-auth-warning --scan --pattern 'tiktok-lab-v2:*' | xargs -r -n 500 redis-cli --no-auth-warning DEL > /dev/null; echo cleaned
+  answer:
+    status: root_cause_found
+    object:
+      kind: ConfigMap
+      name: app-config
+    accept_objects:
+    - app-config
+    symptom_objects:
+    - worker
+    cause_category: config_drift
+    explanation: ConfigMap app-config 的 KEY_PREFIX 被改成 tiktok-lab-v2，但只有 worker 重启后读到了新值；api 的 Pod 是改之前启动的，仍往 tiktok-lab 前缀写。两边读写的不是同一个数据流，worker 没有报错，事件全部积压。
+    key_evidence:
+    - KEY_PREFIX
+    - tiktok-lab-v2
+    - last_updated
+    accept_cause_keywords:
+    - KEY_PREFIX
+    - ConfigMap
+    - 漂移
+    - drift
+    - envFrom
+    - 不一致
+    - 重启
+- id: R12
+  split: holdout
+  kind: cross_component
+  realism:
+    pattern: 只轮换了 Secret 里客户端用的密码，Redis 还在用旧密码（配置只在启动时读取）；新起来的 api Pod 认证失败一直不 Ready，滚动发布卡住，老 Pod 和 worker 正常。
+    sources:
+    - 'spotahome/redis-operator#658: https://github.com/spotahome/redis-operator/issues/658'
+    - 'helm/charts#2636: https://github.com/helm/charts/issues/2636'
+    - SREGym secret_rotation_stale_env_credentials_astronomy_shop（仅名称）
+    app_fact: Secret redis-auth 有两个键：客户端用的 password 和 Redis 用的 redis-auth.conf，可以只改其中一个。
+    validated: true
+  symptom: api 发布卡住了：新 Pod 一直不 Ready，老 Pod 还在正常服务。
+  inject:
+  - kubectl:
+    - -n
+    - '{ns}'
+    - patch
+    - secret/redis-auth
+    - --type=merge
+    - -p
+    - '{"stringData": {"password": "rotated-2026-11"}}'
+  - kubectl:
+    - -n
+    - '{ns}'
+    - rollout
+    - restart
+    - deployment/api
+  confirm:
+    timeout_s: 90
+    checks:
+    - type: pod_not_ready
+      selector: app=api
+  reset:
+  - kubectl:
+    - -n
+    - '{ns}'
+    - delete
+    - secret
+    - redis-auth
+  - kubectl:
+    - -n
+    - '{ns}'
+    - create
+    - secret
+    - generic
+    - redis-auth
+    - --from-file=password={lab}/.local/redis-password.txt
+    - --from-file=redis-auth.conf={lab}/.local/redis-auth.conf
+  answer:
+    status: root_cause_found
+    object:
+      kind: Secret
+      name: redis-auth
+    accept_objects:
+    - redis-auth
+    symptom_objects:
+    - api
+    cause_category: dependency_auth_failed
+    explanation: Secret redis-auth 里客户端用的 password 被轮换了，但 Redis 仍按启动时读到的旧密码认证；只有新起的 api Pod 读到新密码，认证失败一直不 Ready，老 Pod 和 worker 仍用旧密码所以正常。
+    key_evidence:
+    - AuthenticationError
+    - WRONGPASS
+    - redis-auth
+    accept_cause_keywords:
+    - Secret
+    - 轮换
+    - rotation
+    - rotate
+    - redis-auth
+    - 密码
+- id: R13
+  split: holdout
+  kind: cross_component
+  realism:
+    pattern: 存活探针调用了检查依赖的接口：依赖短暂不可用（例行重启）时，kubelet 把所有 api Pod 都判定为死掉并重启，触发事件在 Redis，根因在 api 的探针设计。
+    sources:
+    - 'srcco.de「Kubernetes Liveness Probes are Dangerous」: https://srcco.de/posts/kubernetes-liveness-probes-are-dangerous.html'
+    - 'Microsoft AKS 关键任务博客（2025 年两次真实事故）: https://techcommunity.microsoft.com/t5/microsoft-mission-critical-blog/hardening-spring-boot-health-probes-on-aks-how-to-prevent/ba-p/4491549'
+    - 'k8s.af livenessProbe 类（NRE Labs、ThredUP）: https://k8s.af/'
+    - SREGym liveness_probe_too_aggressive_*
+    validated: false
+    validate_note: 确认 Redis 重启期间 api 的存活探针至少失败一次并触发重启。
+  symptom: Redis 刚做完一次例行重启，之后 api 的 Pod 全部重启了，重启次数还在涨。
+  precheck:
+  - type: jsonpath_equals
+    resource: deployment/api
+    path: '{.spec.template.spec.containers[0].livenessProbe.httpGet.path}'
+    value: /health/live
+  inject:
+  - kubectl:
+    - -n
+    - '{ns}'
+    - patch
+    - deployment/api
+    - --type=json
+    - -p
+    - '[{"op": "replace", "path": "/spec/template/spec/containers/0/livenessProbe/httpGet/path", "value": "/health/ready"}, {"op": "replace", "path": "/spec/template/spec/containers/0/livenessProbe/failureThreshold",
+      "value": 1}]'
+  - kubectl:
+    - -n
+    - '{ns}'
+    - rollout
+    - status
+    - deployment/api
+    - --timeout=150s
+  - kubectl:
+    - -n
+    - '{ns}'
+    - delete
+    - pod
+    - redis-0
+    - --wait=true
+    - --timeout=90s
+  - kubectl:
+    - -n
+    - '{ns}'
+    - rollout
+    - status
+    - statefulset/redis
+    - --timeout=150s
+  confirm:
+    timeout_s: 90
+    checks:
+    - type: pod_restart_count_at_least
+      selector: app=api
+      count: 1
+  reset:
+  - kubectl:
+    - -n
+    - '{ns}'
+    - patch
+    - deployment/api
+    - --type=json
+    - -p
+    - '[{"op": "replace", "path": "/spec/template/spec/containers/0/livenessProbe/httpGet/path", "value": "/health/live"}, {"op": "replace", "path": "/spec/template/spec/containers/0/livenessProbe/failureThreshold",
+      "value": 3}]'
+  answer:
+    status: root_cause_found
+    object:
+      kind: Deployment
+      name: api
+    symptom_objects:
+    - redis
+    cause_category: probe_misconfigured
+    explanation: api 的存活探针指向 /health/ready（会 ping Redis），并且 failureThreshold=1；Redis 例行重启的几秒内探针失败，kubelet 重启了全部 api Pod。Redis 重启只是触发条件，根因是 api 的存活探针依赖下游。
+    key_evidence:
+    - /health/ready
+    - Liveness probe failed
+    - livenessProbe
+    accept_cause_keywords:
+    - liveness
+    - 存活探针
+    - /health/ready
+    - 探针
+    - probe
+- id: R14
+  split: holdout
+  kind: sop_not_covered
+  realism:
+    pattern: Redis 的数据卷挂到了错误的路径，Redis 实际写在容器的临时文件系统上；重启后数据全部丢失。所有 Pod 都健康，只能从业务数据看出来。
+    sources:
+    - 'AIOpsLab redeploy_without_PV: https://raw.githubusercontent.com/microsoft/AIOpsLab/main/aiopslab/orchestrator/problems/redeploy_without_pv/redeploy_without_pv.py'
+    - 'Redis NOGROUP（stream 被删时消费组一起消失）: https://redis.io/docs/latest/develop/reference/errors/common/nogroup/'
+    - 'LSST/Rubin 运维手册 NOGROUP 排查: https://df-ops.lsst.io/usdf-applications/ap/prompt-redis/troubleshooting.html'
+    - 'Palark Redis 数据丢失事故: https://palark.com/blog/failure-with-redis-operator-and-redis-data-analysis-tools.md'
+    validated: false
+    validate_note: 确认改挂载路径后的 Redis 重启后数据为空，以及 worker 是否打出一条 redis_retry ResponseError。
+  symptom: Redis 刚做完一次维护重启。重启后用户的点击数全部归零，之前提交过的事件也查不到了（接口返回 404），但所有 Pod 都是正常的。
+  inject:
+  - kubectl:
+    - -n
+    - '{ns}'
+    - exec
+    - deployment/api
+    - -c
+    - api
+    - --
+    - python
+    - -c
+    - "import json,uuid,urllib.request as u\nfor i in range(5):\n    r=u.Request('http://127.0.0.1:8000/events',data=json.dumps({'event_id':str(uuid.uuid4()),'user_id':'probe','event_type':'click'}).encode(),headers={'Content-Type':'application/json'})\n\
+      \    try: print(u.urlopen(r,timeout=3).status)\n    except Exception as e: print(getattr(e,'code',type(e).__name__))\n"
+  - kubectl:
+    - -n
+    - '{ns}'
+    - patch
+    - statefulset/redis
+    - --type=json
+    - -p
+    - '[{"op": "replace", "path": "/spec/template/spec/containers/0/volumeMounts/0/mountPath", "value": "/var/lib/redis"}]'
+  - kubectl:
+    - -n
+    - '{ns}'
+    - rollout
+    - status
+    - statefulset/redis
+    - --timeout=150s
+  confirm:
+    timeout_s: 30
+    checks:
+    - type: jsonpath_equals
+      resource: statefulset/redis
+      path: '{.spec.template.spec.containers[0].volumeMounts[0].mountPath}'
+      value: /var/lib/redis
+  reset:
+  - kubectl:
+    - -n
+    - '{ns}'
+    - patch
+    - statefulset/redis
+    - --type=json
+    - -p
+    - '[{"op": "replace", "path": "/spec/template/spec/containers/0/volumeMounts/0/mountPath", "value": "/data"}]'
+  - kubectl:
+    - -n
+    - '{ns}'
+    - rollout
+    - status
+    - statefulset/redis
+    - --timeout=150s
+  answer:
+    status: root_cause_found
+    object:
+      kind: StatefulSet
+      name: redis
+    accept_objects:
+    - redis
+    symptom_objects:
+    - api
+    - worker
+    cause_category: other
+    explanation: StatefulSet redis 把数据卷挂到了 /var/lib/redis，而 redis.conf 里 dir 是 /data；AOF 写在容器临时文件系统上，Redis 重启后数据全部丢失。SOP 没有覆盖数据丢失，只在基线里写了挂载路径（故意保留的 SOP 盲区）。
+    key_evidence:
+    - /var/lib/redis
+    - dir /data
+    - volumeMounts
+    - 'data -> '
+    accept_cause_keywords:
+    - 持久化
+    - PVC
+    - 挂载
+    - mountPath
+    - /var/lib/redis
+    - 数据卷
+    - persist
+- id: R15
+  split: holdout
+  kind: cross_component
+  realism:
+    pattern: 给单线程的 Redis 设了很低的 CPU limit，CFS 限流把每次请求拖慢到客户端超时；平均 CPU 使用率看起来并不高。
+    sources:
+    - 'kubernetes/kubernetes#67577「CFS quotas can lead to unnecessary throttling」: https://github.com/kubernetes/kubernetes/issues/67577'
+    - 'Buffer：去掉 CPU limit 后延迟大幅下降: https://erickhun.com/posts/kubernetes-faster-services-no-cpu-limits/'
+    - 'k8s.af CPU 限流类（Airbnb、Buffer、Omio、Zalando 等十余篇）: https://k8s.af/'
+    - SREGym cfs_cpu_throttling_*
+    validated: false
+    validate_note: 20m 在 40 次提交的负载下能否稳定造成客户端超时，需要实测；不行就加大流量或降到 10m。
+  symptom: 提交接口时不时返回 503，api 的 Pod 偶尔变成不 Ready 又自己恢复；Redis 的 Pod 一直是 Running。
+  inject:
+  - kubectl:
+    - -n
+    - '{ns}'
+    - set
+    - resources
+    - statefulset/redis
+    - -c
+    - redis
+    - --limits=cpu=20m
+    - --requests=cpu=20m
+  - kubectl:
+    - -n
+    - '{ns}'
+    - rollout
+    - status
+    - statefulset/redis
+    - --timeout=150s
+  - kubectl:
+    - -n
+    - '{ns}'
+    - exec
+    - deployment/api
+    - -c
+    - api
+    - --
+    - python
+    - -c
+    - "import json,uuid,urllib.request as u\nfor i in range(40):\n    r=u.Request('http://127.0.0.1:8000/events',data=json.dumps({'event_id':str(uuid.uuid4()),'user_id':'probe','event_type':'click'}).encode(),headers={'Content-Type':'application/json'})\n\
+      \    try: print(u.urlopen(r,timeout=3).status)\n    except Exception as e: print(getattr(e,'code',type(e).__name__))\n"
+  confirm:
+    timeout_s: 90
+    checks:
+    - type: logs_contain
+      selector: app=api
+      text: redis_unavailable
+  reset:
+  - kubectl:
+    - -n
+    - '{ns}'
+    - set
+    - resources
+    - statefulset/redis
+    - -c
+    - redis
+    - --limits=cpu=1
+    - --requests=cpu=100m
+  - kubectl:
+    - -n
+    - '{ns}'
+    - rollout
+    - status
+    - statefulset/redis
+    - --timeout=150s
+  answer:
+    status: root_cause_found
+    object:
+      kind: StatefulSet
+      name: redis
+    accept_objects:
+    - redis
+    symptom_objects:
+    - api
+    cause_category: cpu_limit_too_low
+    explanation: StatefulSet redis 的 CPU limit 被改成 20m，单线程的 Redis 被 CFS 限流，请求处理变慢，客户端在 1 秒超时内拿不到结果（TimeoutError），api 返回 503、就绪探针间歇失败。
+    key_evidence:
+    - 20m
+    - TimeoutError
+    - limits
+    accept_cause_keywords:
+    - CPU
+    - 限流
+    - throttl
+    - 20m
+    - limit
+- id: R16
+  split: holdout
+  kind: insufficient_evidence
+  symptom: rec-feature 命名空间里的 feature-sync 服务一直在报错，帮忙查下原因。
+  inject:
+  - kubectl:
+    - apply
+    - -f
+    - '{repo}/k8s/restricted-ns.yaml'
+  confirm:
+    timeout_s: 120
+    checks:
+    - type: pod_restart_count_at_least
+      selector: app=feature-sync
+      count: 1
+      namespace: rec-feature
+  reset:
+  - kubectl:
+    - delete
+    - namespace
+    - rec-feature
+    - --wait=true
+    - --timeout=120s
+  answer:
+    status: undetermined
+    object: null
+    cause_category: other
+    explanation: 诊断器没有 rec-feature 命名空间的读权限，正确做法是说明无法确定并指出缺少权限。
+    key_evidence:
+    - forbidden
+    accept_unknowns_keywords:
+    - 权限
+    - forbidden
+    - rec-feature
+    - permission
+  realism:
+    pattern: 症状在诊断器没有权限的命名空间（权限边界，不是故障）。正确做法是说明缺少权限，而不是猜。
+    sources:
+    - 本项目的只读 RBAC 设计（k8s/rbac-diag.yaml）
+    validated: true

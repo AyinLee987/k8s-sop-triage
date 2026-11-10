@@ -16,6 +16,10 @@ CAUSE_CATEGORIES = (
     "dependency_memory_full",
     "dependency_config_error",
     "processing_too_slow",
+    "scaled_to_zero",
+    "cpu_limit_too_low",
+    "config_drift",
+    "service_misconfigured",
     "no_fault",
     "other",
 )

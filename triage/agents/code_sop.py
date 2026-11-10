@@ -26,8 +26,9 @@ JUDGE_SYSTEM = """你是 Kubernetes 排查助手。程序已经按 SOP 执行了
 DIAGNOSIS_INSTRUCTION = """请根据以上证据输出诊断 JSON，字段：status, cause_category, cause, object, evidence, unknowns。
 evidence 必须原样引用上面证据里的内容。证据不足时 status 写 undetermined，并在 unknowns 里写明还缺什么。"""
 
-DECISION_INSTRUCTION = """程序按 SOP 没有发现异常的工作负载，各工作负载日志里也没有已知错误。
-请结合用户反馈的症状判断：输出 {"decision": "no_fault"} 表示接受"没有故障"的结论；
+DECISION_INSTRUCTION = """程序按 SOP 没有发现异常的工作负载，各工作负载日志里也没有已知错误；上面附了与基线的对照结果。
+请结合用户反馈的症状判断：如果证据已经足够定位根因，直接输出诊断 JSON（字段同上：status, cause_category, cause,
+object, evidence, unknowns）；输出 {"decision": "no_fault"} 表示接受"没有故障"的结论；
 输出 {"decision": "investigate", "reason": "..."} 表示症状提示还有 SOP 没覆盖的问题，需要进一步排查。"""
 
 
@@ -55,7 +56,10 @@ class CodeSopAgent(Agent):
             trace.add(type="sop_step", name="branch", branch=ab.branch, workload=f"{ab.kind}/{ab.name}")
             bundle = {"总览中的异常": [r for a in abnormal for r in a.reasons][:12], "分支证据": evidence}
             logs = "\n".join((evidence.get("previous_logs") or evidence.get("logs") or {}).get("lines", []))
-            if ab.name != sop_steps.DEPENDENCY and sop_steps.has_dependency_error(logs):
+            if ab.name == sop_steps.DEPENDENCY:  # the dependency itself is abnormal: 30-redis evidence directly
+                tools.trace.add(type="sop_step", name="follow_dependency")
+                bundle["依赖检查（按 30-redis.md 收集）"] = sop_steps.follow_dependency(tools, overview)
+            elif sop_steps.has_dependency_error(logs):
                 bundle.update(self._dependency_bundle(tools, overview, evidence.get("workload") or {}))
             diag = self._judge_diagnosis(symptom, namespace, bundle, tools, label="J1_branch")
             return self._maybe_free(diag, symptom, namespace, tools, "分支证据不足")
@@ -80,12 +84,17 @@ class CodeSopAgent(Agent):
                                          tools, label="J2_slow")
             return self._maybe_free(diag, symptom, namespace, tools, "处理耗时异常但无法归类")
 
+        trace.add(type="sop_step", name="baseline_checks")
         summary = {
             "工作负载": overview.get("workloads"),
-            "Pod": [{k: p.get(k) for k in ("name", "phase", "ready", "restarts")} for p in overview.get("pods", [])],
+            "Pod": [{k: p.get(k) for k in ("name", "phase", "ready", "restarts", "created")} for p in overview.get("pods", [])],
             "日志": "各工作负载最近 60 行日志没有错误或重试记录",
+            "各工作负载最近日志（末尾几行）": {ref: r.get("lines", [])[-4:] for ref, r in app["logs"].items()},
+            "与基线的对照（01-pod-common 第 4 步）": sop_steps.baseline_checks(tools, overview),
         }
         decision = self._judge_json(symptom, namespace, summary, DECISION_INSTRUCTION, tools, label="J3_decide")
+        if "status" in decision and "decision" not in decision:  # the baseline comparison already located it
+            return self._maybe_free(Diagnosis.from_any(decision), symptom, namespace, tools, "基线对照后仍无法确定")
         if decision.get("decision") == "investigate":
             trace.add(type="sop_step", name="free_investigation", reason=str(decision.get("reason", ""))[:200])
             return self._free(symptom, namespace, tools,

@@ -9,7 +9,7 @@
 # 如果提示"禁止运行脚本"，先执行：Set-ExecutionPolicy -Scope Process Bypass
 param(
     [Parameter(Mandatory)][ValidateSet('Setup', 'Test', 'DryRun', 'Overfit', 'DiagCreds', 'CheckEnv', 'Smoke')][string]$Stage,
-    [string]$Scenario = 'S01,S03,S07',
+    [string]$Scenario = 'R06,R02,R07',
     [int]$Rounds = 3,
     [string]$Arms = 'text,code,rule',
     [string]$Doses = '0,10,40',

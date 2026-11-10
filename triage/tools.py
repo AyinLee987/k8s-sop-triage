@@ -47,6 +47,7 @@ def summarize_pod(pod: dict) -> dict:
         "name": meta.get("name"),
         "app": (meta.get("labels") or {}).get("app"),
         "owner": _owner(meta),
+        "created": meta.get("creationTimestamp"),
         "phase": status.get("phase"),
         "ready": ready,
         "restarts": sum(c["restarts"] for c in containers),
@@ -79,11 +80,14 @@ def summarize_container_spec(c: dict) -> dict:
         "env": env,
         "envFrom": [next(iter(x.values())).get("name") for x in c.get("envFrom", []) or [] if x],
         "resources": c.get("resources"),
+        "ports": [{k: p.get(k) for k in ("name", "containerPort") if k in p} for p in c.get("ports", []) or []],
+        "volumeMounts": [f"{m.get('name')} -> {m.get('mountPath')}" for m in c.get("volumeMounts", []) or []],
     }
     for probe in ("livenessProbe", "readinessProbe", "startupProbe"):
         if c.get(probe):
             p = c[probe]
-            out[probe] = {k: p[k] for k in ("httpGet", "exec", "tcpSocket", "periodSeconds", "failureThreshold") if k in p}
+            out[probe] = {k: p[k] for k in ("httpGet", "exec", "tcpSocket", "periodSeconds", "timeoutSeconds",
+                                            "failureThreshold") if k in p}
     return {k: v for k, v in out.items() if v not in (None, [], {})}
 
 
@@ -100,11 +104,25 @@ def summarize_workload(obj: dict) -> dict:
         "updated": status.get("updatedReplicas", 0),
         "selector": (spec.get("selector") or {}).get("matchLabels"),
         "containers": [summarize_container_spec(c) for c in template.get("containers", [])],
+        "volumes": [_volume(v) for v in template.get("volumes", []) or []]
+                   + [f"{t.get('metadata', {}).get('name')} <- volumeClaimTemplate"
+                      for t in spec.get("volumeClaimTemplates", []) or []],
         "conditions": [
             {k: c.get(k) for k in ("type", "status", "reason", "message")}
             for c in status.get("conditions", []) or []
         ],
     }
+
+
+def _volume(v: dict) -> str:
+    """Volume source by reference only (ConfigMap / Secret name and item keys); never contents."""
+    for kind in ("configMap", "secret", "persistentVolumeClaim", "emptyDir"):
+        if kind in v:
+            src = v[kind] or {}
+            ref = src.get("name") or src.get("secretName") or src.get("claimName") or ""
+            keys = [i.get("key") for i in src.get("items", []) or []]
+            return f"{v.get('name')} <- {kind}:{ref}" + (f" keys={keys}" if keys else "")
+    return f"{v.get('name')} <- other"
 
 
 def summarize_service(svc: dict) -> dict:
@@ -119,7 +137,10 @@ def summarize_service(svc: dict) -> dict:
 
 def summarize_configmap(cm: dict) -> dict:
     data = cm.get("data") or {}
-    return {"name": cm.get("metadata", {}).get("name"),
+    meta = cm.get("metadata", {})
+    times = [f.get("time") for f in meta.get("managedFields", []) or [] if f.get("time")]
+    return {"name": meta.get("name"),
+            "last_updated": max(times) if times else meta.get("creationTimestamp"),
             "data": {k: (v if len(v) <= 2000 else v[:2000] + "…") for k, v in data.items()}}
 
 
@@ -306,14 +327,14 @@ def _fn(name: str, description: str, properties: dict, required: list[str]) -> d
 _NS = {"namespace": {"type": "string", "description": "可选；默认是本次排查的命名空间"}}
 TOOL_SPECS = [
     _fn("overview", "列出命名空间内的 Deployment、StatefulSet、Pod（含状态、重启、等待原因、上次终止原因）和 Service。", dict(_NS), []),
-    _fn("get_workload", "查看一个 Deployment 或 StatefulSet 的规格（镜像、命令、环境变量、资源、探针）和状态。",
+    _fn("get_workload", "查看一个 Deployment 或 StatefulSet 的规格（镜像、命令、环境变量、资源、探针、挂载的卷）和状态。",
         {"kind": {"type": "string", "enum": ["deployment", "statefulset"]}, "name": {"type": "string"}, **_NS}, ["kind", "name"]),
-    _fn("get_pod", "查看一个 Pod 的状态摘要。", {"name": {"type": "string"}, **_NS}, ["name"]),
+    _fn("get_pod", "查看一个 Pod 的状态摘要（含创建时间）。", {"name": {"type": "string"}, **_NS}, ["name"]),
     _fn("get_logs", "读取 Pod 日志。previous=true 读上一次运行（已退出容器）的日志。",
         {"pod": {"type": "string"}, "previous": {"type": "boolean"}, "tail": {"type": "integer"}, **_NS}, ["pod"]),
     _fn("get_events", "列出命名空间最近的事件，可按对象名前缀过滤。", {"object_name": {"type": "string"}, **_NS}, []),
     _fn("get_service", "查看 Service 的 selector、端口和当前就绪的 endpoints。", {"name": {"type": "string"}, **_NS}, ["name"]),
-    _fn("get_configmap", "查看 ConfigMap 的内容（例如 app-config、redis-config）。看不到 Secret。", {"name": {"type": "string"}, **_NS}, ["name"]),
+    _fn("get_configmap", "查看 ConfigMap 的内容和最后修改时间（例如 app-config、redis-config）。看不到 Secret。", {"name": {"type": "string"}, **_NS}, ["name"]),
 ]
 
 __all__ = ["ReadOnlyTools", "TOOL_SPECS", "Trace", "BudgetExceeded", "summarize_pod", "summarize_workload",

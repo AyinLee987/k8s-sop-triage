@@ -38,28 +38,34 @@ python -m triage.experiments.overfit run --backend real ...                     
 
 被注入故障的业务是 `tiktok-k8s-lab`（api 2 副本、worker 1 副本、redis StatefulSet）。
 
-| 场景 | 集合 | 类型 | 故障 |
-| --- | --- | --- | --- |
-| S01 | dev | 单证据 | api 镜像标签不存在 |
-| S02 | dev | 运行但异常 | worker 的 REDIS_HOST 写错 |
-| S03 | dev | 同症状不同根因 | worker 配置值超范围，启动校验失败 |
-| S04 | dev | 同症状不同根因 | worker 内存限制 16Mi，OOMKilled |
-| S05 | holdout | 同症状不同根因 | worker 启动模块名写错 |
-| S06 | holdout | 同症状不同根因 | api 存活探针路径写错 |
-| S07 | dev | 正常 | 无故障 |
-| S08 | holdout | 证据不足 | 症状在诊断器无权读取的命名空间 |
-| S09 | holdout | SOP 未覆盖 | Service selector 选不中 Pod |
-| S10 | holdout | 运行但异常 | worker 的 Redis 密码被改成错误的字面值 |
-| S11 | dev | 跨组件 | 接口返回 503（现象在 api），根因是 redis-config 的 maxmemory 被改成 512kb |
-| S12 | dev | 跨组件 | api 全部不 Ready、worker 停止（现象在 api / worker），根因是 redis 副本数为 0 |
-| S13 | holdout | 跨组件 | 与 S12 症状相同，根因是 redis-config 多了一行 requirepass，Redis 自己不就绪 |
-| S14 | holdout | 跨组件 | 点击数涨得很慢（现象在用户侧），根因是 worker 的处理延迟被配成 10 秒 |
+v2 的 16 个场景都取材于公开基准的故障库（ITBench、AIOpsLab、SREGym、k8s-ai-bench）和真实事故（k8s.af、GitHub issue、工程博客），再逐条对照业务代码确认能复现。每个场景的出处、选型理由，以及调研过但没选的候选，都写在 [`scenarios/CATALOG.md`](scenarios/CATALOG.md)。v1 的手写场景归档在 `scenarios/archive/`。
+
+| 场景 | 集合 | 现象 → 根因 |
+| --- | --- | --- |
+| R01 | dev | 提交 503 但 Pod 全 Ready → Redis 数据涨满 maxmemory（上限没改） |
+| R02 | dev | 事件一直 queued → worker 被缩到 0 |
+| R03 | dev | worker 重启后连不上 Redis → 有人运行时 `CONFIG SET requirepass` |
+| R04 | dev | api 全不 Ready、Redis 却 Ready → Service redis 的 targetPort 错 |
+| R05 | dev | worker 一直重启 → 内存 limit 过低 |
+| R06 | dev | api 发布卡住 → 镜像标签不存在 |
+| R07 | dev | 无故障（负对照） |
+| R08 | dev | api 全不 Ready、worker 停止 → redis 被缩到 0 |
+| R09 | dev | Redis 重启后起不来 → Secret 的键被改名，卷挂载失败 |
+| R10 | holdout | 事件一直 queued → worker 跑成了 api 的入口，不在消费 |
+| R11 | holdout | 事件一直 queued → ConfigMap 改了只有 worker 用上新值（配置漂移） |
+| R12 | holdout | api 发布卡住、老 Pod 正常 → Secret 只轮换了一半 |
+| R13 | holdout | Redis 例行重启后 api 全部重启 → api 存活探针依赖 Redis |
+| R14 | holdout | Redis 重启后数据全没 → 数据卷挂错路径（故意保留的 SOP 盲区） |
+| R15 | holdout | 提交间歇 503 → Redis 的 CPU limit 过低被限流 |
+| R16 | holdout | 别的命名空间报错 → 没有权限（权限边界） |
+
+其中 10 个是跨组件或"触发点不是根因"的场景。标了 `validated: false` 的 7 个，注入效果要在真集群上用 `smoke` 确认。
 
 跨组件场景的评分会单独标出"停在症状层"：诊断器把根因写成了最先出现现象的组件（例如 api），而不是真正的根因（例如 redis）。
 
 ### 参数化生成的场景（`scenarios/templates.yaml`）
 
-一个模板对应一种故障机制，每组参数展开成一个场景，目前从 9 个模板生成 25 个场景。参数只改位置和取值（比如换一个环境变量、换一个工作负载、换一个取值），不改机制。
+一个模板对应一种故障机制，每组参数展开成一个场景，目前从 9 个模板生成 26 个场景。参数只改位置和取值（比如换一个环境变量、换一个工作负载、换一个取值），不改机制。
 
 | 机制 | 集合 | 生成数 | 例子 |
 | --- | --- | --- | --- |
@@ -70,7 +76,7 @@ python -m triage.experiments.overfit run --backend real ...                     
 | wrong_command | holdout | 3 | 可执行文件不存在（容器根本起不来，没有日志）；uvicorn 入口写错 |
 | probe_misconfigured | holdout | 3 | 存活探针路径或端口写错；就绪探针路径写错 |
 | dependency_auth_failed | holdout | 2 | worker 密码为空；api 密码写错导致不 Ready |
-| other（SOP 未覆盖） | holdout | 2 | Service selector 选错；targetPort 写错 |
+| service_misconfigured | dev | 3 | api Service 的 selector / targetPort 写错；redis Service 的 selector 被改成 redis-master |
 
 - 生成的场景继承模板的集合划分。测试会检查：把手写和生成的场景合在一起，同一种机制也只出现在一个集合里。
 - 同一句症状对应多种机制。例如"worker 一直在重启"对应 3 种以上原因，"api 发布后新 Pod 一直不 Ready"对应依赖地址错、密码错、就绪探针写错三种。
@@ -93,10 +99,10 @@ python -m triage.experiments.overfit run --backend real ...                     
 
 ## 已在离线环境验证的部分
 
-`pytest` 共 80 个测试，用假集群（`tests/fake_cluster.py`）和按脚本回复的假模型跑通了全流程：
+`pytest` 共 91 个测试，用假集群（`tests/fake_cluster.py`）和按脚本回复的假模型跑通了全流程：
 
-- 规则基线在 10 个场景里答对 8 个。S08 和 S09 答成"无故障"，这符合预期：它们本来就是测规则覆盖不到的情况。
-- 文本 SOP 的工具循环；代码 SOP 在匹配到分支时只调用一次模型；没有匹配分支时进入自由排查（S09、S08）。
+- 规则基线在 16 个场景里答对 14 个。R16（无权限）答成"无故障"、R14（SOP 盲区）答成"无法确定"，符合预期。注意：假集群的证据很干净，规则在这里接近满分不代表真集群上也是；真集群上的噪声和间歇性现象（R03、R13、R15）才是检验点。
+- 文本 SOP 的工具循环；代码 SOP 在匹配到分支时只调用一次模型；没有匹配分支时进入自由排查（R14、R16）；全部健康时把"与基线的对照"交给模型判断（R11）。
 - 预算耗尽、重复调用、截止时间；评分器把对象定位和原因判断分开打分；执行器的阶段顺序和环境失败处理。
 - 生成场景的结构、划分纯度、症状不泄漏答案、JSON patch 合法；规则基线在"容器起不来""依赖故障导致不 Ready""就绪探针写错"三类新分支上答对。
 - 完整实验循环（`run_matrix`）：记录写入、评分、报告；故障没生效会记为环境失败并照常复位；复位失败或开始前环境不健康会立即停止。
@@ -126,7 +132,7 @@ python -m triage.experiments.overfit run --backend real ...                     
 # 回到本项目目录
 .\scripts\Run-LocalChecks.ps1 -Stage DiagCreds  # 生成诊断器只读凭据
 .\scripts\Run-LocalChecks.ps1 -Stage CheckEnv   # 环境健康，且诊断器确实只读
-.\scripts\Run-LocalChecks.ps1 -Stage Smoke      # 默认 S01,S03,S07 各 3 轮；-Scenario S04 -Rounds 2 可以单测 OOM
+.\scripts\Run-LocalChecks.ps1 -Stage Smoke      # 默认 R06,R02,R07 各 3 轮；-Scenario R05 -Rounds 2 可以单测 OOM
 ```
 
 冒烟测试会真的修改并重启 api、worker，每轮结束都会复位并确认恢复。复位失败会立即停止，并打印卡在哪一步。
@@ -149,7 +155,8 @@ python scripts/make_diag_kubeconfig.py
 python -m triage.runner check-env
 
 # 3. 第 1 周检查点：不跑 Agent，只验证"健康—注入—确认—复位"能稳定重复
-python -m triage.runner smoke --scenario S01,S03,S07 --rounds 3
+python -m triage.runner smoke --scenario R06,R02,R07 --rounds 3
+#    再逐个验证 validated=false 的场景：R01,R03,R05,R09,R13,R14,R15
 #    同时另开一个终端记录资源峰值：docker stats --no-stream ；df -h
 
 # 4. 开发集对照（检查点通过后）
@@ -172,10 +179,11 @@ python -m triage.runner run --split holdout --finalize
 
 ```
 sop/                       三组共用的 SOP（总则 + 通用 Pod 步骤 + api / worker / redis，互相引用）
-scenarios/scenarios.yaml   14 个手写场景，含 4 个跨组件场景（只有执行器和评分器读取）
+scenarios/scenarios.yaml   16 个场景，取材于基准故障库和真实事故（只有执行器和评分器读取）
+scenarios/CATALOG.md       每个场景的出处、选型理由、没选的候选
 experiments/badcases.yaml  40 条 bad case 经验条目（过拟合剂量实验用）
 triage/experiments/        过拟合剂量实验
-scenarios/templates.yaml   9 个参数化故障模板，展开成 25 个场景
+scenarios/templates.yaml   9 个参数化故障模板，展开成 26 个场景
 triage/generator.py        模板展开与校验
 triage/tools.py            只读工具层（预算、去重、超时、轨迹）
 triage/agents/             三组对照
@@ -184,7 +192,7 @@ triage/grader.py           评分
 triage/runner.py           命令行
 triage/report.py           结果汇总
 k8s/rbac-diag.yaml         诊断器只读权限
-k8s/restricted-ns.yaml     S08 用的无权限命名空间
+k8s/restricted-ns.yaml     R16 用的无权限命名空间
 scripts/                   Ubuntu 部署脚本、诊断器 kubeconfig 生成、真实模型试跑、Windows 分阶段脚本
 tests/                     离线测试（假集群 + 假模型）
 ```

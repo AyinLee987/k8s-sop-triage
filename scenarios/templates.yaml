@@ -18,6 +18,7 @@ symptoms:
   rollout_worker: "worker 刚发布了新版本，新 Pod 起不来，发布卡住。"
   restart_api: "api 的 Pod 隔一会儿就自己重启一次。"
   svc_unreachable: "集群里其他服务调用 api 一直连不上，但 api 的 Pod 看起来都是 Running。"
+  all_down: "服务整个不可用：api 全部不 Ready，提交不了事件，worker 也停止处理了。"
 
 templates:
   # ------------------------------------------------------------------ dev
@@ -231,27 +232,32 @@ templates:
         accept_cause_keywords: ["密码", "password", "认证", "auth"]
 
   - template: service_routing
-    mechanism: other
-    split: holdout
-    kind: sop_not_covered
+    # 来源：AIOpsLab k8s_target_port_misconfig（targetPort 9090→9999）；k8s-ai-bench fix-service-selector；
+    # SREGym wrong_service_selector_*。Pod 全部 Running/Ready，问题在 Service 这一层。
+    mechanism: service_misconfigured
+    split: dev
+    kind: cross_component
     params:
-      - {patch: '[{"op":"replace","path":"/spec/selector/app","value":"api-canary"}]', undo: '[{"op":"replace","path":"/spec/selector/app","value":"api"}]',
+      - {svc: api, symptom: svc_unreachable, patch: '[{"op":"replace","path":"/spec/selector/app","value":"api-canary"}]', undo: '[{"op":"replace","path":"/spec/selector/app","value":"api"}]',
          keywords: ["selector", "选择器", "endpoint", "api-canary", "标签"], evidence: ["api-canary", "selector", "endpoints"],
          override: {confirm: {timeout_s: 30, checks: [{type: service_endpoints_empty, service: api}]}}}
-      - {patch: '[{"op":"replace","path":"/spec/ports/0/targetPort","value":8080}]', undo: '[{"op":"replace","path":"/spec/ports/0/targetPort","value":"http"}]',
+      - {svc: api, symptom: svc_unreachable, patch: '[{"op":"replace","path":"/spec/ports/0/targetPort","value":8080}]', undo: '[{"op":"replace","path":"/spec/ports/0/targetPort","value":"http"}]',
          keywords: ["targetPort", "端口", "8080", "port"], evidence: ["targetPort", "8080"],
          override: {confirm: {timeout_s: 20, checks: [{type: jsonpath_equals, resource: "service/api", path: "{.spec.ports[0].targetPort}", value: "8080"}]}}}
+      - {svc: redis, symptom: all_down, patch: '[{"op":"replace","path":"/spec/selector/app","value":"redis-master"}]', undo: '[{"op":"replace","path":"/spec/selector/app","value":"redis"}]',
+         keywords: ["selector", "选择器", "endpoint", "redis-master", "标签"], evidence: ["redis-master", "selector", "ready_endpoints"],
+         override: {confirm: {timeout_s: 60, checks: [{type: service_endpoints_empty, service: redis}, {type: pod_not_ready, selector: "app=api"}]},
+                    answer: {symptom_objects: [api, worker]}}}
     scenario:
-      symptom: "{{sym:svc_unreachable}}"
       inject:
-        - kubectl: ["-n", "{ns}", "patch", "service/api", "--type=json", "-p", "{{patch}}"]
+        - kubectl: ["-n", "{ns}", "patch", "service/{{svc}}", "--type=json", "-p", "{{patch}}"]
       confirm: {timeout_s: 30, checks: [{type: always}]}
       reset:
-        - kubectl: ["-n", "{ns}", "patch", "service/api", "--type=json", "-p", "{{undo}}"]
+        - kubectl: ["-n", "{ns}", "patch", "service/{{svc}}", "--type=json", "-p", "{{undo}}"]
       answer:
         status: root_cause_found
-        object: {kind: Service, name: api}
-        cause_category: other
-        explanation: "Service api 的路由配置被改坏（{{patch}}），流量到不了健康的 Pod。SOP 没覆盖 Service 层。"
+        object: {kind: Service, name: "{{svc}}"}
+        cause_category: service_misconfigured
+        explanation: "Service {{svc}} 的路由配置被改坏（{{patch}}），Pod 本身健康，但流量到不了 Pod。"
         key_evidence: "{{evidence}}"
         accept_cause_keywords: "{{keywords}}"

@@ -1,7 +1,7 @@
 """CLI.
 
   python -m triage.runner check-env                 # admin sees a healthy env; diag identity is read-only
-  python -m triage.runner smoke --scenario S01 --rounds 3   # week-1 checkpoint: healthy-inject-confirm-reset, no agent
+  python -m triage.runner smoke --scenario R06 --rounds 3   # week-1 checkpoint: healthy-inject-confirm-reset, no agent
   python -m triage.runner run --split dev --arms rule,text,code --reps 3
   python -m triage.runner run --split holdout --finalize    # held-out set: only after versions are frozen
   python -m triage.runner run --split dev --source all      # handwritten + generated (scenarios/templates.yaml)

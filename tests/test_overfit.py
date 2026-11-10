@@ -16,6 +16,17 @@ def test_note_library_is_balanced_and_never_names_holdout_scenarios():
     holdout = {k for k, s in SC.items() if s["split"] == "holdout"}
     assert not {n["source"] for n in notes} & holdout
     assert {n["kind"] for n in notes} == set(overfit.KIND_ORDER)
+    dev = {k for k, s in SC.items() if s["split"] == "dev"}
+    assert {n["source"] for n in notes} <= dev | {"general"}
+
+
+def test_noise_notes_do_not_hint_at_holdout_mechanisms():
+    """A 'noise' note that happens to describe a holdout mechanism correctly would quietly help on holdout."""
+    holdout_terms = ["envFrom", "不会自动更新", "liveness", "存活探针", "timeoutSeconds", "KEY_PREFIX", "mountPath",
+                     "CPU limit", "限流", "轮换", "uvicorn"]
+    for n in overfit.load_notes():
+        if n["kind"] == "noise":
+            assert not any(t.lower() in n["text"].lower() for t in holdout_terms), n["id"]
 
 
 def test_doses_are_nested_and_mixed():
@@ -56,7 +67,7 @@ class DoseSensitiveLLM:
 
 
 def test_fake_backend_end_to_end_detects_regression(tmp_path, monkeypatch, capsys):
-    monkeypatch.setattr(overfit, "_scenarios", lambda backend, sets: [SC["S12"]])
+    monkeypatch.setattr(overfit, "_scenarios", lambda backend, sets: [SC["R08"]])
     llm = DoseSensitiveLLM()
     out = tmp_path / "o.jsonl"
     anchor_dose = next(i for i, n in enumerate(overfit.ordered_notes(overfit.load_notes()), 1) if n["id"] == "N13")
@@ -69,12 +80,12 @@ def test_fake_backend_end_to_end_detects_regression(tmp_path, monkeypatch, capsy
     assert recs[1]["grade"]["stopped_at_symptom"]
     assert "历史排障经验" not in llm.prompts[0] and "历史排障经验" in llm.prompts[1]
     report = overfit.render_dose_report(recs)
-    assert f"code / S12（dev）/ 剂量 {anchor_dose}" in report and "停在症状层" in report
+    assert f"code / R08（dev）/ 剂量 {anchor_dose}" in report and "停在症状层" in report
     assert recs[1]["usage"]["prompt_tokens"] > recs[0]["usage"]["prompt_tokens"]  # notes cost tokens
 
 
 def test_report_without_regressions_says_so():
-    rec = {"experiment": "overfit", "dose": 0, "arm": "text", "scenario": "S01", "split": "dev",
+    rec = {"experiment": "overfit", "dose": 0, "arm": "text", "scenario": "R06", "split": "dev",
            "grade": {"correct": True}, "usage": {"prompt_tokens": 10, "completion_tokens": 1}, "cost_usd": 0}
     text = overfit.render_dose_report([rec, dict(rec, dose=10)])
     assert "没有发现回退" in text and "| text | 10 | 100%（1/1）" in text

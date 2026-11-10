@@ -35,9 +35,8 @@ KIND_ORDER = ["specific", "overgeneral", "anchor", "shortcut", "conflicting", "n
 EXTRA_HEADER = "## 历史排障经验（来自 bad case 复盘，排查时请参考）"
 
 # Fake-cluster coverage (tests/fake_cluster.py): which scenarios the pilot can run without Kubernetes.
-FAKE_DEV = ["S01", "S02", "S03", "S04", "S07", "S11", "S12", "G-dependency_address-03"]
-FAKE_HOLDOUT = ["S05", "S06", "S08", "S09", "S10", "S13", "S14", "G-worker_command-02", "G-redis_password-02",
-                "G-api_probe-02"]
+FAKE_DEV = ["R01", "R02", "R03", "R04", "R05", "R06", "R07", "R08", "R09", "G-dependency_address-03", "G-service_routing-01"]
+FAKE_HOLDOUT = ["R10", "R11", "R12", "R13", "R14", "R15", "R16", "G-worker_command-02", "G-redis_password-02", "G-api_probe-02"]
 
 
 def load_notes(path: Path = NOTES_FILE, kinds: list[str] | None = None) -> list[dict]:

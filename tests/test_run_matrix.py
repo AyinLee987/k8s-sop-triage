@@ -70,33 +70,33 @@ def test_full_matrix_writes_graded_records_and_report(tmp_path):
     sw = Switch()
     out = tmp_path / "r.jsonl"
     llm = FakeLLM([oom_judge, ChatResult('{"decision": "no_fault"}')])
-    code = run_matrix(FakeLifecycle(sw), [SC["S04"], SC["S07"]], ["rule", "code"], 1, llm, sw, NS, out,
+    code = run_matrix(FakeLifecycle(sw), [SC["R05"], SC["R07"]], ["rule", "code"], 1, llm, sw, NS, out,
                       budget_factory=Budget)
     assert code == 0
     recs = read(out)
-    assert [(r["scenario"], r["arm"]) for r in recs] == [("S04", "rule"), ("S04", "code"), ("S07", "rule"), ("S07", "code")]
+    assert [(r["scenario"], r["arm"]) for r in recs] == [("R05", "rule"), ("R05", "code"), ("R07", "rule"), ("R07", "code")]
     assert all(r["grade"]["correct"] for r in recs), [r["grade"] for r in recs]
     assert recs[1]["usage"]["prompt_tokens"] == 1000 and recs[0]["usage"]["prompt_tokens"] == 0
     assert all(r["versions"]["sop/00-index.md"] for r in recs)
     text = render(recs)
-    assert "| S04 |" in text and "环境失败 0 次" in text
+    assert "| R05 |" in text and "环境失败 0 次" in text
 
 
 def test_fault_not_taking_effect_is_recorded_reset_and_the_run_continues(tmp_path):
     sw = Switch()
-    lc = FakeLifecycle(sw, confirm_fails={"S01"})
+    lc = FakeLifecycle(sw, confirm_fails={"R06"})
     out = tmp_path / "r.jsonl"
-    assert run_matrix(lc, [SC["S01"], SC["S03"]], ["rule"], 1, None, sw, NS, out, budget_factory=Budget) == 0
+    assert run_matrix(lc, [SC["R06"], SC["R02"]], ["rule"], 1, None, sw, NS, out, budget_factory=Budget) == 0
     recs = read(out)
     assert recs[0]["env_failure"] and "grade" not in recs[0]
     assert recs[1]["grade"]["correct"]
-    assert "reset:S01" in lc.calls  # injected, so it must be reset even though confirmation failed
+    assert "reset:R06" in lc.calls  # injected, so it must be reset even though confirmation failed
 
 
 def test_reset_failure_stops_the_batch(tmp_path):
     sw = Switch()
     out = tmp_path / "r.jsonl"
-    code = run_matrix(FakeLifecycle(sw, reset_fails={"S01"}), [SC["S01"], SC["S03"]], ["rule"], 1, None, sw, NS, out,
+    code = run_matrix(FakeLifecycle(sw, reset_fails={"R06"}), [SC["R06"], SC["R02"]], ["rule"], 1, None, sw, NS, out,
                       budget_factory=Budget)
     assert code == 2
     recs = read(out)
@@ -107,6 +107,6 @@ def test_unhealthy_environment_stops_before_injecting(tmp_path):
     sw = Switch()
     lc = FakeLifecycle(sw, unhealthy=True)
     out = tmp_path / "r.jsonl"
-    assert run_matrix(lc, [SC["S01"]], ["rule"], 1, None, sw, NS, out, budget_factory=Budget) == 2
+    assert run_matrix(lc, [SC["R06"]], ["rule"], 1, None, sw, NS, out, budget_factory=Budget) == 2
     assert not any(c.startswith(("inject", "reset")) for c in lc.calls)
     assert read(out)[0]["env_failure"].startswith("verify_healthy")

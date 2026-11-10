@@ -62,7 +62,7 @@ class Lifecycle:
                  fresh_pods: bool = True, rollout_timeout: int = 180):
         self.k = admin_runner
         self.ns = namespace
-        self.vars = {"ns": namespace, "lab_k8s": str(lab_k8s_dir), "repo": str(REPO)}
+        self.vars = {"ns": namespace, "lab_k8s": str(lab_k8s_dir), "lab": str(Path(lab_k8s_dir).parent), "repo": str(REPO)}
         self.poll = poll_interval
         self.fresh_pods = fresh_pods
         self.rollout_timeout = rollout_timeout
@@ -155,6 +155,24 @@ class Lifecycle:
         conf = ((cm or {}).get("data") or {}).get("redis.conf", "")
         if "maxmemory 192mb" not in conf or "requirepass" in conf:
             problems.append("configmap redis-config differs from baseline (maxmemory / requirepass)")
+        app_cfg = ((self._json(["-n", self.ns, "get", "configmap", "app-config"]) or {}).get("data") or {})
+        if app_cfg.get("KEY_PREFIX") != "tiktok-lab":
+            problems.append("configmap app-config KEY_PREFIX differs from baseline")
+        svc = (self._json(["-n", self.ns, "get", "service", "redis"]) or {}).get("spec") or {}
+        if svc.get("selector") != {"app": "redis"} or [p.get("targetPort") for p in svc.get("ports", [])] != ["redis"]:
+            problems.append("service redis selector/targetPort differs from baseline")
+        sts = self._json(["-n", self.ns, "get", "statefulset", "redis"]) or {}
+        rc = ((sts.get("spec") or {}).get("template", {}).get("spec", {}).get("containers") or [{}])[0]
+        mounts = {m.get("name"): m.get("mountPath") for m in rc.get("volumeMounts", []) or []}
+        if mounts.get("data") != "/data":
+            problems.append("statefulset redis data volume not mounted at /data")
+        if ((rc.get("resources") or {}).get("limits") or {}).get("cpu") not in ("1", "1000m"):
+            problems.append("statefulset redis cpu limit differs from baseline")
+        # key names only (the go-template never prints values)
+        keys = self._run(["-n", self.ns, "get", "secret", "redis-auth", "-o",
+                          "go-template={{range $k, $v := .data}}{{$k}} {{end}}"], 20)
+        if not keys.ok or set(keys.stdout.split()) != {"password", "redis-auth.conf"}:
+            problems.append("secret redis-auth keys differ from baseline (password, redis-auth.conf)")
         if self._endpoints_ready("api") < 2:
             problems.append("service api has fewer than 2 ready endpoints")
         if self._run(["get", "namespace", "rec-feature"], 20).ok:

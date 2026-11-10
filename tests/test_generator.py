@@ -19,7 +19,7 @@ ALL = load_scenarios(split="all", source="all")
 
 
 def test_generated_scenarios_are_complete_and_unique():
-    assert len(GEN) == 25
+    assert len(GEN) == 26
     assert len({s["id"] for s in ALL}) == len(ALL), "duplicate ids across handwritten and generated"
     for s in GEN:
         assert s["generated"] and s["answer"]["cause_category"] == s["mechanism"]
@@ -68,8 +68,8 @@ def test_render_rejects_missing_params_and_unknown_symptoms():
 
 
 def test_load_scenarios_sources_and_caps():
-    assert len(load_scenarios(split="all")) == 14
-    assert len(load_scenarios(split="all", source="generated")) == 25
+    assert len(load_scenarios(split="all")) == 16
+    assert len(load_scenarios(split="all", source="generated")) == 26
     capped = load_scenarios(split="all", source="generated", max_per_template=1)
     assert len(capped) == len({s["template"] for s in GEN})
     assert [s["id"] for s in load_scenarios(ids=["G-image_tag-02"])] == ["G-image_tag-02"]
@@ -81,6 +81,7 @@ def test_load_scenarios_sources_and_caps():
     ("G-dependency_address-03", "api_host_notready"),  # not ready because of the dependency, not the probe
     ("G-redis_password-02", "api_password_notready"),
     ("G-api_probe-02", "api_readiness_path"),       # not ready because the probe itself is wrong
+    ("G-service_routing-01", "selector"),           # all pods healthy; the Service selects nothing
 ])
 def test_rule_baseline_on_new_branches(sid, state):
     tools = ReadOnlyTools(FakeRunner(FakeCluster(state).handle), NS, Budget(), Trace(), events_since="2026-11-20T10:01:00Z")
