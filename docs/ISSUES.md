@@ -12,7 +12,7 @@
 ### I-020 云端环境能启动 Docker，但拉不到任何镜像
 - 现象：云端工作区里 `dockerd` 能正常启动，但 `docker pull redis:7.4.2-alpine` 返回 Forbidden；pip 安装也被拒绝。网络代理的状态显示是策略拒绝（gateway answered 403 to CONNECT registry-1.docker.io）。
 - 原因：这个账号关闭了命令行的网络访问，只放行少数地址，镜像仓库不在其中。
-- 影响：云端建不了 kind 集群（需要 kindest/node 镜像），也装不了 HolmesGPT 的依赖；DeepSeek 接口同样访问不到。
+- 影响：云端建不了 kind 集群（需要 kindest/node 镜像），也装不了 HolmesGPT 的依赖；DeepSeek 接口按同一策略应该也访问不到（没有单独测）。
 - 处理：二选一。一是在设置里打开网络访问（新对话生效）；二是在笔记本上跑，由我提供脚本。按规则不尝试绕过代理。
 - 状态：未解决
 
