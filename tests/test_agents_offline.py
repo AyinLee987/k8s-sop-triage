@@ -66,7 +66,7 @@ def test_text_sop_agent_tool_loop_and_isolation():
     assert grade(result.diagnosis, SCENARIOS["S04"]["answer"])["correct"]
     assert tools.budget.model_calls == 3 and tools.budget.tool_calls == 2
     prompt = json.dumps(llm.seen[0], ensure_ascii=False)
-    assert "K8s 工作负载排查 SOP" in prompt          # same SOP as the other arms
+    assert "K8s 排查 SOP 总则" in prompt and "redis 排查 SOP" in prompt          # same SOP as the other arms
     assert "S04" not in prompt and "16Mi" not in prompt  # no scenario id or answer leaks into the prompt
     assert all(c[c.index("get") if "get" in c else c.index("logs")] in ("get", "logs") for c in runner.calls)
 

@@ -12,6 +12,10 @@ CAUSE_CATEGORIES = (
     "probe_misconfigured",
     "dependency_unreachable",
     "dependency_auth_failed",
+    "dependency_down",
+    "dependency_memory_full",
+    "dependency_config_error",
+    "processing_too_slow",
     "no_fault",
     "other",
 )

@@ -56,7 +56,7 @@ def path_cfg(name: str, default: str | None = None) -> str | None:
 
 
 def versions() -> dict:
-    files = ["sop/triage_sop.md", "scenarios/scenarios.yaml", "scenarios/templates.yaml", "triage/tools.py", "triage/agents/sop_steps.py",
+    files = [*(f"sop/{p.name}" for p in sorted((REPO / "sop").glob("*.md"))), "scenarios/scenarios.yaml", "scenarios/templates.yaml", "triage/tools.py", "triage/agents/sop_steps.py",
              "triage/agents/rule_baseline.py", "triage/agents/text_sop.py", "triage/agents/code_sop.py"]
     return {f: hashlib.sha256((REPO / f).read_bytes()).hexdigest()[:12] for f in files}
 

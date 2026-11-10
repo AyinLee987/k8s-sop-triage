@@ -6,7 +6,7 @@
 
 ## 三组对照
 
-三组共用同一份 SOP（`sop/triage_sop.md`）和同一个只读工具层（`triage/tools.py`），区别只在"谁来决定下一步"。
+三组共用同一套 SOP（`sop/` 目录：总则、通用 Pod 步骤、api、worker、redis 五份，互相引用，按文件名顺序拼接）和同一个只读工具层（`triage/tools.py`），区别只在"谁来决定下一步"。
 
 | 配置 | 代码 | 执行方式 |
 | --- | --- | --- |
@@ -144,7 +144,7 @@ python -m triage.runner run --split holdout --finalize
 ## 目录
 
 ```
-sop/triage_sop.md          三组共用的 SOP
+sop/                       三组共用的 SOP（总则 + 通用 Pod 步骤 + api / worker / redis，互相引用）
 scenarios/scenarios.yaml   10 个手写场景（只有执行器和评分器读取）
 scenarios/templates.yaml   9 个参数化故障模板，展开成 25 个场景
 triage/generator.py        模板展开与校验

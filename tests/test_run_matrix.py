@@ -77,7 +77,7 @@ def test_full_matrix_writes_graded_records_and_report(tmp_path):
     assert [(r["scenario"], r["arm"]) for r in recs] == [("S04", "rule"), ("S04", "code"), ("S07", "rule"), ("S07", "code")]
     assert all(r["grade"]["correct"] for r in recs), [r["grade"] for r in recs]
     assert recs[1]["usage"]["prompt_tokens"] == 1000 and recs[0]["usage"]["prompt_tokens"] == 0
-    assert all(r["versions"]["sop/triage_sop.md"] for r in recs)
+    assert all(r["versions"]["sop/00-index.md"] for r in recs)
     text = render(recs)
     assert "| S04 |" in text and "环境失败 0 次" in text
 

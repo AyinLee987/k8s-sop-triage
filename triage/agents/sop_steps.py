@@ -1,4 +1,4 @@
-"""The SOP (sop/triage_sop.md) written as code. Used by the rule baseline and the code-SOP arm,
+"""The SOPs (sop/*.md) written as code. Used by the rule baseline and the code-SOP arm,
 so both collect exactly the same evidence; the text-SOP arm gets the same SOP as prose."""
 from __future__ import annotations
 
@@ -7,7 +7,7 @@ from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
 from pathlib import Path
 
-SOP_PATH = Path(__file__).resolve().parents[2] / "sop" / "triage_sop.md"
+SOP_DIR = Path(__file__).resolve().parents[2] / "sop"
 IMAGE_REASONS = {"ErrImagePull", "ImagePullBackOff", "ErrImageNeverPull", "InvalidImageName"}
 CRASH_REASONS = {"CrashLoopBackOff", "RunContainerError", "StartError", "CreateContainerError"}
 ERROR_PATTERN = re.compile(
@@ -16,8 +16,17 @@ ERROR_PATTERN = re.compile(
 )
 
 
-def sop_text() -> str:
-    return SOP_PATH.read_text(encoding="utf-8")
+def sop_files() -> list[Path]:
+    return sorted(SOP_DIR.glob("*.md"))
+
+
+def sop_text(extra: str | None = None) -> str:
+    """All SOP files concatenated in file-name order, plus optional appended experience notes
+    (the bad-case dose experiment injects them here, i.e. "written into the skill")."""
+    parts = [f"<!-- {p.name} -->\n{p.read_text(encoding='utf-8')}" for p in sop_files()]
+    if extra:
+        parts.append(extra)
+    return "\n\n".join(parts)
 
 
 @dataclass

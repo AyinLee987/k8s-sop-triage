@@ -21,12 +21,13 @@ SYSTEM_TEMPLATE = """你是 Kubernetes 排查助手，只能使用提供的只�
 {sop}"""
 
 
-def initial_messages(symptom: str, namespace: str, extra_context: str | None = None) -> list[dict]:
+def initial_messages(symptom: str, namespace: str, extra_context: str | None = None,
+                     sop_extra: str | None = None) -> list[dict]:
     user = f"默认命名空间：{namespace}\n用户反馈的症状：{symptom}"
     if extra_context:
         user += f"\n\n{extra_context}"
     return [
-        {"role": "system", "content": SYSTEM_TEMPLATE.format(sop=sop_steps.sop_text())},
+        {"role": "system", "content": SYSTEM_TEMPLATE.format(sop=sop_steps.sop_text(sop_extra))},
         {"role": "user", "content": user},
     ]
 
@@ -61,5 +62,5 @@ class TextSopAgent(Agent):
     uses_llm = True
 
     def _diagnose(self, symptom: str, namespace: str, tools) -> AgentResult:
-        messages = initial_messages(symptom, namespace)
+        messages = initial_messages(symptom, namespace, sop_extra=self.sop_extra)
         return run_tool_loop(self.llm, tools, messages, tools.budget, tools.trace, label="text_sop")

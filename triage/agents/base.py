@@ -19,8 +19,9 @@ class Agent:
     name = "base"
     uses_llm = False
 
-    def __init__(self, llm=None):
+    def __init__(self, llm=None, sop_extra: str | None = None):
         self.llm = llm
+        self.sop_extra = sop_extra  # appended experience notes (bad-case dose experiment); None = plain SOP
 
     def diagnose(self, symptom: str, namespace: str, tools) -> AgentResult:
         try:
@@ -35,7 +36,8 @@ class Agent:
         raise NotImplementedError
 
     def describe(self) -> dict:
-        return {"arm": self.name, "llm": self.llm.describe() if self.llm else None}
+        return {"arm": self.name, "llm": self.llm.describe() if self.llm else None,
+                "sop_extra_chars": len(self.sop_extra or "")}
 
 
 def short(obj, limit: int = 400) -> str:

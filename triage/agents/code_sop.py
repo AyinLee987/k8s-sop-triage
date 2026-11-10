@@ -33,8 +33,8 @@ class CodeSopAgent(Agent):
     name = "code"
     uses_llm = True
 
-    def __init__(self, llm=None, free_tool_calls: int = 8, free_model_calls: int = 6):
-        super().__init__(llm)
+    def __init__(self, llm=None, sop_extra: str | None = None, free_tool_calls: int = 8, free_model_calls: int = 6):
+        super().__init__(llm, sop_extra)
         self.free_tool_calls = free_tool_calls
         self.free_model_calls = free_model_calls
 
@@ -88,7 +88,7 @@ class CodeSopAgent(Agent):
 
     def _judge_json(self, symptom, namespace, evidence, instruction, tools, label) -> dict:
         messages = [
-            {"role": "system", "content": JUDGE_SYSTEM.format(sop=sop_steps.sop_text())},
+            {"role": "system", "content": JUDGE_SYSTEM.format(sop=sop_steps.sop_text(self.sop_extra))},
             {"role": "user", "content": (f"默认命名空间：{namespace}\n用户反馈的症状：{symptom}\n\n"
                                          f"程序收集的证据：\n{json.dumps(evidence, ensure_ascii=False)[:12000]}\n\n{instruction}")},
         ]
@@ -113,7 +113,7 @@ class CodeSopAgent(Agent):
         child = parent.child(self.free_tool_calls, self.free_model_calls)
         tools.budget = child
         try:
-            messages = initial_messages(symptom, namespace, extra_context=context)
+            messages = initial_messages(symptom, namespace, extra_context=context, sop_extra=self.sop_extra)
             result = run_tool_loop(self.llm, tools, messages, child, tools.trace, label="free_investigation")
             result.notes.append("free_investigation")
             return result
