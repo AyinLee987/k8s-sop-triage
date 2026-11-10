@@ -1,0 +1,52 @@
+# Scripts for the two unrelated side workloads used as ambient noise. They are ordinary small programs with
+# ordinary problems (an unreachable external warehouse; a shipper that loads its whole backlog on first start),
+# not staged one-liners: an agent that reads them should see a real, unrelated issue.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ops-scripts
+  labels: {triage/noise: "true"}
+data:
+  stats_report.py: |
+    """Nightly click report: aggregate yesterday's counters and load them into the data warehouse."""
+    import json, os, socket, sys, time
+
+    HOST = os.environ.get("WAREHOUSE_HOST", "warehouse.internal")
+    PORT = int(os.environ.get("WAREHOUSE_PORT", "5432"))
+
+    def log(**kw):
+        print(json.dumps({"job": "stats-report", "time": time.strftime("%Y-%m-%dT%H:%M:%S%z"), **kw}), flush=True)
+
+    log(phase="start", target=f"{HOST}:{PORT}")
+    try:
+        with socket.create_connection((HOST, PORT), timeout=5):
+            pass
+    except OSError as exc:
+        log(level="ERROR", phase="connect", error=f"{type(exc).__name__}: {exc}")
+        sys.exit(1)
+    log(phase="done")
+  log_shipper.py: |
+    """Ships application logs to the central store in batches. Keeps a checkpoint so restarts resume."""
+    import json, os, time
+
+    CHECKPOINT = os.environ.get("CHECKPOINT_FILE", "/state/checkpoint")
+    BATCH_BYTES = 1 << 20
+
+    def log(**kw):
+        print(json.dumps({"svc": "log-shipper", "time": time.strftime("%Y-%m-%dT%H:%M:%S%z"), **kw}), flush=True)
+
+    def read_batch(offset):
+        return os.urandom(BATCH_BYTES)  # stands in for a chunk of the spooled log files
+
+    if not os.path.exists(CHECKPOINT):
+        with open(CHECKPOINT, "w") as f:
+            f.write("0")
+        log(msg="no checkpoint found, replaying full backlog")
+        pending, offset = [], 0
+        while True:  # the whole backlog is buffered before the first flush
+            pending.append(read_batch(offset))
+            offset += BATCH_BYTES
+    log(msg="resuming from checkpoint", mode="incremental")
+    while True:
+        time.sleep(30)
+        log(msg="shipped", batches=1)

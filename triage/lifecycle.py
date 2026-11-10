@@ -18,6 +18,17 @@ REPO = Path(__file__).resolve().parent.parent
 SCENARIO_FILE = REPO / "scenarios" / "scenarios.yaml"
 
 
+def load_noises(ids: list[str] | None = None, path: Path | None = None) -> list[dict]:
+    """Ambient noise definitions (scenarios/noise.yaml), in the order asked for; unknown ids are an error."""
+    items = {n["id"]: n for n in yaml.safe_load((path or REPO / "scenarios" / "noise.yaml").read_text(encoding="utf-8"))["noises"]}
+    if ids is None:
+        return list(items.values())
+    missing = [i for i in ids if i not in items]
+    if missing:
+        raise ValueError(f"unknown noise ids: {missing} (known: {sorted(items)})")
+    return [items[i] for i in ids]
+
+
 def load_scenarios(path: Path = SCENARIO_FILE, split: str | None = None, ids: list[str] | None = None,
                    source: str = "handwritten", max_per_template: int | None = None) -> list[dict]:
     """source: handwritten | generated | all. Generated ones come from scenarios/templates.yaml."""
@@ -87,7 +98,7 @@ class Lifecycle:
             if not ok:
                 raise EnvironmentError_(f"precheck failed: {detail}")
 
-    def inject(self, scenario: dict, log: StepLog) -> str:
+    def inject(self, scenario: dict, log: StepLog, noises: list[dict] | None = None) -> str:
         """Returns the UTC timestamp just before injection (used to filter stale events).
 
         Old events are deleted first: Kubernetes keeps events for about an hour, and an agent that reads events
@@ -102,6 +113,10 @@ class Lifecycle:
             res = self._run(["-n", self.ns, "delete", "replicaset", *stale], 60)
             log.add("prune_history", res.ok, f"{len(stale)} old replicasets" + ("" if res.ok else f": {res.stderr.strip()[:200]}"))
         since = utc_now_iso()
+        # Ambient noise goes in after the clean-up (so its events survive) and before the fault.
+        for noise in noises or []:
+            for step in noise.get("apply", []) or []:
+                self._kubectl_step(step, log, f"noise:{noise['id']}")
         for step in scenario.get("inject", []) or []:
             self._kubectl_step(step, log, "inject")
         return since
@@ -122,9 +137,15 @@ class Lifecycle:
                 raise EnvironmentError_(f"fault did not take effect: {last}")
             time.sleep(self.poll)
 
-    def reset(self, scenario: dict, log: StepLog) -> None:
+    def reset(self, scenario: dict, log: StepLog, noises: list[dict] | None = None) -> None:
         started = time.monotonic()
         errors = []
+        for noise in noises or []:
+            for step in noise.get("remove", []) or []:
+                try:
+                    self._kubectl_step(step, log, f"noise_remove:{noise['id']}")
+                except EnvironmentError_ as exc:
+                    errors.append(str(exc))
         for step in scenario.get("reset", []) or []:
             try:
                 self._kubectl_step(step, log, "reset")
@@ -152,6 +173,8 @@ class Lifecycle:
             if kind in ("Deployment", "StatefulSet"):
                 seen[(kind, name)] = item.get("status", {}).get("readyReplicas", 0) or 0
             elif kind == "Pod":
+                if (item["metadata"].get("labels") or {}).get("triage/noise") == "true":
+                    continue  # ambient-noise pods (scenarios/noise.yaml) are not part of the app
                 if item["metadata"].get("deletionTimestamp"):
                     problems.append(f"pod {name} terminating")
                     continue

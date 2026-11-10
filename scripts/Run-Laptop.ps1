@@ -4,6 +4,8 @@
 #   .\scripts\Run-Laptop.ps1 -Action pilot -Scenario R06         # one scenario
 #   .\scripts\Run-Laptop.ps1 -Action batch                       # dev split x 3 repeats (about 1-2 hours)
 #   .\scripts\Run-Laptop.ps1 -Action batch -Scenarios R06,R09 -Repeats 2 -Tag try1
+#   .\scripts\Run-Laptop.ps1 -Action noise                       # check the ambient noise applies and removes cleanly
+#   .\scripts\Run-Laptop.ps1 -Action batch -Noise random -Tag noise1   # same scenarios with ambient noise
 #
 # HolmesGPT and the harness run in a Linux container (docker/runner.Dockerfile) on Docker's "kind" network.
 # The LLM key is read from this repo's .env inside the container; it is never printed or passed on a command line.
@@ -11,11 +13,13 @@
 # no WSL shutdown; no PVC, namespace or cluster deletion.
 [CmdletBinding()]
 param(
-    [ValidateSet('check', 'pilot', 'batch', 'validate', 'shell')][string]$Action = 'check',
+    [ValidateSet('check', 'pilot', 'batch', 'validate', 'noise', 'shell')][string]$Action = 'check',
     [string]$Scenario = 'R06',
     [string]$Scenarios = '',
     [int]$Repeats = 3,
     [string]$Tag = '',
+    [string]$Noise = '',        # batch/pilot: none | random | comma-separated ids from scenarios/noise.yaml
+    [string]$Source = '',       # batch: handwritten (default) | generated | all
     [switch]$Rebuild
 )
 # Not 'Stop': in Windows PowerShell 5.1 any stderr line from a native command (docker progress, a failed
@@ -136,13 +140,16 @@ if ($Rebuild -or $LASTEXITCODE -ne 0) {
 $runArgs = @()
 switch ($Action) {
     'check'    { $runArgs = @('check') }
-    'pilot'    { $runArgs = @('pilot', $Scenario) }
+    'pilot'    { $runArgs = @('pilot', $Scenario); if ($Noise) { $runArgs += @('--noise', $Noise) } }
+    'noise'    { $runArgs = @('noise') }
     'validate' { $runArgs = @('validate', $Scenario) }
     'shell'    { $runArgs = @('shell') }
     'batch'    {
         $runArgs = @('batch', '--repeats', "$Repeats")
         if ($Scenarios) { $runArgs += @('--scenarios', $Scenarios) }
         if ($Tag) { $runArgs += @('--tag', $Tag) }
+        if ($Noise) { $runArgs += @('--noise', $Noise) }
+        if ($Source) { $runArgs += @('--source', $Source) }
     }
 }
 $tty = if ($Action -eq 'shell') { @('-it') } else { @() }

@@ -101,7 +101,7 @@ EXPOSE 8000
 CMD ["python", "-m", "uvicorn", "app.api:app", "--host", "0.0.0.0", "--port", "8000", "--timeout-graceful-shutdown", "10", "--no-access-log"]
 EOF
 docker build -q -t tiktok-k8s-lab:v1 "$B" >/dev/null
-docker pull -q redis:7.4.2-alpine >/dev/null
+docker image inspect redis:7.4.2-alpine >/dev/null 2>&1 || docker pull -q redis:7.4.2-alpine >/dev/null
 docker save tiktok-k8s-lab:v1 redis:7.4.2-alpine | k3s ctr images import - >/dev/null
 rm -rf "$B"
 

@@ -19,7 +19,7 @@ REPO = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO))
 
 from triage.kube import KubectlRunner  # noqa: E402
-from triage.lifecycle import Lifecycle, StepLog, load_scenarios  # noqa: E402
+from triage.lifecycle import Lifecycle, StepLog, load_noises, load_scenarios  # noqa: E402
 from triage.runner import cfg, load_dotenv, path_cfg  # noqa: E402
 
 HOLMES = os.environ.get("HOLMES_BIN", "holmes")
@@ -31,6 +31,7 @@ def main() -> int:
     ap.add_argument("scenario")
     ap.add_argument("--model", default=None)
     ap.add_argument("--max-steps", type=int, default=25)
+    ap.add_argument("--noise", default="", help="comma-separated ids from scenarios/noise.yaml to apply before the fault")
     ap.add_argument("--out", default=None, help="where to write HolmesGPT's JSON answer (default: results/holmes_pilot/<id>-<time>.json)")
     args = ap.parse_args()
     load_dotenv()
@@ -57,8 +58,13 @@ def main() -> int:
         "TOOL_MEMORY_LIMIT_MB": "1536",
     })
     prompt = f"命名空间 {ns} 里出了问题。用户反馈：{sc['symptom']}\n请排查根因。"
+    noises = load_noises([i for i in args.noise.split(",") if i]) if args.noise else []
     lc.verify_healthy(log)
-    lc.inject(sc, log)
+    try:
+        lc.inject(sc, log, noises)
+    except Exception:
+        lc.reset(sc, log, noises)  # never leave noise or a half-applied fault behind
+        raise
     started = time.monotonic()
     try:
         lc.confirm(sc, log)
@@ -72,7 +78,7 @@ def main() -> int:
             print("stderr:", res.stderr[-3000:])
     finally:
         print(f"diagnosis wall time {time.monotonic() - started:.0f}s")
-        lc.reset(sc, log)
+        lc.reset(sc, log, noises)
     print("answer saved to", json_out)
     print("expected:", json.dumps(sc["answer"]["object"], ensure_ascii=False), sc["answer"]["cause_category"])
     return 0

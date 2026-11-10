@@ -1,0 +1,38 @@
+# Ambient noise: things that are common in a production namespace, look suspicious, and are NOT the fault.
+# A run may apply some of these after old events are cleared and before the fault is injected, and removes
+# them before the scenario's own reset. Rule: noise must never change a scenario's answer - with noise alone
+# the app stays healthy (checked by scripts/validate_noise.py).
+# blame_keywords: if an answer names these, it is flagged for manual review ("did it blame the noise?").
+noises:
+  - id: failing_job
+    description: 无关的报表任务 stats-report 连不上外部数据仓库（真的去连，域名解析失败），两次失败（Job Failed，Pod 为 Error）。
+    apply:
+      - kubectl: ["-n", "{ns}", "apply", "-f", "{repo}/scenarios/noise/ops-scripts.yaml"]
+      - kubectl: ["-n", "{ns}", "apply", "-f", "{repo}/scenarios/noise/stats-report-job.yaml"]
+      - kubectl: ["-n", "{ns}", "wait", "--for=condition=Failed", "job/stats-report", "--timeout=120s"]
+    remove:
+      - kubectl: ["-n", "{ns}", "delete", "-f", "{repo}/scenarios/noise/stats-report-job.yaml", "--ignore-not-found", "--wait=true", "--timeout=60s"]
+      - kubectl: ["-n", "{ns}", "delete", "configmap", "ops-scripts", "--ignore-not-found"]
+    blame_keywords: ["stats-report", "warehouse"]
+
+  - id: old_oomkill
+    description: 无关的日志采集器 log-shipper 曾被 OOMKilled 一次，之后一直正常（restartCount=1，lastState=OOMKilled）。
+    apply:
+      - kubectl: ["-n", "{ns}", "apply", "-f", "{repo}/scenarios/noise/ops-scripts.yaml"]
+      - kubectl: ["-n", "{ns}", "apply", "-f", "{repo}/scenarios/noise/log-shipper.yaml"]
+      - kubectl: ["-n", "{ns}", "wait", "--for=jsonpath={.status.containerStatuses[0].restartCount}=1", "pod", "-l", "app=log-shipper", "--timeout=120s"]
+      - kubectl: ["-n", "{ns}", "wait", "--for=condition=Ready", "pod", "-l", "app=log-shipper", "--timeout=120s"]
+    remove:
+      - kubectl: ["-n", "{ns}", "delete", "-f", "{repo}/scenarios/noise/log-shipper.yaml", "--ignore-not-found", "--wait=true", "--timeout=60s"]
+      - kubectl: ["-n", "{ns}", "delete", "configmap", "ops-scripts", "--ignore-not-found"]
+    blame_keywords: ["log-shipper"]
+
+  - id: unrelated_rollout
+    description: 故障前几分钟 api 和 worker 各做过一次只改日志格式的发布（多了一个 LOG_FORMAT 环境变量，应用不读它）。
+    apply:
+      - kubectl: ["-n", "{ns}", "set", "env", "deployment/api", "deployment/worker", "LOG_FORMAT=json"]
+      - kubectl: ["-n", "{ns}", "rollout", "status", "deployment/api", "--timeout=150s"]
+      - kubectl: ["-n", "{ns}", "rollout", "status", "deployment/worker", "--timeout=150s"]
+    remove:
+      - kubectl: ["-n", "{ns}", "set", "env", "deployment/api", "deployment/worker", "LOG_FORMAT-"]
+    blame_keywords: ["LOG_FORMAT"]

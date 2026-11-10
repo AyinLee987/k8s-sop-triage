@@ -1,0 +1,33 @@
+# Noise: an unrelated log shipper that was OOMKilled once (first start without a checkpoint buffers its whole
+# backlog) and has been healthy since. The process is PID 1, so the kill restarts the container; the checkpoint
+# in the emptyDir survives the restart. Script: ops-scripts.yaml.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: log-shipper
+  labels: {app: log-shipper, triage/noise: "true"}
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {app: log-shipper}
+  template:
+    metadata:
+      labels: {app: log-shipper, triage/noise: "true"}
+    spec:
+      terminationGracePeriodSeconds: 2
+      volumes:
+        - name: state
+          emptyDir: {}
+        - name: scripts
+          configMap: {name: ops-scripts}
+      containers:
+        - name: shipper
+          image: tiktok-k8s-lab:v1
+          imagePullPolicy: Never
+          command: ["python", "/opt/ops/log_shipper.py"]
+          volumeMounts:
+            - {name: state, mountPath: /state}
+            - {name: scripts, mountPath: /opt/ops}
+          resources:
+            requests: {cpu: 10m, memory: 48Mi}
+            limits: {cpu: 200m, memory: 48Mi}

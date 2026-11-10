@@ -1,0 +1,27 @@
+# Noise: an unrelated nightly report job that fails because its external data warehouse is unreachable.
+# It does not touch api / worker / redis. Script: ops-scripts.yaml.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: stats-report
+  labels: {app: stats-report, triage/noise: "true"}
+spec:
+  backoffLimit: 1
+  template:
+    metadata:
+      labels: {app: stats-report, triage/noise: "true"}
+    spec:
+      restartPolicy: Never
+      volumes:
+        - name: scripts
+          configMap: {name: ops-scripts}
+      containers:
+        - name: report
+          image: tiktok-k8s-lab:v1
+          imagePullPolicy: Never
+          command: ["python", "/opt/ops/stats_report.py"]
+          volumeMounts:
+            - {name: scripts, mountPath: /opt/ops}
+          resources:
+            requests: {cpu: 10m, memory: 32Mi}
+            limits: {cpu: 200m, memory: 64Mi}
