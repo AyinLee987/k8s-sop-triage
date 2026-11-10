@@ -2,6 +2,13 @@
 
 给新对话（或新机器）接手用。读完这一页，加上 README 和 `scenarios/CATALOG.md`，就能接着做。
 
+## 进度更新（2026-11-10 晚）
+
+- 云端环境已搭好：k3s 单节点集群 + tiktok-k8s-lab，用 `bash scripts/setup_cloud_k3s.sh /home/claude/tiktok-k8s-lab` 可重建（虚拟机重启后需要重跑；业务源码要先从用户桌面同步到 `/home/claude/tiktok-k8s-lab`）。
+- 16 个场景全部在真集群上验证过（`scripts/validate_injection.py`，结果在 `results/validation/` 和各场景的 `realism.validation`），过程中修了 6 个场景问题（`docs/ISSUES.md` E-013）。
+- 规则基线在真集群开发集上 9/9（修复了只读一个副本日志的问题，E-014）。保留集还没跑过任何诊断。
+- 下一步从下面的第 4 步开始（第 1–3 步已完成）；调用 DeepSeek 需要先在云端环境里配好"网络密钥"（host 填 api.deepseek.com），密钥不进虚拟机、不发在聊天里。
+
 ## 现在的状态（2026-11-10）
 
 - 项目：K8s 排障 agent 的过拟合实验。核心问题：把 bad case 不断写进 SOP / skill，原本能查对的场景会不会开始查错。

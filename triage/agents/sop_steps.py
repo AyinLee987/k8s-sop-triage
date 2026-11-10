@@ -307,23 +307,36 @@ def slow_lines(lines: list[str]) -> list[str]:
 
 
 # Step 4: application logs when every workload looks healthy ------------------------
+PODS_PER_WORKLOAD = 3
+
+
 def collect_app_logs(tools, overview: dict) -> dict:
-    jobs = {}
-    seen = set()
+    """Step 4. Reads up to PODS_PER_WORKLOAD pods of each workload: errors often sit on only the replica that
+    served the failing requests (found on the real cluster, R01: one api pod clean, the other full of errors)."""
+    pods_by_workload: dict[str, list[str]] = {}
     for pod in overview.get("pods", []):
         key = owner_workload(pod)
-        if key and key not in seen:
-            seen.add(key)
-            jobs[f"{key[0]}/{key[1]}"] = (lambda name=pod["name"]: tools.get_logs(name, previous=False, tail=60))
-    results = _parallel(jobs)
-    errors, slow = {}, {}
-    for ref, res in results.items():
-        lines = [ln for ln in res.get("lines", []) if ERROR_PATTERN.search(ln)]
+        if key:
+            pods_by_workload.setdefault(f"{key[0]}/{key[1]}", []).append(pod["name"])
+    jobs = {(ref, name): (lambda name=name: tools.get_logs(name, previous=False, tail=60))
+            for ref, names in pods_by_workload.items() for name in names[:PODS_PER_WORKLOAD]}
+    per_pod = _parallel(jobs)
+    results, errors, slow = {}, {}, {}
+    for ref, names in pods_by_workload.items():
+        merged = []
+        for name in names[:PODS_PER_WORKLOAD]:
+            res = per_pod[(ref, name)]
+            if "error" in res:
+                merged.append(f"[{name}] <{res.get('error')}>")
+                continue
+            merged += [f"[{name}] {ln}" for ln in res.get("lines", [])]
+        results[ref] = {"pods": names[:PODS_PER_WORKLOAD], "lines": merged}
+        lines = [ln for ln in merged if ERROR_PATTERN.search(ln)]
         if lines:
             errors[ref] = lines[-15:]
-        s = slow_lines(res.get("lines", []))
-        if s:
-            slow[ref] = s[-5:]
+        s_ = slow_lines(merged)
+        if s_:
+            slow[ref] = s_[-5:]
     return {"logs": results, "error_lines": errors, "slow_lines": slow}
 
 

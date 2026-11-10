@@ -183,9 +183,9 @@ class FakeCluster:
 
         # ---------------- v2 scenarios (grounded in real incidents / benchmark fault catalogs) ----------------
         elif s == "redis_data_full":  # R01: used memory reached the unchanged maxmemory; PING still fine
-            for name in ("api-6c9f-a", "api-6c9f-b"):
-                self.logs[name] = API_OK_LOGS + [
-                    '{"event":"redis_unavailable","error_type":"OutOfMemoryError","level":"ERROR"}'] * 3
+            # only the replica that served the failing writes logs them (as observed on the real cluster)
+            self.logs["api-6c9f-b"] = API_OK_LOGS + [
+                '{"event":"redis_unavailable","error_type":"OutOfMemoryError","level":"ERROR"}'] * 3
         elif s == "worker_zero":  # R02
             self.deploys["worker"]["spec"]["replicas"] = 0
             self.deploys["worker"]["status"].update({"readyReplicas": 0, "availableReplicas": 0, "updatedReplicas": 0})
