@@ -2,8 +2,10 @@
 baseline, in parallel); the model is consulted only at three judgment points:
 
   J1  interpret branch evidence for an abnormal workload        -> diagnosis
-  J2  interpret application-log errors when workloads look fine -> diagnosis
+  J2  interpret application-log errors / slow processing        -> diagnosis
   J3  nothing matched: accept "no fault" or investigate further -> decision
+When a client shows dependency errors, code follows the SOP jump rule (client overrides, then 30-redis)
+and adds that evidence before the judgment, so the model judges with both sides in view.
 If a judgment returns `undetermined`, or J3 says investigate, a *bounded* free investigation runs
 (the text-SOP loop on a child budget), so the code-SOP arm can still handle faults the SOP doesn't cover.
 """
@@ -46,25 +48,37 @@ class CodeSopAgent(Agent):
                                          [short(overview)], [f"缺少命名空间 {namespace} 的读权限"]),
                                stop_reason="forbidden")
 
-        abnormal = sop_steps.find_abnormal(overview)  # SOP step 2
+        abnormal = sop_steps.find_abnormal(overview)  # 01-pod-common step 2
         if abnormal:
             ab = abnormal[0]
-            evidence = sop_steps.collect_branch_evidence(tools, ab)  # SOP step 3, parallel
+            evidence = sop_steps.collect_branch_evidence(tools, ab)  # step 3, parallel
             trace.add(type="sop_step", name="branch", branch=ab.branch, workload=f"{ab.kind}/{ab.name}")
-            diag = self._judge_diagnosis(symptom, namespace, {"总览中的异常": ab.reasons, "分支证据": evidence},
-                                         tools, label="J1_branch")
+            bundle = {"总览中的异常": [r for a in abnormal for r in a.reasons][:12], "分支证据": evidence}
+            logs = "\n".join((evidence.get("previous_logs") or evidence.get("logs") or {}).get("lines", []))
+            if ab.name != sop_steps.DEPENDENCY and sop_steps.has_dependency_error(logs):
+                bundle.update(self._dependency_bundle(tools, overview, evidence.get("workload") or {}))
+            diag = self._judge_diagnosis(symptom, namespace, bundle, tools, label="J1_branch")
             return self._maybe_free(diag, symptom, namespace, tools, "分支证据不足")
 
-        app = sop_steps.collect_app_logs(tools, overview)  # SOP step 4, parallel
+        app = sop_steps.collect_app_logs(tools, overview)  # step 4, parallel
         if app["error_lines"]:
             ref = next(iter(app["error_lines"]))
             kind, _, name = ref.partition("/")
             workload = tools.get_workload(kind.lower(), name)
             trace.add(type="sop_step", name="app_log_errors", workload=ref)
-            diag = self._judge_diagnosis(symptom, namespace,
-                                         {"日志中的错误": app["error_lines"], "相关工作负载": workload},
-                                         tools, label="J2_app_logs")
+            bundle = {"日志中的错误": app["error_lines"], "相关工作负载": workload}
+            if any(sop_steps.has_dependency_error("\n".join(v)) for v in app["error_lines"].values()):
+                bundle.update(self._dependency_bundle(tools, overview, workload))
+            diag = self._judge_diagnosis(symptom, namespace, bundle, tools, label="J2_app_logs")
             return self._maybe_free(diag, symptom, namespace, tools, "日志错误无法归类")
+        if app["slow_lines"]:  # 20-worker step 4
+            ref = next(iter(app["slow_lines"]))
+            kind, _, name = ref.partition("/")
+            trace.add(type="sop_step", name="slow_processing", workload=ref)
+            diag = self._judge_diagnosis(symptom, namespace,
+                                         {"耗时异常的日志": app["slow_lines"], "相关工作负载": tools.get_workload(kind.lower(), name)},
+                                         tools, label="J2_slow")
+            return self._maybe_free(diag, symptom, namespace, tools, "处理耗时异常但无法归类")
 
         summary = {
             "工作负载": overview.get("workloads"),
@@ -80,6 +94,12 @@ class CodeSopAgent(Agent):
         checked = [f"{w['kind']}/{w['name']} {w.get('ready')}/{w.get('desired')}" for w in overview.get("workloads", [])]
         return AgentResult(Diagnosis("no_fault_found", "no_fault", "按 SOP 检查未发现故障", None,
                                      ["工作负载就绪情况：" + "; ".join(checked), "各工作负载最近日志无错误"], []))
+
+    def _dependency_bundle(self, tools, overview, client_workload: dict) -> dict:
+        """Jump rule from 00-index / step 5: client overrides first, then the dependency (30-redis) — collected by code."""
+        tools.trace.add(type="sop_step", name="follow_dependency")
+        return {"客户端是否单独覆盖了 REDIS_* 配置（00-index 跳转原则第 2 条）": sop_steps.client_redis_overrides(client_workload) or "没有覆盖",
+                "依赖检查（按 30-redis.md 收集）": sop_steps.follow_dependency(tools, overview)}
 
     # ---- judgment points ----
     def _judge_diagnosis(self, symptom, namespace, evidence, tools, label) -> Diagnosis:

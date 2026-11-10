@@ -50,8 +50,8 @@ def render(records: list[dict]) -> str:
         lines.append("| " + " | ".join(row) + " |")
 
     lines += ["", "## 按配置的开销（只算有效运行）", "",
-              "| 配置 | 有效运行 | 平均耗时 s | 平均工具调用 | 平均模型调用 | 平均重复调用 | 平均 token | 总费用 USD | 预算耗尽次数 |",
-              "| --- | --- | --- | --- | --- | --- | --- | --- | --- |"]
+              "| 配置 | 有效运行 | 平均耗时 s | 平均工具调用 | 平均模型调用 | 平均重复调用 | 平均 token | 总费用 USD | 预算耗尽次数 | 停在症状层次数 |",
+              "| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |"]
     for arm in arms:
         valid = [r for r in records if r["arm"] == arm and not r.get("env_failure")]
         if not valid:
@@ -59,10 +59,11 @@ def render(records: list[dict]) -> str:
         b = [r["budget"] for r in valid]
         tokens = [r["usage"]["prompt_tokens"] + r["usage"]["completion_tokens"] for r in valid]
         exhausted = sum(1 for r in valid if r["diagnosis"]["status"] == "budget_exhausted")
+        stopped = sum(1 for r in valid if (r.get("grade") or {}).get("stopped_at_symptom"))
         lines.append(f"| {arm} | {len(valid)} | {mean(x['wall_seconds'] for x in b):.1f} | "
                      f"{mean(x['tool_calls'] for x in b):.1f} | {mean(x['model_calls'] for x in b):.1f} | "
                      f"{mean(x['duplicate_calls'] for x in b):.1f} | {mean(tokens):.0f} | "
-                     f"{sum(r['cost_usd'] for r in valid):.3f} | {exhausted} |")
+                     f"{sum(r['cost_usd'] for r in valid):.3f} | {exhausted} | {stopped} |")
 
     failures = [r for r in records if not r.get("env_failure") and not (r.get("grade") or {}).get("correct")]
     lines += ["", f"## 失败与待复核明细（{len(failures)} 条）", ""]

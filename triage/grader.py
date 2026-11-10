@@ -19,7 +19,7 @@ def grade(diag: Diagnosis, answer: dict) -> dict:
     status_ok = diag.status == expected_status
     evidence_text = " ".join(diag.evidence)
     out = {"status_ok": status_ok, "object_ok": None, "cause_ok": None, "evidence_supported": None,
-           "correct": False, "needs_review": False, "notes": []}
+           "correct": False, "needs_review": False, "stopped_at_symptom": False, "notes": []}
 
     if expected_status == "no_fault_found":
         out["correct"] = status_ok and diag.cause_category in ("no_fault", "other")
@@ -40,9 +40,18 @@ def grade(diag: Diagnosis, answer: dict) -> dict:
     # root_cause_found scenarios
     want = answer["object"]
     got = diag.object or {}
-    name_ok = _norm(got.get("name")) == _norm(want["name"]) or _norm(got.get("name")).startswith(_norm(want["name"]) + "-")
-    kind_ok = not got.get("kind") or _norm(got.get("kind")) in (_norm(want["kind"]), "pod")
+    got_name = _norm(got.get("name"))
+    accepted = [_norm(n) for n in answer.get("accept_objects") or [want["name"]]]
+    name_ok = any(got_name == n or got_name.startswith(n + "-") for n in accepted)
+    kind_ok = (not got.get("kind") or _norm(got.get("kind")) in (_norm(want["kind"]), "pod")
+               or (len(accepted) > 1 and got_name in accepted))  # e.g. ConfigMap redis-config accepted for a redis root cause
     out["object_ok"] = bool(name_ok and kind_ok)
+    # cross-component scenarios: did the diagnosis stop at the component where the symptom showed up?
+    symptom_objects = [_norm(n) for n in answer.get("symptom_objects", [])]
+    out["stopped_at_symptom"] = bool(symptom_objects) and not out["object_ok"] and any(
+        got_name == n or got_name.startswith(n + "-") for n in symptom_objects)
+    if out["stopped_at_symptom"]:
+        out["notes"].append(f"stopped at symptom component {got.get('name')} instead of {want['name']}")
 
     if answer["cause_category"] == "other":
         cause_ok = _contains_any(diag.cause + " " + evidence_text, answer.get("accept_cause_keywords", []))

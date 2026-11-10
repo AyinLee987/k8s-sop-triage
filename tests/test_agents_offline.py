@@ -26,7 +26,7 @@ def call(_tool, **args):
 
 
 # ---------------- rule baseline ----------------
-RULE_EXPECTED_CORRECT = {"S01", "S02", "S03", "S04", "S05", "S06", "S07", "S10"}
+RULE_EXPECTED_CORRECT = {"S01", "S02", "S03", "S04", "S05", "S06", "S07", "S10", "S11", "S12", "S13", "S14"}
 
 
 @pytest.mark.parametrize("sid", sorted(SCENARIO_STATE))
@@ -168,3 +168,49 @@ def test_runner_record_has_cost_budget_and_trace():
     assert rec["budget"]["model_calls"] == 1 and rec["trace"]
     rule = diagnose_once("rule", None, FakeRunner(FakeCluster("oom").handle), NS, "x", "2026-11-20T10:01:00Z", 0.30, 1.20)
     assert rule["usage"]["prompt_tokens"] == 0 and rule["budget"]["model_calls"] == 0
+
+
+# ---------------- cross-component (symptom in A, root cause in B) ----------------
+def test_code_sop_follows_dependency_jump_rule_before_judging():
+    def judge(messages):
+        evidence = messages[-1]["content"]
+        assert "依赖检查（按 30-redis.md 收集）" in evidence and '"desired_replicas": 0' in evidence
+        assert "没有覆盖" in evidence  # the client override check ran first
+        return ChatResult(json.dumps({"status": "root_cause_found", "cause_category": "dependency_down",
+                                      "cause": "Redis 副本数为 0", "object": {"kind": "StatefulSet", "name": "redis"},
+                                      "evidence": ["statefulset/redis desired=0", "redis_unavailable ConnectionError"],
+                                      "unknowns": []}, ensure_ascii=False))
+    tools, _ = make_tools("redis_down")
+    result = CodeSopAgent(FakeLLM([judge])).diagnose(SCENARIOS["S12"]["symptom"], NS, tools)
+    assert grade(result.diagnosis, SCENARIOS["S12"]["answer"])["correct"]
+    assert any(e.get("name") == "follow_dependency" for e in tools.trace.events)
+
+
+def test_code_sop_sees_redis_config_diff_for_memory_scenario():
+    def judge(messages):
+        evidence = messages[-1]["content"]
+        assert '"maxmemory": "512kb"' in evidence and "OutOfMemoryError" in evidence
+        return ChatResult(json.dumps({"status": "root_cause_found", "cause_category": "dependency_memory_full",
+                                      "cause": "maxmemory 512kb", "object": {"kind": "ConfigMap", "name": "redis-config"},
+                                      "evidence": ["maxmemory 512kb", "OutOfMemoryError"], "unknowns": []}))
+    tools, _ = make_tools("redis_memory")
+    result = CodeSopAgent(FakeLLM([judge])).diagnose(SCENARIOS["S11"]["symptom"], NS, tools)
+    g = grade(result.diagnosis, SCENARIOS["S11"]["answer"])
+    assert g["correct"], g  # ConfigMap redis-config is an accepted root-cause object
+
+
+def test_stopping_at_the_symptom_component_is_flagged():
+    from triage.schema import Diagnosis
+    d = Diagnosis("root_cause_found", "dependency_unreachable", "api 连不上 Redis", {"kind": "Deployment", "name": "api"},
+                  ["redis_unavailable ConnectionError"])
+    g = grade(d, SCENARIOS["S12"]["answer"])
+    assert not g["correct"] and g["stopped_at_symptom"]
+    other = Diagnosis("root_cause_found", "dependency_down", "x", {"kind": "Service", "name": "something"}, ["x"])
+    assert not grade(other, SCENARIOS["S12"]["answer"])["stopped_at_symptom"]
+
+
+def test_configmap_tool_reads_config_but_not_secrets():
+    tools, runner = make_tools("redis_requirepass")
+    cm = tools.get_configmap("redis-config")
+    assert "requirepass rotated-by-config-change" in cm["data"]["redis.conf"]
+    assert tools.get_configmap("redis-auth")["error"] == "kubectl_failed"  # not a ConfigMap; Secrets have no tool at all

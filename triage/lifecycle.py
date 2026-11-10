@@ -151,6 +151,10 @@ class Lifecycle:
         for key, want in expected.items():
             if seen.get(key, 0) < want:
                 problems.append(f"{key[0]}/{key[1]} ready {seen.get(key, 0)}/{want}")
+        cm = self._json(["-n", self.ns, "get", "configmap", "redis-config"])
+        conf = ((cm or {}).get("data") or {}).get("redis.conf", "")
+        if "maxmemory 192mb" not in conf or "requirepass" in conf:
+            problems.append("configmap redis-config differs from baseline (maxmemory / requirepass)")
         if self._endpoints_ready("api") < 2:
             problems.append("service api has fewer than 2 ready endpoints")
         if self._run(["get", "namespace", "rec-feature"], 20).ok:

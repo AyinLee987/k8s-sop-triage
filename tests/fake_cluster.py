@@ -44,6 +44,9 @@ def _pod(name, app, owner, ready=True, restarts=0, waiting=None, last=None, exit
             "spec": {"nodeName": "kind-control-plane"}, "status": {"phase": "Running", "containerStatuses": [cs]}}
 
 
+REDIS_CONF = "\n".join(["bind 0.0.0.0", "protected-mode yes", "port 6379", "dir /data", "appendonly yes",
+                        "appendfsync everysec", 'save ""', "maxmemory 192mb", "maxmemory-policy noeviction",
+                        "include /etc/redis-auth/redis-auth.conf"]) + "\n"
 WORKER_OK_LOGS = ['{"event":"started","consumer":"worker-1"}', '{"event":"committed","event_id":"e1"}', '{"event":"acked","event_id":"e1"}']
 API_OK_LOGS = ["INFO:     Started server process", "INFO:     Application startup complete."]
 
@@ -69,6 +72,10 @@ class FakeCluster:
         self.events = [{"type": "Normal", "reason": "Pulled", "involvedObject": {"kind": "Pod", "name": "api-6c9f-a"},
                         "message": "old event before injection", "lastTimestamp": T0}]
         self.service_selector = {"app": "api"}
+        self.configmaps = {
+            "app-config": {"REDIS_HOST": "redis", "REDIS_PORT": "6379", "PROCESSING_DELAY_MS": "300"},
+            "redis-config": {"redis.conf": REDIS_CONF},
+        }
         self._apply(state)
 
     def _ev(self, obj, reason, message, typ="Warning"):
@@ -128,6 +135,37 @@ class FakeCluster:
                 self.logs["api-9b2c-c"] = API_OK_LOGS
                 self._ev("api-9b2c-c", "Unhealthy", "Readiness probe failed: HTTP probe failed with statuscode: 404")
 
+        elif s == "redis_memory":  # S11: maxmemory below used memory; writes rejected; pods all look healthy
+            self.configmaps["redis-config"]["redis.conf"] = REDIS_CONF.replace("maxmemory 192mb", "maxmemory 512kb")
+            for name in ("api-6c9f-a", "api-6c9f-b"):
+                self.logs[name] = API_OK_LOGS + [
+                    '{"event":"redis_unavailable","error_type":"OutOfMemoryError","level":"ERROR"}'] * 3
+        elif s == "redis_down":  # S12: redis scaled to zero; api readiness pings fail; worker retries
+            self.sts["spec"]["replicas"] = 0
+            self.sts["status"].update({"readyReplicas": 0, "availableReplicas": 0})
+            self.pods.pop("redis-0")
+            self.logs.pop("redis-0")
+            self._clients_lose_redis()
+        elif s == "redis_requirepass":  # S13: redis-config overrides the password; redis itself goes unready
+            self.configmaps["redis-config"]["redis.conf"] = REDIS_CONF + "requirepass rotated-by-config-change\n"
+            self.sts["status"].update({"readyReplicas": 0, "availableReplicas": 0})
+            self.pods["redis-0"] = _pod("redis-0", "redis", ("StatefulSet", "redis"), ready=False, restarts=1, last="Error", exit_code=0)
+            self.logs["redis-0"] = ["Ready to accept connections tcp"]
+            self._ev("redis-0", "Unhealthy", "Readiness probe failed: AUTH failed: WRONGPASS invalid username-password pair or user is disabled.")
+            self._clients_lose_redis()
+        elif s == "worker_slow":  # S14: valid but slow processing delay
+            w["env"].append({"name": "PROCESSING_DELAY_MS", "value": "10000"})
+            self.logs["worker-7d4b-a"] = ['{"event":"started"}'] + [
+                f'{{"event":"committed","event_id":"e{i}","elapsed_ms":{10003 + i},"unique_commit":true}}' for i in range(4)]
+
+    def _clients_lose_redis(self):
+        self.deploys["api"]["status"].update({"readyReplicas": 0, "availableReplicas": 0})
+        for name in ("api-6c9f-a", "api-6c9f-b"):
+            self.pods[name] = _pod(name, "api", ("ReplicaSet", "api-6c9f"), ready=False)
+            self.logs[name] = API_OK_LOGS + ['{"event":"redis_unavailable","error_type":"ConnectionError","level":"ERROR"}'] * 3
+            self._ev(name, "Unhealthy", "Readiness probe failed: HTTP probe failed with statuscode: 503")
+        self.logs["worker-7d4b-a"] = ['{"event":"started"}', '{"event":"redis_retry","error_type":"ConnectionError","backoff_seconds":2.0}']
+
     def _crash_worker(self, prev, last="Error", exit_code=1):
         self.deploys["worker"]["status"].update({"readyReplicas": 0, "availableReplicas": 0})
         self.pods["worker-7d4b-a"] = _pod("worker-7d4b-a", "worker", ("ReplicaSet", "worker-7d4b"), ready=False,
@@ -163,6 +201,10 @@ class FakeCluster:
             return self._json(self.sts) if name == "redis" else self._notfound("statefulsets", name)
         if what in ("pod", "pods") and name:
             return self._json(self.pods[name]) if name in self.pods else self._notfound("pods", name)
+        if what in ("configmap", "configmaps", "cm") and name:
+            if name not in self.configmaps:
+                return self._notfound("configmaps", name)
+            return self._json({"metadata": {"name": name}, "data": self.configmaps[name]})
         if what == "events":
             return self._json({"items": self.events})
         if what in ("service", "services", "svc") and name:
@@ -194,4 +236,5 @@ class FakeCluster:
 GENERATED_STATE = {"G-worker_command-02": "start_error", "G-dependency_address-03": "api_host_notready",
                    "G-redis_password-02": "api_password_notready", "G-api_probe-02": "api_readiness_path"}
 SCENARIO_STATE = {"S01": "image", "S02": "host", "S03": "config", "S04": "oom", "S05": "command",
-                  "S06": "probe", "S07": "healthy", "S08": "healthy", "S09": "selector", "S10": "password"}
+                  "S06": "probe", "S07": "healthy", "S08": "healthy", "S09": "selector", "S10": "password",
+                  "S11": "redis_memory", "S12": "redis_down", "S13": "redis_requirepass", "S14": "worker_slow"}

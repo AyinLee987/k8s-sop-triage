@@ -68,7 +68,7 @@ def test_render_rejects_missing_params_and_unknown_symptoms():
 
 
 def test_load_scenarios_sources_and_caps():
-    assert len(load_scenarios(split="all")) == 10
+    assert len(load_scenarios(split="all")) == 14
     assert len(load_scenarios(split="all", source="generated")) == 25
     capped = load_scenarios(split="all", source="generated", max_per_template=1)
     assert len(capped) == len({s["template"] for s in GEN})

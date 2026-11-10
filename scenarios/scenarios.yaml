@@ -219,3 +219,262 @@ scenarios:
       explanation: "worker 的 REDIS_PASSWORD 被改成字面值 changeme，不再引用 Secret，连接 Redis 认证失败。"
       key_evidence: ["AuthenticationError", "REDIS_PASSWORD", "changeme"]
       accept_cause_keywords: ["密码", "password", "认证", "auth"]
+
+  # ---- 跨组件场景：现象在 A，根因在 B（S11、S12 开发集；S13、S14 保留测试集）----
+  - id: S11
+    split: dev
+    kind: cross_component
+    symptom: 提交事件的接口一直返回 503，点击数也不涨了。
+    inject:
+    - kubectl:
+      - -n
+      - '{ns}'
+      - patch
+      - configmap/redis-config
+      - --type=merge
+      - -p
+      - '{"data": {"redis.conf": "bind 0.0.0.0\nprotected-mode yes\nport 6379\ndir /data\nappendonly yes\nappendfsync everysec\nsave \"\"\nmaxmemory 512kb\nmaxmemory-policy noeviction\ninclude /etc/redis-auth/redis-auth.conf\n"}}'
+    - &id001
+      kubectl:
+      - -n
+      - '{ns}'
+      - delete
+      - pod
+      - redis-0
+      - --wait=true
+      - --timeout=90s
+    - &id002
+      kubectl:
+      - -n
+      - '{ns}'
+      - rollout
+      - status
+      - statefulset/redis
+      - --timeout=150s
+    - kubectl:
+      - -n
+      - '{ns}'
+      - exec
+      - deployment/api
+      - -c
+      - api
+      - --
+      - python
+      - -c
+      - "import json,uuid,urllib.request as u\nfor i in range(5):\n    r=u.Request('http://127.0.0.1:8000/events',data=json.dumps({'event_id':str(uuid.uuid4()),'user_id':'probe','event_type':'click'}).encode(),headers={'Content-Type':'application/json'})\n    try: print(u.urlopen(r,timeout=3).status)\n    except Exception as e: print(getattr(e,'code',type(e).__name__))\n"
+    confirm:
+      timeout_s: 60
+      checks:
+      - type: logs_contain
+        selector: app=api
+        text: redis_unavailable
+    reset:
+    - kubectl:
+      - -n
+      - '{ns}'
+      - patch
+      - configmap/redis-config
+      - --type=merge
+      - -p
+      - '{"data": {"redis.conf": "bind 0.0.0.0\nprotected-mode yes\nport 6379\ndir /data\nappendonly yes\nappendfsync everysec\nsave \"\"\nmaxmemory 192mb\nmaxmemory-policy noeviction\ninclude /etc/redis-auth/redis-auth.conf\n"}}'
+    - *id001
+    - *id002
+    answer:
+      status: root_cause_found
+      object:
+        kind: StatefulSet
+        name: redis
+      accept_objects:
+      - redis
+      - redis-config
+      symptom_objects:
+      - api
+      - worker
+      cause_category: dependency_memory_full
+      explanation: redis-config 里的 maxmemory 被改成 512kb，低于 Redis 已用内存，所有写入被拒绝（OOM command not allowed）；api 写入失败返回 503。现象在 api，根因在 Redis 配置。
+      key_evidence:
+      - maxmemory
+      - 512kb
+      - OutOfMemoryError
+      - OOM
+      accept_cause_keywords:
+      - maxmemory
+      - 内存
+      - memory
+      - OOM
+  - id: S12
+    split: dev
+    kind: cross_component
+    symptom: 服务整个不可用：api 全部不 Ready，提交不了事件，worker 也停止处理了。
+    inject:
+    - kubectl:
+      - -n
+      - '{ns}'
+      - scale
+      - statefulset/redis
+      - --replicas=0
+    - kubectl:
+      - -n
+      - '{ns}'
+      - wait
+      - --for=delete
+      - pod/redis-0
+      - --timeout=90s
+    confirm:
+      timeout_s: 60
+      checks:
+      - type: pod_not_ready
+        selector: app=api
+    reset:
+    - kubectl:
+      - -n
+      - '{ns}'
+      - scale
+      - statefulset/redis
+      - --replicas=1
+    - *id002
+    answer:
+      status: root_cause_found
+      object:
+        kind: StatefulSet
+        name: redis
+      accept_objects:
+      - redis
+      symptom_objects:
+      - api
+      - worker
+      cause_category: dependency_down
+      explanation: StatefulSet redis 的副本数被缩成 0，Redis 不在运行；api 就绪探针 ping 失败全部不 Ready，worker 连接失败重试。现象在 api / worker，根因在 Redis。
+      key_evidence:
+      - desired
+      - replicas
+      - 副本
+      - 0/0
+      accept_cause_keywords:
+      - 副本
+      - replica
+      - 缩
+      - scale
+      - 没有运行
+      - 不在运行
+  - id: S13
+    split: holdout
+    kind: cross_component
+    symptom: 服务整个不可用：api 全部不 Ready，提交不了事件，worker 也停止处理了。
+    inject:
+    - kubectl:
+      - -n
+      - '{ns}'
+      - patch
+      - configmap/redis-config
+      - --type=merge
+      - -p
+      - '{"data": {"redis.conf": "bind 0.0.0.0\nprotected-mode yes\nport 6379\ndir /data\nappendonly yes\nappendfsync everysec\nsave \"\"\nmaxmemory 192mb\nmaxmemory-policy noeviction\ninclude /etc/redis-auth/redis-auth.conf\nrequirepass rotated-by-config-change\n"}}'
+    - *id001
+    confirm:
+      timeout_s: 120
+      checks:
+      - type: pod_not_ready
+        selector: app=redis
+      - type: pod_not_ready
+        selector: app=api
+    reset:
+    - kubectl:
+      - -n
+      - '{ns}'
+      - patch
+      - configmap/redis-config
+      - --type=merge
+      - -p
+      - '{"data": {"redis.conf": "bind 0.0.0.0\nprotected-mode yes\nport 6379\ndir /data\nappendonly yes\nappendfsync everysec\nsave \"\"\nmaxmemory 192mb\nmaxmemory-policy noeviction\ninclude /etc/redis-auth/redis-auth.conf\n"}}'
+    - *id001
+    - *id002
+    answer:
+      status: root_cause_found
+      object:
+        kind: StatefulSet
+        name: redis
+      accept_objects:
+      - redis
+      - redis-config
+      symptom_objects:
+      - api
+      - worker
+      cause_category: dependency_config_error
+      explanation: redis-config 在 include 之后多了一行 requirepass，覆盖了 Secret 里的密码；Redis 自己的就绪探针认证失败，Pod 不就绪、被摘出 Service，api / worker 都连不上。现象在 api / worker，根因在 Redis 配置。
+      key_evidence:
+      - requirepass
+      - redis-config
+      - Readiness probe failed
+      accept_cause_keywords:
+      - requirepass
+      - 密码
+      - 认证
+      - auth
+      - redis-config
+      - 配置
+  - id: S14
+    split: holdout
+    kind: cross_component
+    symptom: 点击数涨得特别慢，新提交的事件要等很久才变成 completed。
+    inject:
+    - kubectl:
+      - -n
+      - '{ns}'
+      - set
+      - env
+      - deployment/worker
+      - PROCESSING_DELAY_MS=10000
+    - kubectl:
+      - -n
+      - '{ns}'
+      - rollout
+      - status
+      - deployment/worker
+      - --timeout=150s
+    - kubectl:
+      - -n
+      - '{ns}'
+      - exec
+      - deployment/api
+      - -c
+      - api
+      - --
+      - python
+      - -c
+      - "import json,uuid,urllib.request as u\nfor i in range(12):\n    r=u.Request('http://127.0.0.1:8000/events',data=json.dumps({'event_id':str(uuid.uuid4()),'user_id':'probe','event_type':'click'}).encode(),headers={'Content-Type':'application/json'})\n    try: print(u.urlopen(r,timeout=3).status)\n    except Exception as e: print(getattr(e,'code',type(e).__name__))\n"
+    confirm:
+      timeout_s: 90
+      checks:
+      - type: logs_contain
+        selector: app=worker
+        text: committed
+    reset:
+    - kubectl:
+      - -n
+      - '{ns}'
+      - set
+      - env
+      - deployment/worker
+      - PROCESSING_DELAY_MS-
+    answer:
+      status: root_cause_found
+      object:
+        kind: Deployment
+        name: worker
+      accept_objects:
+      - worker
+      symptom_objects:
+      - api
+      cause_category: processing_too_slow
+      explanation: worker 的 PROCESSING_DELAY_MS 被设成 10000（合法上限），每条事件处理 10 秒，事件积压。现象在用户侧 / api，根因在 worker 配置。
+      key_evidence:
+      - PROCESSING_DELAY_MS
+      - '10000'
+      - elapsed_ms
+      accept_cause_keywords:
+      - PROCESSING_DELAY_MS
+      - 处理
+      - 慢
+      - 延迟
+      - delay

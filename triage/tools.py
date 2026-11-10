@@ -117,6 +117,12 @@ def summarize_service(svc: dict) -> dict:
     }
 
 
+def summarize_configmap(cm: dict) -> dict:
+    data = cm.get("data") or {}
+    return {"name": cm.get("metadata", {}).get("name"),
+            "data": {k: (v if len(v) <= 2000 else v[:2000] + "…") for k, v in data.items()}}
+
+
 def summarize_events(items: list[dict], since: str | None = None, object_name: str | None = None) -> list[dict]:
     out = []
     for e in items:
@@ -185,6 +191,11 @@ class ReadOnlyTools:
     def get_service(self, name: str, namespace: str | None = None) -> dict:
         ns = namespace or self.namespace
         return self._call("get_service", {"name": name, "namespace": ns}, lambda t: self._service(name, ns, t))
+
+    def get_configmap(self, name: str, namespace: str | None = None) -> dict:
+        ns = namespace or self.namespace
+        return self._call("get_configmap", {"name": name, "namespace": ns},
+                          lambda t: self._get_json(["configmap", name], ns, t, summarize_configmap))
 
     def dispatch(self, name: str, args: dict) -> dict:
         allowed = {spec["function"]["name"] for spec in TOOL_SPECS}
@@ -302,7 +313,8 @@ TOOL_SPECS = [
         {"pod": {"type": "string"}, "previous": {"type": "boolean"}, "tail": {"type": "integer"}, **_NS}, ["pod"]),
     _fn("get_events", "列出命名空间最近的事件，可按对象名前缀过滤。", {"object_name": {"type": "string"}, **_NS}, []),
     _fn("get_service", "查看 Service 的 selector、端口和当前就绪的 endpoints。", {"name": {"type": "string"}, **_NS}, ["name"]),
+    _fn("get_configmap", "查看 ConfigMap 的内容（例如 app-config、redis-config）。看不到 Secret。", {"name": {"type": "string"}, **_NS}, ["name"]),
 ]
 
 __all__ = ["ReadOnlyTools", "TOOL_SPECS", "Trace", "BudgetExceeded", "summarize_pod", "summarize_workload",
-           "summarize_events", "summarize_service"]
+           "summarize_events", "summarize_service", "summarize_configmap"]

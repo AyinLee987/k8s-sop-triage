@@ -16,10 +16,11 @@ SC = {s["id"]: s for s in load_scenarios(split="all")}
 
 # ---------------- scenario specs ----------------
 def test_scenario_specs_are_complete_and_split_by_mechanism():
-    assert len(SC) == 10
+    assert len(SC) == 14
     dev = {k for k, s in SC.items() if s["split"] == "dev"}
     holdout = {k for k, s in SC.items() if s["split"] == "holdout"}
-    assert dev == {"S01", "S02", "S03", "S04", "S07"} and holdout == {"S05", "S06", "S08", "S09", "S10"}
+    assert dev == {"S01", "S02", "S03", "S04", "S07", "S11", "S12"}
+    assert holdout == {"S05", "S06", "S08", "S09", "S10", "S13", "S14"}
     for s in SC.values():
         for key in ("symptom", "inject", "confirm", "reset", "answer"):
             assert key in s, (s["id"], key)
@@ -98,6 +99,8 @@ class AdminFake:
             return KubeResult(True, "")
         if a[:3] == ["get", "namespace", "rec-feature"]:
             return KubeResult(False, "", "NotFound", 1)
+        if "configmap" in a and "redis-config" in a:
+            return KubeResult(True, json.dumps({"data": {"redis.conf": "maxmemory 192mb\ninclude /etc/redis-auth/redis-auth.conf\n"}}))
         if "endpointslices" in a:
             return KubeResult(True, json.dumps({"items": [{"endpoints": [{"conditions": {"ready": True}}] * 2}]}))
         if "deployments,statefulsets,pods" in a:
