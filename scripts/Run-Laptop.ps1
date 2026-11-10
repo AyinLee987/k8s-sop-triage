@@ -51,21 +51,46 @@ Step "kind cluster '$Cluster'"
 $clusters = & $Kind get clusters 2>&1 | Where-Object { $_ -is [string] }
 Need ($clusters -contains $Cluster) "kind cluster '$Cluster' not found. In tiktok-k8s-lab run: .\scripts\Setup.ps1; .\scripts\Build.ps1 -Version v1; .\scripts\Build.ps1 -Version v2"
 
+# kind nodes are created with restart=on-failure, so after Docker Desktop restarts the node is often stopped.
+$node = "$Cluster-control-plane"
+$running = (& docker inspect -f '{{.State.Running}}' $node 2>&1 | Out-String).Trim()
+if ($running -ne 'true') {
+    Step "starting stopped kind node $node (normal docker start)"
+    & docker start $node 2>&1 | Out-Host
+    Need ($LASTEXITCODE -eq 0) "could not start $node"
+}
+$labKube = Join-Path $Lab '.local\kubeconfig'
+for ($i = 0; $i -lt 30; $i++) {
+    & kubectl --kubeconfig $labKube --context "kind-$Cluster" get --raw /readyz 2>&1 | Out-Null
+    if ($LASTEXITCODE -eq 0) { break }
+    Start-Sleep -Seconds 4
+}
+Need ($LASTEXITCODE -eq 0) 'kind API server did not become ready within 2 minutes'
+
+# The lab's own scripts are written for PowerShell 7 (Windows PowerShell 5.1 drops the quotes inside
+# docker --format templates, which breaks their ownership check), so call them through pwsh.
+$pwsh = Get-Command pwsh -ErrorAction SilentlyContinue
+function Invoke-LabScript([string]$name, [string[]]$extra = @()) {
+    Need $pwsh 'PowerShell 7 (pwsh) is required for the tiktok-k8s-lab scripts: winget install Microsoft.PowerShell'
+    Push-Location $Lab
+    try { & $pwsh.Source -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Lab "scripts\$name") @extra } finally { Pop-Location }
+    Need ($LASTEXITCODE -eq 0) "$name failed"
+}
+
 # Images the scenarios need must already be inside the kind node (imagePullPolicy: Never).
-$nodeImages = (& docker exec "$Cluster-control-plane" crictl images 2>&1 | Out-String)
+$nodeImages = (& docker exec $node crictl images 2>&1 | Out-String)
 foreach ($v in 'v1', 'v2') {
     if ($nodeImages -notmatch "tiktok-k8s-lab\s+$v\b") {
         Step "loading app image $v into kind (tiktok-k8s-lab\scripts\Build.ps1)"
-        Push-Location $Lab; try { & (Join-Path $Lab 'scripts\Build.ps1') -Version $v } finally { Pop-Location }
+        Invoke-LabScript 'Build.ps1' @('-Version', $v)
     }
 }
 
 # The app must be deployed (Deploy.ps1 is an idempotent apply of the lab manifests + Redis secret).
-$labKube = Join-Path $Lab '.local\kubeconfig'
 & kubectl --kubeconfig $labKube --context "kind-$Cluster" -n $Cluster get deploy api 2>&1 | Out-Null
 if ($LASTEXITCODE -ne 0) {
     Step 'deploying the lab app (tiktok-k8s-lab\scripts\Deploy.ps1)'
-    Push-Location $Lab; try { & (Join-Path $Lab 'scripts\Deploy.ps1') } finally { Pop-Location }
+    Invoke-LabScript 'Deploy.ps1'
 }
 
 Step 'kubeconfig for containers on the kind network'
