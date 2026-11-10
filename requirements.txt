@@ -1,0 +1,4 @@
+# 运行只需要 PyYAML；模型调用用标准库 urllib，kubectl 用子进程。
+PyYAML>=6.0
+# 测试
+pytest>=8.0

@@ -1,0 +1,45 @@
+# 诊断器专用的只读身份。注入和复位用管理员 kubeconfig，诊断器只用这个 ServiceAccount 生成的 kubeconfig。
+# 只授权业务命名空间 tiktok-k8s-lab；不给 secrets；不给任何写操作。
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: diag-system
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: diag-agent
+  namespace: diag-system
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: diag-readonly
+  namespace: tiktok-k8s-lab
+rules:
+  - apiGroups: [""]
+    resources: ["pods", "pods/log", "events", "services", "endpoints", "configmaps", "persistentvolumeclaims"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["apps"]
+    resources: ["deployments", "statefulsets", "replicasets"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["discovery.k8s.io"]
+    resources: ["endpointslices"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["events.k8s.io"]
+    resources: ["events"]
+    verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: diag-readonly
+  namespace: tiktok-k8s-lab
+subjects:
+  - kind: ServiceAccount
+    name: diag-agent
+    namespace: diag-system
+roleRef:
+  kind: Role
+  name: diag-readonly
+  apiGroup: rbac.authorization.k8s.io

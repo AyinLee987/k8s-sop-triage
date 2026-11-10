@@ -1,0 +1,257 @@
+# 参数化故障模板。一个模板 = 一种故障机制；每行参数展开成一个场景。
+# 只有执行器和评分器读取这个文件，诊断器看不到。
+#
+# 规则：
+#   1. 模板的 split 必须和 scenarios.yaml 里同一机制（cause_category）的手写场景一致，
+#      同一种机制只出现在一个集合里（tests/test_generator.py 会检查）。
+#   2. 每行参数只换"位置和取值"，不换机制。换机制就另写一个模板。
+#   3. 每行可以用 override 覆盖场景里的任意字段（例如 confirm、answer 的部分内容）。
+#   4. 占位符用 {{name}}，取自该行参数；{ns}/{repo} 这类由执行器在运行时替换。
+#   5. 注入能不能真正产生故障，要在真集群上用 smoke 验证；没生效会记为环境失败，不会算诊断错。
+
+symptoms:
+  queued: "接口能正常提交事件，但事件一直停在 queued 状态，用户点击数不增长。"
+  crash_worker: "worker 一直在重启，事件堆积处理不掉。"
+  crash_api: "api 发布后，新 Pod 一直反复重启，发布卡住。"
+  notready_api: "api 发布后新 Pod 一直不 Ready，发布卡住。"
+  rollout_api: "刚发布了 api 的新版本，发布一直卡着没完成，新 Pod 起不来。"
+  rollout_worker: "worker 刚发布了新版本，新 Pod 起不来，发布卡住。"
+  restart_api: "api 的 Pod 隔一会儿就自己重启一次。"
+  svc_unreachable: "集群里其他服务调用 api 一直连不上，但 api 的 Pod 看起来都是 Running。"
+
+templates:
+  # ------------------------------------------------------------------ dev
+  - template: env_invalid
+    mechanism: invalid_config_value
+    split: dev
+    kind: same_symptom_diff_cause
+    params:
+      - {workload: worker, var: PROCESSING_DELAY_MS, value: "-5", symptom: crash_worker, evidence: ["PROCESSING_DELAY_MS", "must be within"]}
+      - {workload: worker, var: READ_BLOCK_MS, value: "5000", symptom: crash_worker, evidence: ["READ_BLOCK_MS", "must be below"]}
+      - {workload: worker, var: RECLAIM_IDLE_MS, value: "500", symptom: crash_worker, evidence: ["RECLAIM_IDLE_MS", "needs processing"]}
+      - {workload: worker, var: SHUTDOWN_SECONDS, value: "0", symptom: crash_worker, evidence: ["SHUTDOWN_SECONDS", "must be positive"]}
+      - {workload: worker, var: PROCESSING_DELAY_MS, value: "fast", symptom: crash_worker, evidence: ["invalid literal", "fast"]}
+      - {workload: api, var: REDIS_PORT, value: "abc", symptom: crash_api, evidence: ["invalid literal", "abc", "REDIS_PORT"]}
+    scenario:
+      inject:
+        - kubectl: ["-n", "{ns}", "set", "env", "deployment/{{workload}}", "{{var}}={{value}}"]
+      confirm:
+        timeout_s: 120
+        checks:
+          - {type: pod_restart_count_at_least, selector: "app={{workload}}", count: 2}
+      reset:
+        - kubectl: ["-n", "{ns}", "set", "env", "deployment/{{workload}}", "{{var}}-"]
+      answer:
+        status: root_cause_found
+        object: {kind: Deployment, name: "{{workload}}"}
+        cause_category: invalid_config_value
+        explanation: "{{workload}} 的环境变量 {{var}}={{value}} 不合法，启动时解析或校验失败退出。"
+        key_evidence: "{{evidence}}"
+        accept_cause_keywords: ["{{var}}", "配置", "config"]
+
+  - template: dependency_address
+    mechanism: dependency_unreachable
+    split: dev
+    kind: running_but_broken
+    params:
+      - {workload: worker, var: REDIS_HOST, value: "redis.default.svc", symptom: queued, check: logs_contain, evidence: ["redis.default.svc", "REDIS_HOST", "redis_retry"]}
+      - {workload: worker, var: REDIS_PORT, value: "6380", symptom: queued, check: logs_contain, evidence: ["6380", "REDIS_PORT", "redis_retry"]}
+      - {workload: api, var: REDIS_HOST, value: "redis-cache", symptom: notready_api, check: pod_not_ready, evidence: ["redis-cache", "REDIS_HOST"],
+         override: {confirm: {timeout_s: 90, checks: [{type: pod_not_ready, selector: "app=api"}]}}}
+    scenario:
+      inject:
+        - kubectl: ["-n", "{ns}", "set", "env", "deployment/{{workload}}", "{{var}}={{value}}"]
+      confirm:
+        timeout_s: 120
+        checks:
+          - {type: logs_contain, selector: "app={{workload}}", text: "redis_retry"}
+      reset:
+        - kubectl: ["-n", "{ns}", "set", "env", "deployment/{{workload}}", "{{var}}-"]
+      answer:
+        status: root_cause_found
+        object: {kind: Deployment, name: "{{workload}}"}
+        cause_category: dependency_unreachable
+        explanation: "{{workload}} 的 {{var}} 被覆盖成 {{value}}，连不上 Redis。"
+        key_evidence: "{{evidence}}"
+        accept_cause_keywords: ["{{var}}", "{{value}}", "地址", "端口", "host", "port"]
+
+  - template: memory_limit
+    mechanism: memory_limit_too_low
+    split: dev
+    kind: same_symptom_diff_cause
+    params:
+      - {workload: worker, limit: 24Mi, symptom: crash_worker, orig_limits: "cpu=500m,memory=128Mi", orig_requests: "cpu=100m,memory=64Mi"}
+      - {workload: api, limit: 32Mi, symptom: crash_api, orig_limits: "cpu=500m,memory=192Mi", orig_requests: "cpu=100m,memory=96Mi"}
+    scenario:
+      inject:
+        - kubectl: ["-n", "{ns}", "set", "resources", "deployment/{{workload}}", "-c", "{{workload}}", "--limits=memory={{limit}}", "--requests=memory={{limit}}"]
+      confirm:
+        timeout_s: 120
+        checks:
+          - {type: pod_last_terminated_reason, selector: "app={{workload}}", reason: OOMKilled}
+      reset:
+        - kubectl: ["-n", "{ns}", "set", "resources", "deployment/{{workload}}", "-c", "{{workload}}", "--limits={{orig_limits}}", "--requests={{orig_requests}}"]
+      answer:
+        status: root_cause_found
+        object: {kind: Deployment, name: "{{workload}}"}
+        cause_category: memory_limit_too_low
+        explanation: "{{workload}} 内存限制被改成 {{limit}}，进程被 OOMKilled。"
+        key_evidence: ["OOMKilled", "{{limit}}"]
+        accept_cause_keywords: ["内存", "memory", "OOM"]
+
+  - template: image_tag
+    mechanism: image_unavailable
+    split: dev
+    kind: single_evidence
+    params:
+      - {workload: api, image: "tiktok-k8s-lab:v2-rc1", symptom: rollout_api}
+      - {workload: api, image: "tiktok-k8s-lab:latest", symptom: rollout_api}
+      - {workload: worker, image: "tiktok-k8s-lab:v1.1", symptom: rollout_worker}
+      - {workload: api, image: "tiktok-k8s-lab-api:v1", symptom: rollout_api}
+    scenario:
+      inject:
+        - kubectl: ["-n", "{ns}", "set", "image", "deployment/{{workload}}", "{{workload}}={{image}}"]
+      confirm:
+        timeout_s: 90
+        checks:
+          - {type: pod_waiting_reason, selector: "app={{workload}}", reasons: [ErrImageNeverPull, ErrImagePull, ImagePullBackOff, InvalidImageName]}
+      reset:
+        - kubectl: ["-n", "{ns}", "set", "image", "deployment/{{workload}}", "{{workload}}=tiktok-k8s-lab:v1"]
+      answer:
+        status: root_cause_found
+        object: {kind: Deployment, name: "{{workload}}"}
+        cause_category: image_unavailable
+        explanation: "{{workload}} 的镜像改成了节点上不存在的 {{image}}（imagePullPolicy: Never）。"
+        key_evidence: ["{{image}}", "ErrImageNeverPull", "ImagePullBackOff", "ErrImagePull"]
+        accept_cause_keywords: ["镜像", "image", "{{image}}"]
+
+  # ------------------------------------------------------------------ holdout
+  - template: worker_command
+    mechanism: wrong_command
+    split: holdout
+    kind: same_symptom_diff_cause
+    params:
+      - {cmd0: python, module: app.worker_main, evidence: ["app.worker_main", "No module named"]}
+      - {cmd0: python3.11, module: app.worker, evidence: ["python3.11", "not found"]}
+    scenario:
+      symptom: "{{sym:crash_worker}}"
+      precheck:
+        - {type: jsonpath_equals, resource: "deployment/worker", path: "{.spec.template.spec.containers[0].command[2]}", value: "app.worker"}
+      inject:
+        - kubectl: ["-n", "{ns}", "patch", "deployment/worker", "--type=json", "-p", '[{"op":"replace","path":"/spec/template/spec/containers/0/command","value":["{{cmd0}}","-m","{{module}}"]}]']
+      confirm:
+        timeout_s: 120
+        checks:
+          - {type: pod_waiting_reason, selector: "app=worker", reasons: [CrashLoopBackOff, RunContainerError, StartError, CreateContainerError]}
+      reset:
+        - kubectl: ["-n", "{ns}", "patch", "deployment/worker", "--type=json", "-p", '[{"op":"replace","path":"/spec/template/spec/containers/0/command","value":["python","-m","app.worker"]}]']
+      answer:
+        status: root_cause_found
+        object: {kind: Deployment, name: worker}
+        cause_category: wrong_command
+        explanation: "worker 启动命令被改成 {{cmd0}} -m {{module}}，进程无法启动。"
+        key_evidence: "{{evidence}}"
+        accept_cause_keywords: ["命令", "command", "模块", "module", "{{cmd0}}", "{{module}}"]
+
+  - template: api_command
+    mechanism: wrong_command
+    split: holdout
+    kind: same_symptom_diff_cause
+    params:
+      - {app_ref: "app.api:application"}
+    scenario:
+      symptom: "{{sym:crash_api}}"
+      inject:
+        - kubectl: ["-n", "{ns}", "patch", "deployment/api", "--type=json", "-p", '[{"op":"add","path":"/spec/template/spec/containers/0/command","value":["python","-m","uvicorn","{{app_ref}}","--host","0.0.0.0","--port","8000"]}]']
+      confirm:
+        timeout_s: 120
+        checks:
+          - {type: pod_restart_count_at_least, selector: "app=api", count: 2}
+      reset:
+        - kubectl: ["-n", "{ns}", "patch", "deployment/api", "--type=json", "-p", '[{"op":"remove","path":"/spec/template/spec/containers/0/command"}]']
+      answer:
+        status: root_cause_found
+        object: {kind: Deployment, name: api}
+        cause_category: wrong_command
+        explanation: "api 被加上了错误的启动命令，uvicorn 找不到 {{app_ref}}。"
+        key_evidence: ["application", "not found", "Error loading ASGI app"]
+        accept_cause_keywords: ["命令", "command", "application", "uvicorn", "入口"]
+
+  - template: api_probe
+    mechanism: probe_misconfigured
+    split: holdout
+    kind: same_symptom_diff_cause
+    params:
+      - {probe: livenessProbe, field: path, value: '"/live"', orig: '"/health/live"', symptom: restart_api, evidence: ["/live", "Liveness probe failed", "404"]}
+      - {probe: readinessProbe, field: path, value: '"/ready"', orig: '"/health/ready"', symptom: notready_api, evidence: ["/ready", "Readiness probe failed", "404"],
+         override: {confirm: {timeout_s: 90, checks: [{type: pod_not_ready, selector: "app=api"}]}}}
+      - {probe: livenessProbe, field: port, value: "8081", orig: '"http"', symptom: restart_api, evidence: ["8081", "Liveness probe failed", "connection refused"]}
+    scenario:
+      inject:
+        - kubectl: ["-n", "{ns}", "patch", "deployment/api", "--type=json", "-p", '[{"op":"replace","path":"/spec/template/spec/containers/0/{{probe}}/httpGet/{{field}}","value":{{value}}}]']
+      confirm:
+        timeout_s: 150
+        checks:
+          - {type: pod_restart_count_at_least, selector: "app=api", count: 1}
+      reset:
+        - kubectl: ["-n", "{ns}", "patch", "deployment/api", "--type=json", "-p", '[{"op":"replace","path":"/spec/template/spec/containers/0/{{probe}}/httpGet/{{field}}","value":{{orig}}}]']
+      answer:
+        status: root_cause_found
+        object: {kind: Deployment, name: api}
+        cause_category: probe_misconfigured
+        explanation: "api 的 {{probe}} {{field}} 被改成 {{value}}，探针失败。"
+        key_evidence: "{{evidence}}"
+        accept_cause_keywords: ["探针", "probe", "liveness", "readiness"]
+
+  - template: redis_password
+    mechanism: dependency_auth_failed
+    split: holdout
+    kind: running_but_broken
+    params:
+      - {workload: worker, value: "", symptom: queued, evidence: ["AuthenticationError", "REDIS_PASSWORD"]}
+      - {workload: api, value: "changeme", symptom: notready_api, evidence: ["AuthenticationError", "REDIS_PASSWORD", "changeme"],
+         override: {confirm: {timeout_s: 90, checks: [{type: pod_not_ready, selector: "app=api"}]}}}
+    scenario:
+      precheck:
+        - {type: jsonpath_equals, resource: "deployment/{{workload}}", path: "{.spec.template.spec.containers[0].env[0].name}", value: "REDIS_PASSWORD"}
+      inject:
+        - kubectl: ["-n", "{ns}", "patch", "deployment/{{workload}}", "--type=json", "-p", '[{"op":"replace","path":"/spec/template/spec/containers/0/env/0","value":{"name":"REDIS_PASSWORD","value":"{{value}}"}}]']
+      confirm:
+        timeout_s: 120
+        checks:
+          - {type: logs_contain, selector: "app={{workload}}", text: "AuthenticationError"}
+      reset:
+        - kubectl: ["-n", "{ns}", "patch", "deployment/{{workload}}", "--type=json", "-p", '[{"op":"replace","path":"/spec/template/spec/containers/0/env/0","value":{"name":"REDIS_PASSWORD","valueFrom":{"secretKeyRef":{"name":"redis-auth","key":"password"}}}}]']
+      answer:
+        status: root_cause_found
+        object: {kind: Deployment, name: "{{workload}}"}
+        cause_category: dependency_auth_failed
+        explanation: "{{workload}} 的 REDIS_PASSWORD 被改成字面值（{{value}}），不再引用 Secret，Redis 认证失败。"
+        key_evidence: "{{evidence}}"
+        accept_cause_keywords: ["密码", "password", "认证", "auth"]
+
+  - template: service_routing
+    mechanism: other
+    split: holdout
+    kind: sop_not_covered
+    params:
+      - {patch: '[{"op":"replace","path":"/spec/selector/app","value":"api-canary"}]', undo: '[{"op":"replace","path":"/spec/selector/app","value":"api"}]',
+         keywords: ["selector", "选择器", "endpoint", "api-canary", "标签"], evidence: ["api-canary", "selector", "endpoints"],
+         override: {confirm: {timeout_s: 30, checks: [{type: service_endpoints_empty, service: api}]}}}
+      - {patch: '[{"op":"replace","path":"/spec/ports/0/targetPort","value":8080}]', undo: '[{"op":"replace","path":"/spec/ports/0/targetPort","value":"http"}]',
+         keywords: ["targetPort", "端口", "8080", "port"], evidence: ["targetPort", "8080"],
+         override: {confirm: {timeout_s: 20, checks: [{type: jsonpath_equals, resource: "service/api", path: "{.spec.ports[0].targetPort}", value: "8080"}]}}}
+    scenario:
+      symptom: "{{sym:svc_unreachable}}"
+      inject:
+        - kubectl: ["-n", "{ns}", "patch", "service/api", "--type=json", "-p", "{{patch}}"]
+      confirm: {timeout_s: 30, checks: [{type: always}]}
+      reset:
+        - kubectl: ["-n", "{ns}", "patch", "service/api", "--type=json", "-p", "{{undo}}"]
+      answer:
+        status: root_cause_found
+        object: {kind: Service, name: api}
+        cause_category: other
+        explanation: "Service api 的路由配置被改坏（{{patch}}），流量到不了健康的 Pod。SOP 没覆盖 Service 层。"
+        key_evidence: "{{evidence}}"
+        accept_cause_keywords: "{{keywords}}"

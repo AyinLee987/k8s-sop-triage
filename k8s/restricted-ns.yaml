@@ -1,0 +1,31 @@
+# S08 用：一个诊断器没有读权限的命名空间，里面的服务持续报错退出。
+# 复用 tiktok-k8s-lab:v1 镜像（imagePullPolicy: Never），不需要联网拉镜像。
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: rec-feature
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: feature-sync
+  namespace: rec-feature
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: feature-sync
+  template:
+    metadata:
+      labels:
+        app: feature-sync
+    spec:
+      automountServiceAccountToken: false
+      containers:
+        - name: feature-sync
+          image: tiktok-k8s-lab:v1
+          imagePullPolicy: Never
+          command: ["python", "-c", "import sys; print('feature store connection refused', file=sys.stderr); sys.exit(1)"]
+          resources:
+            requests: {cpu: 10m, memory: 32Mi}
+            limits: {cpu: 100m, memory: 64Mi}
