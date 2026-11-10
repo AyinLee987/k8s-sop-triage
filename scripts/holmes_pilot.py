@@ -22,7 +22,7 @@ from triage.kube import KubectlRunner  # noqa: E402
 from triage.lifecycle import Lifecycle, StepLog, load_scenarios  # noqa: E402
 from triage.runner import cfg, load_dotenv, path_cfg  # noqa: E402
 
-HOLMES = os.environ.get("HOLMES_BIN", "/home/claude/holmes-venv/bin/holmes")
+HOLMES = os.environ.get("HOLMES_BIN", "holmes")
 OUT = REPO / "results" / "holmes_pilot"
 
 
@@ -31,6 +31,7 @@ def main() -> int:
     ap.add_argument("scenario")
     ap.add_argument("--model", default=None)
     ap.add_argument("--max-steps", type=int, default=25)
+    ap.add_argument("--out", default=None, help="where to write HolmesGPT's JSON answer (default: results/holmes_pilot/<id>-<time>.json)")
     args = ap.parse_args()
     load_dotenv()
     ns = cfg("NAMESPACE", "tiktok-k8s-lab")
@@ -41,7 +42,8 @@ def main() -> int:
     log = StepLog()
     OUT.mkdir(parents=True, exist_ok=True)
     stamp = time.strftime("%Y%m%d-%H%M%S")
-    json_out = OUT / f"{args.scenario}-{stamp}.json"
+    json_out = Path(args.out) if args.out else OUT / f"{args.scenario}-{stamp}.json"
+    json_out.parent.mkdir(parents=True, exist_ok=True)
     env = {k: v for k, v in os.environ.items() if k.lower() not in ("http_proxy", "https_proxy", "all_proxy")}
     env.update({
         "KUBECONFIG": path_cfg("DIAG_KUBECONFIG", ".local/diag.kubeconfig"),
