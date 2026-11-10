@@ -81,7 +81,7 @@ templates:
     split: dev
     kind: same_symptom_diff_cause
     params:
-      - {workload: worker, limit: 24Mi, symptom: crash_worker, orig_limits: "cpu=500m,memory=128Mi", orig_requests: "cpu=100m,memory=64Mi"}
+      - {workload: worker, limit: 16Mi, symptom: crash_worker, orig_limits: "cpu=500m,memory=128Mi", orig_requests: "cpu=100m,memory=64Mi"}
       - {workload: api, limit: 32Mi, symptom: crash_api, orig_limits: "cpu=500m,memory=192Mi", orig_requests: "cpu=100m,memory=96Mi"}
     scenario:
       inject:
