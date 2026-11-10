@@ -88,7 +88,19 @@ class Lifecycle:
                 raise EnvironmentError_(f"precheck failed: {detail}")
 
     def inject(self, scenario: dict, log: StepLog) -> str:
-        """Returns the UTC timestamp just before injection (used to filter stale events)."""
+        """Returns the UTC timestamp just before injection (used to filter stale events).
+
+        Old events are deleted first: Kubernetes keeps events for about an hour, and an agent that reads events
+        without our time filter (HolmesGPT) would otherwise see earlier runs of the same fault (ISSUES E-016)."""
+        res = self._run(["-n", self.ns, "delete", "events", "--all"], 60)
+        log.add("clear_events", res.ok, "" if res.ok else res.stderr.strip()[:200])
+        # Old ReplicaSets carry the same history (an agent reading rollout history sees earlier injections of
+        # this fault, and later repetitions would see more of it than the first). Keep only the live ones.
+        rs = self._json(["-n", self.ns, "get", "replicasets"]) or {}
+        stale = [i["metadata"]["name"] for i in rs.get("items", []) if not (i.get("spec") or {}).get("replicas")]
+        if stale:
+            res = self._run(["-n", self.ns, "delete", "replicaset", *stale], 60)
+            log.add("prune_history", res.ok, f"{len(stale)} old replicasets" + ("" if res.ok else f": {res.stderr.strip()[:200]}"))
         since = utc_now_iso()
         for step in scenario.get("inject", []) or []:
             self._kubectl_step(step, log, "inject")

@@ -149,8 +149,10 @@ def test_lifecycle_full_round():
     lc.confirm(SC["R06"], log)
     lc.reset(SC["R06"], log)
     phases = [e["phase"] for e in log.entries]
-    assert phases[:3] == ["verify_healthy", "inject", "confirm"] and phases[-1] == "verify_recovered"
+    assert phases[:4] == ["verify_healthy", "clear_events", "inject", "confirm"] and phases[-1] == "verify_recovered"
     assert since.endswith("Z")
+    # old events are deleted before injecting, so an agent without a time filter cannot see earlier runs
+    assert ["-n", "tiktok-k8s-lab", "delete", "events", "--all"] in fake.calls
     assert any(c[:3] == ["-n", "tiktok-k8s-lab", "rollout"] and "restart" in c for c in fake.calls)
 
 
