@@ -143,7 +143,12 @@ WORKER_COMMAND = ["python", "-m", "app.worker"]
 SERVICE_BASELINE = {"api": ({"app": "api"}, "http"), "redis": ({"app": "redis"}, "redis")}
 CPU_BASELINE_M = {"redis": 1000, "worker": 500, "api": 500}
 AUTH_FAIL = re.compile(r"AUTH failed|WRONGPASS|NOAUTH|AuthenticationError|invalid password", re.IGNORECASE)
-MOUNT_FAIL = re.compile(r"couldn't find key (\S+) in (Secret|ConfigMap) (?:[\w-]+/)?([\w.-]+)", re.IGNORECASE)
+# Two kubelet wordings: older "couldn't find key K in Secret ns/name"; Kubernetes 1.33 (verified on the real
+# cluster) says 'for volume "auth" : references non-existent secret key: K' and leaves the object name out,
+# so the object has to be looked up from the workload's volume definition.
+MOUNT_FAIL = re.compile(r"couldn't find key (\S+) in (Secret|ConfigMap) (?:[\w-]+/)?([\w.-]+)"
+                        r"|for volume \"([\w.-]+)\" : references non-existent (secret|config ?map) key: (\S+)",
+                        re.IGNORECASE)
 
 
 def has_dependency_error(text: str) -> bool:
@@ -212,6 +217,23 @@ def workload_spec_facts(workload: dict, conf: str | None = None) -> dict:
     return facts
 
 
+def mount_failure(message: str, workload: dict | None = None) -> tuple[str, str, str] | None:
+    """(missing key, object kind, object name) from a FailedMount message, or None."""
+    m = MOUNT_FAIL.search(message or "")
+    if not m:
+        return None
+    if m.group(1):
+        return m.group(1), m.group(2), m.group(3)
+    volume, kind, key = m.group(4), m.group(5), m.group(6)
+    kind = "Secret" if kind.lower() == "secret" else "ConfigMap"
+    for v in (workload or {}).get("volumes", []):
+        vname, _, src = v.partition(" <- ")
+        if vname == volume:
+            ref = src.split(":", 1)[1].split()[0] if ":" in src else ""
+            return key, kind, ref or volume
+    return key, kind, volume
+
+
 def app_config_diff(cm: dict) -> dict:
     data = (cm or {}).get("data") or {}
     changed = {k: f"{APP_CONFIG_BASELINE[k]} -> {data.get(k)}" for k in APP_CONFIG_BASELINE
@@ -270,6 +292,7 @@ def follow_dependency(tools, overview: dict | None = None) -> dict:
     messages = [e.get("message", "") for e in (out["events"] or {}).get("events", [])]
     out["probe_auth_failures"] = [m for m in messages if "probe failed" in m.lower() and AUTH_FAIL.search(m)][:3]
     out["mount_failures"] = [m for m in messages if MOUNT_FAIL.search(m)][:3]
+    out["mount_failure"] = mount_failure(out["mount_failures"][0], w if "error" not in w else {}) if out["mount_failures"] else None
     out["client_pods"] = {"api": pod_times(overview, "api"), "worker": pod_times(overview, "worker")}
     return out
 

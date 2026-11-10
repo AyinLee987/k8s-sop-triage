@@ -246,7 +246,9 @@ templates:
          override: {confirm: {timeout_s: 20, checks: [{type: jsonpath_equals, resource: "service/api", path: "{.spec.ports[0].targetPort}", value: "8080"}]}}}
       - {svc: redis, symptom: all_down, patch: '[{"op":"replace","path":"/spec/selector/app","value":"redis-master"}]', undo: '[{"op":"replace","path":"/spec/selector/app","value":"redis"}]',
          keywords: ["selector", "选择器", "endpoint", "redis-master", "标签"], evidence: ["redis-master", "selector", "ready_endpoints"],
-         override: {confirm: {timeout_s: 60, checks: [{type: service_endpoints_empty, service: redis}, {type: pod_not_ready, selector: "app=api"}]},
+         override: {inject: [{kubectl: ["-n", "{ns}", "patch", "service/redis", "--type=json", "-p", '[{"op":"replace","path":"/spec/selector/app","value":"redis-master"}]']},
+                             {kubectl: ["-n", "{ns}", "rollout", "restart", "deployment/api", "deployment/worker"]}],
+                    confirm: {timeout_s: 90, checks: [{type: service_endpoints_empty, service: redis}, {type: pod_not_ready, selector: "app=api"}]},
                     answer: {symptom_objects: [api, worker]}}}
     scenario:
       inject:

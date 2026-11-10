@@ -116,9 +116,9 @@ class RuleBaselineAgent(Agent):
         if dep.get("desired_replicas") == 0:
             return Diagnosis("root_cause_found", "dependency_down", "Redis 的副本数为 0，没有在运行", redis,
                              [f"statefulset/redis desired=0 ready={dep.get('ready_replicas')}", client_ev])
-        if dep.get("mount_failures"):
+        if dep.get("mount_failure"):
             msg = dep["mount_failures"][0]
-            _key, kind, obj = sop_steps.MOUNT_FAIL.search(msg).groups()
+            _key, kind, obj = dep["mount_failure"]
             return Diagnosis("root_cause_found", "dependency_config_error", f"redis 引用的 {kind} {obj} 里缺少键，卷挂载失败",
                              {"kind": kind, "name": obj, "namespace": namespace}, [f"FailedMount: {msg[:250]}"])
         if dep.get("service_issues"):
@@ -171,10 +171,12 @@ class RuleBaselineAgent(Agent):
             return Diagnosis("root_cause_found", "scaled_to_zero", f"{ab.kind}/{ab.name} 的副本数被缩成 0",
                              obj, [f"{ab.kind.lower()}/{ab.name} desired=0"])
         if ab.branch == "mount":
-            m = sop_steps.MOUNT_FAIL.search(events_text)
-            if m:
-                return Diagnosis("root_cause_found", "invalid_config_value", f"{ab.name} 引用的 {m.group(2)} {m.group(3)} 缺少键",
-                                 {"kind": m.group(2), "name": m.group(3), "namespace": namespace}, [m.group(0)])
+            found = sop_steps.mount_failure(events_text, ev.get("workload") or {})
+            if found:
+                key, kind, name = found
+                return Diagnosis("root_cause_found", "invalid_config_value", f"{ab.name} 引用的 {kind} {name} 缺少键 {key}",
+                                 {"kind": kind, "name": name, "namespace": namespace},
+                                 [next(ln for ln in events_text.splitlines() if sop_steps.MOUNT_FAIL.search(ln))[:300]])
         if ab.branch == "not_ready" and sop_steps.has_dependency_error(logs):  # 3d -> component SOP, dependency step
             lines = [ln for ln in logs_lines if sop_steps.has_dependency_error(ln)]
             return self._dependency(ab.kind, ab.name, ev.get("workload") or {}, logs, lines, namespace, tools, overview)

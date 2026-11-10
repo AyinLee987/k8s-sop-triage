@@ -174,3 +174,18 @@ def test_report_counts_per_scenario_and_separates_env_failures():
     text = render(recs)
     assert "| S01 | x | 1/2，环境失败 1 |" in text
     assert "环境失败 1 次" in text
+
+
+def test_json_patch_ops_follow_rfc6902():
+    """A `move` written with `to` instead of `path` passes JSON parsing but the API server rejects it (found in R09)."""
+    required = {"add": {"path", "value"}, "replace": {"path", "value"}, "test": {"path", "value"},
+                "remove": {"path"}, "move": {"from", "path"}, "copy": {"from", "path"}}
+    for s in load_scenarios(split="all", source="all"):
+        for step in (s.get("inject") or []) + (s.get("reset") or []):
+            args = step["kubectl"]
+            if "--type=json" not in args:
+                continue
+            ops = json.loads(args[args.index("-p") + 1])
+            for op in ops:
+                assert op["op"] in required, (s["id"], op)
+                assert set(op) == required[op["op"]] | {"op"}, (s["id"], op)

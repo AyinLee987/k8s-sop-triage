@@ -29,8 +29,8 @@ scenarios:
     - 'SREGym valkey_memory_disruption: https://raw.githubusercontent.com/SREGym/SREGym/main/sregym/conductor/problems/registry.py'
     - 'ITBench CacheFailure（论文 Table 12）: https://arxiv.org/html/2502.05352'
     app_fact: app/store.py 的 SUBMIT 脚本 XADD 不带 MAXLEN，事件 hash 不设过期；两个就绪探针都只发 PING。
-    validated: false
-    validate_note: 确认 EVALSHA 里的写命令在 OOM 时，redis-py 抛出的 error_type 是 OutOfMemoryError（还是 ResponseError）。
+    validated: true
+    validation: k3s 实测（2026-11-10）：写满后 api 日志 error_type=OutOfMemoryError（5/5），所有 Pod 保持 Ready，与设计一致。
   symptom: 用户反馈提交点击大量失败，接口返回 503；可是 kubectl 看所有 Pod 都是 Running、Ready，最近也没有发布。
   inject:
   - kubectl:
@@ -104,6 +104,7 @@ scenarios:
     sources:
     - 'AIOpsLab scale_pod_zero_social_net（inject_virtual.py）: https://raw.githubusercontent.com/microsoft/AIOpsLab/main/aiopslab/orchestrator/problems/registry.py'
     validated: true
+    validation: k3s smoke（2026-11-10）：3 轮注入、确认、复位全部成功。
   symptom: 接口能正常提交事件，但事件一直停在 queued 状态，用户点击数不增长。
   inject:
   - kubectl:
@@ -176,8 +177,8 @@ scenarios:
     - 'SREGym valkey_auth_disruption（论文提到 agent 常误判为内存问题）: https://raw.githubusercontent.com/SREGym/SREGym/main/sregym/conductor/problems/registry.py'
     - 'AIOpsLab revoke_auth_mongodb: https://raw.githubusercontent.com/microsoft/AIOpsLab/main/aiopslab/orchestrator/problems/revoke_auth/revoke_auth.py'
     - 'ITBench IncorrectAuthentication（论文 Table 12）: https://arxiv.org/html/2502.05352'
-    validated: false
-    validate_note: 确认 redis 的 exec 就绪探针失败事件里带有 AUTH failed / WRONGPASS 文本；确认 api 老连接是否继续可用。
+    validated: true
+    validation: 'k3s 实测（2026-11-10）：Redis 自己的就绪探针事件带 "AUTH failed: WRONGPASS"，重启后的 worker 日志为 AuthenticationError，Redis 显示不 Ready，与设计一致。'
   symptom: worker 刚做了一次例行重启，重启后就一直处理不了事件；Redis 的 Pod 好像也变成了不 Ready。
   inject:
   - kubectl:
@@ -251,7 +252,8 @@ scenarios:
     sources:
     - 'AIOpsLab k8s_target_port-misconfig（targetPort 9090→9999）: https://raw.githubusercontent.com/microsoft/AIOpsLab/main/aiopslab/orchestrator/problems/k8s_target_port_misconfig/target_port.py'
     validated: true
-  symptom: api 全部不 Ready，提交不了事件，worker 也一直在重试；可是 Redis 的 Pod 是 Running、Ready 的。
+    validation: k3s 实测（2026-11-10）：只改 targetPort 时什么都不坏，api 保持 Ready、worker 照常处理事件，因为连接池里已建立的连接不受 Service 变更影响。加上一次例行重启（客户端被迫新建连接）后才暴露，因此注入里加了重启，症状也改为"例行重启后"。
+  symptom: api 和 worker 刚做完一次例行重启，之后 api 全部不 Ready、提交不了事件，worker 也一直在重试；可是 Redis 的 Pod 是 Running、Ready 的。
   inject:
   - kubectl:
     - -n
@@ -261,6 +263,13 @@ scenarios:
     - --type=json
     - -p
     - '[{"op": "replace", "path": "/spec/ports/0/targetPort", "value": 6380}]'
+  - kubectl:
+    - -n
+    - '{ns}'
+    - rollout
+    - restart
+    - deployment/api
+    - deployment/worker
   confirm:
     timeout_s: 60
     checks:
@@ -284,7 +293,7 @@ scenarios:
     - api
     - worker
     cause_category: service_misconfigured
-    explanation: Service redis 的 targetPort 被改成 6380，而 Redis 容器监听 6379；Redis 本身健康，客户端经 Service 连接被拒。
+    explanation: Service redis 的 targetPort 被改成 6380，而 Redis 容器监听 6379。已建立的长连接不受影响，所以改完当时没有任何异常；例行重启后客户端要新建连接，经 Service 连不上 Redis。Redis 本身健康，重启只是触发点，根因在 Service。
     key_evidence:
     - targetPort
     - '6380'
@@ -303,9 +312,9 @@ scenarios:
     - 'ITBench MemoryResourceLimit（论文 Table 12）: https://arxiv.org/html/2502.05352'
     - 'SREGym resource_request_too_small: https://raw.githubusercontent.com/SREGym/SREGym/main/sregym/conductor/problems/registry.py'
     - 'k8s.af OOM 类事故（Blue Matador、NU.nl、Nordstrom、Zalando）: https://k8s.af/'
-    validated: false
-    validate_note: 确认 24Mi 能稳定触发 OOMKilled（worker 实际 RSS 未测）。
-  symptom: worker 一直在重启，事件堆积处理不掉。
+    validated: true
+    validation: k3s 实测（2026-11-10）：worker 常驻内存约 19–20 MiB；24Mi 不会触发 OOM，16Mi 时新 Pod 启动即 OOMKilled、CrashLoopBackOff。滚动发布时旧 Pod 不会被替换，事件照常处理，所以真实症状是"发布卡住"，不是"事件积压"，症状描述已按实测修改。
+  symptom: worker 刚发布了新版本，新 Pod 一直在重启，发布卡住了。
   inject:
   - kubectl:
     - -n
@@ -315,8 +324,8 @@ scenarios:
     - deployment/worker
     - -c
     - worker
-    - --limits=memory=24Mi
-    - --requests=memory=24Mi
+    - --limits=memory=16Mi
+    - --requests=memory=16Mi
   confirm:
     timeout_s: 120
     checks:
@@ -340,15 +349,15 @@ scenarios:
       kind: Deployment
       name: worker
     cause_category: memory_limit_too_low
-    explanation: worker 的内存 limit 被改成 24Mi，低于进程占用，容器被 OOMKilled 后反复重启。
+    explanation: worker 的内存 limit 被改成 16Mi，低于进程常驻内存（约 19–20 MiB），新 Pod 一启动就被 OOMKilled；滚动发布卡住，旧 Pod 还在继续处理事件。
     key_evidence:
     - OOMKilled
-    - 24Mi
+    - 16Mi
     accept_cause_keywords:
     - 内存
     - memory
     - OOM
-    - 24Mi
+    - 16Mi
     - limit
 - id: R06
   split: dev
@@ -360,6 +369,7 @@ scenarios:
     - 'AIOpsLab misconfig_app_hotel_res（换镜像）: https://raw.githubusercontent.com/microsoft/AIOpsLab/main/aiopslab/orchestrator/problems/misconfig_app/misconfig_app_hotel_res.py'
     - SREGym incorrect_image
     validated: true
+    validation: k3s smoke（2026-11-10）：3 轮全部成功，新 Pod 停在 ErrImageNeverPull。
   symptom: 刚发布了 api 的新版本，发布一直卡着没完成，新 Pod 起不来。
   inject:
   - kubectl:
@@ -424,6 +434,7 @@ scenarios:
     sources:
     - AIOpsLab noop_detection_*
     validated: true
+    validation: k3s smoke（2026-11-10）：3 轮全部成功。
 - id: R08
   split: dev
   kind: cross_component
@@ -490,6 +501,7 @@ scenarios:
     sources:
     - 'AIOpsLab scale_pod_zero_social_net: https://raw.githubusercontent.com/microsoft/AIOpsLab/main/aiopslab/orchestrator/problems/scale_pod/scale_pod_social_net.py'
     validated: true
+    validation: k3s 实测（2026-11-10）：redis 缩到 0 后 api 全部不 Ready，与设计一致。
 - id: R09
   split: dev
   kind: cross_component
@@ -498,8 +510,9 @@ scenarios:
     sources:
     - SREGym missing_configmap_* / missing_env_variable_*（同类：引用的配置项不存在）
     - 'docker-library/redis#58（认证配置缺失导致客户端被拒）: https://github.com/docker-library/redis/issues/58'
-    validated: false
-    validate_note: 确认事件文本包含 couldn't find key redis-auth.conf，以及 Pod 的等待原因是 ContainerCreating。
+    validated: true
+    validation: 'k3s 实测（2026-11-10）：最初的注入命令有 bug（JSON Patch 的 move 把 path 写成了 to，被 API server 拒绝），修正后生效：redis-0 停在 ContainerCreating，事件为 ''MountVolume.SetUp failed for volume "auth" : references non-existent
+      secret key: redis-auth.conf''。注意新版本的事件文本里没有 Secret 名字，要从卷定义里查。'
   symptom: Redis 例行重启之后就没再起来，api 全部不 Ready，worker 也停止处理了。
   inject:
   - kubectl:
@@ -509,7 +522,7 @@ scenarios:
     - secret/redis-auth
     - --type=json
     - -p
-    - '[{"op": "move", "from": "/data/redis-auth.conf", "to": "/data/auth.conf"}]'
+    - '[{"op": "move", "from": "/data/redis-auth.conf", "path": "/data/auth.conf"}]'
   - kubectl:
     - -n
     - '{ns}'
@@ -533,7 +546,7 @@ scenarios:
     - secret/redis-auth
     - --type=json
     - -p
-    - '[{"op": "move", "from": "/data/auth.conf", "to": "/data/redis-auth.conf"}]'
+    - '[{"op": "move", "from": "/data/auth.conf", "path": "/data/redis-auth.conf"}]'
   - kubectl:
     - -n
     - '{ns}'
@@ -565,6 +578,7 @@ scenarios:
     key_evidence:
     - FailedMount
     - redis-auth.conf
+    - non-existent secret key
     - couldn't find key
     accept_cause_keywords:
     - Secret
@@ -582,6 +596,7 @@ scenarios:
     - 'AIOpsLab wrong_bin_usage（command 从 profile 改成 geo）: https://raw.githubusercontent.com/microsoft/AIOpsLab/main/aiopslab/orchestrator/problems/registry.py'
     - k8s-ai-bench fix-crashloop（nginx 镜像跑 python 命令）
     validated: true
+    validation: k3s 实测（2026-11-10）：worker 日志出现 "Uvicorn running"，容器正常 Running，事件不被处理，与设计一致。
   symptom: 接口能正常提交事件，但事件一直停在 queued 状态，用户点击数不增长。
   precheck:
   - type: jsonpath_equals
@@ -659,6 +674,7 @@ scenarios:
     - 'k8s.af Pusher「Oh Sh*t! The Config Changed!」: https://k8s.af/'
     - 'SREGym configmap_drift_hotel_reservation: https://raw.githubusercontent.com/SREGym/SREGym/main/sregym/conductor/problems/registry.py'
     validated: true
+    validation: k3s 实测（2026-11-10）：改 KEY_PREFIX 并只重启 worker 后，事件停在 queued，worker 日志只有 started、没有任何报错，与设计一致。
   symptom: 接口能正常提交事件，但事件一直停在 queued 状态，用户点击数不增长。
   inject:
   - kubectl:
@@ -755,6 +771,7 @@ scenarios:
     - SREGym secret_rotation_stale_env_credentials_astronomy_shop（仅名称）
     app_fact: Secret redis-auth 有两个键：客户端用的 password 和 Redis 用的 redis-auth.conf，可以只改其中一个。
     validated: true
+    validation: k3s 实测（2026-11-10）：新 api Pod 日志为 AuthenticationError（WRONGPASS），一直不 Ready，老 Pod 和 worker 正常，复位后恢复，与设计一致。
   symptom: api 发布卡住了：新 Pod 一直不 Ready，老 Pod 还在正常服务。
   inject:
   - kubectl:
@@ -824,8 +841,8 @@ scenarios:
     - 'Microsoft AKS 关键任务博客（2025 年两次真实事故）: https://techcommunity.microsoft.com/t5/microsoft-mission-critical-blog/hardening-spring-boot-health-probes-on-aks-how-to-prevent/ba-p/4491549'
     - 'k8s.af livenessProbe 类（NRE Labs、ThredUP）: https://k8s.af/'
     - SREGym liveness_probe_too_aggressive_*
-    validated: false
-    validate_note: 确认 Redis 重启期间 api 的存活探针至少失败一次并触发重启。
+    validated: true
+    validation: k3s 实测（2026-11-10）：Redis 例行重启期间 api 出现 "Liveness probe failed" 并被重启，与设计一致。
   symptom: Redis 刚做完一次例行重启，之后 api 的 Pod 全部重启了，重启次数还在涨。
   precheck:
   - type: jsonpath_equals
@@ -909,8 +926,8 @@ scenarios:
     - 'Redis NOGROUP（stream 被删时消费组一起消失）: https://redis.io/docs/latest/develop/reference/errors/common/nogroup/'
     - 'LSST/Rubin 运维手册 NOGROUP 排查: https://df-ops.lsst.io/usdf-applications/ap/prompt-redis/troubleshooting.html'
     - 'Palark Redis 数据丢失事故: https://palark.com/blog/failure-with-redis-operator-and-redis-data-analysis-tools.md'
-    validated: false
-    validate_note: 确认改挂载路径后的 Redis 重启后数据为空，以及 worker 是否打出一条 redis_retry ResponseError。
+    validated: true
+    validation: k3s 实测（2026-11-10）：注入前事件可查（200，累计 733 条）；挂错路径后 Redis 重启，同一事件返回 404、统计归零；worker 只在 Redis 重启的几秒里打出 ConnectionError，随后自动重建消费组，没有持续的 NOGROUP 报错；复位后数据从持久卷恢复。
   symptom: Redis 刚做完一次维护重启。重启后用户的点击数全部归零，之前提交过的事件也查不到了（接口返回 404），但所有 Pod 都是正常的。
   inject:
   - kubectl:
@@ -998,8 +1015,9 @@ scenarios:
     - 'Buffer：去掉 CPU limit 后延迟大幅下降: https://erickhun.com/posts/kubernetes-faster-services-no-cpu-limits/'
     - 'k8s.af CPU 限流类（Airbnb、Buffer、Omio、Zalando 等十余篇）: https://k8s.af/'
     - SREGym cfs_cpu_throttling_*
-    validated: false
-    validate_note: 20m 在 40 次提交的负载下能否稳定造成客户端超时，需要实测；不行就加大流量或降到 10m。
+    validated: true
+    validation: k3s 实测（2026-11-10）：100m 时 Redis 正常 Ready，8 并发 300 次提交全部成功；20m 时 Redis 连启动探针都超时，永远到不了 Ready（信号太明显）；50m 时 Redis 就绪状态反复切换（启动探针 2s 超时），43% 的提交返回 503，api 日志里 TimeoutError 和 ConnectionError 混在一起。选
+      50m。注意：Pod 坏掉后 StatefulSet 不会自动换成新规格，复位必须删掉 redis-0。
   symptom: 提交接口时不时返回 503，api 的 Pod 偶尔变成不 Ready 又自己恢复；Redis 的 Pod 一直是 Running。
   inject:
   - kubectl:
@@ -1010,15 +1028,15 @@ scenarios:
     - statefulset/redis
     - -c
     - redis
-    - --limits=cpu=20m
-    - --requests=cpu=20m
+    - --limits=cpu=50m
+    - --requests=cpu=50m
   - kubectl:
     - -n
     - '{ns}'
-    - rollout
-    - status
-    - statefulset/redis
-    - --timeout=150s
+    - wait
+    - --for=jsonpath={.spec.containers[0].resources.limits.cpu}=50m
+    - pod/redis-0
+    - --timeout=120s
   - kubectl:
     - -n
     - '{ns}'
@@ -1032,11 +1050,11 @@ scenarios:
     - "import json,uuid,urllib.request as u\nfor i in range(40):\n    r=u.Request('http://127.0.0.1:8000/events',data=json.dumps({'event_id':str(uuid.uuid4()),'user_id':'probe','event_type':'click'}).encode(),headers={'Content-Type':'application/json'})\n\
       \    try: print(u.urlopen(r,timeout=3).status)\n    except Exception as e: print(getattr(e,'code',type(e).__name__))\n"
   confirm:
-    timeout_s: 90
+    timeout_s: 120
     checks:
     - type: logs_contain
       selector: app=api
-      text: redis_unavailable
+      text: TimeoutError
   reset:
   - kubectl:
     - -n
@@ -1048,6 +1066,14 @@ scenarios:
     - redis
     - --limits=cpu=1
     - --requests=cpu=100m
+  - kubectl:
+    - -n
+    - '{ns}'
+    - delete
+    - pod
+    - redis-0
+    - --wait=true
+    - --timeout=90s
   - kubectl:
     - -n
     - '{ns}'
@@ -1065,16 +1091,17 @@ scenarios:
     symptom_objects:
     - api
     cause_category: cpu_limit_too_low
-    explanation: StatefulSet redis 的 CPU limit 被改成 20m，单线程的 Redis 被 CFS 限流，请求处理变慢，客户端在 1 秒超时内拿不到结果（TimeoutError），api 返回 503、就绪探针间歇失败。
+    explanation: StatefulSet redis 的 CPU limit 被改成 50m，单线程的 Redis 被 CFS 限流，请求处理变慢，客户端在 1 秒超时内拿不到结果（TimeoutError），api 返回 503、就绪探针间歇失败。
     key_evidence:
-    - 20m
+    - 50m
     - TimeoutError
     - limits
+    - Startup probe failed
     accept_cause_keywords:
     - CPU
     - 限流
     - throttl
-    - 20m
+    - 50m
     - limit
 - id: R16
   split: holdout
@@ -1116,3 +1143,4 @@ scenarios:
     sources:
     - 本项目的只读 RBAC 设计（k8s/rbac-diag.yaml）
     validated: true
+    validation: k3s 实测（2026-11-10）：rec-feature 命名空间里的服务按预期反复重启，诊断器的只读凭据读不了这个命名空间。

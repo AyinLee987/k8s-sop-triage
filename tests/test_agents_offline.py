@@ -55,8 +55,8 @@ def test_stale_events_are_filtered_by_injection_time():
 
 # ---------------- text SOP + LLM ----------------
 def test_text_sop_agent_tool_loop_and_isolation():
-    diag = {"status": "root_cause_found", "cause_category": "memory_limit_too_low", "cause": "worker 内存限制 24Mi 过低",
-            "object": {"kind": "Deployment", "name": "worker"}, "evidence": ["OOMKilled", "limits.memory=24Mi"], "unknowns": []}
+    diag = {"status": "root_cause_found", "cause_category": "memory_limit_too_low", "cause": "worker 内存限制 16Mi 过低",
+            "object": {"kind": "Deployment", "name": "worker"}, "evidence": ["OOMKilled", "limits.memory=16Mi"], "unknowns": []}
     llm = FakeLLM([
         ChatResult("", [call("overview")]),
         ChatResult("", [call("get_workload", kind="deployment", name="worker")]),
@@ -68,7 +68,7 @@ def test_text_sop_agent_tool_loop_and_isolation():
     assert tools.budget.model_calls == 3 and tools.budget.tool_calls == 2
     prompt = json.dumps(llm.seen[0], ensure_ascii=False)
     assert "K8s 排查 SOP 总则" in prompt and "redis 排查 SOP" in prompt          # same SOP as the other arms
-    assert "R05" not in prompt and "24Mi" not in prompt  # no scenario id or answer leaks into the prompt
+    assert "R05" not in prompt and "16Mi" not in prompt  # no scenario id or answer leaks into the prompt
     assert all(c[c.index("get") if "get" in c else c.index("logs")] in ("get", "logs") for c in runner.calls)
 
 

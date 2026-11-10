@@ -119,7 +119,7 @@ class FakeCluster:
             w["env"].append({"name": "PROCESSING_DELAY_MS", "value": "20000"})
             self._crash_worker(prev=["Traceback (most recent call last):", "ValueError: PROCESSING_DELAY_MS must be within 0..10000"])
         elif s == "oom":  # S04 / R05
-            w["resources"]["limits"]["memory"] = "24Mi"
+            w["resources"]["limits"]["memory"] = "16Mi"
             self._crash_worker(prev=[], last="OOMKilled", exit_code=137)
         elif s == "command":  # S05
             w["command"] = ["python", "-m", "app.workers"]
@@ -205,7 +205,8 @@ class FakeCluster:
             self.sts["status"].update({"readyReplicas": 0, "availableReplicas": 0})
             self.pods["redis-0"] = _pod("redis-0", "redis", ("StatefulSet", "redis"), ready=False, waiting="ContainerCreating", created=T1)
             self.logs.pop("redis-0")
-            self._ev("redis-0", "FailedMount", 'MountVolume.SetUp failed for volume "auth" : couldn\'t find key redis-auth.conf in Secret tiktok-k8s-lab/redis-auth')
+            # wording observed on the real cluster (Kubernetes 1.33): no Secret name in the message
+            self._ev("redis-0", "FailedMount", 'MountVolume.SetUp failed for volume "auth" : references non-existent secret key: redis-auth.conf')
             self._clients_lose_redis()
         elif s == "worker_uvicorn":  # R10: worker runs the api entrypoint
             w["command"] = ["python", "-m", "uvicorn", "app.api:app", "--host", "0.0.0.0", "--port", "8000"]
@@ -239,10 +240,10 @@ class FakeCluster:
             self.sts["spec"]["template"]["spec"]["containers"][0]["volumeMounts"][0]["mountPath"] = "/var/lib/redis"
             self.pods["redis-0"] = _pod("redis-0", "redis", ("StatefulSet", "redis"), created=T1)
             self.logs["worker-7d4b-a"] = WORKER_OK_LOGS + [
-                '{"event":"redis_retry","error_type":"ResponseError","backoff_seconds":0.27}', '{"event":"started"}']
-        elif s == "redis_cpu":  # R15: redis CPU limit 20m; clients time out
+                '{"event":"redis_retry","error_type":"ConnectionError","backoff_seconds":0.5}']  # as observed on the real cluster
+        elif s == "redis_cpu":  # R15: redis CPU limit 50m; clients time out
             res = self.sts["spec"]["template"]["spec"]["containers"][0]["resources"]
-            res["limits"]["cpu"], res["requests"]["cpu"] = "20m", "20m"
+            res["limits"]["cpu"], res["requests"]["cpu"] = "50m", "50m"
             self.pods["redis-0"] = _pod("redis-0", "redis", ("StatefulSet", "redis"), created=T1)
             for name in ("api-6c9f-a", "api-6c9f-b"):
                 self.logs[name] = API_OK_LOGS + ['{"event":"redis_unavailable","error_type":"TimeoutError","level":"ERROR"}'] * 3

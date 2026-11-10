@@ -9,6 +9,26 @@
 
 ---
 
+## E-013 真集群验证发现的六个场景问题（离线测试全部没测出来）
+- 背景：16 个场景在假集群上的离线测试全部通过，第一次在真集群（k3s）上注入就发现了下面这些问题。工具是新写的 `scripts/validate_injection.py`：注入后拍一份现场快照（Pod、事件、日志），对照场景答案里的关键证据，不运行任何诊断 agent，所以对保留集也能用。
+- R09 注入命令写错：JSON Patch 的 `move` 操作，目标字段应该叫 `path`，我写成了 `to`。JSON 本身合法，所以离线测试通过，但 API server 拒绝执行。→ 修正，并加了测试 `test_json_patch_ops_follow_rfc6902`，检查每个 Patch 操作的字段。
+- R09 事件文本和预期不同：Kubernetes 1.33 的挂载失败事件是 `references non-existent secret key: redis-auth.conf`，**不带 Secret 名字**；我按旧版文本 `couldn't find key ... in Secret ns/name` 写了解析。→ SOP 代码改为两种格式都认，新格式通过卷名去工作负载的卷定义里查 Secret 名字；假集群的事件文本也改成实测的样子。
+- R05 内存限制不够低：worker 常驻内存约 19–20 MiB，24Mi 根本不会 OOM。改成 16Mi 后确认触发。另外，新 Pod 一直崩溃时，滚动发布会卡住，旧 Pod 继续处理事件，所以真实症状是"发布卡住"，不是原来写的"事件积压"。→ 改限制值，按实测改症状。
+- R15 "假确认"：确认条件只检查 api 日志里有没有 `redis_unavailable`，结果被"改 CPU 限制导致 Redis 重建"那几秒的 `ConnectionError` 满足了，其实 CPU 限流根本没造成超时。另外 20m 太狠，Redis 连启动探针都过不了，永远到不了 Ready。→ 实测 100m / 50m / 20m 三档，选 50m（Redis 就绪状态反复切换，43% 请求 503，出现 `TimeoutError`），确认条件改为必须出现 `TimeoutError`。
+- StatefulSet 不替换坏掉的 Pod：Pod 已经坏了（CrashLoopBackOff）时，把规格改回去，控制器也不会自动用新规格重建它，复位卡住。→ 涉及 Redis 规格的场景，复位步骤里显式删除 redis-0。
+- `validated` 标记名不副实：R04、R08、R10、R11、R12、R16 当初标了"已验证"，其实只是推理后觉得有把握，从没在集群上跑过。→ 补测，并约定以后 `validated: true` 只表示真的在集群上跑过，实测结果写在 `realism.validation` 里。
+- 状态：已解决（R04 等 6 个场景的补测结果见各场景的 `realism.validation`）
+
+## E-012 实验环境从 kind 移植到云端时的四个兼容问题
+- 背景：云端会话是一台 Firecracker 虚拟机（cgroup v1、root），原来的 kind 方案跑不起来，改成直接在虚拟机上跑 k3s。过程中遇到四个问题，都已写进 `scripts/setup_cloud_k3s.sh`，重建环境时会自动处理。
+- 问题 1：kind 节点里嵌套起容器失败（`runc create failed: can't get final child's PID from pipe`）。k3s 自带的 runc 1.3.1 也是同样的错误，而系统里 Docker 用的 runc 1.5.2 正常。→ 把 k3s 用的 runc 换成系统的 1.5.2。
+- 问题 2：换了 runc 之后，Pod 沙箱仍然起不来，报 `failed to update /proc/self/oom_score_adj: Permission denied`。原因是 kubelet 会把系统 Pod 的 OOM 优先级调低到 -998，这台虚拟机不允许。→ containerd 打开 `restrict_oom_score_adj`（专为嵌套或 rootless 环境准备的开关）。
+- 问题 3：k3s 进程继承了云端的 `HTTPS_PROXY` 环境变量，API server 连本机 kubelet 时也走外部代理，`kubectl logs` 一律返回 EOF。→ 启动 k3s 时去掉代理变量；系统镜像用 GitHub 上的离线包，k3s 本身不需要联网。
+- 问题 4：应用镜像的构建容器不信任云端代理的证书，镜像里的 pip 装不了依赖；另外源码从 Windows 打包过来后丢了读权限，镜像里的非 root 用户读不了源码，api 和 worker 启动即崩溃。→ 在宿主机上先下载好依赖包，用派生的 Dockerfile 离线安装（基础镜像和安装步骤与原 Dockerfile 相同），构建前统一 `chmod a+rX`。
+- 另外，部署清单是按 kind 写的，Redis 的存储卷申请名叫 `standard` 的存储类，k3s 里叫 `local-path`。→ 加一个指向 local-path 的 `standard` 存储类，清单本身不改。
+- 对实验的影响：k3s 和 kind 都是标准的 Kubernetes，但两者的事件文本、探针时序和存储实现可能有细微差别。在 k3s 上验证过的注入行为，换回 kind（例如新的 Ubuntu 台式机）后最好再跑一遍 smoke。
+- 状态：已解决
+
 ## E-011 HolmesGPT 自带评测的"裁判"不支持 DeepSeek
 - 现象：HolmesGPT 的评测用大模型给答案打分，打分代码（`tests/llm/utils/classifiers.py`）只接 OpenAI、Azure、OpenRouter。
 - 影响：不能直接用它的评测框架给 DeepSeek 的结果打分。

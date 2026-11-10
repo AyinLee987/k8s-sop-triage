@@ -14,7 +14,7 @@
 
 notes:
   - {id: N01, kind: specific, source: R03, text: "worker 例行重启后连不上 Redis，Redis 自己的就绪探针报 AUTH failed: WRONGPASS，而 redis-config 和基线一致，最后查到是有人在 Redis 上执行了 CONFIG SET requirepass。经验：配置文件没变、Redis 自己的探针却认证失败时，考虑运行时改动。"}
-  - {id: N02, kind: specific, source: R05, text: "worker 反复重启，lastState 显示 OOMKilled，内存 limit 被改成了 24Mi。经验：看到 OOMKilled 时对照容器的内存 limit。"}
+  - {id: N02, kind: specific, source: R05, text: "worker 反复重启，lastState 显示 OOMKilled，内存 limit 被改成了 16Mi。经验：看到 OOMKilled 时对照容器的内存 limit。"}
   - {id: N03, kind: specific, source: R06, text: "api 发布卡住，新 Pod 是 ErrImageNeverPull，镜像标签 v1.1 没有导入节点。经验：imagePullPolicy 是 Never 时，标签必须是节点上已经导入的镜像。"}
   - {id: N04, kind: specific, source: R08, text: "api 全部不 Ready、worker 报 ConnectionError，最后发现 redis 的 StatefulSet 副本数被缩成了 0。经验：客户端都连不上 Redis 时，看一下 redis 的期望副本数。"}
   - {id: N05, kind: specific, source: R01, text: "提交接口返回 503，api 日志里 error_type=OutOfMemoryError，但 maxmemory 还是 192mb，是数据涨满了上限；Pod 全部 Ready 是因为 PING 不受影响。经验：OOM 时既要看上限有没有被改，也要考虑数据增长。"}
