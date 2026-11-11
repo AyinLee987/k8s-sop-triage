@@ -5,7 +5,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: ops-scripts
-  labels: {triage/noise: "true"}
+  labels: {app.kubernetes.io/part-of: ops-tooling}
 data:
   stats_report.py: |
     """Nightly click report: aggregate yesterday's counters and load them into the data warehouse."""

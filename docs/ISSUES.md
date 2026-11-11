@@ -9,6 +9,12 @@
 
 ---
 
+## E-018 干扰项的标签把"我是干扰"写在了脸上；发布版本号泄漏运行历史
+- 现象一：干扰用的 Pod 带标签 `triage/noise=true`，HolmesGPT 在一次回答里直接写"该 Deployment 带 triage/noise=true 标签，属于已知噪音"。→ 改成普通标签 `app.kubernetes.io/part-of: ops-tooling`。
+- 现象二：Deployment 的 revision 已经到 160–220（每次注入和复位都会加一），HolmesGPT 据此推断"模板被反复改了几百次，有人一直在手工折腾"。这是我们反复跑实验留下的痕迹，真实环境里不会这样。
+- 影响：现象一让那一次干扰失效；现象二没有改变结论，但给了 agent 一条不属于故障的线索。
+- 状态：现象一已解决；现象二未解决（可选做法：每轮开始前删除并重建 Deployment，让版本号归零）
+
 ## E-017 第一版干扰项被 agent 一眼看穿
 - 现象：第一版干扰项用 shell 一行命令实现（`tail /dev/zero` 制造 OOM、`echo ERROR; exit 1` 制造任务失败）。HolmesGPT 读了 Pod 定义后直接指出"这个任务是硬编码脚本，从未真正发起连接"，干扰不成立。
 - 另一个坑：`tail /dev/zero` 作为子进程被 OOM 杀掉时，容器的 1 号进程（sh）还活着，容器不会重启，也就留不下 OOMKilled 记录。分配内存的进程必须是 1 号进程。

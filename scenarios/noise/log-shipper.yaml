@@ -5,14 +5,14 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: log-shipper
-  labels: {app: log-shipper, triage/noise: "true"}
+  labels: {app: log-shipper, app.kubernetes.io/part-of: ops-tooling}
 spec:
   replicas: 1
   selector:
     matchLabels: {app: log-shipper}
   template:
     metadata:
-      labels: {app: log-shipper, triage/noise: "true"}
+      labels: {app: log-shipper, app.kubernetes.io/part-of: ops-tooling}
     spec:
       terminationGracePeriodSeconds: 2
       volumes:

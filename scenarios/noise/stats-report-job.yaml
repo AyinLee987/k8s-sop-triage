@@ -4,12 +4,12 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   name: stats-report
-  labels: {app: stats-report, triage/noise: "true"}
+  labels: {app: stats-report, app.kubernetes.io/part-of: ops-tooling}
 spec:
   backoffLimit: 1
   template:
     metadata:
-      labels: {app: stats-report, triage/noise: "true"}
+      labels: {app: stats-report, app.kubernetes.io/part-of: ops-tooling}
     spec:
       restartPolicy: Never
       volumes:

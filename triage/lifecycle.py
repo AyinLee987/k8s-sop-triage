@@ -173,8 +173,10 @@ class Lifecycle:
             if kind in ("Deployment", "StatefulSet"):
                 seen[(kind, name)] = item.get("status", {}).get("readyReplicas", 0) or 0
             elif kind == "Pod":
-                if (item["metadata"].get("labels") or {}).get("triage/noise") == "true":
-                    continue  # ambient-noise pods (scenarios/noise.yaml) are not part of the app
+                # Ambient-noise pods (scenarios/noise.yaml) are not part of the app. Their label must look like an
+                # ordinary one: the agent reads labels, and "triage/noise" told it they were noise (ISSUES E-018).
+                if (item["metadata"].get("labels") or {}).get("app.kubernetes.io/part-of") == "ops-tooling":
+                    continue
                 if item["metadata"].get("deletionTimestamp"):
                     problems.append(f"pod {name} terminating")
                     continue
