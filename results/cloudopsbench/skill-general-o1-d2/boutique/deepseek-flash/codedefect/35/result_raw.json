@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Frontend is the only workload with anomalies: CPU saturation (0.01->0.13 cores, +1506%), CFS throttling (1.204s), severe latency (p50 24ms->2235ms, p90 216ms->4365ms) and 503 errors on home/product pages, while all pods are Running/Ready with 0 restarts and the frontend CPU limit is 200m. Source code for frontend/handlers.go shows chooseAd() performs an 800ms busy spin-loop (no sleep) on every ad selection, burning CPU per request. This application-code busy loop explains the CPU saturation, throttling, and latency, which propagate as 503s.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 2, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 3, \"fault_object\": \"app/frontend\", \"root_cause\": \"pod_cpu_overload\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 8
+}

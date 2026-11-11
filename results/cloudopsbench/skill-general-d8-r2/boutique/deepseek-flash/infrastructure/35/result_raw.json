@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"worker-01 is in Unknown status with node.kubernetes.io/unreachable taints; kubelet.service on worker-01 is inactive/dead. The frontend pod is Pending and FailedScheduling because it targets worker-01 via node selector, while worker-01 is unavailable. Other pods are Running and Ready, matching partial service unreachability.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/worker-01\", \"root_cause\": \"kubelet_unavailable\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/frontend\", \"root_cause\": \"taint_toleration_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 5
+}

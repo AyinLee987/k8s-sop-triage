@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All boutique pods are Running and Ready. The adservice Service selects the adservice pod and has a resolved endpoint, but its port 9555 is configured as UDP. The application exposes gRPC on container port 9555, which requires TCP. CheckServiceConnectivity to adservice:9555 failed, confirming the protocol mismatch as the cause of partial service unreachability.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/adservice\", \"root_cause\": \"service_protocol_mismatch\"}, {\"rank\": 2, \"fault_object\": \"app/adservice\", \"root_cause\": \"service_port_mapping_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/adservice\", \"root_cause\": \"service_selector_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 6
+}

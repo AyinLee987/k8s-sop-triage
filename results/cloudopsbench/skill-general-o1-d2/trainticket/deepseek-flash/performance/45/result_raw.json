@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"`ts-train-service` shows a fixed latency jump from ~8.35 ms to ~2500 ms p50 despite healthy Running pods, no restarts, and normal request logs without errors. Its topology shows it is a leaf service with no downstream calls, so the delay originates in `ts-train-service` rather than a dependency. Upstream services such as `ts-basic-service` show propagated latency degradation, consistent with waiting on `ts-train-service`; the constant ~2.5 s delay is characteristic of injected application code delay rather than variable network or resource saturation.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-train-service\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-basic-service\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-train-service\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 7
+}

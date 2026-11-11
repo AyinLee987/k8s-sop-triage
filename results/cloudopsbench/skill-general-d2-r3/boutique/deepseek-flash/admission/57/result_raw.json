@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"redis-cart is Pending and its scheduler event reports persistentvolumeclaim \\\"redis-cart-pvc\\\" not found. No PVCs exist in boutique, while ResourceQuota storage-quota shows requests.storage 0/1Gi. The redis-cart manifest requests a 5Gi PVC, exceeding the namespace quota, and a suitable 5Gi PV is Available. This prevents PVC creation and leaves redis-cart unscheduled, disrupting service availability.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"namespace/boutique\", \"root_cause\": \"namespace_storage_quota_exceeded\"}, {\"rank\": 2, \"fault_object\": \"app/redis-cart\", \"root_cause\": \"pvc_capacity_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/redis-cart\", \"root_cause\": \"pvc_storage_class_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 11
+}

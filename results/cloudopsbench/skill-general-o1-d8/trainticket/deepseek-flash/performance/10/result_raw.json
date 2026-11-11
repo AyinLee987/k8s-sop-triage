@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Active alerts show severe latency degradation across gateway and dependent services, with `ts-route-service` as the deepest affected leaf dependency. `ts-route-service` has extreme latency (p50 ~8.0s, p90 ~21s), no downstream services to blame, no error logs, and its pod is Running with no restarts. Upstream services such as `ts-basic-service`, `ts-preserve-service`, `ts-travel-service`, and `ts-gateway-service` show derived latency/timeouts. No CPU, memory, or restart anomaly was observed, making a local application handling delay the strongest explanation.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-route-service\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-route-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-route-service\", \"root_cause\": \"pod_cpu_overload\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 9
+}

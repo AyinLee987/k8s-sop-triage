@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All pods were Running/Ready, but the Service list omitted shippingservice. Frontend errors show `lookup shippingservice on 169.254.20.10:53: no such host`, and a direct query confirmed `services \\\"shippingservice\\\" not found`. This explains partial service unreachability for checkout/cart flows depending on shipping quotes.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/shippingservice\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 2, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 3, \"fault_object\": \"app/frontend\", \"root_cause\": \"service_dns_resolution_failure\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 7
+}

@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show checkoutservice p50/p90 latency spikes to ~517ms/~948ms, emailservice p90 ~896ms, and frontend p90 ~575ms. All relevant pods are Running with 0 restarts. Emailservice is a leaf service, its source contains no artificial delay, and service connectivity on port 5000 succeeds. Checkoutservice source shows PlaceOrder invokes money.MultiplySlow, implemented as a CPU-intensive repeated-addition loop, making an application busy-loop defect the most likely root cause.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 2, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"pod_cpu_overload\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 18
+}

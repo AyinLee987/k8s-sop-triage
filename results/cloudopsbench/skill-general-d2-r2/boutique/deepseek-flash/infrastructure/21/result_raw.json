@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"checkoutservice Pod is Pending with no scheduling events. Node resources are healthy and worker nodes are schedulable. The kube-scheduler service on master is inactive (dead), so no new Pods can be scheduled. A transient missing ServiceAccount error was observed but the ServiceAccount now exists.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/master\", \"root_cause\": \"kube_scheduler_unavailable\"}, {\"rank\": 2, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"missing_service_account\"}, {\"rank\": 3, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"service_selector_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 8
+}

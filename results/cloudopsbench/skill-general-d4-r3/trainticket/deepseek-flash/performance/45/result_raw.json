@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"ts-train-service shows the most direct and severe latency anomaly (p50 8.35ms -> 2500ms, p90 411.79ms -> 4500ms). It is a leaf service with no downstream calls, so downstream dependency latency cannot explain it. Its pod is Running/Ready with 0 restarts, and no error logs were found. Upstream services such as ts-basic-service and ts-preserve-service show propagated latency. This pattern supports an application-level artificial delay in ts-train-service rather than a crash, probe failure, downstream DB issue, or pod scheduling fault.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-train-service\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-train-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 11
+}

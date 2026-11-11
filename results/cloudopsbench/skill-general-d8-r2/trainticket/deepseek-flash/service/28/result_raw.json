@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"ts-inside-payment-service returns 500s because its downstream ts-payment-service is in CrashLoopBackOff. ts-payment-service logs show MySQL CommunicationsException caused by java.net.UnknownHostException: tsdb-mysql-leader. Its Istio sidecar logs show repeated DNS i/o timeouts, including for istiod. The ts-payment-mysql Secret points to the valid service host tsdb-mysql-leader:3306, and active connectivity checks to tsdb-mysql-leader:3306 succeed from debug pods on worker-01, worker-02, and worker-03. This localizes the fault to the ts-payment-service pod's network/DNS path rather than the database Service or node-wide networking.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 3, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 10
+}

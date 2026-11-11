@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"ts-payment-service is in CrashLoopBackOff. Application logs show Hikari/MySQL failure caused by java.net.UnknownHostException: tsdb-mysql-leader: Temporary failure in name resolution. Istio-proxy logs also show DNS lookup timeouts to the hardcoded nameserver 10.255.17.254. The Deployment sets dnsPolicy: None with only nameservers=10.255.17.254 and no search domains. The tsdb-mysql-leader Service exists, and all other application pods are Running, localizing the fault to DNS resolution inside ts-payment-service.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 2, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"service_env_var_address_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 6
+}

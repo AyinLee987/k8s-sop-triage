@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Frontend repeatedly fails checkout calls with `dial tcp 10.68.228.153:5050: connect: connection refused`. checkoutservice Pod is Running/Ready and exposes container port name `grpc` on 5050, but its Service is configured with `targetPort: grpc-api`, which does not match any container port name. Selector and endpoint exist, so the fault is the Service targetPort/port mapping mismatch.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"service_port_mapping_mismatch\"}, {\"rank\": 2, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"service_protocol_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"service_selector_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 12
+}

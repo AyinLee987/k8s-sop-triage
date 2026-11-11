@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Widespread service latency affects multiple unrelated boutique services while all pods remain Running with zero restarts. Node metrics show severe TCP retransmission degradation on worker-02 (Normal=0.02 -> Current=8.46) and a smaller spike on worker-01. Multiple affected services are co-located on worker-02, node conditions show no CPU/memory/disk pressure, and kube-proxy is active. This supports node-level packet loss on worker-02 causing downstream service latency and traffic drops.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_packet_loss\"}, {\"rank\": 2, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_packet_loss\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 7
+}

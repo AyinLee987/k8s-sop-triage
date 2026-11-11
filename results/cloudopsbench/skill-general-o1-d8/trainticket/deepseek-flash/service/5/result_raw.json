@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Repeated POST 404s for /api/v1/preserveservice/preserve, with all relevant pods Running and ts-preserve-service startup logs showing successful registration. The gateway ConfigMap route `preserve` incorrectly targets `lb://${FOOD_SERVICE_HOST:ts-food-service}` for Path `/api/v1/preserveservice/**` instead of `ts-preserve-service`, so requests are routed to the wrong backend and return 404.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-gateway-service\", \"root_cause\": \"gateway_misrouted\"}, {\"rank\": 2, \"fault_object\": \"app/ts-preserve-service\", \"root_cause\": \"service_selector_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/ts-gateway-service\", \"root_cause\": \"service_port_mapping_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 8
+}

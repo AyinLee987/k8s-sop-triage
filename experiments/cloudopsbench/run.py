@@ -46,6 +46,7 @@ def main() -> int:
     ap.add_argument("--max-iterations", type=int, default=20)
     ap.add_argument("--experience", default="", help="folder of NN.md experience notes (e.g. experiences/specific)")
     ap.add_argument("--dose", type=int, default=0, help="use the first K notes; 0 = agent unchanged")
+    ap.add_argument("--order-seed", type=int, default=0, help="shuffle the accumulation order of the notes with this seed (0 = file order)")
     ap.add_argument("--case-timeout", type=int, default=420)
     args = ap.parse_args()
     env = dotenv()
@@ -71,6 +72,11 @@ def main() -> int:
     child_env = dict(__import__("os").environ)
     if args.dose:
         child_env.update(EXPERIENCE_DIR=str(Path(args.experience).resolve()), EXPERIENCE_DOSE=str(args.dose))
+        if args.order_seed:
+            stems = sorted(p.stem for p in Path(args.experience).glob("[0-9][0-9].md"))
+            __import__("random").Random(args.order_seed).shuffle(stems)
+            child_env["EXPERIENCE_ORDER"] = ",".join(stems)
+            print("accumulation order:", child_env["EXPERIENCE_ORDER"], flush=True)
 
     def result_path(c: dict) -> Path:
         return out / c["system"] / model / c["category"] / c["case"] / "result_raw.json"

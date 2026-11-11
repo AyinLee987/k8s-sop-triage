@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All pods are Running and Ready with no widespread crash/restart pattern. The sole active alert is a POST payment request through ts-inside-payment-service returning HTTP 500. Logs from ts-inside-payment-service show it failed while calling /api/v1/paymentservice/payment. Logs from ts-payment-service show deterministic IncorrectResultSizeDataAccessException / NonUniqueResultException: query did not return a unique result: 5. This isolates the fault to ts-payment-service application logic returning an invalid result for a query expected to return one row, causing downstream 500s.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"code_wrong_return\"}, {\"rank\": 2, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"code_missing_parameter\"}, {\"rank\": 3, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"code_wrong_argument_order\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 6
+}

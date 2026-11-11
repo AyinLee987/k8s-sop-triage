@@ -1,0 +1,1406 @@
+{
+ "summary": {
+  "all": {
+   "n": 60,
+   "ran": 60,
+   "top1": 44,
+   "object": 48,
+   "cause": 44,
+   "top3": 46
+  },
+  "medium": {
+   "n": 32,
+   "ran": 32,
+   "top1": 28,
+   "object": 28,
+   "cause": 28,
+   "top3": 28
+  },
+  "boutique/admission": {
+   "n": 8,
+   "ran": 8,
+   "top1": 7,
+   "object": 7,
+   "cause": 7,
+   "top3": 7
+  },
+  "boutique/service": {
+   "n": 10,
+   "ran": 10,
+   "top1": 10,
+   "object": 10,
+   "cause": 10,
+   "top3": 10
+  },
+  "boutique/infrastructure": {
+   "n": 6,
+   "ran": 6,
+   "top1": 6,
+   "object": 6,
+   "cause": 6,
+   "top3": 6
+  },
+  "hard": {
+   "n": 28,
+   "ran": 28,
+   "top1": 16,
+   "object": 20,
+   "cause": 16,
+   "top3": 18
+  },
+  "boutique/performance": {
+   "n": 8,
+   "ran": 8,
+   "top1": 4,
+   "object": 5,
+   "cause": 4,
+   "top3": 6
+  },
+  "boutique/codedefect": {
+   "n": 12,
+   "ran": 12,
+   "top1": 12,
+   "object": 12,
+   "cause": 12,
+   "top3": 12
+  },
+  "trainticket/service": {
+   "n": 8,
+   "ran": 8,
+   "top1": 5,
+   "object": 5,
+   "cause": 5,
+   "top3": 5
+  },
+  "trainticket/performance": {
+   "n": 8,
+   "ran": 8,
+   "top1": 0,
+   "object": 3,
+   "cause": 0,
+   "top3": 0
+  }
+ },
+ "rows": [
+  {
+   "id": "boutique/admission/2",
+   "difficulty": "medium",
+   "truth": {
+    "fault_taxonomy": "Admission_Fault",
+    "fault_object": "app/cartservice",
+    "root_cause": "missing_service_account"
+   },
+   "ran": true,
+   "top1": true,
+   "object": true,
+   "cause": true,
+   "top3": true,
+   "pred": {
+    "fault_object": "app/cartservice",
+    "root_cause": "missing_service_account"
+   },
+   "steps": 6,
+   "finished": true,
+   "in_tok": 34137,
+   "out_tok": 1461
+  },
+  {
+   "id": "boutique/admission/13",
+   "difficulty": "medium",
+   "truth": {
+    "fault_taxonomy": "Admission_Fault",
+    "fault_object": "namespace/boutique",
+    "root_cause": "namespace_cpu_quota_exceeded"
+   },
+   "ran": true,
+   "top1": true,
+   "object": true,
+   "cause": true,
+   "top3": true,
+   "pred": {
+    "fault_object": "namespace/boutique",
+    "root_cause": "namespace_cpu_quota_exceeded"
+   },
+   "steps": 8,
+   "finished": true,
+   "in_tok": 51001,
+   "out_tok": 2752
+  },
+  {
+   "id": "boutique/admission/14",
+   "difficulty": "medium",
+   "truth": {
+    "fault_taxonomy": "Admission_Fault",
+    "fault_object": "namespace/boutique",
+    "root_cause": "namespace_cpu_quota_exceeded"
+   },
+   "ran": true,
+   "top1": true,
+   "object": true,
+   "cause": true,
+   "top3": true,
+   "pred": {
+    "fault_object": "namespace/boutique",
+    "root_cause": "namespace_cpu_quota_exceeded"
+   },
+   "steps": 5,
+   "finished": true,
+   "in_tok": 28584,
+   "out_tok": 2935
+  },
+  {
+   "id": "boutique/admission/29",
+   "difficulty": "medium",
+   "truth": {
+    "fault_taxonomy": "Admission_Fault",
+    "fault_object": "namespace/boutique",
+    "root_cause": "namespace_memory_quota_exceeded"
+   },
+   "ran": true,
+   "top1": true,
+   "object": true,
+   "cause": true,
+   "top3": true,
+   "pred": {
+    "fault_object": "namespace/boutique",
+    "root_cause": "namespace_memory_quota_exceeded"
+   },
+   "steps": 7,
+   "finished": true,
+   "in_tok": 41101,
+   "out_tok": 5896
+  },
+  {
+   "id": "boutique/admission/40",
+   "difficulty": "medium",
+   "truth": {
+    "fault_taxonomy": "Admission_Fault",
+    "fault_object": "namespace/boutique",
+    "root_cause": "namespace_pod_quota_exceeded"
+   },
+   "ran": true,
+   "top1": true,
+   "object": true,
+   "cause": true,
+   "top3": true,
+   "pred": {
+    "fault_object": "namespace/boutique",
+    "root_cause": "namespace_pod_quota_exceeded"
+   },
+   "steps": 6,
+   "finished": true,
+   "in_tok": 33620,
+   "out_tok": 1391
+  },
+  {
+   "id": "boutique/admission/54",
+   "difficulty": "medium",
+   "truth": {
+    "fault_taxonomy": "Admission_Fault",
+    "fault_object": "namespace/boutique",
+    "root_cause": "namespace_service_quota_exceeded"
+   },
+   "ran": true,
+   "top1": false,
+   "object": false,
+   "cause": false,
+   "top3": false,
+   "pred": {
+    "fault_object": "app/shippingservice",
+    "root_cause": "service_dns_resolution_failure"
+   },
+   "steps": 6,
+   "finished": true,
+   "in_tok": 34370,
+   "out_tok": 3852
+  },
+  {
+   "id": "boutique/admission/57",
+   "difficulty": "medium",
+   "truth": {
+    "fault_taxonomy": "Admission_Fault",
+    "fault_object": "namespace/boutique",
+    "root_cause": "namespace_storage_quota_exceeded"
+   },
+   "ran": true,
+   "top1": true,
+   "object": true,
+   "cause": true,
+   "top3": true,
+   "pred": {
+    "fault_object": "namespace/boutique",
+    "root_cause": "namespace_storage_quota_exceeded"
+   },
+   "steps": 8,
+   "finished": true,
+   "in_tok": 46320,
+   "out_tok": 3321
+  },
+  {
+   "id": "boutique/admission/58",
+   "difficulty": "medium",
+   "truth": {
+    "fault_taxonomy": "Admission_Fault",
+    "fault_object": "namespace/boutique",
+    "root_cause": "namespace_storage_quota_exceeded"
+   },
+   "ran": true,
+   "top1": true,
+   "object": true,
+   "cause": true,
+   "top3": true,
+   "pred": {
+    "fault_object": "namespace/boutique",
+    "root_cause": "namespace_storage_quota_exceeded"
+   },
+   "steps": 9,
+   "finished": true,
+   "in_tok": 50590,
+   "out_tok": 8631
+  },
+  {
+   "id": "boutique/service/3",
+   "difficulty": "medium",
+   "truth": {
+    "fault_taxonomy": "Service_Routing_Fault",
+    "fault_object": "app/frontend",
+    "root_cause": "service_env_var_address_mismatch"
+   },
+   "ran": true,
+   "top1": true,
+   "object": true,
+   "cause": true,
+   "top3": true,
+   "pred": {
+    "fault_object": "app/frontend",
+    "root_cause": "service_env_var_address_mismatch"
+   },
+   "steps": 7,
+   "finished": true,
+   "in_tok": 39919,
+   "out_tok": 3733
+  },
+  {
+   "id": "boutique/service/7",
+   "difficulty": "medium",
+   "truth": {
+    "fault_taxonomy": "Service_Routing_Fault",
+    "fault_object": "app/frontend",
+    "root_cause": "service_env_var_address_mismatch"
+   },
+   "ran": true,
+   "top1": true,
+   "object": true,
+   "cause": true,
+   "top3": true,
+   "pred": {
+    "fault_object": "app/frontend",
+    "root_cause": "service_env_var_address_mismatch"
+   },
+   "steps": 8,
+   "finished": true,
+   "in_tok": 47357,
+   "out_tok": 2920
+  },
+  {
+   "id": "boutique/service/13",
+   "difficulty": "medium",
+   "truth": {
+    "fault_taxonomy": "Service_Routing_Fault",
+    "fault_object": "app/productcatalogservice",
+    "root_cause": "service_port_mapping_mismatch"
+   },
+   "ran": true,
+   "top1": true,
+   "object": true,
+   "cause": true,
+   "top3": true,
+   "pred": {
+    "fault_object": "app/productcatalogservice",
+    "root_cause": "service_port_mapping_mismatch"
+   },
+   "steps": 9,
+   "finished": true,
+   "in_tok": 51899,
+   "out_tok": 2687
+  },
+  {
+   "id": "boutique/service/17",
+   "difficulty": "medium",
+   "truth": {
+    "fault_taxonomy": "Service_Routing_Fault",
+    "fault_object": "app/checkoutservice",
+    "root_cause": "service_port_mapping_mismatch"
+   },
+   "ran": true,
+   "top1": true,
+   "object": true,
+   "cause": true,
+   "top3": true,
+   "pred": {
+    "fault_object": "app/checkoutservice",
+    "root_cause": "service_port_mapping_mismatch"
+   },
+   "steps": 10,
+   "finished": true,
+   "in_tok": 57734,
+   "out_tok": 6720
+  },
+  {
+   "id": "boutique/service/23",
+   "difficulty": "medium",
+   "truth": {
+    "fault_taxonomy": "Service_Routing_Fault",
+    "fault_object": "app/adservice",
+    "root_cause": "service_protocol_mismatch"
+   },
+   "ran": true,
+   "top1": true,
+   "object": true,
+   "cause": true,
+   "top3": true,
+   "pred": {
+    "fault_object": "app/adservice",
+    "root_cause": "service_protocol_mismatch"
+   },
+   "steps": 6,
+   "finished": true,
+   "in_tok": 32275,
+   "out_tok": 2322
+  },
+  {
+   "id": "boutique/service/26",
+   "difficulty": "medium",
+   "truth": {
+    "fault_taxonomy": "Service_Routing_Fault",
+    "fault_object": "app/currencyservice",
+    "root_cause": "service_protocol_mismatch"
+   },
+   "ran": true,
+   "top1": true,
+   "object": true,
+   "cause": true,
+   "top3": true,
+   "pred": {
+    "fault_object": "app/currencyservice",
+    "root_cause": "service_protocol_mismatch"
+   },
+   "steps": 9,
+   "finished": true,
+   "in_tok": 50712,
+   "out_tok": 5791
+  },
+  {
+   "id": "boutique/service/29",
+   "difficulty": "medium",
+   "truth": {
+    "fault_taxonomy": "Service_Routing_Fault",
+    "fault_object": "app/recommendationservice",
+    "root_cause": "service_protocol_mismatch"
+   },
+   "ran": true,
+   "top1": true,
+   "object": true,
+   "cause": true,
+   "top3": true,
+   "pred": {
+    "fault_object": "app/recommendationservice",
+    "root_cause": "service_protocol_mismatch"
+   },
+   "steps": 5,
+   "finished": true,
+   "in_tok": 26323,
+   "out_tok": 1205
+  },
+  {
+   "id": "boutique/service/37",
+   "difficulty": "medium",
+   "truth": {
+    "fault_taxonomy": "Service_Routing_Fault",
+    "fault_object": "app/redis-cart",
+    "root_cause": "service_selector_mismatch"
+   },
+   "ran": true,
+   "top1": true,
+   "object": true,
+   "cause": true,
+   "top3": true,
+   "pred": {
+    "fault_object": "app/redis-cart",
+    "root_cause": "service_selector_mismatch"
+   },
+   "steps": 4,
+   "finished": true,
+   "in_tok": 20653,
+   "out_tok": 1409
+  },
+  {
+   "id": "boutique/service/45",
+   "difficulty": "medium",
+   "truth": {
+    "fault_taxonomy": "Service_Routing_Fault",
+    "fault_object": "app/recommendationservice",
+    "root_cause": "service_selector_mismatch"
+   },
+   "ran": true,
+   "top1": true,
+   "object": true,
+   "cause": true,
+   "top3": true,
+   "pred": {
+    "fault_object": "app/recommendationservice",
+    "root_cause": "service_selector_mismatch"
+   },
+   "steps": 5,
+   "finished": true,
+   "in_tok": 26080,
+   "out_tok": 1318
+  },
+  {
+   "id": "boutique/service/46",
+   "difficulty": "medium",
+   "truth": {
+    "fault_taxonomy": "Service_Routing_Fault",
+    "fault_object": "app/redis-cart",
+    "root_cause": "service_selector_mismatch"
+   },
+   "ran": true,
+   "top1": true,
+   "object": true,
+   "cause": true,
+   "top3": true,
+   "pred": {
+    "fault_object": "app/redis-cart",
+    "root_cause": "service_selector_mismatch"
+   },
+   "steps": 6,
+   "finished": true,
+   "in_tok": 31123,
+   "out_tok": 1759
+  },
+  {
+   "id": "boutique/infrastructure/3",
+   "difficulty": "medium",
+   "truth": {
+    "fault_taxonomy": "Infrastructure_Fault",
+    "fault_object": "node/worker-01",
+    "root_cause": "containerd_unavailable"
+   },
+   "ran": true,
+   "top1": true,
+   "object": true,
+   "cause": true,
+   "top3": true,
+   "pred": {
+    "fault_object": "node/worker-01",
+    "root_cause": "containerd_unavailable"
+   },
+   "steps": 5,
+   "finished": true,
+   "in_tok": 30085,
+   "out_tok": 1355
+  },
+  {
+   "id": "boutique/infrastructure/13",
+   "difficulty": "medium",
+   "truth": {
+    "fault_taxonomy": "Infrastructure_Fault",
+    "fault_object": "node/worker-01",
+    "root_cause": "kube_proxy_unavailable"
+   },
+   "ran": true,
+   "top1": true,
+   "object": true,
+   "cause": true,
+   "top3": true,
+   "pred": {
+    "fault_object": "node/worker-01",
+    "root_cause": "kube_proxy_unavailable"
+   },
+   "steps": 13,
+   "finished": true,
+   "in_tok": 126286,
+   "out_tok": 12130
+  },
+  {
+   "id": "boutique/infrastructure/15",
+   "difficulty": "medium",
+   "truth": {
+    "fault_taxonomy": "Infrastructure_Fault",
+    "fault_object": "node/worker-01",
+    "root_cause": "kube_proxy_unavailable"
+   },
+   "ran": true,
+   "top1": true,
+   "object": true,
+   "cause": true,
+   "top3": true,
+   "pred": {
+    "fault_object": "node/worker-01",
+    "root_cause": "kube_proxy_unavailable"
+   },
+   "steps": 7,
+   "finished": true,
+   "in_tok": 41663,
+   "out_tok": 2350
+  },
+  {
+   "id": "boutique/infrastructure/21",
+   "difficulty": "medium",
+   "truth": {
+    "fault_taxonomy": "Infrastructure_Fault",
+    "fault_object": "node/master",
+    "root_cause": "kube_scheduler_unavailable"
+   },
+   "ran": true,
+   "top1": true,
+   "object": true,
+   "cause": true,
+   "top3": true,
+   "pred": {
+    "fault_object": "node/master",
+    "root_cause": "kube_scheduler_unavailable"
+   },
+   "steps": 8,
+   "finished": true,
+   "in_tok": 47427,
+   "out_tok": 10590
+  },
+  {
+   "id": "boutique/infrastructure/27",
+   "difficulty": "medium",
+   "truth": {
+    "fault_taxonomy": "Infrastructure_Fault",
+    "fault_object": "node/master",
+    "root_cause": "kube_scheduler_unavailable"
+   },
+   "ran": true,
+   "top1": true,
+   "object": true,
+   "cause": true,
+   "top3": true,
+   "pred": {
+    "fault_object": "node/master",
+    "root_cause": "kube_scheduler_unavailable"
+   },
+   "steps": 5,
+   "finished": true,
+   "in_tok": 27965,
+   "out_tok": 3631
+  },
+  {
+   "id": "boutique/infrastructure/35",
+   "difficulty": "medium",
+   "truth": {
+    "fault_taxonomy": "Infrastructure_Fault",
+    "fault_object": "node/worker-01",
+    "root_cause": "kubelet_unavailable"
+   },
+   "ran": true,
+   "top1": true,
+   "object": true,
+   "cause": true,
+   "top3": true,
+   "pred": {
+    "fault_object": "node/worker-01",
+    "root_cause": "kubelet_unavailable"
+   },
+   "steps": 5,
+   "finished": true,
+   "in_tok": 28957,
+   "out_tok": 1673
+  },
+  {
+   "id": "boutique/performance/2",
+   "difficulty": "hard",
+   "truth": {
+    "fault_taxonomy": "Performance_Fault",
+    "fault_object": "app/cartservice",
+    "root_cause": "pod_cpu_overload"
+   },
+   "ran": true,
+   "top1": true,
+   "object": true,
+   "cause": true,
+   "top3": true,
+   "pred": {
+    "fault_object": "app/cartservice",
+    "root_cause": "pod_cpu_overload"
+   },
+   "steps": 13,
+   "finished": true,
+   "in_tok": 88175,
+   "out_tok": 6286
+  },
+  {
+   "id": "boutique/performance/6",
+   "difficulty": "hard",
+   "truth": {
+    "fault_taxonomy": "Performance_Fault",
+    "fault_object": "app/frontend",
+    "root_cause": "pod_cpu_overload"
+   },
+   "ran": true,
+   "top1": false,
+   "object": true,
+   "cause": false,
+   "top3": true,
+   "pred": {
+    "fault_object": "app/frontend",
+    "root_cause": "code_busy_loop"
+   },
+   "steps": 15,
+   "finished": true,
+   "in_tok": 240188,
+   "out_tok": 18804
+  },
+  {
+   "id": "boutique/performance/15",
+   "difficulty": "hard",
+   "truth": {
+    "fault_taxonomy": "Performance_Fault",
+    "fault_object": "app/currencyservice",
+    "root_cause": "pod_network_delay"
+   },
+   "ran": true,
+   "top1": false,
+   "object": false,
+   "cause": false,
+   "top3": true,
+   "pred": {
+    "fault_object": "node/worker-01",
+    "root_cause": "node_network_delay"
+   },
+   "steps": 13,
+   "finished": true,
+   "in_tok": 127512,
+   "out_tok": 8999
+  },
+  {
+   "id": "boutique/performance/16",
+   "difficulty": "hard",
+   "truth": {
+    "fault_taxonomy": "Performance_Fault",
+    "fault_object": "app/emailservice",
+    "root_cause": "pod_network_delay"
+   },
+   "ran": true,
+   "top1": true,
+   "object": true,
+   "cause": true,
+   "top3": true,
+   "pred": {
+    "fault_object": "app/emailservice",
+    "root_cause": "pod_network_delay"
+   },
+   "steps": 12,
+   "finished": true,
+   "in_tok": 143750,
+   "out_tok": 7609
+  },
+  {
+   "id": "boutique/performance/24",
+   "difficulty": "hard",
+   "truth": {
+    "fault_taxonomy": "Performance_Fault",
+    "fault_object": "node/worker-02",
+    "root_cause": "node_network_delay"
+   },
+   "ran": true,
+   "top1": false,
+   "object": false,
+   "cause": false,
+   "top3": false,
+   "pred": {
+    "fault_object": "node/worker-01",
+    "root_cause": "node_network_packet_loss"
+   },
+   "steps": 5,
+   "finished": true,
+   "in_tok": 29594,
+   "out_tok": 7760
+  },
+  {
+   "id": "boutique/performance/25",
+   "difficulty": "hard",
+   "truth": {
+    "fault_taxonomy": "Performance_Fault",
+    "fault_object": "node/worker-02",
+    "root_cause": "node_network_delay"
+   },
+   "ran": true,
+   "top1": false,
+   "object": false,
+   "cause": false,
+   "top3": false,
+   "pred": {
+    "fault_object": "app/productcatalogservice",
+    "root_cause": "pod_network_delay"
+   },
+   "steps": 15,
+   "finished": true,
+   "in_tok": 139910,
+   "out_tok": 17702
+  },
+  {
+   "id": "boutique/performance/27",
+   "difficulty": "hard",
+   "truth": {
+    "fault_taxonomy": "Performance_Fault",
+    "fault_object": "node/worker-02",
+    "root_cause": "node_network_packet_loss"
+   },
+   "ran": true,
+   "top1": true,
+   "object": true,
+   "cause": true,
+   "top3": true,
+   "pred": {
+    "fault_object": "node/worker-02",
+    "root_cause": "node_network_packet_loss"
+   },
+   "steps": 5,
+   "finished": true,
+   "in_tok": 28033,
+   "out_tok": 3613
+  },
+  {
+   "id": "boutique/performance/29",
+   "difficulty": "hard",
+   "truth": {
+    "fault_taxonomy": "Performance_Fault",
+    "fault_object": "node/worker-02",
+    "root_cause": "node_network_packet_loss"
+   },
+   "ran": true,
+   "top1": true,
+   "object": true,
+   "cause": true,
+   "top3": true,
+   "pred": {
+    "fault_object": "node/worker-02",
+    "root_cause": "node_network_packet_loss"
+   },
+   "steps": 5,
+   "finished": true,
+   "in_tok": 31451,
+   "out_tok": 2379
+  },
+  {
+   "id": "boutique/codedefect/3",
+   "difficulty": "hard",
+   "truth": {
+    "fault_taxonomy": "Application_Code_Defect",
+    "fault_object": "app/checkoutservice",
+    "root_cause": "code_wrong_argument_order"
+   },
+   "ran": true,
+   "top1": true,
+   "object": true,
+   "cause": true,
+   "top3": true,
+   "pred": {
+    "fault_object": "app/checkoutservice",
+    "root_cause": "code_wrong_argument_order"
+   },
+   "steps": 9,
+   "finished": true,
+   "in_tok": 88678,
+   "out_tok": 3154
+  },
+  {
+   "id": "boutique/codedefect/9",
+   "difficulty": "hard",
+   "truth": {
+    "fault_taxonomy": "Application_Code_Defect",
+    "fault_object": "app/checkoutservice",
+    "root_cause": "code_artificial_delay"
+   },
+   "ran": true,
+   "top1": true,
+   "object": true,
+   "cause": true,
+   "top3": true,
+   "pred": {
+    "fault_object": "app/checkoutservice",
+    "root_cause": "code_artificial_delay"
+   },
+   "steps": 8,
+   "finished": true,
+   "in_tok": 67834,
+   "out_tok": 3354
+  },
+  {
+   "id": "boutique/codedefect/10",
+   "difficulty": "hard",
+   "truth": {
+    "fault_taxonomy": "Application_Code_Defect",
+    "fault_object": "app/checkoutservice",
+    "root_cause": "code_artificial_delay"
+   },
+   "ran": true,
+   "top1": true,
+   "object": true,
+   "cause": true,
+   "top3": true,
+   "pred": {
+    "fault_object": "app/checkoutservice",
+    "root_cause": "code_artificial_delay"
+   },
+   "steps": 9,
+   "finished": true,
+   "in_tok": 73277,
+   "out_tok": 2381
+  },
+  {
+   "id": "boutique/codedefect/13",
+   "difficulty": "hard",
+   "truth": {
+    "fault_taxonomy": "Application_Code_Defect",
+    "fault_object": "app/checkoutservice",
+    "root_cause": "code_missing_parameter"
+   },
+   "ran": true,
+   "top1": true,
+   "object": true,
+   "cause": true,
+   "top3": true,
+   "pred": {
+    "fault_object": "app/checkoutservice",
+    "root_cause": "code_missing_parameter"
+   },
+   "steps": 9,
+   "finished": true,
+   "in_tok": 71043,
+   "out_tok": 3742
+  },
+  {
+   "id": "boutique/codedefect/32",
+   "difficulty": "hard",
+   "truth": {
+    "fault_taxonomy": "Application_Code_Defect",
+    "fault_object": "app/frontend",
+    "root_cause": "code_wrong_argument_order"
+   },
+   "ran": true,
+   "top1": true,
+   "object": true,
+   "cause": true,
+   "top3": true,
+   "pred": {
+    "fault_object": "app/frontend",
+    "root_cause": "code_wrong_argument_order"
+   },
+   "steps": 16,
+   "finished": true,
+   "in_tok": 215543,
+   "out_tok": 8497
+  },
+  {
+   "id": "boutique/codedefect/35",
+   "difficulty": "hard",
+   "truth": {
+    "fault_taxonomy": "Application_Code_Defect",
+    "fault_object": "app/frontend",
+    "root_cause": "code_busy_loop"
+   },
+   "ran": true,
+   "top1": true,
+   "object": true,
+   "cause": true,
+   "top3": true,
+   "pred": {
+    "fault_object": "app/frontend",
+    "root_cause": "code_busy_loop"
+   },
+   "steps": 12,
+   "finished": true,
+   "in_tok": 140777,
+   "out_tok": 6124
+  },
+  {
+   "id": "boutique/codedefect/53",
+   "difficulty": "hard",
+   "truth": {
+    "fault_taxonomy": "Application_Code_Defect",
+    "fault_object": "app/frontend",
+    "root_cause": "code_excessive_file_reads"
+   },
+   "ran": true,
+   "top1": true,
+   "object": true,
+   "cause": true,
+   "top3": true,
+   "pred": {
+    "fault_object": "app/frontend",
+    "root_cause": "code_excessive_file_reads"
+   },
+   "steps": 9,
+   "finished": true,
+   "in_tok": 90419,
+   "out_tok": 2960
+  },
+  {
+   "id": "boutique/codedefect/60",
+   "difficulty": "hard",
+   "truth": {
+    "fault_taxonomy": "Application_Code_Defect",
+    "fault_object": "app/frontend",
+    "root_cause": "code_excessive_file_writes"
+   },
+   "ran": true,
+   "top1": true,
+   "object": true,
+   "cause": true,
+   "top3": true,
+   "pred": {
+    "fault_object": "app/frontend",
+    "root_cause": "code_excessive_file_writes"
+   },
+   "steps": 9,
+   "finished": true,
+   "in_tok": 77639,
+   "out_tok": 6097
+  },
+  {
+   "id": "boutique/codedefect/70",
+   "difficulty": "hard",
+   "truth": {
+    "fault_taxonomy": "Application_Code_Defect",
+    "fault_object": "app/productcatalogservice",
+    "root_cause": "code_memory_leak"
+   },
+   "ran": true,
+   "top1": true,
+   "object": true,
+   "cause": true,
+   "top3": true,
+   "pred": {
+    "fault_object": "app/productcatalogservice",
+    "root_cause": "code_memory_leak"
+   },
+   "steps": 11,
+   "finished": true,
+   "in_tok": 90356,
+   "out_tok": 8013
+  },
+  {
+   "id": "boutique/codedefect/77",
+   "difficulty": "hard",
+   "truth": {
+    "fault_taxonomy": "Application_Code_Defect",
+    "fault_object": "app/productcatalogservice",
+    "root_cause": "code_wrong_return"
+   },
+   "ran": true,
+   "top1": true,
+   "object": true,
+   "cause": true,
+   "top3": true,
+   "pred": {
+    "fault_object": "app/productcatalogservice",
+    "root_cause": "code_wrong_return"
+   },
+   "steps": 8,
+   "finished": true,
+   "in_tok": 45560,
+   "out_tok": 1675
+  },
+  {
+   "id": "boutique/codedefect/78",
+   "difficulty": "hard",
+   "truth": {
+    "fault_taxonomy": "Application_Code_Defect",
+    "fault_object": "app/productcatalogservice",
+    "root_cause": "code_wrong_return"
+   },
+   "ran": true,
+   "top1": true,
+   "object": true,
+   "cause": true,
+   "top3": true,
+   "pred": {
+    "fault_object": "app/productcatalogservice",
+    "root_cause": "code_wrong_return"
+   },
+   "steps": 11,
+   "finished": true,
+   "in_tok": 64874,
+   "out_tok": 11680
+  },
+  {
+   "id": "boutique/codedefect/81",
+   "difficulty": "hard",
+   "truth": {
+    "fault_taxonomy": "Application_Code_Defect",
+    "fault_object": "app/productcatalogservice",
+    "root_cause": "code_excessive_file_writes"
+   },
+   "ran": true,
+   "top1": true,
+   "object": true,
+   "cause": true,
+   "top3": true,
+   "pred": {
+    "fault_object": "app/productcatalogservice",
+    "root_cause": "code_excessive_file_writes"
+   },
+   "steps": 6,
+   "finished": true,
+   "in_tok": 39320,
+   "out_tok": 1732
+  },
+  {
+   "id": "trainticket/service/2",
+   "difficulty": "medium",
+   "truth": {
+    "fault_taxonomy": "Service_Routing_Fault",
+    "fault_object": "app/ts-gateway-service",
+    "root_cause": "gateway_misrouted"
+   },
+   "ran": true,
+   "top1": false,
+   "object": false,
+   "cause": false,
+   "top3": false,
+   "pred": {
+    "fault_object": null,
+    "root_cause": null
+   },
+   "steps": 20,
+   "finished": false,
+   "in_tok": 358817,
+   "out_tok": 25693
+  },
+  {
+   "id": "trainticket/service/5",
+   "difficulty": "medium",
+   "truth": {
+    "fault_taxonomy": "Service_Routing_Fault",
+    "fault_object": "app/ts-gateway-service",
+    "root_cause": "gateway_misrouted"
+   },
+   "ran": true,
+   "top1": true,
+   "object": true,
+   "cause": true,
+   "top3": true,
+   "pred": {
+    "fault_object": "app/ts-gateway-service",
+    "root_cause": "gateway_misrouted"
+   },
+   "steps": 9,
+   "finished": true,
+   "in_tok": 80236,
+   "out_tok": 3462
+  },
+  {
+   "id": "trainticket/service/14",
+   "difficulty": "medium",
+   "truth": {
+    "fault_taxonomy": "Service_Routing_Fault",
+    "fault_object": "app/ts-gateway-service",
+    "root_cause": "gateway_misrouted"
+   },
+   "ran": true,
+   "top1": false,
+   "object": false,
+   "cause": false,
+   "top3": false,
+   "pred": {
+    "fault_object": "app/ts-payment-service",
+    "root_cause": "code_wrong_return"
+   },
+   "steps": 8,
+   "finished": true,
+   "in_tok": 91195,
+   "out_tok": 6583
+  },
+  {
+   "id": "trainticket/service/16",
+   "difficulty": "medium",
+   "truth": {
+    "fault_taxonomy": "Service_Routing_Fault",
+    "fault_object": "app/ts-gateway-service",
+    "root_cause": "gateway_misrouted"
+   },
+   "ran": true,
+   "top1": false,
+   "object": false,
+   "cause": false,
+   "top3": false,
+   "pred": {
+    "fault_object": "app/ts-payment-service",
+    "root_cause": "code_wrong_return"
+   },
+   "steps": 19,
+   "finished": true,
+   "in_tok": 384179,
+   "out_tok": 44252
+  },
+  {
+   "id": "trainticket/service/24",
+   "difficulty": "medium",
+   "truth": {
+    "fault_taxonomy": "Service_Routing_Fault",
+    "fault_object": "app/ts-food-service",
+    "root_cause": "service_dns_resolution_failure"
+   },
+   "ran": true,
+   "top1": true,
+   "object": true,
+   "cause": true,
+   "top3": true,
+   "pred": {
+    "fault_object": "app/ts-food-service",
+    "root_cause": "service_dns_resolution_failure"
+   },
+   "steps": 12,
+   "finished": true,
+   "in_tok": 152985,
+   "out_tok": 6172
+  },
+  {
+   "id": "trainticket/service/28",
+   "difficulty": "medium",
+   "truth": {
+    "fault_taxonomy": "Service_Routing_Fault",
+    "fault_object": "app/ts-payment-service",
+    "root_cause": "service_dns_resolution_failure"
+   },
+   "ran": true,
+   "top1": true,
+   "object": true,
+   "cause": true,
+   "top3": true,
+   "pred": {
+    "fault_object": "app/ts-payment-service",
+    "root_cause": "service_dns_resolution_failure"
+   },
+   "steps": 6,
+   "finished": true,
+   "in_tok": 83143,
+   "out_tok": 4182
+  },
+  {
+   "id": "trainticket/service/34",
+   "difficulty": "medium",
+   "truth": {
+    "fault_taxonomy": "Service_Routing_Fault",
+    "fault_object": "app/ts-station-service",
+    "root_cause": "service_dns_resolution_failure"
+   },
+   "ran": true,
+   "top1": true,
+   "object": true,
+   "cause": true,
+   "top3": true,
+   "pred": {
+    "fault_object": "app/ts-station-service",
+    "root_cause": "service_dns_resolution_failure"
+   },
+   "steps": 8,
+   "finished": true,
+   "in_tok": 124555,
+   "out_tok": 5997
+  },
+  {
+   "id": "trainticket/service/35",
+   "difficulty": "medium",
+   "truth": {
+    "fault_taxonomy": "Service_Routing_Fault",
+    "fault_object": "app/ts-train-service",
+    "root_cause": "service_dns_resolution_failure"
+   },
+   "ran": true,
+   "top1": true,
+   "object": true,
+   "cause": true,
+   "top3": true,
+   "pred": {
+    "fault_object": "app/ts-train-service",
+    "root_cause": "service_dns_resolution_failure"
+   },
+   "steps": 8,
+   "finished": true,
+   "in_tok": 91446,
+   "out_tok": 7987
+  },
+  {
+   "id": "trainticket/performance/5",
+   "difficulty": "hard",
+   "truth": {
+    "fault_taxonomy": "Performance_Fault",
+    "fault_object": "app/ts-inside-payment-service",
+    "root_cause": "pod_network_delay"
+   },
+   "ran": true,
+   "top1": false,
+   "object": false,
+   "cause": false,
+   "top3": false,
+   "pred": {
+    "fault_object": "node/worker-03",
+    "root_cause": "node_network_delay"
+   },
+   "steps": 20,
+   "finished": true,
+   "in_tok": 411284,
+   "out_tok": 37303
+  },
+  {
+   "id": "trainticket/performance/6",
+   "difficulty": "hard",
+   "truth": {
+    "fault_taxonomy": "Performance_Fault",
+    "fault_object": "app/ts-order-service",
+    "root_cause": "pod_network_delay"
+   },
+   "ran": true,
+   "top1": false,
+   "object": false,
+   "cause": false,
+   "top3": false,
+   "pred": {
+    "fault_object": "node/worker-01",
+    "root_cause": "node_network_delay"
+   },
+   "steps": 19,
+   "finished": true,
+   "in_tok": 468797,
+   "out_tok": 31608
+  },
+  {
+   "id": "trainticket/performance/10",
+   "difficulty": "hard",
+   "truth": {
+    "fault_taxonomy": "Performance_Fault",
+    "fault_object": "app/ts-route-service",
+    "root_cause": "pod_network_delay"
+   },
+   "ran": true,
+   "top1": false,
+   "object": true,
+   "cause": false,
+   "top3": false,
+   "pred": {
+    "fault_object": "app/ts-route-service",
+    "root_cause": "code_artificial_delay"
+   },
+   "steps": 15,
+   "finished": true,
+   "in_tok": 201375,
+   "out_tok": 21736
+  },
+  {
+   "id": "trainticket/performance/19",
+   "difficulty": "hard",
+   "truth": {
+    "fault_taxonomy": "Performance_Fault",
+    "fault_object": "app/ts-cancel-service",
+    "root_cause": "pod_network_delay"
+   },
+   "ran": true,
+   "top1": false,
+   "object": false,
+   "cause": false,
+   "top3": false,
+   "pred": {
+    "fault_object": "app/ts-order-service",
+    "root_cause": "pod_cpu_overload"
+   },
+   "steps": 10,
+   "finished": true,
+   "in_tok": 148100,
+   "out_tok": 6954
+  },
+  {
+   "id": "trainticket/performance/29",
+   "difficulty": "hard",
+   "truth": {
+    "fault_taxonomy": "Performance_Fault",
+    "fault_object": "app/ts-seat-service",
+    "root_cause": "pod_network_delay"
+   },
+   "ran": true,
+   "top1": false,
+   "object": false,
+   "cause": false,
+   "top3": false,
+   "pred": {
+    "fault_object": "app/ts-order-service",
+    "root_cause": "pod_cpu_overload"
+   },
+   "steps": 10,
+   "finished": true,
+   "in_tok": 665415,
+   "out_tok": 13798
+  },
+  {
+   "id": "trainticket/performance/32",
+   "difficulty": "hard",
+   "truth": {
+    "fault_taxonomy": "Performance_Fault",
+    "fault_object": "app/ts-train-service",
+    "root_cause": "pod_network_delay"
+   },
+   "ran": true,
+   "top1": false,
+   "object": true,
+   "cause": false,
+   "top3": false,
+   "pred": {
+    "fault_object": "app/ts-train-service",
+    "root_cause": "code_artificial_delay"
+   },
+   "steps": 11,
+   "finished": true,
+   "in_tok": 178045,
+   "out_tok": 9649
+  },
+  {
+   "id": "trainticket/performance/39",
+   "difficulty": "hard",
+   "truth": {
+    "fault_taxonomy": "Performance_Fault",
+    "fault_object": "app/ts-order-service",
+    "root_cause": "pod_network_delay"
+   },
+   "ran": true,
+   "top1": false,
+   "object": false,
+   "cause": false,
+   "top3": false,
+   "pred": {
+    "fault_object": "node/worker-01",
+    "root_cause": "node_network_delay"
+   },
+   "steps": 20,
+   "finished": true,
+   "in_tok": 1878168,
+   "out_tok": 37174
+  },
+  {
+   "id": "trainticket/performance/45",
+   "difficulty": "hard",
+   "truth": {
+    "fault_taxonomy": "Performance_Fault",
+    "fault_object": "app/ts-train-service",
+    "root_cause": "pod_network_delay"
+   },
+   "ran": true,
+   "top1": false,
+   "object": true,
+   "cause": false,
+   "top3": false,
+   "pred": {
+    "fault_object": "app/ts-train-service",
+    "root_cause": "code_artificial_delay"
+   },
+   "steps": 9,
+   "finished": true,
+   "in_tok": 387777,
+   "out_tok": 7199
+  }
+ ]
+}

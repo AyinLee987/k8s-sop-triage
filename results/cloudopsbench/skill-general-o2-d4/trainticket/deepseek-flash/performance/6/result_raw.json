@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Widespread service degradation with extreme latency and throughput drops affects multiple unrelated workloads, especially those on worker-01, while all pods are Running/Ready with no restarts and nodes show no resource pressure. Network metrics show simultaneous inbound/outbound packet-rate drops, consistent with node-level packet loss.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_packet_loss\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 20
+}

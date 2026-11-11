@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All boutique Pods were Running and Ready, and most Services had populated endpoints. The `checkoutservice` Service selector matched its Ready Pod, but the Service targetPort referenced `grpc-api`, while the container port is named `grpc`. This name mismatch breaks Service-to-Pod port mapping and explains the availability disruption.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"service_port_mapping_mismatch\"}, {\"rank\": 2, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"service_protocol_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"service_selector_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 8
+}

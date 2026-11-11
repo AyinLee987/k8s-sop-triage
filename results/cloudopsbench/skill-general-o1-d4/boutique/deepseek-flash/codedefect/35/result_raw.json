@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Frontend pods are Running/Ready with no restarts, while alerts show frontend CPU saturation, CFS throttling, and p50 latency rising from 24.73ms to 2235.31ms. The frontend source reveals `chooseAd` contains an 800ms busy-wait loop, which directly explains CPU-intensive behavior and request latency. Adservice logs show requests received but frontend reports ad RPC deadline exceeded, consistent with frontend-side delay/CPU starvation rather than an adservice fault.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 2, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 3, \"fault_object\": \"app/frontend\", \"root_cause\": \"pod_cpu_overload\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 12
+}

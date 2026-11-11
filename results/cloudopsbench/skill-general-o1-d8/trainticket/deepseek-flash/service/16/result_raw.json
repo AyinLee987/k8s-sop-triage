@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All pods are Running and Ready, ruling out scheduling, crash, and node-level outages. Alerts show payment processing 500s. Logs from ts-inside-payment-service show it received a 500 from /api/v1/paymentservice/payment. Logs from ts-payment-service show the root exception: IncorrectResultSizeDataAccessException / NonUniqueResultException: query did not return a unique result: 5. The failure is deterministic and internally generated in ts-payment-service, indicating an application-code query defect.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"code_missing_parameter\"}, {\"rank\": 2, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"code_wrong_argument_order\"}, {\"rank\": 3, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"code_wrong_return\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 13
+}

@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts showed checkoutservice p50 latency degraded from 18.66ms to 3750ms without errors. Pods were Running with 0 restarts, checkoutservice error logs were absent, and downstream payment/email logs remained normal. Source inspection found an explicit `time.Sleep(time.Millisecond * 3000)` in checkoutservice `PlaceOrder`, directly explaining the ~3s+ latency spike.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 2, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 3, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 9
+}

@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"checkoutservice has 0/1 ready replicas and its ReplicaSet reports FailedCreate. The namespace ResourceQuota `cpu-request-quota` shows requests.cpu used 10/10, and the ReplicaSet events explicitly state pod creation is forbidden because requesting 2 CPUs exceeds the quota. All other boutique pods are Running and Ready, so the outage is caused by namespace-level CPU quota admission rejection, not runtime pod failure.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"namespace/boutique\", \"root_cause\": \"namespace_cpu_quota_exceeded\"}, {\"rank\": 2, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"deployment_zero_replicas\"}, {\"rank\": 3, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"cpu_capacity_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 9
+}

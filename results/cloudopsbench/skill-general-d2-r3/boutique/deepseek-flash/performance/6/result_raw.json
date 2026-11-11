@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alert for Service frontend shows RESOURCE_SATURATION [cpu_cfs] Val: 1.333s (Throttled), CPU core 0.07 -> 0.16 cores (+138.1%), and LATENCY_DEGRADATION p50 15.87ms -> 45.00ms (+183.6%), p95 27.67ms -> 271.36ms (+880.8%). All pods are Running with 0 restarts. Frontend deployment has cpu limit 200m/request 100m. Full source code inspection (handlers, main, rpc, middleware, money, validator, packaging, deployment_details) found no injected CPU busy loop, pointing to pod CPU overload rather than code_busy_loop.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/frontend\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 2, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 3, \"fault_object\": \"app/frontend\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 16
+}

@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"checkoutservice Deployment shows 0/1 ready, 0 updated, 0 available, with ReplicaFailure=FailedCreate and no checkoutservice pod created. The `boutique` namespace ResourceQuota `cpu-request-quota` reports `requests.cpu: 10/10` used/hard, and checkoutservice requests 2 CPUs, so admission cannot create the pod. Sibling services are running, ruling out a general cluster-wide outage.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"namespace/boutique\", \"root_cause\": \"namespace_cpu_quota_exceeded\"}, {\"rank\": 2, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"missing_service_account\"}, {\"rank\": 3, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"cpu_capacity_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 8
+}

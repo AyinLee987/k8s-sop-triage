@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All pods are Running. Service list shows recommendationservice is exposed as 8080/UDP instead of TCP, while TCP connectivity to recommendationservice:8080 fails. This explains partial service unreachability and points to a protocol configuration error on the recommendationservice Service.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/recommendationservice\", \"root_cause\": \"service_protocol_mismatch\"}, {\"rank\": 2, \"fault_object\": \"app/recommendationservice\", \"root_cause\": \"service_port_mapping_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/recommendationservice\", \"root_cause\": \"service_selector_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 5
+}

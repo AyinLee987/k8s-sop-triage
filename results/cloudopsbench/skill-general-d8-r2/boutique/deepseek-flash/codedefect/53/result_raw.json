@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Frontend exhibited severe latency degradation (p50 from ~20ms to ~496ms, p90 from ~49ms to ~3833ms) with CPU throttling and CPU usage spike, while all pods remained Running with no restarts. Downstream adservice logs showed requests being received and no adservice error logs, making downstream unavailability less likely. Frontend source contained an explicit repeated file-read loop in setCurrencyHandler: opening and fully reading /src/log.csv 10 times per request. This local code path can cause CPU/file-read pressure and derived timeouts/503s, supporting frontend excessive file reads as the primary root cause.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_excessive_file_reads\"}, {\"rank\": 2, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 3, \"fault_object\": \"app/frontend\", \"root_cause\": \"pod_cpu_overload\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 13
+}

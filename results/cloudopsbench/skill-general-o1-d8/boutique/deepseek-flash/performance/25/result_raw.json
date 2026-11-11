@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"productcatalogservice shows the primary latency anomaly (p90 ~2.5ms -> ~1158ms) while its pod is Running/Ready with 0 restarts, node worker-01 is healthy, and TCP connectivity to productcatalogservice:3550 succeeds. productcatalogservice is a leaf dependency of recommendationservice, whose latency spike is best explained as downstream-derived. The source contains a latency injection path, but it is inactive here: deployment/pod env lacks EXTRA_LATENCY and startup logs do not report extra latency enabled. This pattern is most consistent with pod-local network delay on productcatalogservice.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 19
+}

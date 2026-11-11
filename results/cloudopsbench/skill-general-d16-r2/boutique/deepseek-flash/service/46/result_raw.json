@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All deployments are 1/1 Ready, ruling out missing replicas/quota. Service listing showed redis-cart Service selector `application=redis-cart`; describe confirms Endpoints is empty, while redis-cart Deployment/pods use `app=redis-cart`. The selector mismatch leaves redis-cart without endpoints, matching partial service unreachability.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/redis-cart\", \"root_cause\": \"service_selector_mismatch\"}, {\"rank\": 2, \"fault_object\": \"app/redis-cart\", \"root_cause\": \"service_port_mapping_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/redis-cart\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 5
+}

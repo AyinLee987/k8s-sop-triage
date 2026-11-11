@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"ts-station-service is the only deployment at 0/1 available; its pod is in CrashLoopBackOff. Application logs show `java.net.UnknownHostException: tsdb-mysql-leader: Temporary failure in name resolution`, causing Hibernate/JPA startup failure. The bound `ts-station-mysql` Secret contains the correct host `tsdb-mysql-leader`, port `3306`, database/user/password fields, and active TCP checks to `tsdb-mysql-leader:3306` succeed from all workers. This isolates the failure to DNS resolution rather than port mapping, credentials, or general TCP connectivity.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-station-service\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_packet_loss\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 15
+}

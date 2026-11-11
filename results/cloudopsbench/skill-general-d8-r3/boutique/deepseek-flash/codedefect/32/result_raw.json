@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All boutique pods are 2/2 Running and Ready, and Service selectors/ports appear consistent, ruling out basic pod crash or Service mapping faults. Active alerts show frontend-originated 503s concentrated on product/cart-related business actions. Source inspection of frontend handlers.go found a concrete application code defect: `userID, productID = productID, userID` before calling insertCart, swapping the positional arguments. This matches the application-code-defect pattern for path-specific availability failures with healthy pods.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_wrong_argument_order\"}, {\"rank\": 2, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_wrong_return\"}, {\"rank\": 3, \"fault_object\": \"app/frontend\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 13
+}

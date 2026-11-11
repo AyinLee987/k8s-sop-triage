@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Frontend logs repeatedly show connection refused to checkoutservice ClusterIP 10.68.228.153:5050, while checkoutservice pod is Running/Ready. The Service has an endpoint, but its targetPort is `grpc-api` whereas the checkoutservice container port is named `grpc` (containerPort 5050). This targetPort name mismatch explains the refused connections.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"service_port_mapping_mismatch\"}, {\"rank\": 2, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"service_selector_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/frontend\", \"root_cause\": \"service_env_var_address_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 7
+}

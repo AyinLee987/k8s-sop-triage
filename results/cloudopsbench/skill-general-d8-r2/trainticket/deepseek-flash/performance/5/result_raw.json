@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All pods are Running/Ready with no restarts or scheduling failures, and node conditions are normal. Alerts show widespread throughput drop/latency, but the deepest and most severe latency spike is on ts-inside-payment-service (p50 22ms→7166ms, p90 64ms→20333ms, throughput -74%). Its logs show fast local pay handling, and its downstream ts-order-service is healthy with fast successful requests in the same window. This isolates the fault to pod-scoped network delay on ts-inside-payment-service rather than node-wide, downstream, or application-code delay.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-inside-payment-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-inside-payment-service\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-03\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 15
+}

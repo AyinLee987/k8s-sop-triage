@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alert data showed 20 failed POST requests to ts-preserve-service `/api/v1/preserveservice/preserve` returning HTTP 404. All ts-preserve-service pods were Running and Ready, and its Service correctly mapped port 14568 to selector app=ts-preserve-service. The decisive evidence was the ts-gateway-service ConfigMap: the `preserve` route predicate for `/api/v1/preserveservice/**` has `uri: lb://${FOOD_SERVICE_HOST:ts-food-service}`, incorrectly forwarding preserve requests to ts-food-service instead of ts-preserve-service. This gateway misrouting causes the 404s and service availability disruption for order creation.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-gateway-service\", \"root_cause\": \"gateway_misrouted\"}, {\"rank\": 2, \"fault_object\": \"app/ts-preserve-service\", \"root_cause\": \"service_selector_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/ts-preserve-service\", \"root_cause\": \"service_port_mapping_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 12
+}

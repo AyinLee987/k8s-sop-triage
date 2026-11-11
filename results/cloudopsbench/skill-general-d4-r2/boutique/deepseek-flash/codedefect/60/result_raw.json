@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts flagged frontend CPU saturation (+266.7%) and a large filesystem write surge (171KB/s, peak 414KB/s) coinciding with 503s on GET / and GET /product/{id}. Frontend pods are Running/Ready with no error logs and healthy 19-25ms responses outside the blast radius. Source inspection of handlers.go reveals chooseAd() synchronously writing 30,000 CSV rows to /tmp/tmp.csv then deleting it on every call; chooseAd is invoked by homeHandler and productHandler, which are exactly the failing paths. The excessive per-request disk writes cause I/O/CPU saturation and request blocking, propagating as latency and 503s.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_excessive_file_writes\"}, {\"rank\": 2, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 3, \"fault_object\": \"app/frontend\", \"root_cause\": \"pod_cpu_overload\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 9
+}

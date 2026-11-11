@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All pods and endpoints are present and healthy, but productcatalogservice Service targetPort is 8081 while the container and probes use port 3550 (PORT=3550). Endpoints show 172.20.1.16:8081, so Service traffic is forwarded to a non-listening port, disrupting productcatalogservice availability.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"service_port_mapping_mismatch\"}, {\"rank\": 2, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"service_selector_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"service_protocol_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 7
+}

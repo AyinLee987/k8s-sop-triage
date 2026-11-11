@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show checkoutservice p50 latency rose from 17.35ms to 3559.79ms and recommendationservice p50 latency rose from 3.01ms to 1186.20ms, with broad traffic drops across services. The only node-level anomaly is worker-01 with a TCP retransmission spike from 0.00 to 0.70. All pods are Running/Ready, node resources are healthy, and kube-proxy on worker-01 is active. Several affected services (currencyservice, frontend, productcatalogservice) are on worker-01, while worker-02 services calling them show propagated latency, supporting a node-level network fault on worker-01.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_packet_loss\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 7
+}

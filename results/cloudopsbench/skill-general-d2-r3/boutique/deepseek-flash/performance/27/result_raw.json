@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"High p90 latency alerts affected adservice, checkoutservice, and recommendationservice, all scheduled on worker-02. Worker-02 showed a new TCP retransmission spike (0.00 -> 6.67) while all pods were Running/Ready with zero restarts, and the node had no MemoryPressure, DiskPressure, PIDPressure, or scheduling taint. This localizes the fault to worker-02 node networking, consistent with packet loss causing latency.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_packet_loss\"}, {\"rank\": 2, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_packet_loss\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 5
+}

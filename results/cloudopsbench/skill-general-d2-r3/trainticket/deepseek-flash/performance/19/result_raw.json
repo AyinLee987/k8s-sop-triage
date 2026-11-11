@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show severe latency on ts-cancel-service (p50 2740ms vs normal 81.78ms), with propagated latency to gateway/UI. Dependency topology shows ts-cancel-service calls ts-order-service. ts-order-service is the only service with a direct RESOURCE_SATURATION alert: CPU CFS throttling (0.306s). Its logs show successful business processing with heavy order/ticket query volume, and no error logs. Deployment CPU limit is 500m, and cluster nodes are Ready with no memory/disk/PID pressure or CPU capacity anomaly. This indicates the latency originates from excessive Pod CPU load on ts-order-service, causing downstream call delays and propagated service degradation.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 2, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 3, \"fault_object\": \"app/ts-cancel-service\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 11
+}

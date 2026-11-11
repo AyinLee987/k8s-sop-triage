@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show 500 errors from ts-preserve-service and ts-inside-payment-service. Error logs trace the failure chain: preserve -> travel -> basic -> ts-train-service. The ts-train-service pod is in Error state with restarts, and its logs show repeated `UnknownHostException: tsdb-mysql-leader: Temporary failure in name resolution` along with istio-proxy DNS timeouts to `istiod`. The `tsdb-mysql-leader` Service exists and is reachable from debug pods on all nodes, and other pods on worker-01 (where ts-train-service runs) are healthy. kube-proxy is active. This isolates the fault to the ts-train-service pod's network, consistent with pod-scoped network delay causing DNS timeouts and crash.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-train-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-train-service\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 14
+}

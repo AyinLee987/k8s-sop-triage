@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Frontend alerts show CPU saturation/throttling and severe latency on `/` and `/product/{id}`. Frontend source inspection found `chooseAd` busy-waits for 800 ms with no sleep, producing CPU-heavy request-path delay. Frontend errors are downstream-derived adservice deadline/cancellation messages, while adservice itself has no error logs. This strongly localizes the primary fault to a frontend application code busy loop.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 2, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 3, \"fault_object\": \"app/frontend\", \"root_cause\": \"pod_cpu_overload\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 8
+}

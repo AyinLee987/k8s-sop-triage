@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"productcatalogservice has 0/1 available replicas, and its ReplicaSet reports FailedCreate because pod creation is forbidden by quota memory-request-quota: requested requests.memory=300Mi, used=3000Mi, limited=3Gi. GetResources for resourcequotas confirms memory-request-quota is fully consumed at 3000Mi/3Gi.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"namespace/boutique\", \"root_cause\": \"namespace_memory_quota_exceeded\"}, {\"rank\": 2, \"fault_object\": \"namespace/boutique\", \"root_cause\": \"namespace_pod_quota_exceeded\"}, {\"rank\": 3, \"fault_object\": \"namespace/boutique\", \"root_cause\": \"namespace_cpu_quota_exceeded\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 7
+}

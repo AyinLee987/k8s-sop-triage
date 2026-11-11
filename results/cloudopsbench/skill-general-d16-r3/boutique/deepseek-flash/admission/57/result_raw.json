@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"redis-cart is the only unhealthy workload and is Pending. The scheduler reports `persistentvolumeclaim \\\"redis-cart-pvc\\\" not found`, and no PVCs exist in namespace `boutique`. The redis-cart manifest requests a 5Gi PVC, while namespace ResourceQuota `storage-quota` has a hard storage limit of 1Gi and current usage 0/1Gi. Therefore PVC admission is blocked by namespace storage quota, preventing redis-cart from scheduling and causing service availability disruption.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"namespace/boutique\", \"root_cause\": \"namespace_storage_quota_exceeded\"}, {\"rank\": 2, \"fault_object\": \"app/redis-cart\", \"root_cause\": \"pvc_capacity_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/redis-cart\", \"root_cause\": \"pvc_storage_class_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 8
+}

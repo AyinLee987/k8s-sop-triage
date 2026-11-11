@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"checkoutservice-8445f8b6cb-58chn remains Pending with no node assignment and no scheduling events. Cluster nodes are Ready and workers have free CPU/memory and no taints, while the deployment has no nodeSelector/affinity constraints. kube-scheduler on master is inactive/dead, explaining why the pod was never scheduled and causing partial service unavailability.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/master\", \"root_cause\": \"kube_scheduler_unavailable\"}, {\"rank\": 2, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"node_cordon_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"node_affinity_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 6
+}

@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show severe latency degradation starting at currencyservice and propagating to checkoutservice and frontend. Currencyservice is a leaf service, all currencyservice pods are Running, service connectivity succeeds, node conditions are normal, and currencyservice logs show successful fast conversion handling without application errors. This localizes the fault to excessive network latency affecting the currencyservice pod rather than application code or node failure.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/currencyservice\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/currencyservice\", \"root_cause\": \"code_artificial_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 11
+}

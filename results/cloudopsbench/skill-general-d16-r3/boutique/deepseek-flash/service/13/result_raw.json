@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"productcatalogservice pods are Running/Ready and selected correctly, but the Service maps port 3550 to targetPort 8081 while the container declares/listens on 3550. CheckServiceConnectivity to productcatalogservice:3550 failed, confirming the mapping fault.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"service_port_mapping_mismatch\"}, {\"rank\": 2, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"service_selector_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"service_dns_resolution_failure\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 10
+}

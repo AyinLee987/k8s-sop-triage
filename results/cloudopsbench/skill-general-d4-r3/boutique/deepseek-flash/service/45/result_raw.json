@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All pods are Running and alerts show no metric anomalies. The recommendationservice Service uses selector `application=recommendationservice`, but the running recommendationservice pod has label `app=recommendationservice`. Therefore, the Service selector does not match any pod, leaving the service without endpoints and causing availability disruption.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/recommendationservice\", \"root_cause\": \"service_selector_mismatch\"}, {\"rank\": 2, \"fault_object\": \"app/recommendationservice\", \"root_cause\": \"service_port_mapping_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/frontend\", \"root_cause\": \"gateway_misrouted\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 5
+}

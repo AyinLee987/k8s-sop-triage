@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"checkoutservice is the only non-ready pod (1/2, repeated restarts). Its server container repeatedly exits with code 2, and logs show `panic: mismatching currency codes` in `PlaceOrder` at `money.Must`. Source inspection shows `userID, userCurrency = userCurrency, userID` immediately after reading the request, swapping the two values and causing downstream currency/order processing to use the wrong arguments.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"code_wrong_argument_order\"}, {\"rank\": 2, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"code_wrong_return\"}, {\"rank\": 3, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"code_missing_parameter\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 7
+}

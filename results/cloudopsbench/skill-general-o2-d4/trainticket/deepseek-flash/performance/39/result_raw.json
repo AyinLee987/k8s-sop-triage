@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Widespread latency+throughput degradation across ticket-workflow services, with pods Running/Ready and no error spikes. Latency chain converges on ts-order-service (p50 308ms->9843ms, the deepest leaf with no downstream calls). Its logs show fast, successful processing (<200ms) and zero errors, so the latency gap is network-level at the pod, not application code. Co-located worker-03 services (auth, travel-plan) show no latency degradation, ruling out node-level network fault. All slow services (seat, security, travel, preserve, gateway) call order-service, matching exp-14's isolated pod-scoped RTT inflation.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-gateway-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"code_artificial_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 17
+}

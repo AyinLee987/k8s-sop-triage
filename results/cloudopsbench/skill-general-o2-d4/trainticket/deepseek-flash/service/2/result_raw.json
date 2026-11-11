@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All pods are Running and no gateway/dashboard/orchestration error logs or active alerts were found. The decisive anomaly is in ts-gateway-service configuration: the route with id `order` for Path `/api/v1/orderservice/**` points to `lb://${ROUTE_SERVICE_HOST:ts-route-service}` instead of the order service, causing order API traffic to be sent to the wrong backend and producing partial service unreachability.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-gateway-service\", \"root_cause\": \"gateway_misrouted\"}, {\"rank\": 2, \"fault_object\": \"app/ts-gateway-service\", \"root_cause\": \"service_env_var_address_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"service_selector_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 20
+}

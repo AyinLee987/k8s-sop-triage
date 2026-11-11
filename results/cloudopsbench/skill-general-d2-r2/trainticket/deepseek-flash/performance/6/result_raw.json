@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All pods are Running/Ready with negligible restarts and no node pressure. Alerts show extreme latency degradation centered on ts-order-service (p50 ~3.88s, p90 ~17.6s) and cascading through its upstream callers (ts-seat-service, ts-security-service, ts-preserve-service, ts-travel-service, ts-gateway-service, ts-ui-dashboard). ts-order-service logs show normal millisecond request processing and no application errors, ruling out code delays or crashes. Other pods on worker-01 remain without similar latency degradation, arguing against node-wide network delay. This is consistent with pod-scoped network delay on ts-order-service.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-seat-service\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 11
+}

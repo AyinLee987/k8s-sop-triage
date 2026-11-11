@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Frontend error logs show 87 failures dialing adservice at 10.68.25.111:9555 with 'connection refused', while all pods are healthy. The adservice Service is explicitly configured with protocol UDP, but the frontend gRPC client uses TCP. Frontend env AD_SERVICE_ADDR correctly points to adservice:9555, so address config is not the issue. This deterministic protocol mismatch explains the partial unreachability. Productcatalogservice DNS errors were also observed but are less likely the primary fault because other DNS lookups (e.g., adservice) succeed.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/adservice\", \"root_cause\": \"service_protocol_mismatch\"}, {\"rank\": 2, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 3, \"fault_object\": \"app/adservice\", \"root_cause\": \"service_port_mapping_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 10
+}

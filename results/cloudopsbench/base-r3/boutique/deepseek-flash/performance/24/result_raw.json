@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Active alerts show a new TCP retransmission spike on worker-01. Multiple services hosted on worker-01 (frontend, productcatalogservice, currencyservice, paymentservice, emailservice) show traffic drops, while worker-02-hosted checkoutservice and recommendationservice show massive latency likely caused by calls to dependencies on worker-01. Frontend also reports upstream timeout/deadline-exceeded errors. Pods are Running with no restarts, so application deployment and scheduling faults are less likely. This evidence best supports node-level network packet loss on worker-01.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_packet_loss\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/adservice\", \"root_cause\": \"code_artificial_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 6
+}

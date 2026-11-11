@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All pods are Running and Services/selectors are present. Frontend error logs show 134 failures dialing currencyservice at 10.68.90.185:7000 with TCP connection refused, and the currencyservice Service lists 7000/UDP instead of TCP. Active TCP connectivity to currencyservice:7000 also fails. This confirms a Service protocol mismatch on currencyservice as the primary fault.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/currencyservice\", \"root_cause\": \"service_protocol_mismatch\"}, {\"rank\": 2, \"fault_object\": \"app/currencyservice\", \"root_cause\": \"service_port_mapping_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"service_dns_resolution_failure\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 6
+}

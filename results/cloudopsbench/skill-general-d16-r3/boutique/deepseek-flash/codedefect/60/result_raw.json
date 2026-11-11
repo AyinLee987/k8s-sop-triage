@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts localized 503s to frontend on routes '/' and '/product/{id}' along with a FILESYSTEM_WRITE_SURGE (0 -> 171371.76 B/s, peak 414KB/s) and CPU spike (+266%) while all pods are Running/Ready with no restarts. Frontend logs show only normal 200 responses (no error logs). Source inspection of handlers.go shows chooseAd() — invoked by both homeHandler and productHandler — creates /tmp/tmp.csv and writes 30,000 CSV records per call, then removes it, causing the write surge and CPU overhead that degrade the exact affected routes.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_excessive_file_writes\"}, {\"rank\": 2, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 3, \"fault_object\": \"app/frontend\", \"root_cause\": \"pod_cpu_overload\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 8
+}

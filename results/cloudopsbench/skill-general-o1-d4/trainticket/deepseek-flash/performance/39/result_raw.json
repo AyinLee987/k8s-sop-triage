@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All pods are Running/Ready with no significant restarts, and application logs show fast internal processing in travel, seat, basic, and order services. However, alerts show widespread service latency and throughput drops, most severe for ts-gateway-service, ts-travel-service, ts-order-service, ts-seat-service, and ts-preserve-service. Several severely affected services or their dependency chains center on worker-01, while node status shows no resource pressure or scheduling issues. The mismatch between millisecond internal app handling and multi-second service-observed latency supports node-level network delay rather than an application-code or pod failure.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-gateway-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-travel-service\", \"root_cause\": \"code_artificial_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 20
+}

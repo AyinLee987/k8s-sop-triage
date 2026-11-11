@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"worker-01 is NotReady; multiple pods scheduled there remain in Init while pods on worker-02 run normally. Kubelet on worker-01 is active but repeatedly fails to connect to /run/containerd/containerd.sock. containerd.service on worker-01 is inactive (dead) since 13:06:46, confirming the container runtime is unavailable.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/worker-01\", \"root_cause\": \"containerd_unavailable\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"kubelet_unavailable\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_packet_loss\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 5
+}

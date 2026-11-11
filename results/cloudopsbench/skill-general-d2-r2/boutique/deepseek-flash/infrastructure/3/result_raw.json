@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Pods on worker-01 are stuck in Init:0/1, while pods on worker-02 are Running. DescribeResource for frontend-6778bd7b8b-gxx44 shows FailedCreatePodSandBox with dial unix /run/containerd/containerd.sock: connect: no such file or directory. CheckNodeServiceStatus confirms containerd.service on worker-01 is inactive (dead). This establishes a node-level container runtime failure on worker-01 as the root cause of the service availability disruption.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/worker-01\", \"root_cause\": \"containerd_unavailable\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"kubelet_unavailable\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 5
+}

@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Pod productcatalogservice-8458b87d48-7r7l6 is in CrashLoopBackOff with 4 restarts. Its server container last terminated with Reason: OOMKilled and Exit Code: 137, under a 128Mi memory limit. Other boutique pods are Running, so the fault is localized to the productcatalogservice application.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"container_memory_limit_too_low\"}, {\"rank\": 2, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"code_memory_leak\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"memory_capacity_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 4
+}

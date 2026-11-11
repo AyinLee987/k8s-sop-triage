@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Latency alerts hit adservice (+314%), checkoutservice (+752%) and recommendationservice (+3433%) — all hosted on worker-02. worker-02 shows a new severe TCP retransmission spike (0.00→6.67 vs worker-01 0.07→0.61), consistent with packet loss. All pods are Running/Ready with zero restarts, checkoutservice has no error logs, and nodes report no memory/disk/PID pressure. The leaf service adservice itself degraded, and its degradation plus peers on the same node implicate node-level network packet loss on worker-02 rather than a downstream or application defect.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_packet_loss\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_packet_loss\"}, {\"rank\": 3, \"fault_object\": \"app/recommendationservice\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 6
+}

@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show severe latency degradation in checkoutservice, emailservice, and frontend. Pod placement shows checkoutservice and emailservice are both on worker-02, while frontend is on worker-01 and depends on checkoutservice. Node health is normal, kube-proxy is active, pods are Running, service connectivity succeeds, and no application error logs are present. This pattern is most consistent with node-level network delay on worker-02 affecting co-located services and propagating to frontend.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 2, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_packet_loss\"}, {\"rank\": 3, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"code_artificial_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 15
+}

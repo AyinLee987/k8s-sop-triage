@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All boutique pods are Running and Ready. The recommendationservice Kubernetes Service exposes 8080/UDP with selector app=recommendationservice, and an active TCP connectivity check to recommendationservice:8080 fails. This directly supports a protocol mismatch rather than pod, scheduling, or image failure.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/recommendationservice\", \"root_cause\": \"service_protocol_mismatch\"}, {\"rank\": 2, \"fault_object\": \"app/recommendationservice\", \"root_cause\": \"service_port_mapping_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/recommendationservice\", \"root_cause\": \"service_dns_resolution_failure\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 4
+}

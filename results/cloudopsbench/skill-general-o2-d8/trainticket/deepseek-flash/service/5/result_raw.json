@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show repeated HTTP 404s for POST /api/v1/preserveservice/preserve at ts-preserve-service. Its logs show normal startup and registration. Dependency/configuration inspection reveals the gateway route for the preserve path is incorrectly configured with uri lb://${FOOD_SERVICE_HOST:ts-food-service}, so preserve requests are sent to ts-food-service and return 404.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-gateway-service\", \"root_cause\": \"gateway_misrouted\"}, {\"rank\": 2, \"fault_object\": \"app/ts-preserve-service\", \"root_cause\": \"service_env_var_address_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/ts-food-service\", \"root_cause\": \"code_wrong_return\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 10
+}

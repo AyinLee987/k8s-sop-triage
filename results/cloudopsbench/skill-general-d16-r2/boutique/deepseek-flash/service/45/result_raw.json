@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All pods are Running/Ready and no metric alerts are active. The recommendationservice Service selector is `application=recommendationservice`, while the recommendationservice pod is labeled `app=recommendationservice`. The recommendationservice Endpoints object has no endpoints, confirming the selector mismatch causes the availability disruption.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/recommendationservice\", \"root_cause\": \"service_selector_mismatch\"}, {\"rank\": 2, \"fault_object\": \"app/recommendationservice\", \"root_cause\": \"service_port_mapping_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/recommendationservice\", \"root_cause\": \"service_dns_resolution_failure\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 6
+}

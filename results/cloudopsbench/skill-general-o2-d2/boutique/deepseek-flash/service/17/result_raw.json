@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All boutique pods are Running. Frontend logs show repeated connection refused to checkoutservice ClusterIP 10.68.228.153:5050. Active TCP connectivity to checkoutservice:5050 failed. The checkoutservice Service maps port 5050 to named targetPort `grpc-api`, but the Deployment container port is named `grpc`, so the Service targetPort resolves incorrectly and traffic to checkoutservice is disrupted.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"service_port_mapping_mismatch\"}, {\"rank\": 2, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"service_selector_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"service_protocol_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 13
+}

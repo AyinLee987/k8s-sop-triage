@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All application pods are Running/Ready, but the `shippingservice` Service is missing: the service list does not include it and a direct lookup returns NotFound. Frontend error logs show multiple DNS resolution failures for `shippingservice` (`no such host`), causing failed shipping quote and checkout paths while other services remain reachable.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/shippingservice\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 2, \"fault_object\": \"app/frontend\", \"root_cause\": \"service_env_var_address_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"service_env_var_address_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 8
+}

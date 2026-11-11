@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All pods are Running and Ready; ts-preserve-service registered successfully with Nacos and its Service correctly maps port 14568. The failing request path is POST /api/v1/preserveservice/preserve, which returns a deterministic 404. The gateway ConfigMap shows the `preserve` route incorrectly uses `uri: lb://${FOOD_SERVICE_HOST:ts-food-service}` instead of routing to ts-preserve-service. This explains the request-path-specific 404 while backend pods remain healthy.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-gateway-service\", \"root_cause\": \"gateway_misrouted\"}, {\"rank\": 2, \"fault_object\": \"app/ts-preserve-service\", \"root_cause\": \"code_wrong_return\"}, {\"rank\": 3, \"fault_object\": \"app/ts-food-service\", \"root_cause\": \"code_wrong_return\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 9
+}

@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Only ts-station-service is unhealthy, in CrashLoopBackOff on worker-01. Its container exits during Hibernate/JPA startup because MySQL connection initialization fails with java.net.UnknownHostException: tsdb-mysql-leader: Temporary failure in name resolution. The Istio sidecar in the same pod also reports DNS lookup timeouts to istiod.istio-system.svc via 10.255.13.254:53. Meanwhile, CheckServiceConnectivity to tsdb-mysql-leader:3306 succeeds from debug pods on worker-01, worker-02, and worker-03, showing the DB Service and general cluster DNS/network path are healthy outside this pod. This localizes the fault to service DNS resolution within ts-station-service, causing its startup crash and the availability disruption.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-station-service\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 2, \"fault_object\": \"app/ts-station-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_packet_loss\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 7
+}

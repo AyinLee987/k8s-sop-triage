@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"frontend-55c88c6544-7rvkn is Pending and unschedulable because it requires worker-01 via node selector, but worker-01 is Unknown with unreachable taints. CheckNodeServiceStatus confirms worker-01 kubelet.service is inactive (dead), making the node unavailable and preventing the frontend pod from being scheduled.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/worker-01\", \"root_cause\": \"kubelet_unavailable\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_packet_loss\"}, {\"rank\": 3, \"fault_object\": \"app/frontend\", \"root_cause\": \"taint_toleration_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 5
+}

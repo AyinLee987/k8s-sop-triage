@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Widespread latency and throughput degradation occurred while all pods remained Running and nodes Ready with no resource pressure. The strongest service-local latency spikes were on services hosted on worker-01: ts-order-service, ts-preserve-service, ts-seat-service, ts-travel-service, and ts-ui-dashboard. ts-order-service logs showed rapid local request processing and no error logs, and TCP connectivity to ts-order-service succeeded. Other affected services such as ts-security-service and ts-gateway-service are callers depending on worker-01-hosted services, explaining derived timeouts/latency. This points to a node/worker-01 network delay rather than an application code defect or pod failure.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_packet_loss\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 20
+}

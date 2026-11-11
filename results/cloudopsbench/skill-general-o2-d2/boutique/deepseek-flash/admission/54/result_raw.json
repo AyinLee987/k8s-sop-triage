@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Namespace boutique has ResourceQuota service-quota at services: 11/11. All listed Services appear valid except shippingservice is absent, even though shippingservice pod is Running. This prevents clients from resolving/connecting to shippingservice, matching partial service unreachability.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"namespace/boutique\", \"root_cause\": \"namespace_service_quota_exceeded\"}, {\"rank\": 2, \"fault_object\": \"app/shippingservice\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 3, \"fault_object\": \"app/shippingservice\", \"root_cause\": \"service_port_mapping_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 4
+}

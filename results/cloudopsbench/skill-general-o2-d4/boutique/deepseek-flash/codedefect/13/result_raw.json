@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All boutique pods and Service definitions are healthy. Alerts show checkout `/cart/checkout` returning HTTP 500 and payment/email success rates vanishing, consistent with checkout failing before those downstream calls. Source code for checkoutservice shows `convertCurrency` sets `from = nil` immediately before `CurrencyService.Convert`, omitting a required request parameter.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"code_missing_parameter\"}, {\"rank\": 2, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"code_wrong_return\"}, {\"rank\": 3, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"code_wrong_argument_order\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 12
+}

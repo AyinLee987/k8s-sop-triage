@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"productcatalogservice is the only anomalous service, with CPU saturation and a new filesystem-write spike. Source inspection shows ListProducts creates /tmp/tmp.csv and writes 30,000 CSV rows per request, directly explaining the observed CPU and write surge.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"code_excessive_file_writes\"}, {\"rank\": 2, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 3, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"pod_cpu_overload\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 5
+}

@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"System alerts show widespread throughput drops and latency spikes, but the most extreme latency is on ts-route-service (p50 ~8.0s, p90 ~21s vs baseline ~7.6ms/~9.6ms). Its pod is Running/Ready with no restarts, logs show normal route-query handling without exceptions, tsdb-mysql has no error logs, the Service port mapping is correct, and TCP connectivity to ts-route-service:11178 succeeds from worker-01/02/03. Since other worker-03 pods are not all similarly slow, a node-wide network fault is less likely; the pattern is most consistent with application-level artificial delay in ts-route-service that propagates to dependent services.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-route-service\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-route-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-gateway-service\", \"root_cause\": \"code_artificial_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 19
+}

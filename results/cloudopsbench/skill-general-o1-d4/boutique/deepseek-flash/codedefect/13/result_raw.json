@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Pods are Running with no restarts. Checkout PlaceOrder returns deterministic 500s. checkoutservice source code shows `convertCurrency` explicitly sets `from = nil` before calling `currencyservice.Convert`, omitting the required Money argument. This breaks the checkout flow before payment and email, explaining their vanished success-rate alerts.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"code_missing_parameter\"}, {\"rank\": 2, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"code_wrong_argument_order\"}, {\"rank\": 3, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"code_wrong_return\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 9
+}

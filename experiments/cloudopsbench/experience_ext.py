@@ -6,6 +6,7 @@ note's id and one-line title listed in a catalog in the prompt, and the full tex
 (HolmesGPT: fetch_skill; here: ReadExperience). Nothing else about the agent changes.
 
 EXPERIENCE_DIR (env): folder of NN.md notes, first line = title.  EXPERIENCE_DOSE (env): use the first K notes.
+EXPERIENCE_ORDER (env, optional): comma-separated note numbers giving the accumulation order.
 """
 from __future__ import annotations
 
@@ -33,7 +34,12 @@ def load_notes() -> dict[str, tuple[str, str]]:
     if not folder or dose <= 0:
         return {}
     notes = {}
-    for path in sorted(Path(folder).glob("[0-9][0-9].md"))[:dose]:
+    paths = sorted(Path(folder).glob("[0-9][0-9].md"))
+    order = [x for x in os.environ.get("EXPERIENCE_ORDER", "").split(",") if x]
+    if order:  # a different accumulation order; ids stay tied to the note, not to its position
+        by_stem = {p.stem: p for p in paths}
+        paths = [by_stem[x] for x in order]
+    for path in paths[:dose]:
         text = path.read_text(encoding="utf-8").strip()
         notes[f"exp-{path.stem}"] = (text.splitlines()[0].strip(), text)
     return notes

@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show latency degradation for adservice, checkoutservice, and recommendationservice, all of which are scheduled on worker-02. Worker-02 also shows a strong new TCP retransmission spike (6.67 retrans vs 0.00 baseline), while pods remain Running with 0 restarts. This supports node-level packet loss on worker-02 as the common cause of the latency spikes.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_packet_loss\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_packet_loss\"}, {\"rank\": 3, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 5
+}

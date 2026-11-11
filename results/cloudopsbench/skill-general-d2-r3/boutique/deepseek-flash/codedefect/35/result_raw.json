@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Frontend latency increased from p50 24.73ms to 2235.31ms, with CPU CFS throttling of 1.204s and CPU usage rising from 0.01 to 0.13 cores. The frontend source code's chooseAd function performs a CPU-intensive 800ms busy-wait loop after fetching ads. Adservice logs show normal request handling without errors, and all pods are Running/Ready, ruling out downstream adservice failure and pod-level scheduling/restart issues.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 2, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 3, \"fault_object\": \"app/frontend\", \"root_cause\": \"pod_cpu_overload\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 11
+}

@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All boutique pods are Running/Ready and Services have valid selectors and populated endpoints. Frontend logs show downstream DNS lookup failures and TCP timeouts. Active connectivity to currencyservice:7000 failed from worker-01 but succeeded from worker-02 and worker-03. kube-proxy on worker-01 is inactive/dead, confirming the node-local service-routing failure.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/worker-01\", \"root_cause\": \"kube_proxy_unavailable\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_packet_loss\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 12
+}

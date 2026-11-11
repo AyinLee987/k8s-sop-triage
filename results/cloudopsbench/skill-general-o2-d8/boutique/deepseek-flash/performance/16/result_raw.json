@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show severe latency degradation on checkoutservice (p90 +3239%), emailservice (p90 +18581%), and frontend (p90 +1309%), following the chain frontend->checkoutservice->emailservice (leaf). All pods are Running/Ready with 0 restarts; nodes show no pressure/taints. Emailservice code is a trivial dummy handler with no artificial delay; Service port mapping (5000->8080) is correct and TCP connectivity on port 5000 succeeds. Other pods co-located on worker-02 (adservice, paymentservice, etc.) are unaffected, ruling out node-wide network issues and pointing to a pod-scoped network delay on emailservice that propagates upstream.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/emailservice\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/emailservice\", \"root_cause\": \"code_artificial_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 17
+}

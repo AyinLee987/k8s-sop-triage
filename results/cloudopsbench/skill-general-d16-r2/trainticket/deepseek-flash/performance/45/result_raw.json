@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"ts-train-service shows p50 latency rising from 8.35ms to 2500ms and p90 to 4500ms, while its pods are Running/Ready with no restarts, node worker-01 is Ready without pressure, application logs show no errors/exceptions, and TCP connectivity to port 14567 succeeds from all worker nodes. Caller services such as ts-basic-service and ts-preserve-service show derived latency, making ts-train-service the deepest affected service. The fixed large latency increase is most consistent with an artificial application delay rather than crashes, resource saturation, DNS, or connectivity failure.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-train-service\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-train-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 15
+}

@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"checkoutservice is the only unhealthy workload, with its server container repeatedly crashing and restarting. Logs show deterministic panics: `panic: mismatching currency codes` in `money.Must` called from `PlaceOrder`. Source inspection found `userID, userCurrency = userCurrency, userID` in `PlaceOrder`, swapping the user ID and currency before preparing the order. This wrong argument order causes currency conversion and totaling to operate on mismatched values, producing the panic and restarts.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"code_wrong_argument_order\"}, {\"rank\": 2, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"code_wrong_return\"}, {\"rank\": 3, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"code_missing_parameter\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 10
+}

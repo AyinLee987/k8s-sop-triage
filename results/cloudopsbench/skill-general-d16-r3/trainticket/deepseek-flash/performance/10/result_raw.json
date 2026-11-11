@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Widespread simultaneous RPS drops and latency spikes (p50/p90 up to ~20-28s) across basic, route, travel, preserve, gateway and ui-dashboard, while all pods are Running/Ready with zero meaningful restarts and all nodes Ready without resource pressure. Dependency mapping shows the affected cascade is basic->route (basic calls route/station/train/price, yet only route shows latency; station, train, price — siblings of route under basic — show only throughput/traffic drops, no latency). This isolates the delay to route-service, a leaf called by all slow callers. worker-03's other pods (auth, price) show no latency, ruling out node_network_delay. Consistent with exp-14 (pod-scoped network delay on a shared leaf pod). Route-service logs show fast internal processing but multi-second arrival gaps, indicating network RTT inflation rather than code delay.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-route-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-basic-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-route-service\", \"root_cause\": \"code_artificial_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 13
+}

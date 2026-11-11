@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All boutique pods are Running and Ready, ruling out crash/scheduling failures. The recommendationservice Service selector is `application=recommendationservice`, but the recommendation pod has label `app=recommendationservice`. Endpoints for recommendationservice are empty (`<none>`), confirming the selector mismatch causes traffic to have no backend endpoints.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/recommendationservice\", \"root_cause\": \"service_selector_mismatch\"}, {\"rank\": 2, \"fault_object\": \"app/recommendationservice\", \"root_cause\": \"service_port_mapping_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/recommendationservice\", \"root_cause\": \"service_dns_resolution_failure\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 5
+}

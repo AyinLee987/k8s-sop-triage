@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"recommendationservice pod is Pending with no assigned node and no scheduling events, while its deployment has no nodeSelector/affinity and all worker nodes are Ready with ample allocatable CPU/memory and no taints. The kube-scheduler service on master is inactive (dead), stopped at 21:35:09, which prevents scheduling of new pods and causes the availability disruption.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/master\", \"root_cause\": \"kube_scheduler_unavailable\"}, {\"rank\": 2, \"fault_object\": \"app/recommendationservice\", \"root_cause\": \"taint_toleration_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/recommendationservice\", \"root_cause\": \"node_affinity_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 7
+}

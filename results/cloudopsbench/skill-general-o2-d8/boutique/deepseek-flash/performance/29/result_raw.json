@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Widespread service latency across many unrelated services, all pods Running/Ready with zero restarts, simultaneous bidirectional traffic drops, and node-level TCP retransmission anomalies. worker-02 shows the dominant spike (0.02 -> 8.46 retransmissions, +50396%), with worker-01 much smaller (0 -> 1.16). Nodes are Ready with no MemoryPressure, DiskPressure, or PIDPressure. This pattern matches node-level packet loss masquerading as service latency, with worker-02 as the primary affected node.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_packet_loss\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_packet_loss\"}, {\"rank\": 3, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 6
+}

@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Only ts-train-service is unavailable (CrashLoopBackOff, 0/2). Its application logs show java.net.UnknownHostException: tsdb-mysql-leader and MySQL Communications link failure. The istio-proxy sidecar in the same pod also reports DNS lookup timeouts via 10.255.12.254. The Deployment uses dnsPolicy: None with a custom nameserver and no search domains, while the tsdb-mysql-leader Service exists. This supports pod-specific DNS resolution failure rather than a missing DB Service.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-train-service\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 2, \"fault_object\": \"app/ts-train-service\", \"root_cause\": \"service_env_var_address_mismatch\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 6
+}

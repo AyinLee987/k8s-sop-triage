@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"cartservice Deployment is not scaled to zero but has 0/1 available replicas; its ReplicaSet repeatedly reports FailedCreate with `exceeded quota: cpu-request-quota, requested: requests.cpu=1, used: requests.cpu=10, limited: requests.cpu=10`. The namespace ResourceQuota confirms `requests.cpu: 10/10`. Consequently cartservice has no pod, its Service has no endpoints, and frontend logs show connection refused to cartservice ClusterIP `10.68.54.225:7070`.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"namespace/boutique\", \"root_cause\": \"namespace_cpu_quota_exceeded\"}, {\"rank\": 2, \"fault_object\": \"app/cartservice\", \"root_cause\": \"missing_service_account\"}, {\"rank\": 3, \"fault_object\": \"namespace/boutique\", \"root_cause\": \"namespace_pod_quota_exceeded\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 12
+}

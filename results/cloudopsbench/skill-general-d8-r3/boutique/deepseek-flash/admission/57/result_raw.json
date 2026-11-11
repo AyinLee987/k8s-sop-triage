@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"`redis-cart` is Pending because the scheduler reports PVC `redis-cart-pvc` not found. No PVCs exist in the namespace. The service YAML shows the PVC requests 5Gi, but ResourceQuota `storage-quota` limits `requests.storage` to 1Gi (used 0/1Gi), preventing creation of the required PVC and causing Redis-dependent service availability disruption.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"namespace/boutique\", \"root_cause\": \"namespace_storage_quota_exceeded\"}, {\"rank\": 2, \"fault_object\": \"app/redis-cart\", \"root_cause\": \"pvc_capacity_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/redis-cart\", \"root_cause\": \"pvc_storage_class_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 8
+}

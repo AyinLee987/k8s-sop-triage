@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All pods scheduled on worker-01 are stuck at Init:0/1, while workloads on worker-02 are Running. Describing frontend pod shows FailedCreatePodSandBox with kubelet failing to dial /run/containerd/containerd.sock: no such file or directory. Direct service inspection confirms containerd.service on worker-01 is inactive (dead), while its shim processes remain orphaned. This node runtime outage prevents container/init-container creation and causes the service availability disruption.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/worker-01\", \"root_cause\": \"containerd_unavailable\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"kubelet_unavailable\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"kube_proxy_unavailable\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 4
+}

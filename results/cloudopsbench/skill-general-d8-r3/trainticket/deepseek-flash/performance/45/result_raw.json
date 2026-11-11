@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"`ts-train-service` shows a severe, deterministic latency spike (p50 8.35ms -> 2500ms, p90 peaking ~4594ms) while its pod is Running/Ready with 0 restarts, no error logs, and no downstream calls. The service is a leaf dependency, so propagated latency in `ts-basic-service`/`ts-preserve-service` is caller impact rather than evidence of a downstream fault. No CPU/memory saturation alert is present for `ts-train-service`, making an application-inserted delay the strongest root cause; pod/node network delay is a plausible but less directly supported alternative.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-train-service\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-train-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 10
+}

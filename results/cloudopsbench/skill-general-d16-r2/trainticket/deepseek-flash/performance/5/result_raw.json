@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Severe latency alerts appear on ts-inside-payment-service (p50 ~7.17s, p90 ~20.33s vs normal ms), with cascading latency on its caller ts-cancel-service (p90 ~21.67s), ts-gateway-service (p90 ~8.66s), and ts-ui-dashboard (p90 ~9.75s). Widespread RPS/throughput drops are consistent with blocked user flows. All application pods are Running/Ready with zero restarts, nodes are Ready without pressure, gateway TCP connectivity succeeds, and ts-inside-payment-service logs show quick successful payment/drawback processing without exceptions. The dependency chain indicates inside-payment is downstream of cancel/gateway and upstream of order/payment calls, so pod-scoped network delay on ts-inside-payment-service best explains the cascade.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-inside-payment-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-gateway-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-03\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 14
+}

@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"During the 23:39:22–23:41:12 window, 17 service alerts show simultaneous RPS drops and severe p90 latency spikes across the whole call graph while every pod is Running/Ready with zero restarts. ts-gateway-service, the shared entry hub called by ts-ui-dashboard and calling nearly all backends, shows the largest degradation (p90 2623ms→46500ms). TCP connectivity to ts-gateway-service:18888 succeeds from worker-01/02/03 and no error logs exist. The latency spans pods on all three nodes (ruling out a node-wide fault) and, because the gateway fans out to every backend, a pod-scoped network delay on the gateway pod explains why all downstream inbound latencies rose together. The UI dashboard's earlier nginx 'host not found in upstream ts-gateway-service' occurred at 23:30:57 (a pre-window startup crash), not during the reported fault window, so it is not the active root cause.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-gateway-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-gateway-service\", \"root_cause\": \"code_artificial_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 18
+}

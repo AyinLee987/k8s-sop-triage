@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show simultaneous latency and throughput degradation across multiple boutique services. worker-01 has a new TCP retransmission anomaly, and several affected services (frontend, productcatalogservice, currencyservice, paymentservice, emailservice) are co-located there. Pods are Running with no restarts, and worker-01 is Ready with no MemoryPressure, DiskPressure, or PIDPressure, making node-level packet loss the strongest explanation over app code or resource exhaustion.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_packet_loss\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/frontend\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 5
+}

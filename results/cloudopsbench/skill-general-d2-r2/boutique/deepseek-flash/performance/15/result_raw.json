@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"currencyservice, a leaf backend, shows severe p90 latency degradation and a large bidirectional traffic drop. Its pod is Running/Ready with zero restarts, TCP connectivity to currencyservice:7000 succeeds, application logs show successful conversions with no error logs, server code has no artificial delay, and all nodes are Ready without pressure. Upstream frontend/checkoutservice latency is consistent with propagated impact; currencyservice is the isolation point.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/currencyservice\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/currencyservice\", \"root_cause\": \"code_artificial_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 13
+}

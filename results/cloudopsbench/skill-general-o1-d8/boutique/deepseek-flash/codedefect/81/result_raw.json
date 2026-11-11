@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Only productcatalogservice was anomalous, showing an 81.7% CPU spike and a new filesystem write surge (peak 213,689.87B/s) with no error logs. Its source code shows ListProducts explicitly creates /tmp/tmp.csv and writes 30,000 CSV rows per request, directly explaining the excessive filesystem writes and CPU load.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"code_excessive_file_writes\"}, {\"rank\": 2, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 3, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"code_artificial_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 6
+}

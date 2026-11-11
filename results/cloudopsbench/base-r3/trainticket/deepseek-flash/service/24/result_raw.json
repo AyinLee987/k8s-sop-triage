@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"ts-food-service is in CrashLoopBackOff with application logs showing UnknownHostException/Temporary failure in name resolution for tsdb-mysql-leader. Its Deployment uniquely sets dnsPolicy: None and a custom nameserver, while healthy services on the same node use default DNS. The tsdb-mysql-leader Service exists, and other workloads are Running/Ready, so the fault is localized to ts-food-service DNS configuration.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-food-service\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_packet_loss\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 10
+}

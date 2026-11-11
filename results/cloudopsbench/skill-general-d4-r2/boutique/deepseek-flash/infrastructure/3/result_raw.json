@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Multiple boutique pods are stuck in Init:0/1. The frontend pod was scheduled to worker-01, but kubelet reported FailedCreatePodSandBox with 'dial unix /run/containerd/containerd.sock: connect: no such file or directory'. CheckNodeServiceStatus confirmed containerd.service on worker-01 is inactive (dead), stopping all new pod sandbox creation on that node and disrupting service availability.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/worker-01\", \"root_cause\": \"containerd_unavailable\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"kubelet_unavailable\"}, {\"rank\": 3, \"fault_object\": \"app/frontend\", \"root_cause\": \"service_dns_resolution_failure\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 4
+}

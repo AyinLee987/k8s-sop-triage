@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"ts-payment-service is in CrashLoopBackOff; logs show 'java.net.UnknownHostException: tsdb-mysql-leader: Temporary failure in name resolution' and HikariPool/JPA init failures. Its istio-proxy also times out resolving 'istiod.istio-system.svc on 10.255.17.254:53'. The Deployment has dnsPolicy: None with a custom, unreachable/bogus nameserver 10.255.17.254 that cannot resolve cluster names, while all peer pods on worker-02 are Running 2/2 and the tsdb-mysql-leader Service exists with healthy 4/4 backing pods. The DB host env var (tsdb-mysql-leader) is correct, so the failure is DNS resolution for the app.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 2, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"service_env_var_address_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 7
+}

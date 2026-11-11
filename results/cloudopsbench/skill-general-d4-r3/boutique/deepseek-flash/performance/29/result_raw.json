@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show widespread service latency and traffic drops, with the strongest node-level anomaly on worker-02: TCP retransmissions rose from 0.02 to 8.46 (+50396.3%), while worker-01 had a smaller spike. All boutique pods are Running/Ready with zero restarts, nodes show no memory/disk/PID pressure, and kube-proxy on worker-02 is active. This supports a node-level packet-loss fault on worker-02 causing propagated service latency.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_packet_loss\"}, {\"rank\": 2, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_packet_loss\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 8
+}

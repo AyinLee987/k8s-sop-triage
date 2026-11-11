@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts directly flagged ts-order-service with RESOURCE_SATURATION [cpu_cfs] throttling (0.589s). ts-seat-service showed the most severe latency degradation and throughput drop, and dependency data plus seat logs show it repeatedly calls ts-order-service for order tickets, with upstream service times around 0.5-1s. Pods remained Running/Ready with no application error surge, so upstream preserve/travel latency is consistent with cascade from order lookup delay.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 2, \"fault_object\": \"app/ts-seat-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"code_busy_loop\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 8
+}

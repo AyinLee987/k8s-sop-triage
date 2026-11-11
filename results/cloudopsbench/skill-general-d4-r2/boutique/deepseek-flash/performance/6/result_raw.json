@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Only the frontend service raised an anomaly: RESOURCE_SATURATION cpu_cfs throttled 1.333s, CPU core 0.07->0.16 (+138%) against a 200m limit, and p95 latency 27.7ms->271ms vs 15.9ms p50. The frontend pod is Running/Ready with 0 restarts, no error logs, and TCP connectivity to port 80 succeeds. All frontend source files (handlers, main, rpc, middleware, validator, money, deployment_details, packaging_info) are clean of busy loops or artificial delays, so CPU saturation stems from excessive pod CPU load rather than injected code. Per exp-02, CFS throttling rules out pod/network delay as the root cause.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/frontend\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 2, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 3, \"fault_object\": \"app/frontend\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 19
+}

@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"The adservice Deployment/config uses containerPort 9555 with gRPC probes, and the service config shows targetPort 9555 over TCP semantics, but the Kubernetes Service exposes port 9555 with protocol UDP. A direct connectivity check to adservice:9555 failed. This configuration-level transport mismatch explains partial service unreachability while the backend workload can remain healthy.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/adservice\", \"root_cause\": \"service_protocol_mismatch\"}, {\"rank\": 2, \"fault_object\": \"app/adservice\", \"root_cause\": \"service_port_mapping_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/adservice\", \"root_cause\": \"service_selector_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 5
+}

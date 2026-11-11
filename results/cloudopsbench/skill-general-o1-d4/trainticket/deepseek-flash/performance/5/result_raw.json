@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Mesh-wide ~40% throughput drop with extreme latency on ts-cancel-service (p90 ~21s) and ts-inside-payment-service (p90 ~20s), both pods on worker-03. These services process requests in milliseconds internally (fast logs), and upstream callers (ts-gateway-service on worker-01, ts-ui-dashboard on worker-02) merely inherit the latency. Downstream order/payment services on worker-02 remain fast. All pods Running with no restarts, nodes Ready, kube-proxy on worker-03 active, TCP connects succeed from all nodes — ruling out crashloop, quota, scheduling, or control-plane faults and pointing to node-level network latency on worker-03.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/worker-03\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 2, \"fault_object\": \"node/worker-03\", \"root_cause\": \"node_network_packet_loss\"}, {\"rank\": 3, \"fault_object\": \"app/ts-cancel-service\", \"root_cause\": \"code_artificial_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 20
+}

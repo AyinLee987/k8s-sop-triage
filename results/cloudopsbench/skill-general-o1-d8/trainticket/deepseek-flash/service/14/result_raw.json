@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"The active alert shows 500s on payment processing from ts-inside-payment-service. Its logs show downstream HTTP 500 from /api/v1/paymentservice/payment. ts-payment-service logs show a deterministic IncorrectResultSizeDataAccessException/NonUniqueResultException: 'query did not return a unique result: 5' from PaymentServiceImpl. Payment service pods are Running/Ready with no relevant restarts, and no network, DNS, scheduling, or capacity anomaly was observed. This supports an application-code defect in ts-payment-service rather than an infrastructure or dependency failure.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"code_wrong_return\"}, {\"rank\": 2, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"code_wrong_argument_order\"}, {\"rank\": 3, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"code_missing_parameter\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 7
+}

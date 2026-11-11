@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Frontend is the only alerted service: p50 latency rose from 15.87ms to 45.00ms and p95 from 27.67ms to 271.36ms, with CPU CFS throttling (1.333s) and CPU usage increasing from 0.07 to 0.16 cores. The frontend pod is Running with 0 restarts, all nodes are Ready without pressure, and no downstream service anomaly was observed. Source inspection did not reveal an explicit faulty loop or delay, making excessive frontend Pod CPU load the strongest root cause.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/frontend\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 2, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 3, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_artificial_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 18
+}

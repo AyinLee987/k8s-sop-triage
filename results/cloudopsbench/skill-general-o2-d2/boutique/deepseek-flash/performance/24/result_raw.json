@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Multiple unrelated services in boutique show simultaneous traffic/network drops and latency spikes, while worker-01 is the only node with NETWORK_QUALITY_DEGRADED [TCP Retransmission] (Normal=0.00 -> Current=0.70). This pattern matches node-level packet loss masquerading as service latency, rather than isolated application, CPU, memory, or DNS faults.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_packet_loss\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/frontend\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 3
+}

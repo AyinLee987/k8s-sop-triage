@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Widespread latency and throughput drops affected the order path, with ts-order-service showing extreme latency (p50 ~3.9s, p90 ~17.6s) and multiple upstream services degraded. ts-order-service pods were Running/Ready with no errors or restarts; application logs showed successful processing in milliseconds. Node health was normal, and TCP connectivity to ts-order-service:12031 succeeded from worker-01/02/03, ruling out service-down, DNS, or crash causes and matching a pod-scoped network-delay fault.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_packet_loss\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 19
+}

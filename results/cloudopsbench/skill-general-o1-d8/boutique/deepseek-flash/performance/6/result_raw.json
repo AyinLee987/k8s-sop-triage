@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Frontend was the only service with alerts: CPU CFS throttling (1.333s) and 138% CPU core increase, with p95 latency rising from 27.67ms to 271.36ms. Frontend pods were healthy and running with no restarts. Source code inspection of the frontend revealed `money.MultiplySlow`—a CPU-intensive busy loop implementation used in request handlers, directly accounting for the observed CPU throttling and latency degradation.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 2, \"fault_object\": \"app/frontend\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 3, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_artificial_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 10
+}

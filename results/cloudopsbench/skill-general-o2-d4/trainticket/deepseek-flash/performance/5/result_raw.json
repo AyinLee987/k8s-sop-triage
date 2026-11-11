@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show simultaneous p90 latency spikes and RPS/network-throughput drops across many train-ticket services while all pods remain Running/Ready with zero restarts and all nodes remain Ready without pressure. Service dependency data shows ts-gateway-service is the shared entry point called by ts-ui-dashboard and calling nearly all downstream services; it has severe latency/throughput degradation but its TCP port 18888 is reachable from all worker nodes, its deployment is 1/1 Available, and it has no application error logs. This localizes the delay to the gateway pod network rather than a service selector/port, app error, or node-wide resource fault.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-gateway-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-gateway-service\", \"root_cause\": \"code_artificial_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 18
+}

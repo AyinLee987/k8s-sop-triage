@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All boutique pods were Running with no restarts. The currencyservice Deployment declares gRPC listeners on containerPort 7000 and uses gRPC probes on 7000, indicating TCP. However, the currencyservice Service manifest exposes port 7000 with protocol UDP. A direct TCP connectivity check to currencyservice:7000 failed. This configuration-level transport mismatch explains service availability disruption while backend pods remain healthy.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/currencyservice\", \"root_cause\": \"service_protocol_mismatch\"}, {\"rank\": 2, \"fault_object\": \"app/currencyservice\", \"root_cause\": \"service_port_mapping_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/currencyservice\", \"root_cause\": \"service_dns_resolution_failure\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 7
+}

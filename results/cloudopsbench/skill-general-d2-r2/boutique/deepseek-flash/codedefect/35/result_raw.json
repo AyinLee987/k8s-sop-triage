@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show frontend CPU throttling (1.204s throttled), CPU rising from 0.01 to 0.13 cores, and severe latency (p50 24.73ms -> 2235.31ms; p90 215.69ms -> 4364.88ms) with 503 errors. Frontend pod is Running and node CPU is low. Source inspection of frontend handlers.go reveals chooseAd contains an 800ms busy spin loop called during home/product flows, explaining CPU saturation and latency.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 2, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 3, \"fault_object\": \"app/frontend\", \"root_cause\": \"pod_cpu_overload\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 6
+}

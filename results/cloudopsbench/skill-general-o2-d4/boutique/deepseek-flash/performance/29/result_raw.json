@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Widespread service latency and bidirectional traffic drops affected multiple co-located healthy pods. Node alerts showed new/severe TCP retransmissions, especially worker-02 (+50396.3%) and worker-01, while all pods remained Running with 0 restarts and nodes had no Memory/Disk/PID pressure. This pattern matches node-level packet loss rather than application code, resource saturation, or pod failure.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_packet_loss\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_packet_loss\"}, {\"rank\": 3, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 5
+}

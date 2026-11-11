@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All pods are Running/Ready with no meaningful restarts; alerts show widespread latency/throughput degradation. Dependency tracing identifies ts-route-service as a leaf service with no downstream microservice dependencies. Its own latency is extreme (p50 ~8s, p90 ~21s), and upstream services such as ts-basic-service, ts-travel-service, and ts-preserve-service show corresponding severe latency. ts-route-service has no error logs and its recent logs show normal request handling, supporting an application-level artificial delay rather than crashes, DNS, downstream outage, or capacity exhaustion.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-route-service\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-route-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-route-service\", \"root_cause\": \"code_busy_loop\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 10
+}

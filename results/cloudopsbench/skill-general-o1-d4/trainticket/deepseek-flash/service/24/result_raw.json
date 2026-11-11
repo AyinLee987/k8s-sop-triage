@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"ts-food-service is in CrashLoopBackOff with 0/2 ready. Its logs repeatedly show Hikari/MySQL connection initialization failure caused by java.net.UnknownHostException: tsdb-mysql-leader: Temporary failure in name resolution. Direct TCP connectivity to tsdb-mysql-leader:3306 succeeds from all nodes, so the database Service itself is reachable. The ts-food-service Deployment uses custom pod DNS configuration (`dnsPolicy: None`, nameserver `10.255.18.254`), and its Istio proxy logs also show DNS lookup timeouts. This isolates the fault to application-level DNS resolution for ts-food-service, which makes preserve-service downstream calls fail with `Service Instance cannot be null`.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-food-service\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 2, \"fault_object\": \"app/ts-food-service\", \"root_cause\": \"service_env_var_address_mismatch\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 12
+}

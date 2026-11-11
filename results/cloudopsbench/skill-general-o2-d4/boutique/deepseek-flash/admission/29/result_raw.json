@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Deployment `productcatalogservice` is at 0/1 replicas with `ReplicaFailure: FailedCreate`. ReplicaSet `productcatalogservice-5f876f76c9` events repeatedly show: 'pods ... is forbidden: exceeded quota: memory-request-quota, requested: requests.memory=300Mi, used: requests.memory=3000Mi, limited: requests.memory=3Gi'. All other boutique services have Running pods, so this is a namespace-level memory quota exhaustion blocking new pod creation rather than a workload/health failure.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"namespace/boutique\", \"root_cause\": \"namespace_memory_quota_exceeded\"}, {\"rank\": 2, \"fault_object\": \"namespace/boutique\", \"root_cause\": \"namespace_cpu_quota_exceeded\"}, {\"rank\": 3, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"deployment_zero_replicas\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 6
+}

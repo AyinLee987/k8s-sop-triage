@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Only checkoutservice shows severe latency degradation (p50 ~3.75s vs ~18.66ms normal), while all pods are Running with zero restarts. Checkoutservice logs show normal successful requests but delayed completion. Source inspection of checkoutservice main.go reveals an explicit 3000ms time.Sleep in PlaceOrder, matching the observed latency spike and indicating an application-level artificial delay.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 2, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 9
+}

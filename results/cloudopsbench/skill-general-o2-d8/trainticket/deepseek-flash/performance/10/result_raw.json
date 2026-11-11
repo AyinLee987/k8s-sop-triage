@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Widespread latency and RPS drops occurred while most pods remained Running/Ready with no restarts. Dependency tracing shows `ts-route-service` is a leaf service with severe self-latency (p50 ~8.0s, p90 ~21s) and throughput drop. Upstream callers such as `ts-basic-service`, `ts-preserve-service`, `ts-travel-service`, gateway, and UI show derived latency/timeouts, consistent with an artificial delay local to `ts-route-service`. No node pressure or service error surge was observed.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-route-service\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 2, \"fault_object\": \"node/worker-03\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-basic-service\", \"root_cause\": \"code_artificial_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 19
+}

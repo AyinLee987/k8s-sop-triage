@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"ts-cancel-service shows extreme latency degradation (p50 81.78ms -> 2740.39ms, p90 240.83ms -> 7433.33ms) with healthy Running pods, no error logs, and normal dependency behavior in sampled logs. Downstream services show lesser propagated latency, while the only resource alert is CPU CFS throttling on ts-order-service. This pattern best matches a local application code delay in ts-cancel-service rather than node, quota, probe, DNS, or DB failure.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-cancel-service\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 3, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"code_busy_loop\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 17
+}

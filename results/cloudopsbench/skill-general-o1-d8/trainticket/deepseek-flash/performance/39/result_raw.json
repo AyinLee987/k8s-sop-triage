@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Broad latency/throughput alerts were observed, with extreme local latency on ts-travel-service (p50 ~18.5s, p90 ~27.7s). Nodes were Ready with no pressure; application pods were Running with no significant restarts. Downstream order/seat logs showed successful, fast responses, and ts-travel-service's own downstream calls completed in milliseconds. No error logs were found for ts-travel-service, ruling out deterministic 5xx/code failures and pointing to a service-local application delay.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-travel-service\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-seat-service\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-preserve-service\", \"root_cause\": \"code_artificial_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 19
+}

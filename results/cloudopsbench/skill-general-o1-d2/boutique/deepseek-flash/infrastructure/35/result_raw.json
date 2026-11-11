@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"The frontend pod is unschedulable (0/1 Pending) and its scheduling event shows no available node due to node taints/selectors. The pod has `nodeSelector: kubernetes.io/hostname=worker-01`, but `worker-01` is `Unknown` with unreachable taints. Direct inspection confirms `kubelet.service` on worker-01 is inactive (dead), which is the concrete root cause preventing the node from hosting/scheduling the frontend pod and causing partial service unreachability.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/worker-01\", \"root_cause\": \"kubelet_unavailable\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_packet_loss\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"containerd_unavailable\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 5
+}

@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All boutique pods are Running, but `currencyservice` Service exposes `7000/UDP` while its deployment container and gRPC probes use TCP on port 7000. A direct TCP connectivity check to `currencyservice:7000` failed, while the backend pod remains healthy. This strongly indicates a Service protocol mismatch causing availability disruption.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/currencyservice\", \"root_cause\": \"service_protocol_mismatch\"}, {\"rank\": 2, \"fault_object\": \"app/currencyservice\", \"root_cause\": \"service_port_mapping_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/currencyservice\", \"root_cause\": \"service_selector_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 7
+}

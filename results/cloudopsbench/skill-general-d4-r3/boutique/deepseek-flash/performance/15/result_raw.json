@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Active alerts show severe latency degradation centered on currencyservice (p90 latency +24005%) with inbound/outbound traffic drops, propagating to checkoutservice and frontend. Currencyservice is a leaf dependency called by frontend and checkoutservice. Pods are Running/Ready with zero restarts, no error logs were found, recent currencyservice logs show successful conversions, and source inspection found no artificial delay. Cluster nodes are Ready with no memory/disk/PID pressure, making a node-wide or resource-capacity fault less likely. This pattern supports pod-scoped network latency affecting currencyservice.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/currencyservice\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/currencyservice\", \"root_cause\": \"pod_cpu_overload\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 11
+}

@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"System alerts show widespread service latency/traffic drop centered on ts-order-service, with p50 latency rising from 9.44ms to 3881.58ms and p90 from 43.56ms to 17600ms. Upstream services including ts-gateway-service, ts-preserve-service, ts-seat-service, ts-security-service, and ts-ui-dashboard show propagated latency. Pods are Running/Ready with no meaningful restarts, and ts-order-service logs show successful, fast request processing with no error logs. This pattern matches pod-scoped network delay rather than application exception, crash, resource saturation, or downstream DB failure.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-gateway-service\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 10
+}

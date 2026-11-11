@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All pods are Running/Ready with zero restarts, nodes have no pressure, and productcatalogservice is a leaf service with a massive p90 latency spike (~2.5ms to ~1158ms). Its source code explicitly calls time.Sleep(extraLatency) in ListProducts, GetProduct, and SearchProducts, while recommendation/frontend latency rises upstream as a cascade.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 2, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"pod_cpu_overload\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 10
+}

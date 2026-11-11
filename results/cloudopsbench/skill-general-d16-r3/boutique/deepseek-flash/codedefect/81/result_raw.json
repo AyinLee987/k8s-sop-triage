@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerting isolated the anomaly to productcatalogservice, showing CPU saturation and a new sustained filesystem-write spike. Pods were Running and healthy, so the fault is application-level rather than scheduling/runtime. Source inspection found ListProducts explicitly creates /tmp/tmp.csv and writes 30,000 CSV rows on every request before deleting the file, matching both the write surge and CPU increase.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"code_excessive_file_writes\"}, {\"rank\": 2, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 3, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"code_artificial_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 7
+}

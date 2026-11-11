@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All pods are Running; active alerts show 20 repeated 404s on POST /api/v1/preserveservice/preserve from ts-preserve-service. The preserve Service has correct port 14568 and selector app=ts-preserve-service, and preserve pods are healthy with no error logs. However, the ts-gateway-service route for /api/v1/preserveservice/** points to lb://${FOOD_SERVICE_HOST:ts-food-service} instead of ts-preserve-service, so preserve requests are misrouted to the food service, which returns 404.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-gateway-service\", \"root_cause\": \"gateway_misrouted\"}, {\"rank\": 2, \"fault_object\": \"app/ts-gateway-service\", \"root_cause\": \"service_env_var_address_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/ts-preserve-service\", \"root_cause\": \"service_port_mapping_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 15
+}

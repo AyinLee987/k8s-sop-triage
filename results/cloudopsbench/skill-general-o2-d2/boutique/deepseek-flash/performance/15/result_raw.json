@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show severe latency on frontend, currencyservice, and checkoutservice. currencyservice also shows simultaneous inbound (-59.0%) and outbound (-66.3%) packet-rate drops. Pod placement shows currencyservice and frontend co-located on worker-01, while checkoutservice on worker-02 is likely downstream-impacted. worker-01 kube-proxy is healthy, all pods remain Running without restarts, and currencyservice TCP connectivity succeeds, supporting node-level packet loss rather than Service or application failure.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_packet_loss\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/currencyservice\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 8
+}

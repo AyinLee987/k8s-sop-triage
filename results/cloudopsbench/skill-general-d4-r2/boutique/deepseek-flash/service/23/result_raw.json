@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All pods are Running and Ready. The adservice Deployment and probes use gRPC/TCP on port 9555, but the adservice Service is configured as `9555/UDP` with `targetPort: 9555/UDP`. The selector matches and an endpoint exists, isolating the fault to the Service protocol configuration.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/adservice\", \"root_cause\": \"service_protocol_mismatch\"}, {\"rank\": 2, \"fault_object\": \"app/adservice\", \"root_cause\": \"service_port_mapping_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/adservice\", \"root_cause\": \"service_selector_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 5
+}

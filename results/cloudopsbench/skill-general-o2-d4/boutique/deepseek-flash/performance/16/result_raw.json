@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Simultaneous latency alerts affected checkoutservice, emailservice, and frontend. All pods were Running/Ready with 0 restarts. Emailservice logs showed normal order-confirmation handling with no errors, its server code returns immediately, and direct TCP connectivity to emailservice:5000 succeeded. Nodes were Ready with no pressure, and topology shows emailservice is a leaf dependency called by checkoutservice, so its extreme p90 latency best explains upstream checkout/frontend degradation. The pattern is therefore most consistent with pod-scoped network delay on emailservice rather than code, resource, DNS, or node-wide failure.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/emailservice\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"code_artificial_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 17
+}

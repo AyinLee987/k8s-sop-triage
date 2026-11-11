@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Widespread latency and throughput degradation was observed, with ts-route-service showing the most extreme latency (p50 7.55ms -> 8026.32ms, p90 9.60ms -> 21000ms). ts-route-service is a leaf service with no downstream calls, so its latency cannot be explained by a downstream dependency. Its pod is Running/Ready with 0 restarts, error logs are absent, recent logs show normal request handling without exceptions, and TCP connectivity to port 11178 succeeds from all worker nodes. All nodes are Ready with no pressure or unschedulable taints. Other services on worker-03 do not show comparable latency, making a node-wide fault less likely. This supports pod-scoped network delay on ts-route-service.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-route-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-route-service\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-03\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 14
+}

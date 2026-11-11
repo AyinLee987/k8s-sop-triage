@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Pods in `boutique` are Running and Ready, but the active connectivity check to `currencyservice:7000` failed only from `worker-01` while succeeding from `worker-02` and `worker-03`. `CheckNodeServiceStatus` shows `kube-proxy.service` is inactive (dead) on `worker-01`, whereas kube-proxy is active on `worker-02`. This indicates node-level service routing failure on `worker-01`, causing ClusterIP/service connectivity disruptions.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/worker-01\", \"root_cause\": \"kube_proxy_unavailable\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_packet_loss\"}, {\"rank\": 3, \"fault_object\": \"app/frontend\", \"root_cause\": \"service_dns_resolution_failure\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 12
+}

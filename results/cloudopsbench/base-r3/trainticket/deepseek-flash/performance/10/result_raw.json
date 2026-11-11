@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Widespread latency and ~50% throughput drop propagate across gateway/travel/preserve/basic flows. `ts-route-service` is a leaf with no downstream calls but shows extreme latency: p50 rose from ~7.55ms to ~8026ms and p90 from ~9.6ms to ~21000ms. Its logs show normal request processing with no errors, TCP connectivity to port 11178 succeeds from all workers, and nodes are Ready without pressure. This localizes the primary fault to application-level delay in `ts-route-service`.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-route-service\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-route-service\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 3, \"fault_object\": \"app/ts-route-service\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 12
+}

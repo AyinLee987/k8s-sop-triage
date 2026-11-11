@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All boutique pods are Running and Ready, and Services have normal selectors/ports. Frontend error logs show 125 connection-refused errors to currencyservice at 10.68.199.102:7001. The frontend Deployment sets CURRENCY_SERVICE_ADDR=currencyservice:7001, but currencyservice exposes and listens on port 7000 (Service port 7000, targetPort 7000, containerPort 7000). Thus the dominant availability disruption is caused by an incorrect service-address environment variable in frontend. A smaller number of productcatalogservice DNS lookup errors were also observed, but they do not explain the dominant currencyservice connection-refused failures.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/frontend\", \"root_cause\": \"service_env_var_address_mismatch\"}, {\"rank\": 2, \"fault_object\": \"app/frontend\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 3, \"fault_object\": \"app/currencyservice\", \"root_cause\": \"service_port_mapping_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 8
+}

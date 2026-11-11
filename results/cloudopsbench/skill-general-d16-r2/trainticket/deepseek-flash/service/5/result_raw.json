@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"POST /api/v1/preserveservice/preserve returns 404; ts-preserve-service pod and Service are healthy with correct port 14568; gateway config routes /api/v1/preserveservice/** to lb://${FOOD_SERVICE_HOST:ts-food-service} instead of ts-preserve-service, causing the request to hit the wrong backend and return 404 for a non-existent path.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-preserve-service\", \"root_cause\": \"gateway_misrouted\"}, {\"rank\": 2, \"fault_object\": \"app/ts-preserve-service\", \"root_cause\": \"service_port_mapping_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/ts-preserve-service\", \"root_cause\": \"service_selector_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 18
+}

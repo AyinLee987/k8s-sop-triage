@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show ts-train-service p50 latency rising from 7.38ms to 2425ms and p90 from 9.48ms to 4472ms. ts-basic-service shows derived latency likely from calling ts-train-service. ts-train-service is a leaf dependency with no downstream calls; its pod is Running with 0 restarts, worker-01 is Ready with no pressure conditions, and TCP connectivity to ts-train-service:14567 succeeds from worker-01, worker-02, and worker-03. This isolates the fault to application request handling in ts-train-service rather than node, dependency, or service connectivity failures.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-train-service\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-train-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 13
+}

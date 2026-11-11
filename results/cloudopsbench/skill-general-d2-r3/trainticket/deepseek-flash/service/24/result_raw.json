@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"ts-food-service is in CrashLoopBackOff and its logs repeatedly show java.net.UnknownHostException: tsdb-mysql-leader. The tsdb-mysql-leader Service exists and TCP connectivity to 10.68.188.173:3306 succeeds from worker-01/02/03, ruling out a missing Service or simple network reachability failure by IP. The ts-food-service Deployment has dnsPolicy: None and dnsConfig nameserver 10.255.18.254; both the app and its Istio sidecar show DNS lookup timeouts to this nameserver (e.g., resolving tsdb-mysql-leader and istiod.istio-system.svc). This supports service DNS resolution failure in ts-food-service.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-food-service\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-food-service\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 11
+}

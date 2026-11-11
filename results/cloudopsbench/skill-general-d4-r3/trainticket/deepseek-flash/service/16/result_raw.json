@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All pods are Running with no widespread restarts, excluding scheduling, crash, and node-level faults. Alerts show payment failures and travel-search 404s. The concrete root-cause evidence is in ts-payment-service: request-time logs repeatedly show `IncorrectResultSizeDataAccessException: query did not return a unique result: 5` for `/api/v1/paymentservice/payment`, which ts-inside-payment-service propagates as HTTP 500. This indicates an application code/query argument defect in ts-payment-service rather than an infrastructure or availability fault. Travel-service logs show successful ticket processing and no matching application errors, so the travel 404s are less strongly supported.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"code_wrong_argument_order\"}, {\"rank\": 2, \"fault_object\": \"app/ts-inside-payment-service\", \"root_cause\": \"code_missing_parameter\"}, {\"rank\": 3, \"fault_object\": \"app/ts-travel-service\", \"root_cause\": \"code_wrong_return\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 20
+}

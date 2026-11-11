@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"The payment flow fails with HTTP 500 originating in ts-payment-service. Logs show `IncorrectResultSizeDataAccessException: query did not return a unique result: 5` in ts-payment-service, while the pod is Running/Ready and tsdb-mysql has no error logs. Upstream ts-inside-payment-service errors are secondary HTTP 500 responses from ts-payment-service. This supports an application-level code/query defect in ts-payment-service, most likely a missing required query parameter causing multiple rows to be returned.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"code_missing_parameter\"}, {\"rank\": 2, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"code_wrong_argument_order\"}, {\"rank\": 3, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"code_wrong_return\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 13
+}

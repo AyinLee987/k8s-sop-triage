@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Only frontend is flagged abnormal: CPU CFS throttling at 1.333s, CPU usage rose from 0.07 to 0.16 cores, and p95 latency increased from 27.67ms to 271.36ms. Frontend pods are 2/2 Running with 0 restarts, frontend has no error logs, and all nodes are Ready with no memory/disk/PID pressure. Other services and co-located pods show no comparable anomaly, and inspected frontend code did not reveal an obvious artificial delay or busy loop.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/frontend\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 2, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 19
+}

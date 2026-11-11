@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Widespread service RPS drops and latency spikes occur across many train-ticket services while all pods remain Running/Ready with no broad restarts, node conditions/resources are normal, and no application error logs are seen for the gateway. ts-gateway-service is the central shared entry/dependency for ts-ui-dashboard and nearly all affected backends, and its alert shows p90 latency ~46.5s with ~62% RPS drop, supporting a gateway-localized pod network delay rather than backend crashes or node saturation.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-gateway-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-gateway-service\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 11
+}

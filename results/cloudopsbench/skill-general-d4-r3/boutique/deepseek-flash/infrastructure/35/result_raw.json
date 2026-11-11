@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Frontend pod is Pending with a FailedScheduling event, pinned to worker-01 via node selector. Node worker-01 is NotReady with Ready=Unknown (Kubelet stopped posting node status) and carries node.kubernetes.io/unreachable taints. CheckNodeServiceStatus confirms kubelet.service on worker-01 is inactive (dead) since 15:38:53. This node-level failure makes worker-01 unreachable/unschedulable, leaving the frontend pod unscheduled and causing partial service unreachability.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/worker-01\", \"root_cause\": \"kubelet_unavailable\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_packet_loss\"}, {\"rank\": 3, \"fault_object\": \"app/frontend\", \"root_cause\": \"node_affinity_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 5
+}

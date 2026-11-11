@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"checkoutservice Deployment is 0/1 with ReplicaFailure=True and FailedCreate; no checkoutservice pod exists, while sibling pods run normally. Namespace resourcequota cpu-request-quota shows requests.cpu at 10/10, so admission of a new checkoutservice pod requiring 2 CPU is blocked by namespace CPU quota.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"namespace/boutique\", \"root_cause\": \"namespace_cpu_quota_exceeded\"}, {\"rank\": 2, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"cpu_capacity_mismatch\"}, {\"rank\": 3, \"fault_object\": \"namespace/boutique\", \"root_cause\": \"namespace_pod_quota_exceeded\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 7
+}

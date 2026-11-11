@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All boutique pods are Running with 0 restarts. productcatalogservice shows the most direct latency anomaly (p90 2.5ms -> 1158.68ms), and recommendationservice latency increases as its upstream caller. The productcatalogservice pod is healthy, has no error logs, and TCP connectivity succeeds. Its deployment and running pod do not set EXTRA_LATENCY, so the application sleep path should not be active. Node worker-01 is Ready with normal resources, and other pods on the node do not show the same direct latency degradation, favoring a pod-level network delay over node-wide network impairment.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 15
+}

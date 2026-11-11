@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Frontend is the only anomalous service, with CFS throttling, CPU increasing from 0.01 to 0.13 cores, and p50 latency rising from ~24.73 ms to ~2235 ms. All pods are Running/Ready with no restarts. The frontend `chooseAd` handler contains a deterministic busy-wait loop polling `time.Now()` for up to 800 ms; this function is invoked by the home and product-detail handlers, matching the affected request paths and explaining CPU saturation and latency.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 2, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 3, \"fault_object\": \"app/frontend\", \"root_cause\": \"pod_cpu_overload\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 7
+}

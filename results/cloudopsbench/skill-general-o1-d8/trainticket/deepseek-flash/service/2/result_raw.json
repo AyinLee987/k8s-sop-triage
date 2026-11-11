@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All application pods are Running/Ready, and the gateway logs show normal startup. However, `ts-food-delivery-service` exists as a Deployment and is listed as an upstream dependency of `ts-gateway-service`, while `kubectl get service ts-food-delivery-service` returns NotFound. An active TCP check to `ts-food-delivery-service:18957` fails, confirming the partial service unreachability is caused by the missing Service/DNS entry for that application.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-food-delivery-service\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 2, \"fault_object\": \"app/ts-gateway-service\", \"root_cause\": \"gateway_misrouted\"}, {\"rank\": 3, \"fault_object\": \"app/ts-food-delivery-service\", \"root_cause\": \"service_port_mapping_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 14
+}

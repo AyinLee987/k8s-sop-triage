@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"recommendationservice-7bf5b7d9b8-tk7kf is stuck Pending for 82s with no scheduling Events, no nodeSelector/affinity constraints. Worker nodes worker-01/02/03 are Ready, untainted, with 8 CPU and ~15Gi memory each, ruling out capacity/cordon/taint blocks. kube-scheduler.service on master is 'inactive (dead)' and was stopped ~1min51s ago, matching the Pending pod's age—so no scheduler is processing the pod, causing the service availability disruption.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/master\", \"root_cause\": \"kube_scheduler_unavailable\"}, {\"rank\": 2, \"fault_object\": \"app/recommendationservice\", \"root_cause\": \"node_affinity_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/recommendationservice\", \"root_cause\": \"taint_toleration_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 5
+}

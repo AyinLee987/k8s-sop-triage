@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"productcatalogservice pod is in CrashLoopBackOff with Last State Terminated Reason=OOMKilled (exit 137) ~1s after start, right after logging 'loading catalog from local products.json file...'. The Deployment uses the standard 128Mi memory limit, so the limit itself is not anomalous. GetSourceCode(catalog_loader.go) shows loadCatalogFromLocalFile() allocates a slice and appends 8,388,608 ints on every startup, deterministically exhausting memory and causing OOMKill/restart. This application-code memory blowup is the single primary fault, causing service availability disruption for productcatalogservice.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"code_memory_leak\"}, {\"rank\": 2, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"container_memory_limit_too_low\"}, {\"rank\": 3, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"code_busy_loop\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 8
+}

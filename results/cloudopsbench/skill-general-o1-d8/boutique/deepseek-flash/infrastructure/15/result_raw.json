@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All pods Running/Ready and all Service endpoints populated, ruling out pod/admission faults. Frontend (on worker-01) logs show i/o timeouts to productcatalogservice:3550 and currencyservice:7000 ClusterIPs plus DNS 'no such host' for checkoutservice. Active TCP test to productcatalogservice:3550 fails from worker-01 but succeeds from worker-02 and worker-03. CheckNodeServiceStatus shows kube-proxy.service on worker-01 is 'inactive (dead)' since 16:06:23 (killed, signal=TERM), breaking ClusterIP routing/DNS on that node.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/worker-01\", \"root_cause\": \"kube_proxy_unavailable\"}, {\"rank\": 2, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"service_port_mapping_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/frontend\", \"root_cause\": \"service_dns_resolution_failure\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 8
+}

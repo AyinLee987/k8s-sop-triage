@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Significant p90 latency increases were observed for adservice, checkoutservice, and recommendationservice. All three affected service pods are co-located on worker-02 and are Running with 0 restarts. The node alert for worker-02 shows a severe TCP retransmission spike (0.00 -> 6.67 retrans), while worker-01 has only a mild increase. This multi-service, co-located degradation with healthy pods matches node-level packet loss masquerading as service latency.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_packet_loss\"}, {\"rank\": 2, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_packet_loss\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 4
+}

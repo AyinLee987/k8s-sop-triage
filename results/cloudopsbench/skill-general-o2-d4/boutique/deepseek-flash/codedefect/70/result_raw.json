@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"productcatalogservice pod is in CrashLoopBackOff due to OOMKilled (exit 137) with a 128Mi memory limit. Source code in catalog_loader.go allocates a huge slice of 8M+ integers during catalog load, causing memory exhaustion. Other services and Service configurations are healthy; productcatalogservice failure cascades to frontend 500s and downstream availability loss.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"code_memory_leak\"}, {\"rank\": 2, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"container_memory_limit_too_low\"}, {\"rank\": 3, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"code_busy_loop\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 11
+}

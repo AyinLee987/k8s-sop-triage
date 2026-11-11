@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"productcatalogservice-8458b87d48-7r7l6 is in CrashLoopBackOff with Last State Terminated: OOMKilled, Exit Code 137, after 4 restarts. Its server container has a 128Mi memory limit, and catalog_loader.go loadCatalogFromLocalFile allocates and appends 8*1024*1024 integers into an in-memory slice, causing excessive memory use during startup. Frontend 500 errors and availability alerts are downstream effects of productcatalogservice being unavailable.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"code_memory_leak\"}, {\"rank\": 2, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"container_memory_limit_too_low\"}, {\"rank\": 3, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"memory_capacity_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 8
+}

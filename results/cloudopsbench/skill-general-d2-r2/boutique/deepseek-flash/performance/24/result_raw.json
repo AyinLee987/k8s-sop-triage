@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Worker-01 shows a new TCP retransmission spike, and multiple pods on worker-01 exhibit simultaneous inbound/outbound traffic drops and throughput degradation. Affected downstream services such as checkoutservice and recommendationservice show propagated latency, while kube-proxy is healthy and node resource pressure is absent. This localizes the primary fault to worker-01 network packet loss rather than a single pod or application code issue.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_packet_loss\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/frontend\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 7
+}

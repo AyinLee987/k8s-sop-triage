@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Active alerts show extreme latency degradation centered on ts-train-service, with p50 rising from 8.35ms to 2500ms and p90 from 411.79ms to 4500ms. ts-train-service is a leaf service with no downstream calls, so the delay is local. Its pod is Running with 0 restarts, error logs are absent, and no resource-saturation alert is reported for this service. Upstream callers (ts-basic-service, ts-preserve-service) show derived latency degradation consistent with waiting on ts-train-service. This pattern matches an application-code artificial delay.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-train-service\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-train-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-train-service\", \"root_cause\": \"code_busy_loop\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 10
+}

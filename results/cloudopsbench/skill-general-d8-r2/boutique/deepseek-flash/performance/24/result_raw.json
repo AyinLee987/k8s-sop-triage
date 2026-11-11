@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Cluster alerts show widespread latency degradation, throughput drops, and error spikes, with the only node-level anomaly being a TCP retransmission spike on worker-01 (0.00 -> 0.70 retrans). Affected services include multiple workloads hosted on worker-01, while callers on worker-02 (checkoutservice, recommendationservice) show severe downstream-induced latency. All pods are Running/Ready with zero restarts, and all nodes are Ready without pressure, ruling out pod crashes, control-plane failure, or resource capacity issues. This pattern is most consistent with packet loss on worker-01 propagating latency and failures across dependent services.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_packet_loss\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 5
+}

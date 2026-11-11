@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"The only unhealthy workload is ts-payment-service, which is in CrashLoopBackOff. Its logs show java.net.UnknownHostException: tsdb-mysql-leader: Temporary failure in name resolution, causing Hikari/JPA startup failure and crashing the app. The tsdb-mysql-leader Service exists and an active connectivity check succeeds from worker-01/02/03, while ts-payment-service has dnsPolicy None with a custom nameserver 10.255.17.254. The upstream ts-inside-payment-service errors with Service Instance cannot be null because ts-payment-service is unavailable, matching the reported service availability disruption.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 2, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_packet_loss\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 12
+}

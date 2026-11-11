@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Widespread latency alerts trace to ts-route-service, whose p50 latency jumped from ~7.55ms to ~8026ms and p90 from ~9.6ms to ~21000ms. Its pods are Running/Ready with no restarts, nodes show no pressure, service connectivity to port 11178 succeeds, and ts-route-service is a leaf with no downstream microservice dependencies. Route logs show normal request handling with no errors, and tsdb-mysql has no error logs. This local, error-free, extreme latency at a healthy leaf service is most consistent with an application code artificial delay.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-route-service\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-route-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-03\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 16
+}

@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All pods are Running/Ready and no active alerts were reported. However, the services list has no `ts-food-delivery-service` Service object, even though the Deployment/pod exists and the gateway depends on this service. Direct TCP connectivity to `ts-food-delivery-service:18957` failed, and a named service lookup confirmed the Service object is absent. This makes `ts-food-delivery-service` unresolvable/unreachable for callers.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-food-delivery-service\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 2, \"fault_object\": \"app/ts-food-delivery-service\", \"root_cause\": \"service_selector_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/ts-food-delivery-service\", \"root_cause\": \"service_port_mapping_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 10
+}

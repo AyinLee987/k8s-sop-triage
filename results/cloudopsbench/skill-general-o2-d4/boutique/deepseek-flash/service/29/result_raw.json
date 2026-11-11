@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All pods are Running/Ready, ruling out workload crashes. The recommendationservice Deployment listens on 8080 using gRPC (TCP) with grpc readiness/liveness probes, but its Service is configured with protocol: UDP on port 8080. Frontend configures RECOMMENDATION_SERVICE_ADDR=recommendationservice:8080 and dials TCP, producing 'connect: connection refused' to the ClusterIP 10.68.113.123:8080. An active TCP connectivity check to recommendationservice:8080 failed. This configuration-level transport mismatch, with healthy backends, confirms an incorrect Service protocol.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/recommendationservice\", \"root_cause\": \"service_protocol_mismatch\"}, {\"rank\": 2, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 3, \"fault_object\": \"app/recommendationservice\", \"root_cause\": \"service_port_mapping_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 11
+}

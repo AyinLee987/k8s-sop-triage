@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Active alerts show simultaneous bidirectional packet-rate drops and latency degradation across many unrelated services. Severely latency-affected services such as ts-order-service, ts-preserve-service, ts-seat-service, ts-travel-service, and ts-ui-dashboard are co-located on worker-01, while pods remain Running and worker-01 is Ready with no memory/disk/PID pressure and healthy kube-proxy. This multi-service, node-correlated degradation with healthy workload status is most consistent with node-level packet loss on worker-01.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_packet_loss\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"code_artificial_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 10
+}

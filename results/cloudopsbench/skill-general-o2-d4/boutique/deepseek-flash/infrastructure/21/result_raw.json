@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"checkoutservice pod is Pending with 0/1 readiness and no scheduler events. Worker nodes are Ready, untainted, and have sufficient CPU/memory, and the pod has no nodeSelector/affinity constraints. The kube-scheduler service on master is inactive (dead), so pending pods cannot be scheduled, causing partial service unreachability.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/master\", \"root_cause\": \"kube_scheduler_unavailable\"}, {\"rank\": 2, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"taint_toleration_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"node_affinity_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 6
+}

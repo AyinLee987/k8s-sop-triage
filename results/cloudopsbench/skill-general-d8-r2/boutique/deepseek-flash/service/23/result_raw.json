@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All pods are Running and Ready; adservice Service exposes port 9555 with protocol UDP, but the adservice container is a gRPC server listening on TCP 9555. Frontend repeatedly logs `dial tcp 10.68.25.111:9555: connect: connection refused`, and an active TCP connectivity check to adservice:9555 fails. This directly explains partial service unreachability.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/adservice\", \"root_cause\": \"service_protocol_mismatch\"}, {\"rank\": 2, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 3, \"fault_object\": \"app/adservice\", \"root_cause\": \"service_port_mapping_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 10
+}

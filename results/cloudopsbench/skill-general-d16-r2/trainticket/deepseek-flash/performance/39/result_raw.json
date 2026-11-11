@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"17 alerts show simultaneous latency spikes and throughput drops across gateway, order, seat, travel, preserve, security, and UI services. All application pods are Running/Ready with zero or minimal restarts; node status is Ready with no MemoryPressure/DiskPressure/PIDPressure; TCP connectivity to ts-order-service:12031 succeeds from worker-01/02/03. ts-order-service and ts-seat-service logs show fast successful internal processing and no error logs, while ts-gateway-service has the largest latency spike (p90 46.5s, peak 256s) and throughput drop (~62%). This pattern is most consistent with pod-scoped network delay on the shared gateway rather than application code, node pressure, or downstream service failure.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-gateway-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 19
+}

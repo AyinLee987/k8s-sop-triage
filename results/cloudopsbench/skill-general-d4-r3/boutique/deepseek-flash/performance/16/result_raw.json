@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Latency alerts show emailservice p90 latency spiking to 895.9ms, with checkoutservice (caller) and frontend (upstream) showing propagated latency. Emailservice is a leaf service with dummy code that only logs and returns, no artificial delay, no downstream dependencies, no error logs, and its pod is Running/Ready with zero restarts. The service port 5000 is open and reachable. Other pods on worker-02 (adservice, paymentservice, recommendationservice, shippingservice) show no latency, ruling out node-wide network issues. The fault is isolated to the emailservice pod's network path.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/emailservice\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/emailservice\", \"root_cause\": \"code_artificial_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 13
+}

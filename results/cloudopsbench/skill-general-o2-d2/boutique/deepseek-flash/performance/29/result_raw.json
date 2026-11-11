@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Multiple unrelated boutique services show simultaneous severe latency increases while all pods remain Running with 0 restarts. Node metrics show TCP retransmission spikes on worker-01 and especially worker-02 (8.46 retrans, +50396.3%), with bidirectional packet-rate drops for affected services. Node conditions show no CPU/Memory/Disk/PID pressure, and kube-proxy on worker-02 is active, making node-level network packet loss the strongest root cause.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_packet_loss\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_packet_loss\"}, {\"rank\": 3, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 6
+}

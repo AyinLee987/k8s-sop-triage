@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"`checkoutservice` deployment shows 0/1 ready, 0 updated, and `FailedCreate`; no pod exists for it. The `boutique` namespace ResourceQuota `cpu-request-quota` reports `requests.cpu: 10/10`, i.e. fully saturated, so new checkoutservice pods with CPU requests are rejected at admission.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"namespace/boutique\", \"root_cause\": \"namespace_cpu_quota_exceeded\"}, {\"rank\": 2, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"cpu_capacity_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"missing_service_account\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 6
+}

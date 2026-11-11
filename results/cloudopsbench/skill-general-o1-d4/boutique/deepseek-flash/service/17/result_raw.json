@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All boutique pods were Running and Ready with no restarts, and no metric alerts were active. Frontend error logs showed repeated connection refusals to checkoutservice ClusterIP 10.68.228.153:5050. checkoutservice had no internal error logs. Its Service selector matched the pod and resolved to endpoint 172.20.1.94, but the Service targetPort was `grpc-api` while the checkoutservice container declares its port name as `grpc`. This named-port mismatch prevents correct Service-to-pod port mapping and causes the observed connection-refused checkout failures.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"service_port_mapping_mismatch\"}, {\"rank\": 2, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"service_selector_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"service_protocol_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 10
+}

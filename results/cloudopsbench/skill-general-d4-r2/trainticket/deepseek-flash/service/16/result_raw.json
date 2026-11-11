@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All deployments are Ready/Available. Travel-service request logs show healthy processing; its 404 alert is not supported by server-side errors. The concrete failure is in ts-payment-service: repeated `IncorrectResultSizeDataAccessException` / `NonUniqueResultException: query did not return a unique result: 5`, causing a 500 from `/api/v1/paymentservice/payment`. ts-inside-payment-service logs show it receiving that downstream 500 and propagating it. This is a deterministic application/query logic defect with healthy pods and no resource, DNS, or connectivity anomaly.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"code_wrong_return\"}, {\"rank\": 2, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"code_missing_parameter\"}, {\"rank\": 3, \"fault_object\": \"app/ts-inside-payment-service\", \"root_cause\": \"code_wrong_return\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 12
+}

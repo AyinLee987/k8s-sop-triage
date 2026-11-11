@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"The alert shows POST /api/v1/preserveservice/preserve returning 404 for ts-preserve-service. ts-preserve-service itself has no error logs, is running, listening on port 14568, and its Service maps correctly to targetPort 14568 with selector app=ts-preserve-service. The gateway config reveals the root cause: the 'preserve' route with Path=/api/v1/preserveservice/** has uri: lb://${FOOD_SERVICE_HOST:ts-food-service}, misrouting preserve requests to ts-food-service, which returns 404 for the preserve endpoint.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-gateway-service\", \"root_cause\": \"gateway_misrouted\"}, {\"rank\": 2, \"fault_object\": \"app/ts-preserve-service\", \"root_cause\": \"service_port_mapping_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/ts-food-service\", \"root_cause\": \"code_wrong_return\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 11
+}

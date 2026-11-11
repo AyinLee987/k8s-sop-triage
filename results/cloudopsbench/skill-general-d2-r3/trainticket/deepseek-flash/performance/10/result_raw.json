@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"ts-route-service is a leaf service (GetServiceDependencies: no downstream) yet exhibits extreme latency (p50 ~8s, p90 ~21-25s). Its pods are Running/Ready 2/2 with 0 restarts, TCP connectivity to port 11178 succeeds from worker-01/02/03, and GetErrorLogs returns no errors. Its upstream callers (ts-gateway, ts-travel, ts-basic, ts-route-plan, ts-rebook) all show propagated latency degradation, matching the dependency graph. Other pods on the same node worker-03 (ts-auth, ts-price, ts-avatar, etc.) show only traffic/throughput anomalies, not latency, ruling out node-wide network delay. Nodes are Ready with no Memory/Disk/PID pressure. This isolates the fault to pod-scoped network latency on ts-route-service per exp-02 guidance.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-route-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-route-service\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-03\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 12
+}

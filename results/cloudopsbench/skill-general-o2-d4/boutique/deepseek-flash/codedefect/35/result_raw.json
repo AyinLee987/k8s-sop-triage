@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Frontend alerts show CPU saturation, CFS throttling, and severe latency; frontend logs show many downstream deadline/canceled calls. The frontend pod is Running/Ready with no restarts, and its node is not saturated. Source inspection found `chooseAd()` in `handlers.go` contains an unconditional busy-wait loop until 800ms elapses after fetching ads, which explains CPU throttling and the high request latency.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 2, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 3, \"fault_object\": \"app/frontend\", \"root_cause\": \"pod_cpu_overload\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 9
+}

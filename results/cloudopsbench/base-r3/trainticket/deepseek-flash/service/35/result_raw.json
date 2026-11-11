@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"ts-train-service is the only unhealthy workload, CrashLoopBackOff with exit code 1. Application logs repeatedly show java.net.UnknownHostException: tsdb-mysql-leader: Temporary failure in name resolution. The ts-train-service Deployment sets dnsPolicy: None with dnsConfig.nameservers only (10.255.12.254) and no search domains, so short Kubernetes service names like tsdb-mysql-leader cannot resolve. The tsdb-mysql-leader Service exists, and other pods on worker-01 are healthy, ruling out a node-wide or cluster-wide DNS outage.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-train-service\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-train-service\", \"root_cause\": \"service_env_var_address_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 6
+}

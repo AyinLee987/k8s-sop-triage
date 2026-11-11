@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"frontend is the only alerted service. Metrics show CPU core usage rising from 0.07 to 0.16 cores (+138.1%), CPU CFS throttling of 1.333s, and p95 latency rising from 27.67ms to 271.36ms (+880.8%). The frontend pod is Running/Ready with 0 restarts on worker-01; all other boutique pods are Running, nodes are Ready with no pressure, no frontend error logs were found, and no downstream service failure is evident.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/frontend\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 2, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 3, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_artificial_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 19
+}

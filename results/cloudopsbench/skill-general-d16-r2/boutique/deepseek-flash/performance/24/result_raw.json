@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Widespread latency/traffic anomalies affect services co-located on worker-01 (frontend, productcatalogservice, currencyservice, paymentservice, emailservice) while all pods are Running with 0 restarts. worker-01 shows a new TCP retransmission spike (0.00 -> 0.70 retrans), and node resources/conditions are healthy. This matches node-level packet loss rather than application or scheduling failure.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_packet_loss\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"code_artificial_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 5
+}

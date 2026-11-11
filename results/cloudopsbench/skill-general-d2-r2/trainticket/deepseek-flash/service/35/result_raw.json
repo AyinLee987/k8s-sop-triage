@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Only ts-train-service is unhealthy (0/2 Error, CrashLoopBackOff, exit code 1). Its application logs show `java.net.UnknownHostException: tsdb-mysql-leader: Temporary failure in name resolution`, and istio-proxy logs show DNS lookups to `10.255.12.254:53` timing out. The `tsdb-mysql-leader` Service exists at `10.68.188.173:3306`, and healthy ts-basic-service on the same worker-01 node is resolving/connecting normally. The ts-train-service Deployment uniquely sets `dnsPolicy: None` with nameserver `10.255.12.254`, unlike healthy services using default DNS. This isolates the fault to pod-specific DNS misconfiguration for ts-train-service.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-train-service\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 2, \"fault_object\": \"app/ts-train-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 9
+}

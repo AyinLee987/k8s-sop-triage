@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"`ts-payment-service` is in CrashLoopBackOff and its logs show `java.net.UnknownHostException: tsdb-mysql-leader` and MySQL Communications link failures. The `tsdb-mysql-leader` Service exists, and connectivity to its ClusterIP:3306 succeeds from worker-01/02/03. The failing deployment uses `dnsPolicy: None` with nameserver `10.255.17.254`; the app and Istio sidecar logs show DNS lookup timeouts, including for `istiod.istio-system.svc`. This caused `ts-inside-payment-service` payment requests to fail with HTTP 500 and downstream `Service Instance cannot be null`.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 2, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"service_env_var_address_mismatch\"}, {\"rank\": 3, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_packet_loss\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 11
+}

@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Latency alerts hit adservice, checkoutservice, and recommendationservice, all co-located on worker-02. Worker-02 shows a large TCP retransmission increase (0.00 -> 6.67 retrans), while pods remain Running with no restarts and nodes have no MemoryPressure/DiskPressure/PIDPressure. This matches node-level packet loss affecting multiple services on the same node rather than an isolated application or capacity issue.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_packet_loss\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_packet_loss\"}, {\"rank\": 3, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 6
+}

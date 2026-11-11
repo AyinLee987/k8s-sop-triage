@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Frontend alerts showed a new filesystem write spike (~171KB/s) and CPU rise from 0.01 to 0.04 cores, with 503 errors on `/` and `/product/{id}`. Source inspection of frontend handlers.go revealed `chooseAd` creates `/tmp/tmp.csv` and writes 30,000 CSV records on every home/product page request, then removes it. This directly explains the write surge, CPU load, and request failures.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_excessive_file_writes\"}, {\"rank\": 2, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 3, \"fault_object\": \"app/frontend\", \"root_cause\": \"pod_cpu_overload\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 8
+}

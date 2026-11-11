@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show 19 HTTP 404s on POST /api/v1/travelservice/trips/left via entry service ts-travel-service. ts-travel-service Service is TCP/12346, selector/targetPort correct, connectivity succeeds from worker-01/02/03, and recent logs show it actively processing getTickets/getRestTicketNumber successfully — so the backend is healthy. Gateway config (ts-gateway-service-config) shows route id `travel` for Path=/api/v1/travelservice/** has uri lb://${ORDER_SERVICE_HOST:ts-order-service}, i.e. misrouted to ts-order-service instead of ts-travel-service, producing the 404s.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-gateway-service\", \"root_cause\": \"gateway_misrouted\"}, {\"rank\": 2, \"fault_object\": \"app/ts-travel-service\", \"root_cause\": \"service_port_mapping_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"code_wrong_return\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 12
+}

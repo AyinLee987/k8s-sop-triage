@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"productcatalogservice shows p90 latency spike from 2.5ms to 1158ms, while all pods are Running/Ready with zero restarts and no error logs. It is a leaf service; recommendationservice and frontend latency are propagated. Other pods on worker-01 (cartservice, currencyservice, paymentservice, redis-cart) do not show latency spikes, ruling out node-wide network delay. The code includes time.Sleep(extraLatency), but the deployment YAML does not set EXTRA_LATENCY, so artificial delay is not active. This pattern matches pod-scoped network delay.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 12
+}

@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Widespread boutique service latency alerts occurred simultaneously with node network anomalies. worker-02 showed TCP retransmissions rising from 0.02 to 8.46 (+50396.3%), far exceeding worker-01's smaller increase to 1.16. Multiple high-latency services are hosted on worker-02, while pods remained Running with no restarts and nodes showed no resource pressure, supporting a node-level packet-loss fault rather than pod failure or capacity exhaustion.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_packet_loss\"}, {\"rank\": 2, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_packet_loss\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 6
+}

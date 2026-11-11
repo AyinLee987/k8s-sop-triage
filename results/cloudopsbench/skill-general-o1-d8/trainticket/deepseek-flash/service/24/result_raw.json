@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"`ts-food-service` is the only abnormal workload, in CrashLoopBackOff (0/2). Its logs show `java.net.UnknownHostException: tsdb-mysql-leader` with DNS queries to the configured nameserver `10.255.18.254` timing out. The `tsdb-mysql-leader` Service exists with a valid selector and port 3306. The deployment sets `dnsPolicy: None` with nameserver `10.255.18.254`, while other pods on worker-01 are healthy. This supports an application-scoped DNS resolution failure causing database connection failure and repeated restarts.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-food-service\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 2, \"fault_object\": \"app/ts-food-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 5
+}

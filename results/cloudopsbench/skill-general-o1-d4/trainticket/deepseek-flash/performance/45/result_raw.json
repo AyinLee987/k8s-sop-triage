@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All pods are Running/Ready with no meaningful restarts. `ts-train-service` logs show normal request handling with no errors, but alerts show its p50 latency jumped from 8.35 ms to exactly 2500 ms and p90 to 4500 ms. It is a leaf service with no downstream calls, so the delay originates within the service. Callers such as `ts-basic-service` and `ts-preserve-service` show propagated latency. `ts-order-service` shows CPU CFS throttling and traffic surge, but no error logs and is likely collateral load rather than the primary fault.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-train-service\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-train-service\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 3, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"pod_cpu_overload\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 9
+}

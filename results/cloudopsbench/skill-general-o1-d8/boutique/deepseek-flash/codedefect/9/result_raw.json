@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Checkoutservice showed extreme latency (p50 19ms->3750ms, p90 48ms->4750ms) with all pods Running and 0 restarts. Downstream services (productcatalog, shipping, currency, payment, email, cart/redis) showed no alerts; logs show successful payment/email/order flow. Source inspection of checkoutservice main.go revealed an explicit `time.Sleep(time.Millisecond * 3000)` inside getUserCart on the PlaceOrder path, matching the ~3.75s latency (3s sleep + normal processing). This is an application code artificial delay localized to checkoutservice.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 2, \"fault_object\": \"app/cartservice\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 3, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"pod_cpu_overload\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 8
+}

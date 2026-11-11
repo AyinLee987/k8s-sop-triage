@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All application pods are Running and ready, ruling out workload crash/readiness as the primary cause. The Service list omits ts-food-delivery-service even though its Deployment/pod exists, the gateway dependency graph expects it, and its deployment listens on TCP 18957. An active connectivity check to ts-food-delivery-service:18957 failed, consistent with the service DNS name being unresolvable because the Service object is missing.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-food-delivery-service\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 2, \"fault_object\": \"app/ts-food-delivery-service\", \"root_cause\": \"service_selector_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/ts-food-delivery-service\", \"root_cause\": \"service_port_mapping_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 14
+}

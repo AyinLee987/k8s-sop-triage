@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All pods except checkoutservice are Running/Ready; the checkoutservice Deployment shows 0/1 available, 0 updated, 0 total with ReplicaFailure=FailedCreate, and its ReplicaSet has 0 pods. ReplicaSet events state: 'Error creating: pods ... is forbidden: exceeded quota: cpu-request-quota, requested: requests.cpu=2, used: requests.cpu=10, limited: requests.cpu=10'. The checkoutservice template requests cpu=2 (limit 2400m), which cannot fit in the remaining 0 CPU of the 10-CPU namespace quota. Thus the service availability disruption is caused by namespace CPU quota exhaustion blocking the pod creation, not by a missing ServiceAccount, image pull, or app code fault.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"namespace/boutique\", \"root_cause\": \"namespace_cpu_quota_exceeded\"}, {\"rank\": 2, \"fault_object\": \"namespace/boutique\", \"root_cause\": \"namespace_pod_quota_exceeded\"}, {\"rank\": 3, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"missing_service_account\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 7
+}

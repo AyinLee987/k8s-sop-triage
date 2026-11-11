@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"recommendationservice pod was Pending with no assigned node and no scheduling events. Cluster nodes were Ready with ample allocatable CPU/memory and no taints on workers; no ResourceQuota existed in boutique. Direct check showed kube-scheduler.service on master was inactive (dead), matching the scheduling failure.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/master\", \"root_cause\": \"kube_scheduler_unavailable\"}, {\"rank\": 2, \"fault_object\": \"node/master\", \"root_cause\": \"kubelet_unavailable\"}, {\"rank\": 3, \"fault_object\": \"app/recommendationservice\", \"root_cause\": \"taint_toleration_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 8
+}

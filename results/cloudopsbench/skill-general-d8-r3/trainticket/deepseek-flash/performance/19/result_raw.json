@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Latency alerts occurred on ts-cancel-service, ts-gateway-service, ts-inside-payment-service, ts-order-service, and ts-ui-dashboard. The only resource-saturation alert was CFS throttling on ts-order-service (cpu_cfs Throttled 0.306s). Pods were Running/Ready with no restarts for ts-order-service. Dependency data shows ts-cancel-service calls ts-order-service, explaining propagated latency. ts-order-service logs showed normal request processing without errors, and GetErrorLogs found no application error patterns. Its deployment has a 500m CPU limit, consistent with CPU throttling under load.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 2, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 3, \"fault_object\": \"app/ts-cancel-service\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 9
+}

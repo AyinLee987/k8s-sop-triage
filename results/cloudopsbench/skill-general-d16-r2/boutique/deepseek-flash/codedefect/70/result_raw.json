@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Only productcatalogservice-8458b87d48-7r7l6 is unhealthy, in CrashLoopBackOff with 4 restarts. DescribeResource shows the server container last terminated with Reason OOMKilled, Exit Code 137, at the configured 128Mi memory limit. Logs stop immediately after 'loading catalog from local products.json file...' before 'successfully parsed product catalog json'. Source code in catalog_loader.go contains an explicit loop appending 8*1024*1024 integers during local catalog loading, causing unbounded memory growth and OOM. Peer pods and dependencies are healthy, and the same deployment historically uses a 128Mi limit, so the application allocation is the root cause.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"code_memory_leak\"}, {\"rank\": 2, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"container_memory_limit_too_low\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"memory_capacity_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 10
+}

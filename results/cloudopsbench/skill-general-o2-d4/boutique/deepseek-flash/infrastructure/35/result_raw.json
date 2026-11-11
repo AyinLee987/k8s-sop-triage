@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"worker-01 is Unknown and tainted node.kubernetes.io/unreachable; its kubelet service is inactive (dead). The frontend pod is Pending with FailedScheduling because its hard node selector targets worker-01, while other nodes do not match. This explains partial service unreachability from frontend unavailability while other application pods remain Running.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/worker-01\", \"root_cause\": \"kubelet_unavailable\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_packet_loss\"}, {\"rank\": 3, \"fault_object\": \"app/frontend\", \"root_cause\": \"node_selector_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 7
+}

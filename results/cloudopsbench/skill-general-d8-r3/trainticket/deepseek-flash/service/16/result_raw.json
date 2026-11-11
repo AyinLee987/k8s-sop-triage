@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All pods Healthy/Ready (no restarts), ruling out scheduling/image/capacity/probe faults. Active alerts show a 500 on inside_payment. Log chain: ts-inside-payment-service receives 500 from downstream /api/v1/paymentservice/payment; ts-payment-service root cause is Spring DAO IncorrectResultSizeDataAccessException / javax.persistence.NonUniqueResultException 'query did not return a unique result: 5' on a valid request. Deterministic 5xx on a specific path with otherwise healthy infrastructure indicates an application-code defect in ts-payment-service (wrong query/return), consistent with exp-03.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"code_wrong_return\"}, {\"rank\": 2, \"fault_object\": \"app/ts-inside-payment-service\", \"root_cause\": \"code_wrong_return\"}, {\"rank\": 3, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"code_missing_parameter\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 9
+}

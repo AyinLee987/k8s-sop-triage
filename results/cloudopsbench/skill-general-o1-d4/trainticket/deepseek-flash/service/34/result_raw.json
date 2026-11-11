@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"ts-station-service is in CrashLoopBackOff and exits with code 1. Application logs show MySQL/Hibernate startup failure caused by java.net.UnknownHostException: tsdb-mysql-leader: Temporary failure in name resolution. The deployment has dnsPolicy: None with nameserver 10.255.13.254, while a healthy comparison service has default DNS configuration. Active TCP connectivity to tsdb-mysql-leader:3306 succeeds from all worker nodes, isolating the fault to DNS resolution for ts-station-service rather than MySQL availability.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-station-service\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-station-service\", \"root_cause\": \"mysql_invalid_port\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 8
+}

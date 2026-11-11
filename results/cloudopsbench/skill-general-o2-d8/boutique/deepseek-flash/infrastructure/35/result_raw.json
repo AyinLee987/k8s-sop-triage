@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Frontend pod is Pending with 0/1 ready; scheduler event shows 0/4 nodes available including '1 node(s) had untolerated taint {node.kubernetes.io/unreachable: }'. Cluster config shows worker-01 status Unknown with unreachable taints, while frontend has nodeSelector kubernetes.io/hostname=worker-01, so it cannot schedule elsewhere. CheckNodeServiceStatus confirms worker-01 kubelet.service is inactive (dead) since 15:38:53, directly causing the node to be unreachable and the frontend pod to remain unscheduled, producing partial service unreachability.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/worker-01\", \"root_cause\": \"kubelet_unavailable\"}, {\"rank\": 2, \"fault_object\": \"app/frontend\", \"root_cause\": \"node_selector_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/frontend\", \"root_cause\": \"taint_toleration_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 8
+}

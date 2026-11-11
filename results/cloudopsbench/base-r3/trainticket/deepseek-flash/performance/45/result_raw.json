@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show extreme latency degradation specifically on leaf service ts-train-service (p50 8.35ms -> 2500ms, +29843.7%; p90 4500ms), with no error logs and normal pod resources/probes. Its deployment is Running and nodes are Ready with no pressure or taints on workers. Downstream latency on services such as ts-basic-service and ts-preserve-service is consistent with cascading calls to ts-train-service. The constant ~2.5s latency pattern and clean application logs point to artificial application delay.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-train-service\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-basic-service\", \"root_cause\": \"code_artificial_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 10
+}

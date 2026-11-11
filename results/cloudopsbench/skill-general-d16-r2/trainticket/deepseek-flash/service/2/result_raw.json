@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All pods are Running/Ready, but `ts-food-delivery-service` has a healthy Deployment with 1 ready replica while the Services and Endpoints lists contain no `ts-food-delivery-service` object or endpoints. This makes its cluster DNS/service name unresolvable and produces partial service unreachability.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-food-delivery-service\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 2, \"fault_object\": \"app/ts-food-delivery-service\", \"root_cause\": \"service_selector_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/ts-food-delivery-service\", \"root_cause\": \"service_port_mapping_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 11
+}

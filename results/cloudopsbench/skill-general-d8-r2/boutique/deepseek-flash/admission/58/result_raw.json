@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Only redis-cart is unhealthy: pod redis-cart-5858bb886-pzpdk is Pending. DescribeResource shows FailedScheduling because persistentvolumeclaim \\\"redis-cart-pvc\\\" is not found. PVC list contains only pre-existing-pvc; PV redis-cart-pv is Available. Namespace resourcequota storage-quota reports requests.storage 9Gi/10Gi, while redis-cart requires a 2Gi PVC, so creating it would exceed the hard storage quota. All other boutique pods are Running.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"namespace/boutique\", \"root_cause\": \"namespace_storage_quota_exceeded\"}, {\"rank\": 2, \"fault_object\": \"app/redis-cart\", \"root_cause\": \"pvc_storage_class_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/redis-cart\", \"root_cause\": \"pvc_capacity_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 10
+}

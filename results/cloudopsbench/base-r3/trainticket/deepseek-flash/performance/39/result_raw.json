@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Cluster-wide latency cascade without error logs: alerts show throughput drops and severe LATENCY_DEGRADATION from 23:39-23:41, with ts-travel-service p50 88ms->18.4s (+20,703%), ts-seat-service p50 203ms->11.7s, ts-order-service p50 308ms->9.8s, gateway and ui-dashboard p90 ~46-48s. All pods Running; node conditions Ready and no Pressure/taint anomalies; GetClusterConfiguration normal. Application logs for ts-seat-service, ts-travel-service and ts-order-service show successful downstream calls (envoy upstream-service-time 9-132ms), no error logs, so the delay is introduced within application processing rather than by node, network or dependency failures. The most severe and central outlier is ts-travel-service, whose internal request handling spans seconds while its downstream calls return quickly, consistent with an injected artificial application delay.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-travel-service\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-seat-service\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-travel-service\", \"root_cause\": \"pod_cpu_overload\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 15
+}

@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"currencyservice shows a severe p90 latency spike from 3.82ms to 921.97ms and inbound/outbound traffic drops of 59%/66%. Its pods are Running 2/2 with no restarts, it is a leaf service, TCP port 7000 connectivity succeeds, and there are no error logs or source-level artificial delays. Node conditions are normal with no pressure. This isolates the incident to pod-level network latency on currencyservice, with node-level network faults on worker-01 as plausible alternatives.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/currencyservice\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_packet_loss\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 13
+}

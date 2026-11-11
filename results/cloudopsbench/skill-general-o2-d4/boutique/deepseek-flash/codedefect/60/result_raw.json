@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts implicate frontend: FILESYSTEM_WRITE_SURGE (0.00B/s -> 171371.76B/s, peak 414371.37B/s) plus CPU saturation (+266.7%), and 503s on / and /product/{id}. Frontend source code (handlers.go chooseAd) creates /tmp/tmp.csv and writes 30,000 CSV rows on every ad selection before deleting it — matching the observed write surge exactly. Recent request logs otherwise show 200s, indicating the degradation stems from this injected write-heavy logic rather than downstream failure.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_excessive_file_writes\"}, {\"rank\": 2, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 3, \"fault_object\": \"app/frontend\", \"root_cause\": \"pod_cpu_overload\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 8
+}

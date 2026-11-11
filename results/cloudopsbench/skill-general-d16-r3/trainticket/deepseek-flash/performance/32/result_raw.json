@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"ts-train-service shows extreme latency inflation (p50 7.38ms -> 2425ms, p90 9.48ms -> 4472ms) while its pod is Running/Ready with 0 restarts. It is a leaf service with no downstream calls, and node/cluster conditions are normal with no pressure. Logs show normal request handling without errors or exceptions; ts-basic-service logs show its own local processing completing quickly, supporting ts-train-service as the intrinsic delay source.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-train-service\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-train-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-basic-service\", \"root_cause\": \"code_artificial_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 12
+}

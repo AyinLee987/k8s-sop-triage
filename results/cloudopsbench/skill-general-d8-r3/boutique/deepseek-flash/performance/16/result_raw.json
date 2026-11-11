@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"checkoutservice showed extreme p50/p90 latency increases and frontend/email alerts were consistent with propagated checkout latency. All pods were Running/Ready with zero restarts, no error logs were found, and connectivity/downstream call logs looked successful. Source inspection found checkoutservice's PlaceOrder path calls money.MultiplySlow for item-price multiplication, which intentionally adds the value repeatedly and introduces artificial latency in request handling.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 2, \"fault_object\": \"app/emailservice\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"code_busy_loop\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 18
+}

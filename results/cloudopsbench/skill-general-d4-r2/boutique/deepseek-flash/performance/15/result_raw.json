@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"currencyservice is a leaf service with healthy Running/Ready pods, zero restarts, and no application error logs, but alerts show p90 latency rising from 3.82ms to 921.97ms and inbound/outbound traffic dropping ~59-66%. Its upstream callers checkoutservice (on worker-02) and frontend (on worker-01) show propagated latency, indicating the fault is centered on currencyservice rather than a caller or a single node. TCP connectivity to currencyservice:7000 succeeds, consistent with a delay fault rather than service unavailability. Other worker-01 services are not alerted, favoring pod-scoped network delay over node-wide network delay.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/currencyservice\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/currencyservice\", \"root_cause\": \"code_artificial_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 8
+}

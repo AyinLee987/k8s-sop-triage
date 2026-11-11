@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"ts-food-service pod on worker-01 is in CrashLoopBackOff (exit code 1). Its app container logs show java.net.UnknownHostException: tsdb-mysql-leader, and its istio-proxy sidecar simultaneously fails DNS lookups (i/o timeout resolving istiod.istio-system.svc on 10.255.18.254:53). The tsdb-mysql-leader Service exists and TCP:3306 connectivity succeeds from debug pods on worker-01/02/03, ruling out a Service/endpoint fault and indicating pod-scoped DNS resolution failure. The crash removes ts-food-service endpoints, causing ts-preserve-service to throw 'Service Instance cannot be null' and return 500s.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-food-service\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-food-service\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 10
+}

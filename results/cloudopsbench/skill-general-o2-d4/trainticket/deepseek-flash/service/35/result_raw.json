@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"ts-train-service has 0/1 available replicas and its pod is in Error 0/2. Its container logs show MySQL connection failure caused by java.net.UnknownHostException: tsdb-mysql-leader: Temporary failure in name resolution. The Istio sidecar on the same pod also shows DNS lookup timeouts to 10.255.12.254:53 for istiod.istio-system.svc. The tsdb-mysql-leader Service exists, so the fault is DNS resolution failure from the ts-train-service pod. Missing ts-train-service causes ts-basic-service to throw 'Service Instance cannot be null', propagating 500 errors through ts-travel-service, ts-preserve-service, and payment workflows.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-train-service\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_packet_loss\"}, {\"rank\": 3, \"fault_object\": \"app/ts-train-service\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 20
+}

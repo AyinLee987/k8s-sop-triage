@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"`ts-food-service` is in CrashLoopBackOff with `UnknownHostException: tsdb-mysql-leader` and `Temporary failure in name resolution`. The `tsdb-mysql-leader` Service exists and TCP connectivity to port 3306 succeeds from all nodes. The app Deployment uses `dnsPolicy: None` with only a nameserver configured, and its sidecar logs also show DNS lookup timeouts. kube-proxy and node health are normal, while the configured DB hostname matches the Service name, isolating the fault to DNS resolution within `ts-food-service`.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-food-service\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-food-service\", \"root_cause\": \"service_env_var_address_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 12
+}

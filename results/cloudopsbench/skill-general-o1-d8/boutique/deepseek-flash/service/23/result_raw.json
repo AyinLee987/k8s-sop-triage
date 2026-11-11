@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All adservice pods are Running and Ready, and the Service has valid endpoints (172.20.3.220:9555). However, the adservice Service exposes and targets port 9555 as UDP, while the service is a gRPC/TCP endpoint; an active TCP connectivity check to adservice:9555 failed. This indicates a Service protocol mismatch causing partial unreachability.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/adservice\", \"root_cause\": \"service_protocol_mismatch\"}, {\"rank\": 2, \"fault_object\": \"app/adservice\", \"root_cause\": \"service_port_mapping_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/adservice\", \"root_cause\": \"service_selector_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 5
+}

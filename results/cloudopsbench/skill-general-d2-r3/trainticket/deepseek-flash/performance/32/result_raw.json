@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show extreme latency on ts-train-service and its caller ts-basic-service. Dependency tracing shows ts-train-service is a leaf called by ts-basic-service. The pod is Running with 0 restarts, TCP connectivity succeeds, no application error logs are present, and no CPU/resource saturation alert exists for ts-train-service. Other services on the same node do not show matching latency, supporting a pod-scoped network delay affecting ts-train-service rather than node-wide or application-code failure.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-train-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-train-service\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 11
+}

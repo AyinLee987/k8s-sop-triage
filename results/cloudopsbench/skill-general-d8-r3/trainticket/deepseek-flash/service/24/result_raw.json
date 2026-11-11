@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"`ts-food-service` is in CrashLoopBackOff with `UnknownHostException: tsdb-mysql-leader: Temporary failure in name resolution`. The `tsdb-mysql-leader` Service exists and TCP connectivity to `10.68.188.173:3306` succeeds from all nodes, so the MySQL Service itself is healthy. `ts-food-service` uniquely has `dnsPolicy: None` with nameserver `10.255.18.254`, and its istio-proxy logs show DNS UDP timeouts to that resolver. This pod-level DNS failure prevents `ts-food-service` from starting, leaving no ready instance for `ts-preserve-service` and causing the reported 500s / partial unreachability.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-food-service\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_packet_loss\"}, {\"rank\": 3, \"fault_object\": \"app/ts-food-service\", \"root_cause\": \"service_env_var_address_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 13
+}

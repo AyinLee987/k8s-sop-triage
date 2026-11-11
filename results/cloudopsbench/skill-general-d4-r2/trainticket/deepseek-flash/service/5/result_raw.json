@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All application pods are Running and healthy. Alerts show 20 repeated 404s for POST /api/v1/preserveservice/preserve with entry_service ts-preserve-service. The ts-preserve-service deployment/service configuration and pod logs are normal, with no application error logs. The decisive evidence is in ts-gateway-service ConfigMap: route id 'preserve' for Path=/api/v1/preserveservice/** uses uri lb://${FOOD_SERVICE_HOST:ts-food-service} instead of ts-preserve-service, causing preserve requests to be sent to the food service and return 404.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-gateway-service\", \"root_cause\": \"gateway_misrouted\"}, {\"rank\": 2, \"fault_object\": \"app/ts-preserve-service\", \"root_cause\": \"gateway_misrouted\"}, {\"rank\": 3, \"fault_object\": \"app/ts-gateway-service\", \"root_cause\": \"service_env_var_address_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 10
+}

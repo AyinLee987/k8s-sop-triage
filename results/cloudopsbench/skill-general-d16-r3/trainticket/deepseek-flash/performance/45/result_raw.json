@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show ts-train-service p50 latency jumped from ~8.35ms to 2500ms and p90 to 4500ms. Dependency tracing shows ts-train-service is a leaf service with no downstream calls, while its pod is Running with no restarts. Cluster nodes are Ready with no pressure or taints on worker-01, and no ts-train CPU/memory saturation alert appears. These findings support an application-local artificial delay; network-related hypotheses remain less likely but plausible alternatives.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-train-service\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-train-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 8
+}

@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"productcatalogservice deployment is 0/1 with no pod because its ReplicaSet repeatedly received FailedCreate errors: pods are forbidden due to exceeded quota 'pod-count-quota' with requested pods=1, used pods=10, limited pods=10. All other boutique pods are Running, isolating the issue to namespace pod-count quota saturation rather than runtime or scheduling failure.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"namespace/boutique\", \"root_cause\": \"namespace_pod_quota_exceeded\"}, {\"rank\": 2, \"fault_object\": \"namespace/boutique\", \"root_cause\": \"namespace_cpu_quota_exceeded\"}, {\"rank\": 3, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"cpu_capacity_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 6
+}

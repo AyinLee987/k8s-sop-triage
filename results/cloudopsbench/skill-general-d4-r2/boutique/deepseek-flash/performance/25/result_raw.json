@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"productcatalogservice showed extreme p90 latency (~1158ms vs 2.5ms baseline) while running healthy with zero restarts; recommendationservice, its caller, showed propagated high latency. TCP connectivity to productcatalogservice:3550 succeeded, no app error logs were found, the node was Ready without pressure, and other worker-01 services did not show similar latency. The deployment did not set EXTRA_LATENCY and logs did not indicate extra latency enabled, ruling out the source-code artificial delay path.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"pod_cpu_overload\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 18
+}

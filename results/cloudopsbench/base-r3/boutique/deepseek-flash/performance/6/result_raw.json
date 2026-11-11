@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Only active alert is for frontend: CPU CFS throttling (1.333s), CPU core usage rose from 0.07 to 0.16 cores (+138.1%), and p95 latency increased from 27.67ms to 271.36ms (+880.8%). All boutique pods are Running; frontend is healthy at the Kubernetes level. Frontend has a low CPU limit of 200m, and node health/capacity is normal across all nodes. Source review of frontend did not show an obvious busy loop or artificial delay, making excessive Pod CPU load the best-supported root cause.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/frontend\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 2, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 3, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_artificial_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 17
+}

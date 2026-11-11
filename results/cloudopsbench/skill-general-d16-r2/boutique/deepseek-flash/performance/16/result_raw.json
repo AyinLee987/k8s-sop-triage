@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show the most extreme latency amplification at emailservice (p90 4.8ms -> 895.9ms), with checkoutservice (p50 17.36ms -> 516.72ms, p90 28.40ms -> 948.48ms) and frontend inheriting delay along the checkoutservice -> emailservice call path. All pods are Running/Ready with zero restarts; emailservice request-handling source shows no artificial sleep/delay; emailservice logs show normal request receipt; worker-02 is Ready without pressure, kube-proxy is active, and emailservice Service port 5000 is reachable. This supports a pod-scoped network delay on emailservice rather than application code, crashes, service mapping, or node component failure.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/emailservice\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/emailservice\", \"root_cause\": \"pod_cpu_overload\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 17
+}

@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Only productcatalogservice has an active anomaly: CPU saturation and a sharp filesystem-write surge. The pod is Running with 2/2 containers, zero restarts, ready, and has no error logs. Source inspection shows `ListProducts` creates `/tmp/tmp.csv` and writes 30,000 CSV records on each call, directly explaining the filesystem-write surge; the accompanying CPU increase is consistent with that loop. The same handlers also contain `time.Sleep(extraLatency)`, making artificial delay a plausible secondary contributor.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"code_excessive_file_writes\"}, {\"rank\": 2, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 3, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"pod_cpu_overload\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 8
+}

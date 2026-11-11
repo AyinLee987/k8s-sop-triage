@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All pods are Running and core services are reachable, but the `ts-gateway-service` ConfigMap routes `/api/v1/orderservice/**` to `lb://${ROUTE_SERVICE_HOST:ts-route-service}` instead of the order service. This misroutes order-service traffic to route-service, matching the partial service unreachability symptom.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-gateway-service\", \"root_cause\": \"gateway_misrouted\"}, {\"rank\": 2, \"fault_object\": \"app/ts-ui-dashboard\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 3, \"fault_object\": \"app/ts-preserve-service\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 19
+}

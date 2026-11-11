@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Widespread service degradation is driven by extreme latency originating at the leaf `ts-route-service`. Alerts show ts-route-service p50 latency rising from ~7.55ms to ~8026ms and p90 from ~9.6ms to ~21000ms. Its pod is Running with 0 restarts, no error logs, and the Service selector/port/targetPort are correct. Nodes are Ready with no pressure, and other pods are healthy. This pattern indicates an application-level artificial delay in ts-route-service, with downstream latency propagating to its callers and gateway/frontend traffic.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-route-service\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-route-service\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 3, \"fault_object\": \"app/ts-route-service\", \"root_cause\": \"code_busy_loop\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 15
+}

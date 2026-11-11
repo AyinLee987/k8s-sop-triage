@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show severe latency inflation at ts-train-service (p50 2425ms, p90 4472ms) and at callers such as ts-basic-service and ts-travel-service. All pods are Running/Ready with no meaningful restarts, and nodes are Ready without pressure or taints. ts-train-service is a leaf downstream service with no downstream calls; ts-basic-service depends on it, explaining inherited latency. Logs show normal request handling with no application errors, and TCP connectivity to ts-train-service:14567 succeeds from worker-01/02/03. This supports an application-level artificial delay in ts-train-service rather than node failure, resource saturation, or service misconfiguration.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-train-service\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-train-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 11
+}

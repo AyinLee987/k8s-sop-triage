@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"checkoutservice is the sole alerted service with severe latency (p50 18.66ms -> 3750ms). Its pod is Running/Ready with zero restarts and no error logs. Source inspection of checkoutservice main.go shows an explicit 3000ms time.Sleep in PlaceOrder, directly accounting for the latency degradation.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 2, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 9
+}

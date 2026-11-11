@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"ts-train-service is a leaf service (no downstream) with massive latency degradation (p50 2425ms, p90 4472ms vs ~7-9ms normal); its caller ts-basic-service shows even higher latency (3750ms) consistent with propagation. The pod is Running/Ready with zero restarts, TCP connectivity to port 14567 succeeds from worker-01/02/03, error logs show only unrelated istio-proxy metric write errors, and no other pod on worker-01 (e.g., ts-order-service) shows latency degradation — ruling out node-wide network fault and application exceptions. This matches exp-02's pod-scoped network delay pattern.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-train-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-train-service\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 9
+}

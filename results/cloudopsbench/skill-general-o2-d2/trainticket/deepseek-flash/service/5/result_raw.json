@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Gateway route `preserve` maps `/api/v1/preserveservice/**` to `lb://${FOOD_SERVICE_HOST:ts-food-service}` instead of `ts-preserve-service`. The preserve Service, pod, and listener on port 14568 are healthy and correctly configured, while clients receive repeated 404s for the preserve endpoint. This isolates the fault to incorrect gateway routing.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-gateway-service\", \"root_cause\": \"gateway_misrouted\"}, {\"rank\": 2, \"fault_object\": \"app/ts-food-service\", \"root_cause\": \"code_wrong_return\"}, {\"rank\": 3, \"fault_object\": \"app/ts-gateway-service\", \"root_cause\": \"service_env_var_address_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 15
+}

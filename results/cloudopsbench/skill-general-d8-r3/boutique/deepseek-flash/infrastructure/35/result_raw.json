@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"frontend pod is Pending; scheduling events show it requires worker-01, which is unschedulable/Unknown with unreachable taints. CheckNodeServiceStatus confirms worker-01 kubelet is inactive/dead, so workloads on that node become unavailable and the frontend cannot be scheduled there.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/worker-01\", \"root_cause\": \"kubelet_unavailable\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_packet_loss\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 6
+}

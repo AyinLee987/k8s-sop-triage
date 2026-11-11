@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show severe latency degradation centered on ts-inside-payment-service (p50 ~22.9ms -> 7.17s, p90 ~64.3ms -> 20.3s) with callers ts-cancel, ts-gateway, and ts-ui-dashboard also degraded. Pods are Running/Ready with zero restarts, nodes are healthy, and downstream ts-order-service has no error logs and shows successful order operations. Inside-payment logs show fast successful payment processing outside the fault window, supporting network delay rather than application processing delay. Other worker-03 services are not uniformly latency-degraded, making a pod-scoped fault more likely than node-wide delay.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-inside-payment-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"node/worker-03\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-inside-payment-service\", \"root_cause\": \"code_artificial_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 15
+}

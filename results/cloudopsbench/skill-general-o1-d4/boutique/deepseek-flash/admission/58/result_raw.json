@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"redis-cart pod is Pending with FailedScheduling because the PVC `redis-cart-pvc` is missing. The namespace ResourceQuota `storage-quota` shows requests.storage at 9Gi/10Gi. The redis-cart PVC requests 2Gi, so its creation would exceed the 10Gi storage quota and was therefore rejected. All other pods are Running, confirming a namespace-level storage quota admission failure rather than node or runtime failure.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"namespace/boutique\", \"root_cause\": \"namespace_storage_quota_exceeded\"}, {\"rank\": 2, \"fault_object\": \"app/redis-cart\", \"root_cause\": \"pvc_capacity_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/redis-cart\", \"root_cause\": \"pvc_storage_class_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 9
+}

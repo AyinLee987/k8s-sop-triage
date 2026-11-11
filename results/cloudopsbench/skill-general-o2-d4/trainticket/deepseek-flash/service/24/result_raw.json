@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"ts-preserve-service returns 500 'Service Instance cannot be null' because downstream ts-food-service is in CrashLoopBackOff. ts-food-service app logs show DNS failure resolving tsdb-mysql-leader, with timeouts to custom nameserver 10.255.18.254. The tsdb-mysql-leader Service exists and TCP connectivity to it succeeds from worker-01/02/03, while healthy services such as ts-order-service use default DNS policy. This isolates the fault to ts-food-service's pod-specific DNS configuration.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-food-service\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_packet_loss\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 15
+}

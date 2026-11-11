@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All boutique pods are Running and Ready, and Services exist with endpoints. Frontend logs show 134 errors: 'could not retrieve currencies: ... dial tcp 10.68.90.185:7000: connect: connection refused'. Describing currencyservice shows its Service port is configured as 'grpc 7000/UDP' with targetPort '7000/UDP'. Since the frontend dials TCP 7000, the UDP protocol mismatch prevents connectivity. A smaller number of productcatalogservice DNS lookup failures are also present but the dominant concrete fault is the currencyservice protocol mismatch.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/currencyservice\", \"root_cause\": \"service_protocol_mismatch\"}, {\"rank\": 2, \"fault_object\": \"app/currencyservice\", \"root_cause\": \"service_port_mapping_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"service_dns_resolution_failure\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 6
+}

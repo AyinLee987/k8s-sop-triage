@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show severe latency centered on currencyservice (p90 +24005%) with simultaneous inbound/outbound packet-rate drops, while frontend and checkoutservice only show caller-side latency. All pods are Running/Ready with zero restarts; nodes are Ready with no pressure/taint issues; TCP connectivity to currencyservice:7000 succeeds; currencyservice and checkoutservice have no error logs; currencyservice source shows no artificial delay. This points to a pod-scoped network delay on currencyservice, with node-level network faults as secondary possibilities.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/currencyservice\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_packet_loss\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 16
+}

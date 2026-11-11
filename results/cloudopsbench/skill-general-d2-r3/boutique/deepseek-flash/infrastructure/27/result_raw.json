@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"recommendationservice-7bf5b7d9b8-tk7kf is Pending with no assigned node and no scheduling events. Node inspection shows all worker nodes Ready with available CPU/memory and no taints, while master is unschedulable. The kube-scheduler service on master is inactive (dead), supporting scheduler unavailability as the primary cause of service availability disruption.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/master\", \"root_cause\": \"kube_scheduler_unavailable\"}, {\"rank\": 2, \"fault_object\": \"node/master\", \"root_cause\": \"kubelet_unavailable\"}, {\"rank\": 3, \"fault_object\": \"app/recommendationservice\", \"root_cause\": \"node_selector_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 5
+}

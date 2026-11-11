@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"The recommendationservice pod is Pending and unscheduled with no scheduling events, while cluster nodes have ample allocatable CPU/memory and worker nodes have no taints. The master node's kube-scheduler service is inactive (dead), stopping scheduling activity and leaving the pod unscheduled, causing service availability disruption.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/master\", \"root_cause\": \"kube_scheduler_unavailable\"}, {\"rank\": 2, \"fault_object\": \"app/recommendationservice\", \"root_cause\": \"taint_toleration_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/recommendationservice\", \"root_cause\": \"node_affinity_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 6
+}

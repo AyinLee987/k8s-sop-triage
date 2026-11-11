@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Widespread service latency and throughput drops occurred while all pods remained Running/Ready and nodes were Ready. Dependency tracing showed `ts-route-service` as the deepest significantly delayed service: p50 latency rose from ~7.55ms to ~8026ms and p90 from ~9.60ms to ~21000ms. Its logs showed normal request entry and no exceptions, `GetErrorLogs` found no errors, and TCP connectivity to `ts-route-service:11178` succeeded from all workers. Callers such as `ts-basic-service`, `ts-preserve-service`, `ts-travel-service`, and `ts-gateway-service` show derived latency, consistent with a pod-scoped network delay on `ts-route-service` rather than a backend code failure or node-wide outage.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-route-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-route-service\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-03\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 18
+}

@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show currencyservice p90 latency rising from 3.82ms to 921.97ms with inbound/outbound traffic drops, while frontend and checkout latency are propagated downstream symptoms. All pods are Running/Ready with zero restarts; currencyservice port 7000 is reachable; no currencyservice error logs; logs show successful conversions; source code has no artificial delay; node status and resources are healthy; deployment/service configuration is normal. This supports a pod-scoped network delay affecting currencyservice rather than application, scheduling, probe, or node-wide failure.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/currencyservice\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/frontend\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 13
+}

@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Widespread latency alerts with all pods Running/Ready and zero restarts. The most severe direct latency anomaly is ts-inside-payment-service (p50 ~7.2s, p90 ~20.3s vs normal tens of ms), with propagated latency to ts-cancel-service, ts-gateway-service, and ts-ui-dashboard. Gateway and inside-payment logs show no application errors; inside-payment logs show normal fast pay/drawBack processing (~20ms), and TCP reachability to the gateway succeeds. This supports a pod-scoped network delay on ts-inside-payment-service rather than code failure, node-wide network fault, or service outage.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-inside-payment-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"node/worker-03\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-inside-payment-service\", \"root_cause\": \"code_artificial_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 18
+}

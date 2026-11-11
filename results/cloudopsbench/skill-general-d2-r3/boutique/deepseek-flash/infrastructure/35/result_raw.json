@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"worker-01 reports status Unknown and carries node.kubernetes.io/unreachable taints. The kubelet service on worker-01 is inactive (dead), stopped at 15:38:53. The frontend Pod requires node worker-01 via nodeSelector and remains Pending because that node is unreachable/unschedulable. Other services on Ready workers remain Running, matching partial service unreachability.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/worker-01\", \"root_cause\": \"kubelet_unavailable\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_packet_loss\"}, {\"rank\": 3, \"fault_object\": \"app/frontend\", \"root_cause\": \"node_cordon_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 5
+}

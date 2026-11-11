@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"frontend Pod is Pending and pinned by nodeSelector to worker-01. Scheduling events show worker-01 has an untolerated unreachable taint/unschedulable condition. GetClusterConfiguration shows worker-01 status Unknown with unreachable taints. CheckNodeServiceStatus confirms kubelet.service on worker-01 is inactive (dead), directly explaining the node failure and frontend scheduling failure.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/worker-01\", \"root_cause\": \"kubelet_unavailable\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_packet_loss\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 5
+}

@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All pods are Running/Ready and Services have populated endpoints. The adservice Deployment exposes gRPC on containerPort 9555 with TCP-based gRPC probes, but the adservice Service is configured with protocol UDP for port 9555. This protocol mismatch makes TCP/gRPC clients unable to reach adservice while other services remain reachable, matching the partial service unreachability symptom.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/adservice\", \"root_cause\": \"service_protocol_mismatch\"}, {\"rank\": 2, \"fault_object\": \"app/adservice\", \"root_cause\": \"service_port_mapping_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/adservice\", \"root_cause\": \"service_dns_resolution_failure\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 5
+}

@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"The only anomalous workload is ts-payment-service, which is in CrashLoopBackOff. Its application logs show MySQL connection failure caused by `java.net.UnknownHostException: tsdb-mysql-leader`. The `tsdb-mysql-leader` Service exists in the namespace, so the DB address itself is not absent. The Deployment for ts-payment-service sets `dnsPolicy: None` with custom nameserver `10.255.17.254`; the pod also fails to resolve other cluster services such as `istiod.istio-system.svc`, with DNS timeouts to that nameserver. This supports a pod-level service DNS resolution failure in ts-payment-service.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 2, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_packet_loss\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 6
+}

@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"redis-cart Service selector is `app=redis_cart` (underscore), but the actual redis-cart pod label is `app=redis-cart` (hyphen). The pod is Running/Ready, but TCP connectivity to redis-cart:6379 fails, consistent with a Service selector mismatch causing no endpoints.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/redis-cart\", \"root_cause\": \"service_selector_mismatch\"}, {\"rank\": 2, \"fault_object\": \"app/redis-cart\", \"root_cause\": \"service_port_mapping_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/redis-cart\", \"root_cause\": \"service_protocol_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 6
+}

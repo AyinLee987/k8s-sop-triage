@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"ts-train-service is in CrashLoopBackOff with exit code 1. Application logs show java.net.UnknownHostException for tsdb-mysql-leader and Istio proxy logs show DNS timeouts to 10.255.12.254 for istiod. The Deployment sets dnsPolicy: None with only nameserver 10.255.12.254, while the tsdb-mysql-leader Service exists and TCP-connectivity to 10.68.188.173:3306 succeeds from debug pods on worker-01, worker-02, and worker-03. All other train-ticket pods are Running. This isolates the incident to DNS resolution failure within ts-train-service, causing startup failure and downstream 500 errors.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-train-service\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_packet_loss\"}, {\"rank\": 3, \"fault_object\": \"app/ts-train-service\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 8
+}

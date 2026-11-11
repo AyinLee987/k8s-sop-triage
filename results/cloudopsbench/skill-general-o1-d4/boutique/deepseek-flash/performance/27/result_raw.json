@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show significant p90 latency degradation for adservice, checkoutservice, and recommendationservice, all hosted on worker-02. worker-02 also has a severe TCP retransmission spike (0.00 -> 6.67 retrans), while kube-proxy is running and the node is Ready. This supports a node-level packet-loss fault on worker-02 causing latency for co-located services.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_packet_loss\"}, {\"rank\": 2, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/recommendationservice\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 5
+}

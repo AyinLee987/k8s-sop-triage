@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All recommendationservice pods are Running and Ready. The Service is configured with `8080/UDP`, but the Deployment container exposes and uses gRPC/TCP on port 8080. An active TCP connectivity check to recommendationservice:8080 fails. This isolates the fault to a Service protocol mismatch for recommendationservice.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/recommendationservice\", \"root_cause\": \"service_protocol_mismatch\"}, {\"rank\": 2, \"fault_object\": \"app/recommendationservice\", \"root_cause\": \"service_port_mapping_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/recommendationservice\", \"root_cause\": \"service_dns_resolution_failure\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 5
+}

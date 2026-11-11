@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Active alert shows checkoutservice p50 latency rising from ~19ms to 3750ms. All pods are Running/Ready with 0 restarts; logs show successful payments/emails with no errors. Source code of checkoutservice main.go contains an injected `time.Sleep(time.Millisecond * 3000)` inside getUserCart(), accounting for the ~3s added latency per PlaceOrder call. This is an application code artificial delay, not a scheduling, node, or downstream failure.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 2, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 3, \"fault_object\": \"app/cartservice\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 8
+}

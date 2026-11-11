@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Widespread latency alerts propagate through gateway, travel, seat, preserve, and security callers. Dependency tracing shows `ts-order-service` as the deepest leaf with the largest own-latency contribution. Its pod is Running/Ready with zero restarts, TCP connectivity succeeds from all workers, application logs show successful and fast request handling, no error logs are present, and all nodes are Ready without pressure. This pattern favors pod-scoped network delay affecting responses from `ts-order-service`; app code delay and node network delay are less likely alternatives.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-03\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 19
+}

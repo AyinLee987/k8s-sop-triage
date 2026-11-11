@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Widespread latency and throughput anomalies cascade through services that depend on `ts-route-service`. `ts-route-service` is a leaf with no downstream service calls, yet its p50 latency rose to ~8s and p90 to ~21s. Its logs show normal `getRouteById` requests continuing over time without errors, while co-located `worker-03` services remain largely healthy. The deployment configuration and Service port mapping are valid, supporting an application-level delay rather than a service-port or node-wide network fault.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-route-service\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-route-service\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 3, \"fault_object\": \"node/worker-03\", \"root_cause\": \"node_network_packet_loss\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 13
+}

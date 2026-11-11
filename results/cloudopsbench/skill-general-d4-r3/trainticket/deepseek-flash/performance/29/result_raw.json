@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Active alert on ts-order-service reports RESOURCE_SATURATION cpu_cfs throttling (0.589s). Pods are Running with zero restarts, and ts-order-service logs show heavy request processing without exceptions. ts-seat-service has high latency but depends on ts-order-service; its only error logs are istio-proxy broken-pipe noise, indicating propagated latency rather than the root fault. Deployment CPU limit is 500m, consistent with pod-level CPU saturation.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 2, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 3, \"fault_object\": \"app/ts-seat-service\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 9
+}

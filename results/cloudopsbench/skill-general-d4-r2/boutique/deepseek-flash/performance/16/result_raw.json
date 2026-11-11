@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Latency alerts are centered on emailservice (p90 ~896ms vs normal 4.8ms), with propagated latency to checkoutservice and frontend. All pods are Running/Ready with zero restarts, nodes show no pressure/taints, emailservice logs show normal request receipt with no errors, its code contains no artificial delay, and emailservice TCP connectivity succeeds. The isolated severe latency on emailservice is most consistent with pod-scoped network delay.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/emailservice\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/emailservice\", \"root_cause\": \"pod_cpu_overload\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 15
+}

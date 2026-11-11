@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Widespread service latency alerts affect frontend, checkout, recommendation, cart, currency, payment, productcatalog, and redis-cart. Pod placement maps many affected callers/services to worker-02, and worker-02 shows a dominant TCP retransmission spike (0.02 -> 8.46 retrans, +50396.3%), consistent with packet loss. Nodes are Ready with no MemoryPressure, DiskPressure, taints, or resource-capacity anomaly, ruling out scheduling/capacity causes.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_packet_loss\"}, {\"rank\": 2, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/recommendationservice\", \"root_cause\": \"code_artificial_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 4
+}

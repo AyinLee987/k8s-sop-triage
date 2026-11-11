@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All pods are Running/Ready. The alert reports a POST payment 500 from ts-inside-payment-service. Its logs show an HTTP 500 propagated from /api/v1/paymentservice/payment. ts-payment-service logs show the root failure: IncorrectResultSizeDataAccessException/NonUniqueResultException, query did not return a unique result: 5. Deployment config, probes, ports, and pod health are normal, supporting an application-code defect in ts-payment-service rather than infrastructure or connectivity.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"code_wrong_return\"}, {\"rank\": 2, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"code_wrong_argument_order\"}, {\"rank\": 3, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"code_missing_parameter\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 9
+}

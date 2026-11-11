@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All affected pods are stuck in `Init:0/1` on `worker-01`, while `worker-01` is `NotReady` and pods on other nodes run normally. Kubelet is active but repeatedly fails with `dial unix /run/containerd/containerd.sock: connect: no such file or directory`. The containerd service on `worker-01` is confirmed `inactive (dead)`, so the container runtime outage is the root cause of the service availability disruption.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/worker-01\", \"root_cause\": \"containerd_unavailable\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"kubelet_unavailable\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 5
+}

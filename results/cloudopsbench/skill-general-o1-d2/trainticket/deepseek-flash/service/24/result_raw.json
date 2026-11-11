@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"ts-food-service pod is in CrashLoopBackOff. Its logs show java.net.UnknownHostException: tsdb-mysql-leader with repeated DNS timeouts (read udp ...->10.255.18.254:53: i/o timeout) affecting all lookups including istiod. The DB Service tsdb-mysql-leader exists and is TCP-reachable on port 3306 from worker-01/02/03 via connectivity test. The healthy sibling ts-food-delivery-service uses default DNS and resolves the same DB host without issue. The Deployment for ts-food-service uniquely sets dnsPolicy: None with a hardcoded nameserver 10.255.18.254 that is unreachable, so the pod cannot resolve any service names and crashes. This is an app-level DNS resolution fault localized to ts-food-service.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-food-service\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_packet_loss\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 11
+}

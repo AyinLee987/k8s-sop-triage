@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"`ts-payment-service` is CrashLoopBackOff and logs show MySQL connection failure caused by `java.net.UnknownHostException: tsdb-mysql-leader`. The `tsdb-mysql-leader` Service exists and TCP connectivity to 10.68.188.173:3306 succeeds from debug pods on worker-01/02/03. The failing Deployment uniquely sets `dnsPolicy: None` with nameserver `10.255.17.254` and no search domains, preventing resolution of the short Service name used in `PAYMENT_MYSQL_HOST`. The downstream `ts-inside-payment-service` 500s are a consequence of the payment dependency being unavailable.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 2, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_packet_loss\"}, {\"rank\": 3, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 12
+}

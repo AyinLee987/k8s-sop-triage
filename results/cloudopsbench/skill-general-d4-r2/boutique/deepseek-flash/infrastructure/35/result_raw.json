@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"The frontend pod is Pending because it is pinned by nodeSelector to worker-01. worker-01 is Unknown and has unreachable taints, and its kubelet.service is inactive (dead). This makes the frontend unavailable and causes partial service unreachability.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/worker-01\", \"root_cause\": \"kubelet_unavailable\"}, {\"rank\": 2, \"fault_object\": \"app/frontend\", \"root_cause\": \"node_selector_mismatch\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_packet_loss\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 5
+}

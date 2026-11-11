@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Widespread service latency alerts across multiple boutique services while all pods remain Running with no restarts. Node-level alerts show TCP retransmission spikes, most severe on worker-02 (8.46 retrans, +50396%) versus worker-01 (1.16). Most affected services are co-located on worker-02 or communicate with workloads there, and cluster nodes show no resource pressure or scheduling failure. This pattern is consistent with node-level packet loss masquerading as service latency.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_packet_loss\"}, {\"rank\": 2, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_packet_loss\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 5
+}

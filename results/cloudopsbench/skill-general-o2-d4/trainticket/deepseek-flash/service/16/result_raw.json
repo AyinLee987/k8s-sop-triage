@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts showed repeated HTTP 404s on ts-travel-service endpoint /api/v1/travelservice/trips/left. ts-travel-service pods were Running/Ready, its Service had correct selector and TCP port 12346 mapping, and its logs showed normal request processing. The ts-gateway-service ConfigMap routing table contains route id 'travel' with Path=/api/v1/travelservice/** but uri lb://${ORDER_SERVICE_HOST:ts-order-service}, i.e. it routes travel-service API traffic to ts-order-service, which does not serve that path and returns 404.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-gateway-service\", \"root_cause\": \"gateway_misrouted\"}, {\"rank\": 2, \"fault_object\": \"app/ts-gateway-service\", \"root_cause\": \"service_env_var_address_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"code_wrong_return\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 12
+}

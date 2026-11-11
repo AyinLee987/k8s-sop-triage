@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"productcatalogservice Deployment has 1 desired but 0 created pods. Its ReplicaSet reports ReplicaFailure=True FailedCreate, with repeated events: 'pods ... is forbidden: exceeded quota: memory-request-quota, requested: requests.memory=300Mi, used: requests.memory=3000Mi, limited: requests.memory=3Gi'. All sibling services run normally, so the zero-pod deployment is an admission failure caused by namespace memory quota exhaustion, not an application crash or node issue.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"namespace/boutique\", \"root_cause\": \"namespace_memory_quota_exceeded\"}, {\"rank\": 2, \"fault_object\": \"namespace/boutique\", \"root_cause\": \"namespace_cpu_quota_exceeded\"}, {\"rank\": 3, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"memory_capacity_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 7
+}

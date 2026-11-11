@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show severe latency degradation at ts-basic-service and its downstream leaf ts-train-service. ts-train-service pods are Running/Ready with zero restarts, no application error logs, normal resource configuration, and successful TCP connectivity from all worker nodes. Cluster nodes are Ready with no pressure or taints. The latency at ts-basic-service is therefore propagated from ts-train-service, where pod-scoped network delay is the strongest explanation; application-code artificial delay and node-wide network delay are plausible alternatives.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-train-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-train-service\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 17
+}

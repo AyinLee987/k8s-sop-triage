@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Frontend logs repeatedly show `lookup shippingservice on 169.254.20.10:53: no such host` for shipping quote and checkout paths. All pods are Running/Ready, shippingservice Deployment is healthy, but active TCP connectivity to shippingservice:50051 fails. Direct retrieval of the shippingservice Service returns NotFound, confirming a service DNS/name-resolution failure for shippingservice rather than a pod-health issue.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/shippingservice\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 2, \"fault_object\": \"app/shippingservice\", \"root_cause\": \"service_selector_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/shippingservice\", \"root_cause\": \"service_port_mapping_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 14
+}

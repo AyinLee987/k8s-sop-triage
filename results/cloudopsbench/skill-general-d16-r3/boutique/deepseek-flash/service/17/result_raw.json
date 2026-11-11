@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All pods Running/Ready with no metric alerts. frontend logs show connection refused to checkoutservice ClusterIP 10.68.228.153:5050. Direct CheckServiceConnectivity to checkoutservice:5050 fails. Service definition: port 5050 -> targetPort: grpc-api, but the container port is named 'grpc' (containerPort 5050). The named targetPort 'grpc-api' does not exist on the pod, so no valid endpoint port is produced and traffic to the ClusterIP is refused despite healthy backends. This is a Service port mapping mismatch on app/checkoutservice.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"service_port_mapping_mismatch\"}, {\"rank\": 2, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"service_selector_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"code_wrong_return\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 12
+}

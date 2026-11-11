@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Active alerts show worker-01 with a new TCP retransmission spike (0.00 -> 0.70 retrans), while multiple boutique pods on worker-01 remain Running with no restarts. Services hosted on worker-01 (frontend, productcatalogservice, currencyservice, paymentservice) show traffic/throughput anomalies, and downstream-dependent services on worker-02 (checkoutservice, recommendationservice) show extreme p50 latency. The pattern is consistent with node-level packet loss on worker-01 causing widespread service latency, rather than an individual application code defect.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_packet_loss\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"code_artificial_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 4
+}

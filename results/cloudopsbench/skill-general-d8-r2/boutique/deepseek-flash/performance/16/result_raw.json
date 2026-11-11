@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show severe latency degradation at checkoutservice and emailservice, with frontend affected upstream. Pods are all Running with zero restarts. emailservice is the deepest leaf dependency and has the largest p90 latency spike (~895.9ms vs 4.8ms normal). Its Service port is 5000/TCP and connectivity to emailservice:5000 succeeds. Emailservice logs show normal request receipt with no errors, and source inspection shows no explicit sleep or artificial delay. Node conditions are normal. This supports a pod-scoped network latency fault at emailservice rather than a code, port, or node-wide failure.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/emailservice\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"app/emailservice\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 16
+}

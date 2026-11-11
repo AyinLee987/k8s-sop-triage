@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts report frontend CPU saturation and a large filesystem write spike, with 503s concentrated on home and product-detail routes. Source inspection shows frontend `chooseAd`, called by both affected handlers, creates `/tmp/tmp.csv` and writes 30,000 CSV rows on every invocation. This directly explains the excessive file-write activity and associated service performance degradation.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_excessive_file_writes\"}, {\"rank\": 2, \"fault_object\": \"app/frontend\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 3, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_busy_loop\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 7
+}

@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All pods are Running/Ready with no relevant restarts, ruling out scheduling, admission, CPU/memory, and availability faults. The payment flow shows a deterministic downstream 500: ts-inside-payment-service receives a 500 from /api/v1/paymentservice/payment, and ts-payment-service logs show repeated IncorrectResultSizeDataAccessException / NonUniqueResultException: 'query did not return a unique result: 5'. This points to faulty application logic in ts-payment-service, not a cluster or network issue.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"code_wrong_return\"}, {\"rank\": 2, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"code_missing_parameter\"}, {\"rank\": 3, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"code_wrong_argument_order\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 13
+}

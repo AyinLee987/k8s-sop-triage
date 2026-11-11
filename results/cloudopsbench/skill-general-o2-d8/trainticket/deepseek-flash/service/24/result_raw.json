@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"ts-food-service is 0/2 in CrashLoopBackOff. Its application logs show MySQL/JPA initialization failing with `java.net.UnknownHostException: tsdb-mysql-leader: Temporary failure in name resolution`, and its istio-proxy logs show DNS lookup timeouts to cluster DNS/istiod. The `tsdb-mysql-leader` Service exists with port 3306 and active TCP connectivity succeeds from debug pods on worker-01, worker-02, and worker-03. This isolates the primary fault to DNS resolution failure inside the ts-food-service pod rather than a downstream MySQL Service outage, selector issue, or port mismatch.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-food-service\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_packet_loss\"}, {\"rank\": 3, \"fault_object\": \"app/ts-food-service\", \"root_cause\": \"service_env_var_address_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 7
+}

@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Frontend alerts showed severe CPU throttling (1.204s throttled), CPU rising from 0.01 to 0.13 cores, and p50 latency increasing from 24.73ms to 2235.31ms. Pods were Running with zero restarts, adservice had no error logs and handled requests normally, but frontend handlers.go contains an 800ms busy-wait loop in chooseAd. This directly explains CPU saturation, throttling, added request latency, and propagated 503/timeout symptoms.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 2, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 3, \"fault_object\": \"app/frontend\", \"root_cause\": \"pod_cpu_overload\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 9
+}

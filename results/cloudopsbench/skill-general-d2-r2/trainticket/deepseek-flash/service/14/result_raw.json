@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All pods are Running and Ready, ruling out scheduling/quota faults. The only active alert is repeated HTTP 500 errors on payment processing via ts-inside-payment-service. Logs show ts-payment-service returns 500 with IncorrectResultSizeDataAccessException: query did not return a unique result: 5 / NonUniqueResultException. Configuration shows ts-payment-service is correctly wired to MySQL. The fault is an application-level query/argument defect in ts-payment-service.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"code_missing_parameter\"}, {\"rank\": 2, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"code_wrong_argument_order\"}, {\"rank\": 3, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"code_wrong_return\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 7
+}

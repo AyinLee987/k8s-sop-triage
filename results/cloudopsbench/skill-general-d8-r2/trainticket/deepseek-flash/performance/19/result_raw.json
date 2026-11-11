@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show ts-order-service with RESOURCE_SATURATION CPU CFS throttling (0.306s), while downstream-facing services ts-gateway-service, ts-cancel-service, ts-inside-payment-service, and ts-ui-dashboard show latency degradation. Dependency data confirms ts-order-service is called by gateway, cancel, and payment services, so its CPU saturation plausibly propagates the latency. Logs show ts-order-service actively processing requests successfully rather than crashing or producing application errors.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 2, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 3, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"code_artificial_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 5
+}

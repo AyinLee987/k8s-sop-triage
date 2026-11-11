@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show emailservice p90 latency at 895.90ms, checkoutservice p50/p90 at 516.72/948.48ms, and frontend p90 at 574.70ms. Dependency data confirms checkoutservice calls emailservice. Emailservice logs show requests arriving without errors, and source inspection shows DummyEmailService returns immediately with no application delay. The emailservice pod is Running on worker-02 with 0 restarts, and TCP connectivity to emailservice:5000 succeeds. Node worker-02 is Ready without pressure. Other worker-02 pods show no latency alerts, favoring an emailservice pod-specific network delay over a node-wide fault.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/emailservice\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 12
+}

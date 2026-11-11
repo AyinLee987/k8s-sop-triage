@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"checkoutservice Deployment is 0/1 with no pod; ReplicaSet events show repeated FailedCreate because the pod request would exceed namespace quota cpu-request-quota (requested requests.cpu=2, used=10, limited=10). Other service pods are Running/Ready, pointing to namespace CPU quota exhaustion as the primary fault.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"namespace/boutique\", \"root_cause\": \"namespace_cpu_quota_exceeded\"}, {\"rank\": 2, \"fault_object\": \"namespace/boutique\", \"root_cause\": \"namespace_pod_quota_exceeded\"}, {\"rank\": 3, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"deployment_zero_replicas\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 8
+}

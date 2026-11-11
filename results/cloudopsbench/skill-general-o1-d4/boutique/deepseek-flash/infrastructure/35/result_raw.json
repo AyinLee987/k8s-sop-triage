@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"frontend pod is Pending with FailedScheduling because its nodeSelector requires worker-01; worker-01 is Unknown and tainted node.kubernetes.io/unreachable; kubelet.service on worker-01 is inactive (dead). This explains partial service unreachability and the inability to schedule the frontend replacement pod.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/worker-01\", \"root_cause\": \"kubelet_unavailable\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_packet_loss\"}, {\"rank\": 3, \"fault_object\": \"app/frontend\", \"root_cause\": \"node_selector_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 5
+}

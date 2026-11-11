@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Active alerts show severe latency degradation isolated to leaf service ts-train-service: p50 rose from ~8.35ms to 2500ms with peak ~2970ms during the incident window. Its pod is Running/Ready with 0 restarts, no error logs were found, and TCP connectivity to ts-train-service:14567 succeeded from worker-01/02/03. Callers such as ts-basic-service and ts-preserve-service show propagated latency, consistent with ts-train-service being the origin. There is no CPU/memory saturation alert for ts-train-service, supporting pod-scoped network delay over resource saturation.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-train-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-train-service\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 12
+}

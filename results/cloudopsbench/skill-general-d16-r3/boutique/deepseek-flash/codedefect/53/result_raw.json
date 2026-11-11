@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Frontend showed CPU CFS throttling, a sharp CPU increase, p90 latency above 3.8s, and broad 5xx responses while all boutique pods were Running/Ready. Frontend logs were dominated by downstream gRPC deadline exceeded warnings. Source inspection found `setCurrencyHandler` opens `/src/log.csv` and calls `ReadAll()` 10 times per request, causing excessive file reads and contributing to frontend CPU saturation and latency degradation.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_excessive_file_reads\"}, {\"rank\": 2, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 3, \"fault_object\": \"app/frontend\", \"root_cause\": \"pod_cpu_overload\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 10
+}

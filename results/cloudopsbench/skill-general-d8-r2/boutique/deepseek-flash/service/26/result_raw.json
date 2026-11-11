@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All boutique pods are Running and Ready with no restarts, and no metric alerts are active. The currencyservice Service is configured with protocol UDP on port 7000 and targetPort 7000/UDP, but an active TCP connectivity check to currencyservice:7000 fails even though the currencyservice pod is healthy and the Service has endpoints. This strongly indicates the Service protocol is misconfigured for the application.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/currencyservice\", \"root_cause\": \"service_protocol_mismatch\"}, {\"rank\": 2, \"fault_object\": \"app/currencyservice\", \"root_cause\": \"service_port_mapping_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/currencyservice\", \"root_cause\": \"service_dns_resolution_failure\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 6
+}

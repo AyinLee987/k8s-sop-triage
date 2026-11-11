@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"GetAlerts reported a single anomaly on frontend: CPU CFS throttling of 1.333s, CPU usage increased from 0.07 to 0.16 cores (+138.1%), and latency degradation with p50 rising from 15.87ms to 45.00ms and p95 from 27.67ms to 271.36ms. The frontend pod is Running with 0 restarts, and recent logs show mostly fast responses without application errors. The frontend Deployment specifies a CPU limit of 200m, and the observed CPU usage approached this limit, causing throttling. This localizes the primary fault to excessive CPU load on the frontend pod.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/frontend\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 2, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 14
+}

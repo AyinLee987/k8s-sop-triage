@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Widespread service latency and traffic drops affected the boutique namespace. Node metrics showed a dominant TCP retransmission spike on worker-02 (0.02 -> 8.46 retrans/s) versus a smaller spike on worker-01 (0.00 -> 1.16). Multiple latency-affected services run on worker-02, while all pods remained Running with no restarts and worker-02 was Ready with no MemoryPressure, DiskPressure, or PIDPressure. This localizes the primary fault to node-level packet loss on worker-02 rather than application failure or resource exhaustion.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_packet_loss\"}, {\"rank\": 2, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_packet_loss\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 5
+}

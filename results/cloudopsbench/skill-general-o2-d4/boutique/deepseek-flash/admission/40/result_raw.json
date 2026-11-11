@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"productcatalogservice deployment has 0 available replicas and no pod. Its ReplicaSet repeatedly fails with FailedCreate: 'exceeded quota: pod-count-quota, requested: pods=1, used: pods=10, limited: pods=10', proving the namespace pod count quota is exhausted and preventing a replacement pod from being created.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"namespace/boutique\", \"root_cause\": \"namespace_pod_quota_exceeded\"}, {\"rank\": 2, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"deployment_zero_replicas\"}, {\"rank\": 3, \"fault_object\": \"namespace/boutique\", \"root_cause\": \"namespace_cpu_quota_exceeded\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 5
+}

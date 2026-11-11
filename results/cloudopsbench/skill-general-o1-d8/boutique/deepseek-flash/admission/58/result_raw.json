@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"redis-cart pod is Pending with scheduler event: persistentvolumeclaim \\\"redis-cart-pvc\\\" not found. The namespace contains only pre-existing-pvc, although the redis-cart manifest defines redis-cart-pvc requesting 2Gi. The namespace ResourceQuota storage-quota shows requests.storage used 9Gi / hard 10Gi, leaving only 1Gi free, so creation of the 2Gi PVC would exceed quota. The intended redis-cart-pv is Available, ruling out PV occupancy as the immediate blocker.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"namespace/boutique\", \"root_cause\": \"namespace_storage_quota_exceeded\"}, {\"rank\": 2, \"fault_object\": \"app/redis-cart\", \"root_cause\": \"pvc_capacity_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/redis-cart\", \"root_cause\": \"pvc_storage_class_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 10
+}

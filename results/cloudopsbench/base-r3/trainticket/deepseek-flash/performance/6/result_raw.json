@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Widespread latency degradation (order p50 3881ms, seat 3906ms, security 3750ms, preserve 30s, ui-dashboard 34s) with traffic drops. All latency-affected pods cluster on worker-01 (order, seat, preserve, travel, ui-dashboard); the two off-node slow services (security on worker-02, gateway on worker-03) both call into worker-01 services. Intra-node calls (seat→order, both worker-01) complete in ~4ms and internal processing logs are fast, so multi-second delays occur only on network hops crossing worker-01. All pods Running/Ready, no error logs, no scheduling issues. This isolates the fault to network delay on worker-01.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_packet_loss\"}, {\"rank\": 3, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 17
+}

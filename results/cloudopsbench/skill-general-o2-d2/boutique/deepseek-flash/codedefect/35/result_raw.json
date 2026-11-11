@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Frontend pod (on worker-01) shows CPU saturation +1506% and 1.204s CFS throttling with p50 latency jumping 24ms→2235ms and 503s, while all pods remain Running with 0 restarts. Source inspection of handlers.go reveals an injected busy-wait loop in chooseAd() that spins the CPU for 800ms on every home/product render, directly causing CPU starvation and the latency/error cascade. This is a code-level busy loop, not node or downstream fault.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 2, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 3, \"fault_object\": \"app/adservice\", \"root_cause\": \"code_artificial_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 7
+}

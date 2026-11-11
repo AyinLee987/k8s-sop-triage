@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts localize the fault to cartservice: CPU CFS throttling 0.811s, CPU cores 0.02->0.16 (+544.6%, near the 200m limit), and p95 latency 10.77ms->83.83ms (+678%). checkoutservice (+310%) and frontend (+287%) are upstream callers showing derived latency. cartservice pod is Running with 0 restarts, its code (CartService, RedisCartStore, Startup, Program) is a thin passthrough with no busy loop or sleep, deployment CPU limit is a normal 200m, redis-cart downstream is healthy, and all nodes report Ready with 8 CPU allocatable and no pressure. This isolates the root cause to excessive pod-level CPU load on cartservice.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/cartservice\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 2, \"fault_object\": \"app/cartservice\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 3, \"fault_object\": \"app/cartservice\", \"root_cause\": \"code_artificial_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 16
+}

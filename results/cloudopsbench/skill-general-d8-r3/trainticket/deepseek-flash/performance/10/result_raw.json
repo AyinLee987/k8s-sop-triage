@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All nodes Ready with no pressure/taints; all train-ticket pods Running/Ready with zero/negligible restarts; tsdb-mysql has no error logs. Dependency tracing identified ts-route-service as the deepest leaf service, with extreme local latency (p50 7.55ms->8026ms, +106000%; p90 9.6ms->21s), while its pod is healthy, no error logs, and TCP connectivity succeeds from worker-01/02/03. Sibling leaf services using the same tsdb-mysql backend (ts-station-service, ts-train-service, ts-price-service) exhibit only throughput drops with NO latency degradation, ruling out a shared DB/dependency cause. Upstream latency in ts-basic-service, ts-gateway-service, ts-preserve-service and ts-travel-service is propagated caller symptom. This matches the application-code-delay profile: extreme service-local latency, healthy pods, low error ratio, normal dependencies.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-route-service\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-route-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-route-service\", \"root_cause\": \"db_connection_exhaustion\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 17
+}

@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show ts-order-service RESOURCE_SATURATION [cpu_cfs] with 0.306s throttled while all other pods are Running/Ready and no application error logs exist for ts-order-service. Its Deployment has a 500m CPU limit and 200m request; it is a dependency hub called by gateway, preserve, seat, security, payment, cancel, rebook, execute, and voucher services, explaining broad propagated latency alerts. Cluster nodes have Ready status, no pressure, and 8 CPU allocatable each, ruling out node CPU capacity. Recent logs show normal order processing with no exceptions, supporting application/pod CPU overload rather than code failure or missing dependencies.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 2, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 3, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 9
+}

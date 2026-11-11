@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"ts-food-service pod is in CrashLoopBackOff with errors resolving `tsdb-mysql-leader`. The Service exists and is reachable on port 3306 from debug pods on all nodes. The pod's deployment sets dnsPolicy: None with nameserver 10.255.18.254, and its istio-proxy logs show DNS timeouts to istiod via that same nameserver, while other pods on the same node are healthy. This points to a DNS resolution failure specific to ts-food-service.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-food-service\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 2, \"fault_object\": \"app/ts-food-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 9
+}

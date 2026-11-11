@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"`ts-train-service` on worker-01 is a downstream leaf with latency degradation (p50 ~8ms -> 2500ms, peak ~4.5s), while its callers `ts-basic-service` and `ts-preserve-service` show propagated latency. `ts-train-service` pods are Running/Ready with no restarts, logs show no application errors, node worker-01 is Ready with no pressure/taints, and TCP connectivity succeeds. Other worker-01 services are not uniformly latency-degraded, making a node-wide fault less likely and pointing to pod-scoped network delay on `ts-train-service`.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-train-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-train-service\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"pod_cpu_overload\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 14
+}

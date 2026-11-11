@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All workload pods are Running/Ready with no crash-loop or application error surge. Alerts show broad service latency and RPS/network-rate drops; the most severe backend latency symptoms cluster on worker-01-hosted services (ts-order-service, ts-preserve-service, ts-seat-service, ts-travel-service, ts-ui-dashboard). Gateway connectivity succeeds from all nodes, and node health shows no pressure or NotReady condition, so the fault is most consistent with node-level packet loss on worker-01 causing propagated latency and reduced throughput across dependent services.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_packet_loss\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-gateway-service\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 19
+}

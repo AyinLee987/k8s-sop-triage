@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"redis-cart pod is Pending; FailedScheduling reports PVC 'redis-cart-pvc' not found. Namespace ResourceQuota 'storage-quota' shows requests.storage at 9Gi/10Gi, while the redis-cart PVC requests 2Gi, so admission would exceed the 10Gi hard limit by 1Gi.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"namespace/boutique\", \"root_cause\": \"namespace_storage_quota_exceeded\"}, {\"rank\": 2, \"fault_object\": \"app/redis-cart\", \"root_cause\": \"pv_binding_occupied\"}, {\"rank\": 3, \"fault_object\": \"namespace/boutique\", \"root_cause\": \"namespace_pod_quota_exceeded\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 8
+}

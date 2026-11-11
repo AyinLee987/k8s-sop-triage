@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Active alerts show latency degradation across ts-cancel-service, ts-gateway-service, ts-inside-payment-service, and ts-ui-dashboard, plus RESOURCE_SATURATION cpu_cfs throttling on ts-order-service. ts-order-service is called by multiple affected services (ts-cancel-service, ts-gateway-service via chain, ts-inside-payment-service, etc.). Its pod is Running with no restarts, has no error logs, and no confirmed downstream calls; its Deployment CPU limit is 500m. This supports excessive CPU load on ts-order-service as the primary cause of downstream latency. Node-level packet loss is less likely but plausible because several affected pods are on worker-02.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 2, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_packet_loss\"}, {\"rank\": 3, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"code_busy_loop\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 8
+}

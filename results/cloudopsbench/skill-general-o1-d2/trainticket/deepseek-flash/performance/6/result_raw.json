@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Widespread latency (tens of seconds) concentrated on services hosted on worker-01 (order p50=3.9s, preserve p50=30s, seat p50=3.9s, travel p90=11s, ui p90=34.5s), while internal application logs (ts-order-service, ts-preserve-service) show fast millisecond-level processing. All pods are Running with no restarts/crashes; all nodes Ready with no memory/disk/PID pressure or taints; kube-proxy on worker-01 active; TCP connectivity to ts-order-service:12031 open from all nodes. The unform ~50% traffic/RPS drop across all services is consistent with the slowed worker-01 entry/UI reducing overall request rate. The pattern of multiple co-located pods degrading while their own processing stays fast indicates node-level network latency on worker-01, not app code, scheduling, or resource exhaustion.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_packet_loss\"}, {\"rank\": 3, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 17
+}

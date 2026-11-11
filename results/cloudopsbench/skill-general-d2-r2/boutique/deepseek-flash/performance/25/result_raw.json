@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show massive isolated latency at leaf service productcatalogservice (p90 2.5ms -> 1158ms) with downstream propagation to recommendationservice (946ms) and frontend success-rate collapse to 25%. Productcatalogservice pods are Running/Ready with 0 restarts, its Service TCP port 3550 is open, application logs show no errors, and startup logs show no 'extra latency enabled' (Deployment has no EXTRA_LATENCY env), ruling out artificial code delay. Peer pods on worker-01 (cart/currency/payment/redis) show only traffic drop, not latency spikes, indicating a pod-scoped rather than node-wide network fault. This matches team note exp-02 for pod-scoped network delay.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 14
+}

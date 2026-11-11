@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"16 service alerts show simultaneous latency spikes and RPS/packet-rate drops across many services, while all pods are Running/Ready with zero restarts and nodes report Ready with no pressure or scheduling issues. ts-gateway-service is the shared entry dependency for the affected services; its error logs are empty and TCP connectivity to port 18888 succeeds from worker-01/02/03, ruling out service selector, port, DNS, and availability faults. This pattern matches pod-scoped network delay on the gateway rather than independent backend failures.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-gateway-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-gateway-service\", \"root_cause\": \"code_artificial_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 12
+}

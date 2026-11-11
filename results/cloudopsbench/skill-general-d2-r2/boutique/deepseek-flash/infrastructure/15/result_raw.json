@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All boutique pods are Running/Ready and Services have correct selectors. Frontend logs show TCP i/o timeouts to productcatalogservice (10.68.101.73:3550) and currencyservice, plus DNS failure resolving checkoutservice. Active connectivity test to productcatalogservice:3550 fails from worker-01 but succeeds from worker-02 and worker-03. Inspection of worker-01 shows kube-proxy.service is inactive (dead), stopped at 16:06:23, so service routing/DNS-dependent ClusterIP traffic on that node is broken.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/worker-01\", \"root_cause\": \"kube_proxy_unavailable\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_packet_loss\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 8
+}

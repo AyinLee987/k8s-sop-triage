@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"productcatalogservice has 0/1 available replicas and no pods. Its ReplicaSet shows ReplicaFailure=True (FailedCreate) with repeated events: 'pods ... is forbidden: exceeded quota: pod-count-quota, requested: pods=1, used: pods=10, limited: pods=10'. All other services are Running, confirming the fault is namespace pod-count quota exhaustion in boutique.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"namespace/boutique\", \"root_cause\": \"namespace_pod_quota_exceeded\"}, {\"rank\": 2, \"fault_object\": \"namespace/boutique\", \"root_cause\": \"namespace_cpu_quota_exceeded\"}, {\"rank\": 3, \"fault_object\": \"namespace/boutique\", \"root_cause\": \"namespace_memory_quota_exceeded\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 5
+}

@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Widespread latency alerts propagate through ts-gateway-service, ts-preserve-service, ts-seat-service, ts-security-service, ts-travel-service, and ts-ui-dashboard, with the most direct backend anomaly at ts-order-service (p50 latency ~3.9s, p90 ~17.6s, peak ~174s). ts-order-service pods are Running/Ready without restarts or error logs, nodes are Ready without resource pressure, and recent ts-order-service logs show successful request handling in milliseconds. TCP connectivity to ts-order-service:12031 succeeds from worker-01, worker-02, and worker-03. This indicates latency is introduced on the pod network path rather than application processing, DNS/service-port failure, or node resource exhaustion.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"code_artificial_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 13
+}

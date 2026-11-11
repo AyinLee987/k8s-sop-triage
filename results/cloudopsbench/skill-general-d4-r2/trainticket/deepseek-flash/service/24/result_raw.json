@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"ts-food-service on worker-01 is in CrashLoopBackOff (exit 1). Logs show `java.net.UnknownHostException: tsdb-mysql-leader` and istio-proxy DNS timeouts to 10.255.18.254:53. GetAppYAML for ts-food-service uniquely sets `dnsPolicy: None` with `dnsConfig.nameservers: [10.255.18.254]`, bypassing cluster DNS; ts-order-service and others use default cluster DNS and are healthy. The tsdb-mysql-leader Service exists (10.68.188.173:3306) and CheckServiceConnectivity succeeds from worker-01/02/03, and worker-01 node is Ready with no pressure, so the Service and node are fine. Root cause is the pod's DNS configuration causing cluster-service name resolution to fail.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-food-service\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 2, \"fault_object\": \"app/ts-food-service\", \"root_cause\": \"service_env_var_address_mismatch\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 11
+}

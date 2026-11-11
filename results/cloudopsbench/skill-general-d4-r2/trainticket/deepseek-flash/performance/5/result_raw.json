@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show extreme latency degradation on ts-inside-payment-service (p50 22.93ms -> 7166.67ms, p90 64.29ms -> 20333.33ms) with throughput collapse. Caller services including ts-cancel-service and ts-gateway-service show propagated latency. All pods are Running/Ready with no restarts; nodes are Ready without pressure; TCP connectivity to ts-inside-payment-service:18673 succeeds from all workers. ts-order-service is healthy and successfully handles getOrderById. This pattern supports a pod-scoped network delay on ts-inside-payment-service, with downstream/code/config causes not supported by the collected evidence.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-inside-payment-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"node/worker-03\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-inside-payment-service\", \"root_cause\": \"code_artificial_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 19
+}

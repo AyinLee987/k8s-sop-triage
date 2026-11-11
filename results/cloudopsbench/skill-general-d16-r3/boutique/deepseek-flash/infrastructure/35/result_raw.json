@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"frontend pod is Pending with FailedScheduling because it is pinned to worker-01 via kubernetes.io/hostname=worker-01. worker-01 is Unknown and tainted node.kubernetes.io/unreachable. CheckNodeServiceStatus shows kubelet.service on worker-01 is inactive (dead), explaining the node unreachable state and resulting partial service unavailability.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/worker-01\", \"root_cause\": \"kubelet_unavailable\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"containerd_unavailable\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_packet_loss\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 7
+}
