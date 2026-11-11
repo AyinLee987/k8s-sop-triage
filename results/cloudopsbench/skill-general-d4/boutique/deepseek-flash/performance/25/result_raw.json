@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"productcatalogservice showed extreme isolated p90 latency increase (2.5ms to 1158.68ms) while pods were 2/2 Running with 0 restarts. recommendationservice and frontend latency spikes are downstream propagation through calls to productcatalogservice. Other services on the same worker-01 node did not show comparable latency degradation, and productcatalogservice TCP connectivity succeeded. The deployment does not set EXTRA_LATENCY and startup logs show no extra latency enabled, ruling against the application-code artificial delay path.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 11
+}

@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show CPU CFS throttling on ts-order-service (0.589s throttled) alongside latency degradation on ts-seat, ts-travel, ts-preserve. Dependency topology confirms ts-seat-service calls ts-order-service. ts-order-service has no application error logs but logs reveal extremely heavy bulk processing (queryOrders size 6653, bulk getSoldTickets returning hundreds of tickets), saturating its 500m CPU limit and causing CFS throttling that propagates to callers. ts-seat-service had no app exceptions (only istio-proxy broken-pipe metric scraping noise), ruling out code errors there.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 2, \"fault_object\": \"app/ts-seat-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"code_busy_loop\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 10
+}

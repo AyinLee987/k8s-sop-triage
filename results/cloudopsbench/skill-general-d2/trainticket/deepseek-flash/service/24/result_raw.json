@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"ts-food-service is CrashLoopBackOff with exit 1. Logs show CommunicationsException/UnknownHostException for tsdb-mysql-leader and DNS UDP i/o timeouts to 10.255.18.254:53; its Istio sidecar also times out resolving istiod.istio-system.svc. The tsdb-mysql-leader Service exists, and CheckServiceConnectivity to 10.68.188.173:3306 succeeds from worker-01/02/03, while other pods remain Running. This isolates the fault to pod-scoped network delay on ts-food-service.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-food-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-food-service\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 13
+}

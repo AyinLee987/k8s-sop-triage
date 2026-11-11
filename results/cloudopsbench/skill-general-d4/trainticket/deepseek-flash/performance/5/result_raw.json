@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Broad latency/throughput degradation across train-ticket services, but all pods are Running with zero restarts and nodes are Ready with no pressure. The epicenter is ts-inside-payment-service: p50 rose from 22.9ms to ~7166ms and p90 from 64ms to ~20333ms (largest, most sustained), while downstream dependencies (ts-order-service, ts-payment-service) and other peer pods remain healthy. Order-service logs show successful fast getOrderById/saveChanges responses, and inside-payment's own application logs complete each pay/drawBack call in ~20ms, ruling out application code delay and downstream saturation. The delay is thus in the pod's network layer, propagating tail latency to callers (ts-cancel-service p90 150ms->21s; gateway/ui-dashboard p90 spikes). This matches the pod_network_delay signature from exp-02: latency up, pods Ready, downstream normal, internal processing fast.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-inside-payment-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-cancel-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-gateway-service\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 16
+}

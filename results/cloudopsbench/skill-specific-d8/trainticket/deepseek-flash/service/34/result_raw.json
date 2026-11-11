@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Only `ts-station-service` is unavailable: deployment 0/1 and pod in CrashLoopBackOff. Its logs show Hikari/MySQL connection initialization failing with `java.net.UnknownHostException: tsdb-mysql-leader: Temporary failure in name resolution`; sidecar logs also show DNS lookup timeouts to `10.255.13.254`. The Service `tsdb-mysql-leader` exists and TCP connectivity to `10.68.188.173:3306` succeeds from debug pods on worker-01, worker-02, and worker-03. `ts-station-service` has a nondefault `dnsPolicy: None` with nameserver `10.255.13.254`, while healthy comparable apps use default DNS, isolating the fault to DNS resolution for this app.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-station-service\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 2, \"fault_object\": \"app/ts-station-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 9
+}

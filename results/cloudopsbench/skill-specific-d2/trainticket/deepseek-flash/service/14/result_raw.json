@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Payment processing alerts point to `ts-inside-payment-service`, whose logs show it is relaying HTTP 500 errors from downstream `/api/v1/paymentservice/payment`. `ts-payment-service` logs repeatedly show `IncorrectResultSizeDataAccessException` / `NonUniqueResultException: query did not return a unique result: 5`, indicating a database lookup that should be unique is being executed incorrectly. The payment pod is Running with no restarts, its DB connection secret is configured correctly, and `tsdb-mysql` has no error logs, making an application query/code fault the strongest explanation.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"code_missing_parameter\"}, {\"rank\": 2, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"code_wrong_argument_order\"}, {\"rank\": 3, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"code_wrong_return\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 15
+}

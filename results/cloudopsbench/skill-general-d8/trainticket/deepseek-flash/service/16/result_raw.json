@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All application pods are Running/Ready with no broad outage. Active alerts show a high-frequency 404 on the travel search path and a 500 on the payment path. Logs for ts-inside-payment-service show it propagates a downstream HTTP 500 from /api/v1/paymentservice/payment. Logs for ts-payment-service show the root exception: IncorrectResultSizeDataAccessException / NonUniqueResultException, 'query did not return a unique result: 5', causing deterministic HTTP 500 responses on valid payment requests. The travel-service logs show healthy successful request processing, so the travel 404 is less likely to be the primary backend failure.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"code_wrong_return\"}, {\"rank\": 2, \"fault_object\": \"app/ts-gateway-service\", \"root_cause\": \"gateway_misrouted\"}, {\"rank\": 3, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"code_wrong_argument_order\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 19
+}

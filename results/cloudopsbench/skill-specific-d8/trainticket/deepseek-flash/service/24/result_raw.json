@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Only ts-food-service is unhealthy (CrashLoopBackOff). Its logs repeatedly show `java.net.UnknownHostException: tsdb-mysql-leader: Temporary failure in name resolution`, causing Hikari/JPA startup failure. The `tsdb-mysql-leader` Service exists and TCP connectivity to 10.68.188.173:3306 succeeds from worker-01/02/03, so the DB Service and port are reachable; the failure is localized to DNS resolution in ts-food-service. ts-preserve-service depends on ts-food-service and logs `IllegalArgumentException: Service Instance cannot be null`, matching the reported preserve-service 500 alerts. Gateway logs show healthy startup, weakening the earlier gateway-misroute hypothesis.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-food-service\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 2, \"fault_object\": \"app/ts-food-service\", \"root_cause\": \"service_env_var_address_mismatch\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 18
+}

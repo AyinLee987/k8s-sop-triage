@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show severe latency degradation for checkoutservice (p50 ~516ms, p90 ~948ms), emailservice (p90 ~896ms), and propagated frontend latency (p90 ~575ms). checkoutservice and emailservice pods are both Running on worker-02, while frontend on worker-01 calls checkoutservice. Node configuration shows worker-02 Ready with no pressure or taints. Application code for emailservice and checkoutservice contains no artificial delay, and emailservice Service connectivity succeeds on its correct port 5000. The symptom pattern matches the recorded worker-02 network packet-loss experience.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_packet_loss\"}, {\"rank\": 2, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/emailservice\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 15
+}

@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Frontend logs show 174 repeated errors: connection refused when dialing checkoutservice at 10.68.228.153:5050 for /cart/checkout. Deployments and pods are otherwise Ready, and the checkoutservice pod is Running. The checkoutservice Service uses targetPort `grpc-api`, but the container declares its 5050 port as name `grpc`; therefore the Service cannot correctly map port 5050 to the pod port, matching the connection-refused symptom.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"service_port_mapping_mismatch\"}, {\"rank\": 2, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"service_selector_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"service_protocol_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 11
+}

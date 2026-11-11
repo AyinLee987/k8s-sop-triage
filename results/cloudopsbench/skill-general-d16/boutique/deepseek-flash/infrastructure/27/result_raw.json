@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"kube-scheduler on master is inactive (dead) and stopped at 21:35:09; recommendationservice pod is Pending with no scheduling events; all other pods are Running and node resources are healthy. The scheduler outage explains why the pod cannot be scheduled, causing service availability disruption.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/master\", \"root_cause\": \"kube_scheduler_unavailable\"}, {\"rank\": 2, \"fault_object\": \"namespace/boutique\", \"root_cause\": \"namespace_pod_quota_exceeded\"}, {\"rank\": 3, \"fault_object\": \"app/recommendationservice\", \"root_cause\": \"node_affinity_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 6
+}

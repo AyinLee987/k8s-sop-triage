@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"GetAlerts showed widespread LATENCY_DEGRADATION and throughput drops across ts-gateway, ts-basic, ts-route, ts-preserve and others. GetServiceDependencies confirmed ts-travel-service as the common upstream for the degraded call chain (callers include gateway, preserve, food; downstream includes basic, route, train, seat). GetResources showed all pods Running with no anomalous restarts, ruling out crash loops. GetErrorLogs for ts-travel-service returned no errors, consistent with a network-latency fault rather than a code/DB failure. This exactly matches team experience exp-02: pod_network_delay on app/ts-travel-service causes fan-out latency while the affected pods themselves look healthy.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-travel-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"node/worker-03\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-travel-service\", \"root_cause\": \"code_artificial_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 6
+}

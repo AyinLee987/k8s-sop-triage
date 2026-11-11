@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Frontend logs show repeated connection refused to productcatalogservice ClusterIP 10.68.1.75:3550 despite a Running/Ready productcatalogservice pod. The Service describes port 3550 with targetPort 8081, but the Deployment config sets containerPort/PORT and readiness/liveness probes to 3550. This Service port mapping mismatch causes traffic to be sent to the wrong pod port, producing availability disruption.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"service_port_mapping_mismatch\"}, {\"rank\": 2, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"service_selector_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"service_protocol_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 9
+}

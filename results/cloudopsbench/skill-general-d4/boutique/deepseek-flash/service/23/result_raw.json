@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All pods are Running/Ready. frontend logs show TCP dial to adservice 10.68.25.111:9555 failing with connection refused. Service listing shows adservice port 9555/UDP, and an active TCP connectivity check to adservice:9555 failed. This indicates the adservice Service exposes the wrong protocol. Additional productcatalogservice DNS lookup failures are likely transient during startup and secondary to the primary adservice fault.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/adservice\", \"root_cause\": \"service_protocol_mismatch\"}, {\"rank\": 2, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 3, \"fault_object\": \"app/adservice\", \"root_cause\": \"service_port_mapping_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 6
+}

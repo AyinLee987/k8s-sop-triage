@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Frontend logs show 87 errors of 'failed to get ads: dial tcp 10.68.25.111:9555: connect: connection refused' while the adservice Pod is Running/Ready. GetAppYAML for adservice shows the container serves gRPC/TCP on 9555 with grpc readiness/liveness probes, but the adservice Service declares protocol: UDP on port 9555. A UDP Service exposes no TCP listener via kube-proxy, so TCP gRPC dials are refused. This is the primary fault causing partial unreachability of adservice. ResourceQuota absent and all Services/Pods present rule out quota/missing-service hypotheses.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/adservice\", \"root_cause\": \"service_protocol_mismatch\"}, {\"rank\": 2, \"fault_object\": \"app/adservice\", \"root_cause\": \"service_port_mapping_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"service_dns_resolution_failure\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 9
+}

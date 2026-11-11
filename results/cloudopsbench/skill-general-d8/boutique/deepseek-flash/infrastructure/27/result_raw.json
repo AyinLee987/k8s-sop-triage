@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"recommendationservice is the only pod stuck in Pending with no assigned node. Nodes are Ready with sufficient CPU/memory, worker nodes have no taints, and the recommendationservice YAML has no node selector/affinity constraints. The kube-scheduler service on master is inactive/dead, explaining why the Pending pod cannot be scheduled and why service availability is disrupted.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/master\", \"root_cause\": \"kube_scheduler_unavailable\"}, {\"rank\": 2, \"fault_object\": \"app/recommendationservice\", \"root_cause\": \"node_affinity_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/recommendationservice\", \"root_cause\": \"node_selector_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 7
+}

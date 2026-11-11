@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"worker-01 shows a new TCP retransmission spike during the incident. Multiple services hosted on worker-01 are affected, and services on worker-02 that depend on worker-01 workloads show large latency/error propagation: checkoutservice p50 latency rose to ~3.56s, recommendationservice latency rose to ~1.19s, and frontend reported ad RPC timeouts/deadlines. Pods are Running/Ready with no restarts, and node capacity/pressure conditions are normal, supporting a node-level network packet-loss fault rather than application crash or resource exhaustion.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_packet_loss\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 10
+}

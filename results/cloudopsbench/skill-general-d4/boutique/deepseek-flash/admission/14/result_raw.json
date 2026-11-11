@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All boutique pods are Running except checkoutservice, which has 0/1 ready replicas and no created pods. Its ReplicaSet reports repeated FailedCreate events: pods are forbidden because quota `cpu-request-quota` is exceeded, with `requests.cpu=2` requested, `used=10`, and `limited=10`. This directly ties the missing checkoutservice workload to namespace CPU quota exhaustion.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"namespace/boutique\", \"root_cause\": \"namespace_cpu_quota_exceeded\"}, {\"rank\": 2, \"fault_object\": \"namespace/boutique\", \"root_cause\": \"namespace_pod_quota_exceeded\"}, {\"rank\": 3, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"cpu_capacity_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 7
+}

@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"ts-station-service pod is in CrashLoopBackOff with Hikari/JPA startup failure caused by java.net.UnknownHostException: tsdb-mysql-leader: Temporary failure in name resolution. The pod has dnsPolicy: None and custom nameserver 10.255.13.254; istio-proxy logs show DNS lookups to that nameserver timing out. The tsdb-mysql-leader Service exists, so the issue is DNS resolution from the affected pod. ts-basic-service then reports 'Service Instance cannot be null', propagating 500s to ts-travel-service and ts-preserve-service.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-station-service\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_packet_loss\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 16
+}

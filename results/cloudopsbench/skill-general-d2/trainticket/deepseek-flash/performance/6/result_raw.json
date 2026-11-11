@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"22 active alerts show widespread latency degradation and traffic drops. The latency chain converges on ts-order-service: order-service p50 rose to 3881.58ms and p90 to 17600ms, with propagated latency in gateway (p90 39s), preserve-service (p50 30s), seat-service (p50 3.9s), security-service (p50 3.75s), travel-service (p90 11s), and ui-dashboard. All pods are Running/Ready with zero or minimal restarts. ts-order-service logs show requests processed locally in milliseconds with no application errors, indicating the delay is at the network layer rather than app code. Unaffected co-located worker-01 services argue against a node-wide fault, supporting a pod-scoped network delay on ts-order-service.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"pod_cpu_overload\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 16
+}

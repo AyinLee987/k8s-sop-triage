@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"GetAlerts showed severe LATENCY_DEGRADATION on ts-train-service (p50 8.35ms -> 2500ms, p90 411.79ms -> 4500ms) and latency fan-out into ts-basic-service and ts-preserve-service. Pods were all Running/Ready with no restarts. ts-train-service is a leaf service in the dependency topology (no downstream calls), and its recent logs show normal request handling without errors; GetErrorLogs found no errors. This supports an application-level artificial delay in ts-train-service rather than node, scheduling, resource, or dependent-service failure.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-train-service\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-basic-service\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-preserve-service\", \"root_cause\": \"code_artificial_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 10
+}

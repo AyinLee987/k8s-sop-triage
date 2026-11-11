@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show extreme latency at ts-inside-payment-service (p90 ~20.3s) and its caller ts-cancel-service (p90 ~21.7s), with downstream order-service remaining responsive and error-free. Pods are Running/Ready with zero restarts, service port connectivity succeeds from all nodes, and sampled inside-payment requests complete in milliseconds, indicating intermittent pod/network latency rather than deterministic application delay. Peer ts-user-service on worker-03 appears responsive, making a node-wide fault less likely.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-inside-payment-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"node/worker-03\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-cancel-service\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 17
+}

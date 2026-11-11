@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"GetAlerts showed widespread latency degradation and throughput drops, with severe latency on ts-travel-service (p90 ~160ms to ~25.6s) and callers such as ts-gateway-service, ts-preserve-service, ts-ui-dashboard, ts-route-service, and ts-basic-service affected. The ts-travel-service pod is Running and Ready with zero restarts, has no error logs, and recent logs show request processing continuing normally, which supports an externally injected pod network delay rather than crash, startup, probe, or application error. Dependency data shows ts-travel-service is upstream of the affected fan-out path and is called by gateway/preserve/travel-plan/route-plan/rebook/food while calling basic/route/train/seat, matching the broad downstream symptom pattern.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-travel-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"node/worker-03\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-basic-service\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 7
+}

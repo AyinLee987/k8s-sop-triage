@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show extreme latency at ts-cancel-service and elevated latency at ts-gateway-service, ts-inside-payment-service, and ts-ui-dashboard. The only concrete resource anomaly is RESOURCE_SATURATION on ts-order-service with `cpu_cfs` throttling (0.306s), while logs for ts-order-service and ts-cancel-service show successful request processing with no error-log patterns. Dependency tracing shows ts-cancel-service and ts-inside-payment-service both call ts-order-service, making ts-order-service the shared downstream bottleneck; its CPU limit is 500m, consistent with pod CPU overload causing secondary caller latency.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 2, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 3, \"fault_object\": \"app/ts-cancel-service\", \"root_cause\": \"code_artificial_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 14
+}

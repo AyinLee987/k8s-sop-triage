@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Latency degradation alerts affect adservice, checkoutservice, and recommendationservice, all of which run on worker-02. worker-02 has a severe new TCP retransmission spike (0.00 -> 6.67), while worker-01 shows only a minor increase (0.07 -> 0.61). Node health is normal (Ready, no pressure, no taints), and kube-proxy on worker-02 is active/running. This localizes the fault to node-level network packet loss on worker-02.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_packet_loss\"}, {\"rank\": 2, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/adservice\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 6
+}

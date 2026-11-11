@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Payment processing 500s trace downstream to ts-payment-service, whose pod is in CrashLoopBackOff. Its logs show `java.net.UnknownHostException: tsdb-mysql-leader` and MySQL CommunicationsException, while an active connectivity check to `tsdb-mysql-leader:3306` succeeds from worker-01, worker-02, and worker-03. The pod's istio-proxy also reports DNS lookup timeouts for `istiod.istio-system.svc`. Other pods on the same node remain Running/Ready, indicating the DNS failure is scoped to the ts-payment-service pod rather than the MySQL service or whole node.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 2, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_packet_loss\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 9
+}

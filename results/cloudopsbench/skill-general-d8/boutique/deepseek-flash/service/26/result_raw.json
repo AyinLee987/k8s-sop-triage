@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All boutique pods are Running/Ready and Endpoints are populated. `currencyservice` Service exposes port 7000 as UDP, but its Deployment exposes gRPC on containerPort 7000 and uses gRPC readiness/liveness probes, which require TCP. An active connectivity check to `currencyservice:7000` failed, matching a Service protocol configuration fault.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/currencyservice\", \"root_cause\": \"service_protocol_mismatch\"}, {\"rank\": 2, \"fault_object\": \"app/currencyservice\", \"root_cause\": \"service_port_mapping_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/currencyservice\", \"root_cause\": \"service_dns_resolution_failure\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 8
+}

@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"ts-food-service is in CrashLoopBackOff while virtually all other pods are Running/Ready. Its logs show `Caused by: java.net.UnknownHostException: tsdb-mysql-leader`, and its Istio sidecar repeatedly times out resolving `istiod.istio-system.svc` against DNS server `10.255.18.254`. The `tsdb-mysql-leader` Service exists and maps to the expected MySQL pods, so the failure is DNS resolution failure rather than a missing Service. The `ts-food-service` Deployment uses `dnsPolicy: None` with only nameserver `10.255.18.254`, which explains the app-specific partial unreachability.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-food-service\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_packet_loss\"}, {\"rank\": 3, \"fault_object\": \"app/ts-food-service\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 8
+}

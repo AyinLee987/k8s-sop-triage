@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"GetAlerts showed widespread latency degradation on ts-basic-service, ts-train-service, ts-preserve-service, and ts-gateway-service. GetServiceDependencies confirmed ts-travel-service is a common upstream (called by gateway, preserve, travel-plan, route-plan, rebook, food) and calls ts-basic-service, ts-route-service, ts-train-service, and ts-seat-service. This exactly matches team experience exp-02: pod network delay on ts-travel-service causes fan-out latency across the train-ticket call chain.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-travel-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-basic-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-train-service\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 5
+}

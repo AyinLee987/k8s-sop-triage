@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alert: 500s from ts-inside-payment-service during 'Process payment'. ts-payment-service pod is CrashLoopBackOff; its log shows java.net.UnknownHostException: tsdb-mysql-leader. The tsdb-mysql-leader Service exists (10.68.188.173:3306) and CheckServiceConnectivity succeeded from worker-01/02/03, ruling out a DB outage. GetAppYAML for ts-payment-service reveals dnsPolicy: \\\"None\\\" with dnsConfig providing only nameserver 10.255.17.254 and NO cluster search domains/options, so the bare service name cannot resolve. All other pods are Running/Ready, so the fault is isolated to ts-payment-service's DNS configuration, cascading to ts-inside-payment-service 500s.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 2, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 12
+}

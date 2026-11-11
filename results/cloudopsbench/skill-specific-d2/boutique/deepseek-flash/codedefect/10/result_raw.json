@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Active alert showed checkoutservice latency degradation from normal p50 ~18.66ms to ~3750ms. All boutique pods were Running, checkoutservice logs showed successful payment, email, and downstream calls without errors, and source inspection found an explicit 3000ms sleep in PlaceOrder, directly explaining the ~3.75s request latency.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 2, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 8
+}

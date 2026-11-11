@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"redis-cart is the only unhealthy pod and is Pending. Its scheduling event reports persistentvolumeclaim \\\"redis-cart-pvc\\\" not found. The expected redis-cart PVC requests 2Gi, but only pre-existing-pvc exists, while redis-cart-pv is Available. Namespace ResourceQuota storage-quota shows requests.storage used 9Gi against a 10Gi hard limit, so creating the required 2Gi PVC would exceed quota and fail admission. This leaves redis-cart unavailable and disrupts dependent boutique services.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"namespace/boutique\", \"root_cause\": \"namespace_storage_quota_exceeded\"}, {\"rank\": 2, \"fault_object\": \"app/redis-cart\", \"root_cause\": \"pvc_capacity_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/redis-cart\", \"root_cause\": \"pvc_storage_class_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 10
+}

@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Only `ts-train-service` is failing: pod `ts-train-service-84dbf9c989-nn5mp` is in `CrashLoopBackOff` with app exit code 1. Its logs show `java.net.UnknownHostException: tsdb-mysql-leader: Temporary failure in name resolution`, while the `tsdb-mysql-leader` Service exists with ClusterIP. The same pod's Istio proxy logs repeatedly show DNS lookup timeouts to `10.255.12.254:53` for `istiod.istio-system.svc`, confirming DNS resolution failure from this workload. Other pods, including those on worker-01, are generally healthy, and the only NetworkPolicy selects `ts-preserve-service`, not `ts-train-service`.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-train-service\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 2, \"fault_object\": \"app/ts-train-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 8
+}

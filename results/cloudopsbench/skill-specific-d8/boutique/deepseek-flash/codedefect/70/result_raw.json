@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"The only unhealthy workload in boutique is productcatalogservice-8458b87d48-7r7l6, which is in CrashLoopBackOff. Its server container last terminated with reason OOMKilled and exit code 137, with 4 restarts. The container memory limit is configured at 128Mi. This directly explains productcatalogservice unavailability and the resulting Service Availability Disruption.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"container_memory_limit_too_low\"}, {\"rank\": 2, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"code_memory_leak\"}, {\"rank\": 3, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"liveness_probe_incorrect_timing\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 8
+}

@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"ts-preserve-service 500s trace to ts-travel-service, then ts-basic-service, then ts-station-service. ts-station-service is CrashLoopBackOff because Spring/Hibernate cannot initialize JDBC. Its istio-proxy logs repeatedly show DNS timeouts resolving istiod.istio-system.svc via 10.255.13.254:53. The ts-station-service Deployment uses dnsPolicy None with only that nameserver and no search domains, while its MySQL host is the short name tsdb-mysql-leader. Direct TCP connectivity to tsdb-mysql-leader:3306 succeeds from worker-01/02/03, indicating the DB is reachable and the fault is service DNS resolution inside ts-station-service.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-station-service\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 2, \"fault_object\": \"app/ts-station-service\", \"root_cause\": \"service_env_var_address_mismatch\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 12
+}

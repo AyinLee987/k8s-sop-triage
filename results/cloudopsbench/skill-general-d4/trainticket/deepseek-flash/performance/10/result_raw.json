@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Widespread latency/throughput alerts cascade through services depending on ts-route-service. ts-route-service is a leaf dependency with extreme p50/p90 latency (8.0s/21.0s, peak ~25.8s), no error logs, healthy Running/Ready pods, zero relevant restarts, successful TCP connectivity from worker-01/02/03, normal node conditions, and no comparable latency on other worker-03 pods. This localizes the fault to ts-route-service and supports pod-scoped network delay over node-wide or application-error causes.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-route-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-route-service\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-03\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 14
+}

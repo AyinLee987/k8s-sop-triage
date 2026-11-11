@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"ts-train-service is the only failing pod (CrashLoopBackOff); logs show Hikari/MySQL failure caused by `java.net.UnknownHostException: tsdb-mysql-leader: Temporary failure in name resolution`. The `tsdb-mysql-leader` Service exists with port 3306, and `ts-train-service` uses `dnsPolicy: None` with nameserver `10.255.12.254`; app and Istio-proxy DNS requests to that resolver time out. Other pods on worker-01, including tsdb-mysql-0, are running, and kube-proxy on worker-01 is active.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-train-service\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_packet_loss\"}, {\"rank\": 3, \"fault_object\": \"app/ts-train-service\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 16
+}

@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"productcatalogservice deployment is 0/1 available with ReplicaFailure/FailedCreate. ReplicaSet events explicitly show pod creation forbidden because requests.memory=300Mi would exceed the namespace memory-request-quota: used 3000Mi, limited 3Gi. The namespace quota resource reports requests.memory at 3000Mi/3Gi, while other boutique services are running.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"namespace/boutique\", \"root_cause\": \"namespace_memory_quota_exceeded\"}, {\"rank\": 2, \"fault_object\": \"namespace/boutique\", \"root_cause\": \"namespace_cpu_quota_exceeded\"}, {\"rank\": 3, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"deployment_zero_replicas\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 8
+}

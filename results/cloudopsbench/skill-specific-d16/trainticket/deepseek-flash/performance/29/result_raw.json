@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show synchronized latency degradation across ts-travel-service, ts-seat-service, ts-preserve-service and other callers. GetServiceDependencies confirms the degraded services are exactly the upstream/downstream callers of ts-travel-service. All pods are Running with 0 restarts (no crash loop), and ts-travel-service logs show no application errors, only slow processing — matching exp-02 (pod network delay on ts-travel-service causing fan-out latency).\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-travel-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-travel-service\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-03\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 6
+}

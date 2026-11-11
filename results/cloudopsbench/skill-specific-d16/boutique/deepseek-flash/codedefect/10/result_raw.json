@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"GetAlerts flagged an isolated LATENCY_DEGRADATION on checkoutservice with p50 rising from 18.66ms to 3750ms. GetServiceDependencies showed checkoutservice calls multiple downstream services, but GetSourceCode for checkoutservice main.go revealed an explicit `time.Sleep(time.Millisecond * 3000)` injected at the start of PlaceOrder. The ~3s sleep directly explains the ~3.75s p50 latency spike with no corresponding error-rate anomaly, confirming an application code artificial delay in checkoutservice.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 2, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 3, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 7
+}

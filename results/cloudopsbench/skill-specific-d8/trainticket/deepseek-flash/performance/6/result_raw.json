@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"GetAlerts showed severe latency degradation and throughput collapse across the train-ticket call chain, especially ts-gateway-service p90 latency (~39s), ts-preserve-service p50 (~30s), ts-order-service p90 (~17.6s), and ts-travel-service p90 (~11s). Service dependency mapping confirms ts-travel-service is a common upstream for gateway, preserve, travel-plan, route-plan, rebook, and food callers, so delay there explains the fan-out. All relevant pods, including ts-travel-service, are Running with no restarts, ruling out crash/restart causes. This matches the exp-02 incident note: pod_network_delay on app/ts-travel-service causes broad inherited latency while pods look healthy.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-travel-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-travel-service\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 5
+}

@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Widespread service latency/throughput degradation across train-ticket with all pods Running/Ready and zero restarts; node conditions clean (no Memory/Disk/PID pressure, no taints). Extreme latency concentrated on ts-inside-payment-service (p50 22ms->7166ms, p90 64ms->20333ms) and its caller ts-cancel-service (p90 150ms->21666ms), with gateway/ui showing lower propagated latency. However ts-inside-payment-service logs show fast internal processing (~24ms per pay request) and successful responses, ruling out application code delay and downstream DB saturation. Fast internal processing + inflated observed latency + healthy pod = pod-scoped network delay on ts-inside-payment-service, propagating to its callers.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-inside-payment-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"node/worker-03\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-cancel-service\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 16
+}

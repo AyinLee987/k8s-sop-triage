@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Frontend error logs show dominant 'could not retrieve currencies' errors (125/702, ~17.8%) dialing tcp 10.68.199.102:7001 with connection refused. DescribeResource on currencyservice confirms the Service correctly exposes grpc port 7000/TCP with a healthy endpoint 172.20.1.164:7000. GetAppYAML on frontend reveals the env var CURRENCY_SERVICE_ADDR was set to 'currencyservice:7001' instead of 'currencyservice:7000', causing frontend to dial a wrong port and fail. All pods are Running and no metric alerts fired, consistent with a config-induced availability disruption.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/frontend\", \"root_cause\": \"service_env_var_address_mismatch\"}, {\"rank\": 2, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 3, \"fault_object\": \"app/currencyservice\", \"root_cause\": \"service_port_mapping_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 8
+}

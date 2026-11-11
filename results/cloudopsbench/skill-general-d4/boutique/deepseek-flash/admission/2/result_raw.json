@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"cartservice Deployment has 0 available replicas and its ReplicaSet reports repeated FailedCreate: pods are forbidden because serviceaccount \\\"cartservices\\\" is not found. The cartservice Service therefore has no endpoints, causing partial service unreachability.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/cartservice\", \"root_cause\": \"missing_service_account\"}, {\"rank\": 2, \"fault_object\": \"app/cartservice\", \"root_cause\": \"deployment_zero_replicas\"}, {\"rank\": 3, \"fault_object\": \"app/cartservice\", \"root_cause\": \"service_selector_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 9
+}

@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Multiple services on worker-02 show severe latency, and node worker-02 has a major TCP retransmission spike (0.02 -> 8.46 retrans/s), while pods remain Running with no restarts and node pressure is absent. The same timeframe shows bidirectional packet-rate drops for affected services. worker-01 has a much smaller retransmission increase, making worker-02 the primary fault locus. kube-proxy is active and healthy, supporting node network packet loss as the root cause.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_packet_loss\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_packet_loss\"}, {\"rank\": 3, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 6
+}

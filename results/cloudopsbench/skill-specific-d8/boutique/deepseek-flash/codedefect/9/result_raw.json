@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"GetAlerts shows only checkoutservice abnormal with p50 latency 19.07ms -> 3750ms. GetServiceDependencies shows checkoutservice is the order workflow service calling cart, productcatalog, currency, payment, shipping, email. Checkoutservice logs show successful payment/email operations with no errors. GetSourceCode for checkoutservice main.go reveals an explicit `time.Sleep(time.Millisecond * time.Duration(3000))` inside getUserCart, matching the ~3s latency spike. This is an application-level artificial delay, not infrastructure or downstream failure.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 2, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 7
+}

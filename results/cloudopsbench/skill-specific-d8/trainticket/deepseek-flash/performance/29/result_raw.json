@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show latency degradation across ts-travel-service and dependent/upstream services, especially ts-seat-service and ts-preserve-service. Dependency mapping confirms ts-travel-service calls ts-seat-service, route, train, and basic services, making it a common upstream in the degraded fan-out. All pods are Running with 0 restarts, and ts-travel-service has no error logs, ruling out crashes and supporting a network-delay fault. Team experience exp-02 explicitly identifies this pattern as pod network delay on app/ts-travel-service.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-travel-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-seat-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-travel-service\", \"root_cause\": \"code_artificial_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 8
+}

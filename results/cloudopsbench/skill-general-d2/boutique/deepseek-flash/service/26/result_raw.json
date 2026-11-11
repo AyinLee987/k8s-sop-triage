@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Frontend logs show 134 failures dialing currencyservice ClusterIP 10.68.90.185:7000 via TCP with connection refused. DescribeResource confirms currencyservice Service port and targetPort are 7000/UDP, while frontend expects a TCP gRPC connection. Pods and Services otherwise appear Running/Ready, indicating the primary fault is Service protocol configuration for currencyservice.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/currencyservice\", \"root_cause\": \"service_protocol_mismatch\"}, {\"rank\": 2, \"fault_object\": \"app/currencyservice\", \"root_cause\": \"service_port_mapping_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"service_dns_resolution_failure\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 6
+}

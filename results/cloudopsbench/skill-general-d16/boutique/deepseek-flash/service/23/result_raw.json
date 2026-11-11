@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"adservice pod is Running/Ready and has an endpoint, but Service adservice maps grpc 9555/UDP with targetPort 9555/UDP. An active TCP connectivity check to adservice:9555 failed, matching gRPC-over-TCP clients being unable to reach the service. This supports service_protocol_mismatch on app/adservice.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/adservice\", \"root_cause\": \"service_protocol_mismatch\"}, {\"rank\": 2, \"fault_object\": \"app/adservice\", \"root_cause\": \"service_port_mapping_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/adservice\", \"root_cause\": \"service_selector_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 5
+}

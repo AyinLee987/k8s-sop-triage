@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Active alerts show significant latency degradation for adservice, checkoutservice, and recommendationservice, all hosted on worker-02. worker-02 has a severe TCP retransmission spike (0.00 -> 6.67 retrans), much worse than worker-01 (0.07 -> 0.61). Pod placement confirms the most affected services run on worker-02. Team note exp-12 documents this exact pattern: boutique high latency caused by packet loss on node/worker-02.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_packet_loss\"}, {\"rank\": 2, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_packet_loss\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 5
+}

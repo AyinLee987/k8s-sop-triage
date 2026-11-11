@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Only ts-train-service is unhealthy (0/2, CrashLoopBackOff, exit code 1). Its logs repeatedly show `java.net.UnknownHostException: tsdb-mysql-leader: Temporary failure in name resolution`, causing HikariPool/JDBC initialization failure. The tsdb-mysql-leader Service exists with the expected selector/port. The ts-train-service Deployment uniquely sets `dnsPolicy: None` with nameserver `10.255.12.254`, and its Istio proxy logs also show DNS timeouts; a healthy peer service lacks this custom DNS config. This indicates DNS resolution failure affecting ts-train-service, producing downstream 500s.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-train-service\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 2, \"fault_object\": \"app/ts-train-service\", \"root_cause\": \"service_env_var_address_mismatch\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 8
+}

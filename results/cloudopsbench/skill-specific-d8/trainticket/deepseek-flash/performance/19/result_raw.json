@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"GetAlerts showed LATENCY_DEGRADATION on ts-cancel-service (p90 240ms->7433ms), ts-inside-payment-service (p90 302ms->1307ms), ts-gateway-service and ts-ui-dashboard, plus a direct RESOURCE_SATURATION cpu_cfs throttling alert on ts-order-service (0.306s throttled). GetServiceDependencies confirmed ts-cancel-service and ts-inside-payment-service both call ts-order-service, explaining the fan-out. All pods are Running with 0 restarts, no application error logs, and nodes are Ready with no pressure/taints affecting workers, ruling out crash loops, node faults, and DB/DNS errors. The common saturated upstream is tf-order-service CPU.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 2, \"fault_object\": \"app/ts-cancel-service\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"code_busy_loop\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 18
+}

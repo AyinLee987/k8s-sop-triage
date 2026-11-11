@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Only ts-payment-service is in CrashLoopBackOff. Its logs show java.net.UnknownHostException: tsdb-mysql-leader: Temporary failure in name resolution, causing Hibernate/JDBC pool initialization failure. The tsdb-mysql-leader Service is reachable on 3306 from debug pods on all three workers, ruling out a cluster-wide service outage. The payment deployment uses dnsPolicy=None with custom nameserver 10.255.17.254, and istio-proxy logs show DNS timeouts to that nameserver from the payment pod. Thus the fault is localized DNS resolution failure in the ts-payment-service application pod.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 2, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"service_env_var_address_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 6
+}

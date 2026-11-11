@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Widespread latency and traffic-drop alerts concentrate on the order→seat→travel→gateway dependency chain. ts-order-service is the deepest shared downstream service and shows severe latency degradation (p50 ~9.8s, p90 ~25.8s) without downstream calls. All pods are Running/Ready, node conditions are normal, and ts-order-service logs show successful fast local processing with no error logs, consistent with pod-scoped network delay rather than application, DB, or node failure.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-seat-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-travel-service\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 19
+}

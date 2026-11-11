@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show cartservice CPU CFS throttling and a 544.6% CPU increase, with cartservice p95 latency rising 678.2% and cascading latency to checkoutservice/frontend. The cartservice pod is Running and scheduled, while inspected application code lacks a confirmed busy loop or artificial-delay injection. This supports excessive Pod CPU load in cartservice as the primary fault.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/cartservice\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 2, \"fault_object\": \"app/cartservice\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 3, \"fault_object\": \"app/cartservice\", \"root_cause\": \"code_artificial_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 11
+}

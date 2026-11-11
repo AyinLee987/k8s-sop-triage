@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"checkoutservice pod is crash-looping (1/2 Running, 4 restarts, Exit Code 2) with error log panic 'mismatching currency codes'. Source code in main.go PlaceOrder shows `userID, userCurrency = userCurrency, userID`, swapping the two parameters. This passes the user ID as the currency code into prepareOrderItemsAndShippingQuoteFromCart/convertCurrency, producing a Money with a mismatched currency code, which triggers money.Must(money.Sum(...)) to panic and crash the container. Payment/email availability vanished because checkoutservice never reaches their charge/send calls. Root cause is swapped (wrong order) arguments in checkoutservice code.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"code_wrong_argument_order\"}, {\"rank\": 2, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"code_wrong_return\"}, {\"rank\": 3, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"code_missing_parameter\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 9
+}

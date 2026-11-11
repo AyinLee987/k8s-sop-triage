@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"checkoutservice pod is Pending with no events; nodes worker-01/02/03 are Ready and schedulable with no relevant taints; pod has no node selector/affinity; kube-scheduler.service on master is inactive (dead) after exiting. This prevents scheduling of checkoutservice, causing partial service unreachability.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/master\", \"root_cause\": \"kube_scheduler_unavailable\"}, {\"rank\": 2, \"fault_object\": \"node/master\", \"root_cause\": \"kubelet_unavailable\"}, {\"rank\": 3, \"fault_object\": \"node/master\", \"root_cause\": \"containerd_unavailable\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 8
+}

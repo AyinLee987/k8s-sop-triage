@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Frontend logs show repeated connection refused to cartservice ClusterIP 10.68.54.225:7070. The cartservice Service has no Endpoints, no pods match app=cartservice, and the cartservice Deployment is scaled to 0/1 replicas while all other boutique services have healthy running pods.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/cartservice\", \"root_cause\": \"deployment_zero_replicas\"}, {\"rank\": 2, \"fault_object\": \"app/cartservice\", \"root_cause\": \"service_selector_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/cartservice\", \"root_cause\": \"service_port_mapping_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 10
+}

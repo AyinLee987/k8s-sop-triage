@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"ts-inside-payment-service returns HTTP 500s because downstream ts-payment-service is 0/1 CrashLoopBackOff with exit code 1. ts-payment-service logs show MySQL startup failure caused by UnknownHostException: tsdb-mysql-leader. The tsdb-mysql-leader Service exists and is reachable at 10.68.188.173:3306 from all worker nodes, but ts-payment-service is deployed with dnsPolicy: None and only custom nameserver 10.255.17.254, so it cannot resolve cluster service DNS names. This explains the payment flow outage.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 2, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"service_env_var_address_mismatch\"}, {\"rank\": 3, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 16
+}

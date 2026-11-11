@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All pods are Running, ruling out broad scheduling or node availability faults. Active alerts include ts-inside-payment-service returning 500s, and its logs show the failure is caused by the downstream /api/v1/paymentservice/payment call. ts-payment-service logs directly show IncorrectResultSizeDataAccessException / NonUniqueResultException: query did not return a unique result: 5, causing payment requests to fail. This points to an application-level defect in ts-payment-service rather than infrastructure, service discovery, or resource pressure.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"code_wrong_return\"}, {\"rank\": 2, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"code_wrong_argument_order\"}, {\"rank\": 3, \"fault_object\": \"app/ts-inside-payment-service\", \"root_cause\": \"code_wrong_return\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 19
+}

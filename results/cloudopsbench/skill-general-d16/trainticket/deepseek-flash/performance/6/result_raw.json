@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Cluster-wide latency and RPS drops occur while all nodes are Ready and all app pods are Running/Ready with no meaningful restarts. `ts-order-service` shows extreme intrinsic latency (p50 ~3.9s, p90 ~17.6s) despite normal-looking fast log execution and no downstream calls. Gateway TCP connectivity succeeds and gateway error logs are absent. High-latency upstream services (`ts-preserve-service`, `ts-seat-service`, `ts-security-service`, `ts-travel-service`, `ts-gateway-service`, `ts-ui-dashboard`) are consistent with callers waiting on the degraded order path. This points to pod-scoped network delay on `ts-order-service` rather than application exceptions, node failure, or service port/selector faults.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 13
+}

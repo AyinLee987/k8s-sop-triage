@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Widespread caller latency/degradation across many services; node conditions all Healthy/Ready; pods Running with no restarts; TCP connectivity to ts-order-service:12031 open from all workers; ts-order-service emits no error logs and its own local processing is millisecond-fast (getOrderById/saveChanges ~3-7ms), yet service metrics show p50=3881ms, p90=17600ms; latency propagates to all callers of ts-order-service (ts-security on worker-02, ts-seat/ts-travel/ts-preserve on worker-01, ts-gateway) while ts-order-other-service shows no latency. This isolation to one pod's call latency with fast local processing matches pod_network_delay.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"code_artificial_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 15
+}

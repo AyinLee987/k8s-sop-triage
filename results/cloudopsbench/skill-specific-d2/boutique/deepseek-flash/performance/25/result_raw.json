@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Productcatalogservice shows p90 latency rising from 2.50ms to 1158.68ms, with recommendationservice p50/p90 latency rising to 946.61ms/2151.41ms and frontend success rate dropping from 99.9% to 25.0%. All pods are Running 2/2 with no restarts; node conditions are healthy; TCP connectivity to productcatalogservice:3550 succeeds. productcatalogservice source contains a configurable sleep, but the deployment has no EXTRA_LATENCY env and logs do not show extra latency enabled, making code artificial delay inactive. The localized huge latency on productcatalogservice without matching latency on other worker-01 pods indicates pod-level network delay.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 13
+}

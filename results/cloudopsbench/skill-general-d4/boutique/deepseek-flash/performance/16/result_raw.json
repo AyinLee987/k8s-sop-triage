@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Active alerts show severe latency degradation in checkoutservice, emailservice, and frontend. Checkoutservice depends on emailservice, and checkout logs show successful order processing with no application errors. Emailservice pods are Running/Ready with zero restarts, and Service port 5000 is reachable. Emailservice code contains no artificial delay while its p90 latency spike is the most extreme, supporting a network-layer delay localized to the emailservice pod rather than a crash, configuration, or downstream application defect.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/emailservice\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 18
+}

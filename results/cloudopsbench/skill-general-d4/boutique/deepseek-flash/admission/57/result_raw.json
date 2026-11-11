@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"redis-cart is the only unavailable workload and is Pending. Its pod depends on PVC `redis-cart-pvc`, but no PVC exists in namespace `boutique`. The service manifest requests 5Gi storage, while ResourceQuota `storage-quota` limits namespace storage requests to 1Gi. Therefore the PVC request exceeds the namespace storage quota and cannot be admitted, leaving redis-cart unschedulable.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"namespace/boutique\", \"root_cause\": \"namespace_storage_quota_exceeded\"}, {\"rank\": 2, \"fault_object\": \"app/redis-cart\", \"root_cause\": \"pvc_capacity_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/redis-cart\", \"root_cause\": \"pvc_storage_class_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 9
+}

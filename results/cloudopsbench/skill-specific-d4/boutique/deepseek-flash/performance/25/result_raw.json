@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"productcatalogservice p90 latency increased from 2.5ms to 1158.68ms (+46268%). Source code contains time.Sleep(extraLatency) in ListProducts, GetProduct, and SearchProducts RPCs. All pods are Running with no error logs. Recommendationservice's latency (p90 2151ms) is downstream of productcatalogservice calls.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 2, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/recommendationservice\", \"root_cause\": \"code_artificial_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 6
+}

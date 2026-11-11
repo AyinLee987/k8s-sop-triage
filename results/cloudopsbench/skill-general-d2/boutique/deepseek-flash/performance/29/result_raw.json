@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"At 12:09-12:11, multiple boutique services had severe latency degradation, including frontend p90 +3592.8%, checkoutservice p90 +2324.0%, currencyservice p90 +3832.2%, and productcatalogservice p90 +4570.0%. Node worker-02 showed a dramatic TCP retransmission spike from 0.02 to 8.46 retrans (+50396.3%), while worker-01 only rose to 1.16. Affected pods are Running/Ready with zero restarts and are distributed across both nodes, indicating a node-level network packet-loss fault centered on worker-02 rather than an application or single-pod fault.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_packet_loss\"}, {\"rank\": 2, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_packet_loss\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 4
+}

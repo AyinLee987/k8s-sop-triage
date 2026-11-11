@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"`ts-preserve-service` 500s trace downstream through `ts-travel-service` to `ts-basic-service`, which reports `Service Instance cannot be null`. The only unavailable deployment is `ts-train-service` (0/1 ready); its pod is `CrashLoopBackOff` with exit code 1. Logs show `java.net.UnknownHostException: tsdb-mysql-leader: Temporary failure in name resolution` and Istio proxy DNS timeouts to `10.255.12.254:53`. The `tsdb-mysql-leader` Service exists, and active connectivity checks to `tsdb-mysql-leader:3306` succeed from worker-01/02/03, indicating the fault is DNS resolution inside the affected app pod rather than the database Service itself.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-train-service\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 2, \"fault_object\": \"app/ts-train-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_packet_loss\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 16
+}

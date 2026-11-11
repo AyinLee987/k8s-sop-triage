@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts localized the incident to frontend with CPU saturation and a new filesystem write spike, plus 503 errors on `/` and `/product/{id}`. Source inspection found `chooseAd` in frontend/handlers.go creating `/tmp/tmp.csv` and writing 30,000 rows per invocation; both homeHandler and productHandler call `chooseAd`, matching the affected routes and resource anomalies.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_excessive_file_writes\"}, {\"rank\": 2, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 3, \"fault_object\": \"app/frontend\", \"root_cause\": \"pod_cpu_overload\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 6
+}

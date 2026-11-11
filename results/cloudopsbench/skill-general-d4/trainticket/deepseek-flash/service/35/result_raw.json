@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"ts-train-service is the only unhealthy pod (0/2, Error, restarts). Its logs repeatedly show `java.net.UnknownHostException: tsdb-mysql-leader: Temporary failure in name resolution`. The `tsdb-mysql-leader` Service exists and active connectivity checks succeed from worker-01, worker-02, and worker-03. The ts-train-service Deployment uniquely sets `dnsPolicy: None` with a custom nameserver but no search domains, causing cluster service short-name resolution to fail while other workloads resolve and connect normally.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-train-service\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-train-service\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 6
+}

@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show a severe TCP retransmission spike on worker-02 (Normal=0.02 -> Current=8.46, +50396.3%), with simultaneous widespread service latency degradation. Pod placement shows many affected services, including frontend, checkoutservice, and recommendationservice, run on worker-02. Cluster configuration shows worker-02 Ready with no memory/disk/PID pressure or taints, and no evident CPU capacity issue, supporting a node-level network packet-loss fault.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_packet_loss\"}, {\"rank\": 2, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_packet_loss\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 4
+}

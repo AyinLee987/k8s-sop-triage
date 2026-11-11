@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show a new TCP retransmission spike on worker-01 (0.00 -> 0.70 retrans) while all worker-01-hosted services degraded (frontend success rate 99.9% -> 37.5%, traffic drops, etc.). Services on worker-02 that depend on worker-01 pods show extreme latency (checkoutservice p50 +20420%, recommendationservice p50 +39362%). Worker-01 is Ready with no resource pressure, and direct connectivity to productcatalogservice succeeds, pointing to a node-level network quality fault rather than pod/resource/service configuration issues.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_packet_loss\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 7
+}

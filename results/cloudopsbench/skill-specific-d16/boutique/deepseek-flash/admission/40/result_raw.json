@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"productcatalogservice deployment has 0/1 available replicas. Its ReplicaSet shows FailedCreate events: `pods ... is forbidden: exceeded quota: pod-count-quota, requested: pods=1, used: pods=10, limited: pods=10`. ResourceQuota `pod-count-quota` in namespace boutique confirms pods: 10/10 used. All other pods are Running/Ready, so the availability disruption is caused by namespace pod-count quota exhaustion blocking productcatalogservice pod creation.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"namespace/boutique\", \"root_cause\": \"namespace_pod_quota_exceeded\"}, {\"rank\": 2, \"fault_object\": \"namespace/boutique\", \"root_cause\": \"namespace_cpu_quota_exceeded\"}, {\"rank\": 3, \"fault_object\": \"namespace/boutique\", \"root_cause\": \"namespace_service_quota_exceeded\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 8
+}

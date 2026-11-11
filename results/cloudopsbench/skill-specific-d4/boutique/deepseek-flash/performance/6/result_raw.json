@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Active alert shows frontend CPU CFS throttling (1.333s), CPU usage rising from 0.07 to 0.16 cores (+138.1%), and severe latency degradation (p95 27.67ms -> 271.36ms, +880.8%). Frontend pod is Running on worker-01 with configured CPU limit 200m. No ResourceQuota exists in boutique, ruling out namespace CPU quota exhaustion. Cluster nodes are Ready with 8 allocatable CPUs and no pressure conditions. Thus the incident is best explained by excessive Pod CPU load on frontend, with code-level busy loop and network-delay hypotheses as alternatives.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/frontend\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 2, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 3, \"fault_object\": \"app/frontend\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 17
+}

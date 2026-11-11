@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Frontend alert shows CPU CFS throttling (1.333s), CPU core increase from 0.07 to 0.16 cores (+138.1%), and p95 latency rising from 27.67ms to 271.36ms. All pods are Running/Ready with no restarts or downstream error spikes. Code inspection found `money.MultiplySlow` used while rendering cart items, performing CPU-intensive repeated additions based on cart quantity, consistent with a frontend application busy-loop/CPU overload causing latency.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 2, \"fault_object\": \"app/frontend\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 3, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_artificial_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 20
+}

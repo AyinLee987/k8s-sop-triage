@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"productcatalogservice has 0/1 available replicas, and its ReplicaSet cannot create pods because admission fails with: exceeded quota memory-request-quota, requested requests.memory=300Mi, used=3000Mi, limited=3Gi. This explains the service availability disruption; all other boutique pods are Running.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"namespace/boutique\", \"root_cause\": \"namespace_memory_quota_exceeded\"}, {\"rank\": 2, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"deployment_zero_replicas\"}, {\"rank\": 3, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"container_memory_limit_too_low\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 8
+}

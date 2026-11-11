@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"GetAlerts reported repeated 404s for POST /api/v1/travelservice/trips/left through ts-travel-service. Pods were all Running, and ts-travel-service logs showed successful request processing, ruling out service unavailability. The decisive evidence is the ts-gateway-service ConfigMap route: id `travel` with Path=/api/v1/travelservice/** has uri `lb://${ORDER_SERVICE_HOST:ts-order-service}`, incorrectly routing travel requests to ts-order-service instead of ts-travel-service. This explains the 404s and service availability disruption.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-gateway-service\", \"root_cause\": \"gateway_misrouted\"}, {\"rank\": 2, \"fault_object\": \"app/ts-travel-service\", \"root_cause\": \"service_port_mapping_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/ts-inside-payment-service\", \"root_cause\": \"code_wrong_return\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 10
+}

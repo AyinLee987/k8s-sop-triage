@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Frontend alerts show CPU saturation (+266.7%) and a new filesystem write surge (~171 KB/s), with user-facing 503s on home and product pages. ResourceQuota cpu-quota does not exist, all boutique pods are Running, and frontend logs show normal 200 responses without backend connection-refused errors. Source inspection of frontend handlers.go shows chooseAd() creates /tmp/tmp.csv and writes 30,000 CSV rows on every ad-enabled request, matching the observed write and CPU anomaly.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_excessive_file_writes\"}, {\"rank\": 2, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 3, \"fault_object\": \"app/frontend\", \"root_cause\": \"pod_cpu_overload\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 10
+}

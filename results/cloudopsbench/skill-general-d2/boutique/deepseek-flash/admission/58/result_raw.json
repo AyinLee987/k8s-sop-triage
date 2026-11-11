@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"redis-cart is Pending with FailedScheduling because PVC 'redis-cart-pvc' is not found. The Redis manifest expects a 2Gi PVC, a matching 2Gi PV is Available, but namespace ResourceQuota 'storage-quota' shows requests.storage at 9Gi/10Gi. Creating the Redis 2Gi PVC would exceed the 10Gi hard limit, indicating quota admission prevented PVC creation and left the Redis pod unschedulable.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"namespace/boutique\", \"root_cause\": \"namespace_storage_quota_exceeded\"}, {\"rank\": 2, \"fault_object\": \"app/redis-cart\", \"root_cause\": \"pvc_capacity_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/redis-cart\", \"root_cause\": \"pv_binding_occupied\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 13
+}

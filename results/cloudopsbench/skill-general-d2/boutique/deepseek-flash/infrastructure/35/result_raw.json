@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Frontend pod frontend-55c88c6544-7rvkn is Pending because its nodeSelector pins it to worker-01. Scheduler reports worker-01 has an untolerated node.kubernetes.io/unreachable taint. GetClusterConfiguration shows worker-01 status Unknown with unreachable taints. CheckNodeServiceStatus confirms kubelet.service on worker-01 is inactive (dead), making the node unavailable and preventing the frontend pod from scheduling.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/worker-01\", \"root_cause\": \"kubelet_unavailable\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_packet_loss\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 6
+}

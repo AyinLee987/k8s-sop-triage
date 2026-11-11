@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Widespread latency degradation and throughput drops affect the gateway/UI and multiple travel-chain services. ts-travel-service itself shows p90 latency rising from 98.74ms to 11000ms (peak 27000ms) with throughput drop, but its pods are Running with 0 restarts and no error logs. The dependency graph confirms ts-travel-service is a common upstream for several degraded callers, matching exp-02: pod network delay on ts-travel-service causing fan-out latency degradation.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-travel-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 6
+}

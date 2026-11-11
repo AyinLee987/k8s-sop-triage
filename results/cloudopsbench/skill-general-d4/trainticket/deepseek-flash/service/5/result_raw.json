@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Repeated 404s occur for POST /api/v1/preserveservice/preserve. ts-preserve-service pod is Running/Ready, its Service selector and targetPort are correct, and it registered successfully in Nacos. Gateway config shows route id 'preserve' incorrectly uses uri lb://${FOOD_SERVICE_HOST:ts-food-service} for Path=/api/v1/preserveservice/**, so preserve traffic is routed to the wrong application and returns 404.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-gateway-service\", \"root_cause\": \"gateway_misrouted\"}, {\"rank\": 2, \"fault_object\": \"app/ts-preserve-service\", \"root_cause\": \"code_wrong_return\"}, {\"rank\": 3, \"fault_object\": \"app/ts-preserve-service\", \"root_cause\": \"service_env_var_address_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 11
+}

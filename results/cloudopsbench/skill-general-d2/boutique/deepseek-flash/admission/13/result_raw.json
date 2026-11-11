@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"cartservice Deployment is stuck at 0/1 available with ReplicaFailure=True and FailedCreate; its pod template requests 1 CPU. The boutique namespace ResourceQuota cpu-request-quota reports requests.cpu 10/10, so creating the cartservice pod would exceed the namespace CPU request quota. Other boutique services remain Running, matching partial service unreachability caused by the missing cartservice pod.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"namespace/boutique\", \"root_cause\": \"namespace_cpu_quota_exceeded\"}, {\"rank\": 2, \"fault_object\": \"namespace/boutique\", \"root_cause\": \"namespace_pod_quota_exceeded\"}, {\"rank\": 3, \"fault_object\": \"app/cartservice\", \"root_cause\": \"cpu_capacity_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 6
+}

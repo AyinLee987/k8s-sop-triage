@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"productcatalogservice has desired 1 replica but 0 created/available pods; its ReplicaSet reports FailedCreate with repeated events: pods are forbidden because memory-request-quota is exceeded (requested 300Mi, used 3000Mi, limited 3Gi). Other boutique services remain Running, so the disruption is isolated to pod creation under the namespace quota, not image, scheduling, or runtime failure.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"namespace/boutique\", \"root_cause\": \"namespace_memory_quota_exceeded\"}, {\"rank\": 2, \"fault_object\": \"namespace/boutique\", \"root_cause\": \"namespace_cpu_quota_exceeded\"}, {\"rank\": 3, \"fault_object\": \"namespace/boutique\", \"root_cause\": \"namespace_pod_quota_exceeded\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 6
+}

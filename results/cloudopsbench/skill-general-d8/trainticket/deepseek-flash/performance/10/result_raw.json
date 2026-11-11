@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All pods are Running/Ready with no restarts or application errors. Alerts show extreme latency at ts-route-service (p50 ~8s, p90 ~21s), a leaf dependency of ts-basic-service and other upstreams. ts-basic-service and gateway latency are therefore propagated symptoms. Other pods on worker-03 do not show the same strong intrinsic latency, and ts-route-service logs show requests without exceptions, supporting pod-scoped network delay over app failure or node-wide network faults.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-route-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-route-service\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-03\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 13
+}

@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All boutique pods are Running and no active metric anomalies were detected. The user-facing frontend logs show repeated TCP connection-refused errors to currencyservice at ClusterIP 10.68.90.185:7000. Kubernetes Services output shows currencyservice exposes 7000/UDP rather than TCP, explaining why TCP gRPC clients cannot connect and causing the service availability disruption. A separate transient productcatalogservice DNS lookup error is also present but is less directly supported as the primary fault.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/currencyservice\", \"root_cause\": \"service_protocol_mismatch\"}, {\"rank\": 2, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 3, \"fault_object\": \"app/currencyservice\", \"root_cause\": \"service_port_mapping_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 9
+}

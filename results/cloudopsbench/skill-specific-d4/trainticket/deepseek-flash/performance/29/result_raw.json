@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show latency degradation centered on ts-travel-service (p90 2221.43ms -> 8972.22ms) with fan-out latency to ts-preserve-service and ts-seat-service. The dependency map confirms ts-travel-service is a common upstream caller in the affected chain. All pods are Running with zero restarts, arguing against crash/OOM/scheduling faults. The matching team note exp-02 identifies pod_network_delay on app/ts-travel-service as the cause of this fan-out latency pattern while affected pods appear healthy.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-travel-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-seat-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"pod_cpu_overload\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 5
+}

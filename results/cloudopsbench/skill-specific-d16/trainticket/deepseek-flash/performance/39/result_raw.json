@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"GetAlerts showed widespread latency degradation with the most severe p50 latency spike on ts-travel-service (+20703%, peak 24s). All pods were Running with no restarts. Service dependency data shows ts-travel-service is a common upstream for many degraded services (ts-gateway, ts-preserve, ts-travel-plan, ts-route-plan, ts-rebook, ts-food). exp-02 matches this exact pattern: pod_network_delay on app/ts-travel-service causing fan-out latency.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-travel-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-travel-service\", \"root_cause\": \"code_artificial_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 6
+}

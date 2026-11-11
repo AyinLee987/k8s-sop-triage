@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Widespread service latency alerts across boutique, with node-level TCP retransmission spikes. worker-02 shows a severe retransmission increase (0.02 -> 8.46, +50396.3%), far exceeding worker-01 (0.00 -> 1.16). Pods are Running without restarts, nodes are Ready with no pressure, and worker-02 kube-proxy is active, ruling out crash/resource/control-plane causes and pointing to node network packet loss on worker-02 as the primary fault originating the fan-out latency.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_packet_loss\"}, {\"rank\": 2, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_packet_loss\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 7
+}

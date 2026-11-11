@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show productcatalogservice p90 latency jumped from ~2.5ms to ~1158ms, with propagated latency in recommendationservice and frontend. All pods are Running/Ready with 0 restarts, productcatalogservice is a leaf service with no downstream calls, and no application error logs were found. Most importantly, productcatalogservice source code contains `time.Sleep(extraLatency)` in ListProducts, GetProduct, and SearchProducts, directly proving an artificial application delay.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 2, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"pod_cpu_overload\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 10
+}

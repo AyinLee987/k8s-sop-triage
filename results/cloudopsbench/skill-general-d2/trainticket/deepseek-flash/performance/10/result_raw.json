@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Widespread latency and throughput drops are propagated from ts-route-service. ts-route-service is a downstream leaf with p50 latency rising to ~8s and p90 to ~21s, while its pod is Running/Ready with zero restarts, no error logs, and correct Service port/selector configuration. TCP connectivity to ts-route-service succeeds from worker-01, worker-02, and worker-03, but application-level latency remains severely elevated, supporting pod-scoped network delay rather than app exceptions, probe failures, or Service misconfiguration.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-route-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-route-service\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-03\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 11
+}

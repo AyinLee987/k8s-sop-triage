@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"GetAlerts showed widespread latency/throughput degradation with ts-travel-service p50 latency rising from ~88ms to ~18.5s and p90 to ~27.7s, while downstream callers such as gateway, order, seat, preserve, and security also degraded. Pods were Running with no restarts, and ts-travel-service logs showed normal request processing rather than application exceptions. This pattern matches exp-02: pod network delay injected on app/ts-travel-service causing fan-out latency degradation.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-travel-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-travel-service\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-travel-service\", \"root_cause\": \"pod_cpu_overload\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 5
+}

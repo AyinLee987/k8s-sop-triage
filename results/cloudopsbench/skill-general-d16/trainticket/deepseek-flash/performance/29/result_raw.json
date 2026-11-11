@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show the only direct resource anomaly is CPU CFS throttling on ts-order-service (0.589s throttled). ts-seat-service, which calls ts-order-service downstream, has severe latency degradation and throughput drop; ts-preserve-service and ts-travel-service show derived latency increases. All pods are Running with zero recent restarts, nodes are Ready without pressure, and ts-order-service logs show no application errors. This supports ts-order-service CPU overload as the primary root cause, with ts-seat-service latency as a downstream symptom.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 2, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 3, \"fault_object\": \"app/ts-seat-service\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 18
+}

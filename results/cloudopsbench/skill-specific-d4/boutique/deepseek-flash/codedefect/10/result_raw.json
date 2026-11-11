@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Active alert shows only checkoutservice with severe latency degradation (p50 18.66ms -> 3750ms). checkoutservice logs show successful payments and email confirmations without downstream errors. Source inspection of checkoutservice main.go reveals an explicit time.Sleep(3000ms) at the start of PlaceOrder, directly causing the latency spike.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 2, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 3, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 6
+}

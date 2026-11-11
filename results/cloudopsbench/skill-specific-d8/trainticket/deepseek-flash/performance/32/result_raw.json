@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show severe latency degradation isolated to ts-train-service (p50 7.38ms -> 2425ms, p90 9.48ms -> 4472ms) with fan-out impact on ts-basic-service. ts-train-service is a leaf service with no downstream calls, so the delay originates within it. Its pod is 2/2 Running with 0 restarts, nodes are Ready without pressure, TCP connectivity to ts-train-service:14567 succeeds from all workers, and there is no CPU/memory saturation alert for ts-train-service. This pattern matches an in-code artificial delay rather than infrastructure or network failure.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-train-service\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-train-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 15
+}

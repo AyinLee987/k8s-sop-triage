@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show severe latency concentrated at ts-train-service (p50 8.35ms -> 2500ms, peak ~2970ms) with upstream propagation to ts-basic-service and ts-preserve-service. Pods are Running/Ready with no restarts, no error logs were found for ts-train-service, dependencies show it is a leaf service with no downstream calls, and TCP connectivity to ts-train-service:14567 succeeds from worker-01/02/03. Nodes are Ready with no memory/disk/PID pressure. This supports an isolated pod-scoped network delay at ts-train-service, while code-artificial delay and node-level network delay remain less likely alternatives.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-train-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-train-service\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 12
+}

@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show cartservice CPU throttling (0.811s), CPU usage rising from 0.02 to 0.16 cores (+544.6%), and cartservice p95 latency increasing from 10.77ms to 83.83ms. checkoutservice and frontend latency degradation is consistent with downstream fan-out from cartservice. ResourceQuota is absent, the cartservice pod is Running 2/2, and inspected cartservice API/Redis/startup code shows no busy loop or artificial delay. This supports pod-level CPU overload in cartservice.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/cartservice\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 2, \"fault_object\": \"app/cartservice\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 3, \"fault_object\": \"app/cartservice\", \"root_cause\": \"code_artificial_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 12
+}

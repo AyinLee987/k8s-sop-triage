@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Frontend pod is Pending due to FailedScheduling and is pinned to worker-01. Cluster configuration shows worker-01 status Unknown with node.kubernetes.io/unreachable taints, while worker-02/03 are Ready but do not match the frontend nodeSelector. Direct node inspection shows kubelet.service on worker-01 is inactive (dead), confirming the node-level fault causing partial service unreachability.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/worker-01\", \"root_cause\": \"kubelet_unavailable\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_packet_loss\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 6
+}

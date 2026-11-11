@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"kube-proxy.service on worker-01 is inactive (dead since 15:51:11). TCP connectivity tests to cartservice:7070 and currencyservice:7000 fail from worker-01 but succeed from worker-02 and worker-03. Frontend logs show checkout failures with cartservice i/o timeout, consistent with a node-local Service routing failure on worker-01.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/worker-01\", \"root_cause\": \"kube_proxy_unavailable\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/frontend\", \"root_cause\": \"service_dns_resolution_failure\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 16
+}

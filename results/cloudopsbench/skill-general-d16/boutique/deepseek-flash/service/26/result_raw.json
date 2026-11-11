@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All currencyservice pods are Running and Ready, and the Service selector matches the pods. The Deployment declares containerPort 7000 with gRPC/TCP probes and PORT=7000, but the currencyservice Service exposes port 7000 with protocol UDP. An active connectivity check to currencyservice:7000 failed. This directly supports a Service protocol mismatch as the root cause of the availability disruption.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/currencyservice\", \"root_cause\": \"service_protocol_mismatch\"}, {\"rank\": 2, \"fault_object\": \"app/currencyservice\", \"root_cause\": \"service_port_mapping_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/currencyservice\", \"root_cause\": \"service_dns_resolution_failure\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 7
+}

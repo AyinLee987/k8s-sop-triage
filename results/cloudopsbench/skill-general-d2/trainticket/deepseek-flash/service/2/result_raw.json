@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All pods are Running/Ready and no alerts were raised. The `ts-food-delivery-service` Deployment and pod exist with container port 18957, but the Kubernetes Service object `ts-food-delivery-service` is missing from the namespace. Dependency data shows `ts-gateway-service` calls it, and an active TCP check to `ts-food-delivery-service:18957` failed. This makes the service DNS name unresolvable/unreachable, matching the partial service unreachability symptom.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-food-delivery-service\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 2, \"fault_object\": \"app/ts-food-delivery-service\", \"root_cause\": \"service_selector_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/ts-food-delivery-service\", \"root_cause\": \"service_port_mapping_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 10
+}

@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show widespread latency across boutique services, with the strongest infrastructure anomaly on worker-02: TCP retransmissions jumped from 0.02 to 8.46, indicating packet loss. The most severely affected services include frontend, checkoutservice, and recommendationservice, all scheduled on worker-02, so their downstream calls fan out and cause broad latency. Nodes are Ready and pods are Running, and checkoutservice had no error logs, supporting a node network fault rather than an application error.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_packet_loss\"}, {\"rank\": 2, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_packet_loss\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 5
+}

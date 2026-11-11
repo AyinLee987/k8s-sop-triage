@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alert shows 20 occurrences of POST /api/v1/preserveservice/preserve returning HTTP 404. All relevant pods are Running and Ready, and Services have correct selectors/ports, ruling out backend crashes and Service selector/port mismatches. The ts-gateway-service ConfigMap contains an incorrect preserve route: uri is `lb://${FOOD_SERVICE_HOST:ts-food-service}` instead of pointing to ts-preserve-service. Requests to `/api/v1/preserveservice/**` are therefore routed to the food service, which lacks that endpoint and returns 404.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-gateway-service\", \"root_cause\": \"gateway_misrouted\"}, {\"rank\": 2, \"fault_object\": \"app/ts-preserve-service\", \"root_cause\": \"gateway_misrouted\"}, {\"rank\": 3, \"fault_object\": \"app/ts-food-service\", \"root_cause\": \"code_wrong_return\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 11
+}

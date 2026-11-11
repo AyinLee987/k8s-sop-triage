@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"The cartservice Deployment is at 0/1 replicas and its Service has no endpoints, while all other boutique services are running. The cartservice ReplicaSet repeatedly fails pod creation with `exceeded quota: cpu-request-quota, requested: requests.cpu=1, used: requests.cpu=10, limited: requests.cpu=10`. ResourceQuota confirms `requests.cpu: 10/10`, so the namespace CPU quota exhaustion prevents cartservice from scheduling a backing pod.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"namespace/boutique\", \"root_cause\": \"namespace_cpu_quota_exceeded\"}, {\"rank\": 2, \"fault_object\": \"app/cartservice\", \"root_cause\": \"missing_service_account\"}, {\"rank\": 3, \"fault_object\": \"namespace/boutique\", \"root_cause\": \"namespace_pod_quota_exceeded\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 11
+}

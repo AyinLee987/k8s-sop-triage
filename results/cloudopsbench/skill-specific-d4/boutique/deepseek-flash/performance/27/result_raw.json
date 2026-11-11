@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All latency-degraded services (adservice, checkoutservice, recommendationservice) are running on worker-02. Worker-02 shows a new TCP retransmission spike (0.00 -> 6.67 retrans), much larger than worker-01 (0.07 -> 0.61). Nodes are Ready with no resource pressure or taints, and TCP connectivity to recommendationservice succeeds but latency alerts indicate degraded network quality. This supports node-level network packet loss on worker-02 as the primary fault.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_packet_loss\"}, {\"rank\": 2, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_packet_loss\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 7
+}

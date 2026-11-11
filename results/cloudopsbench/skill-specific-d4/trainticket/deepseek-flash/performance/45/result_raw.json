@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"GetAlerts showed clustered LATENCY_DEGRADATION across ts-gateway-service, ts-basic-service, ts-preserve-service, and ts-train-service, with secondary CPU/throttling and traffic anomalies. All pods are Running with no restart/error evidence; ts-travel-service connectivity is open and application logs show successful downstream calls without errors. The dependency graph places ts-travel-service as a common upstream for the degraded train-ticket services, and team note exp-02 describes the same fan-out symptom caused by pod_network_delay on app/ts-travel-service.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-travel-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-train-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-basic-service\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 13
+}

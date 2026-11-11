@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alert shows checkoutservice p50 latency jumping from ~18ms to 3750ms. Logs show downstream payment/email calls completing normally, and pods are running. Source inspection of checkoutservice main.go reveals an explicit `time.Sleep(time.Millisecond * 3000)` inserted at the start of the PlaceOrder handler, matching the observed latency spike.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 2, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"pod_cpu_overload\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 7
+}

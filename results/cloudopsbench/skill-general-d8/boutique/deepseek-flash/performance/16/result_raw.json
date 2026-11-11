@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show extreme p90 latency on emailservice (4.8ms -> 895.9ms), with checkoutservice and frontend also degraded. emailservice is a leaf dependency, its pod is Running/Ready with zero restarts, logs show successful requests without errors, code inspection shows no artificial delay or busy loop, and service connectivity/port mapping is valid. This isolates the fault to emailservice pod-level network latency rather than application code, downstream dependency, or resource/probe failure.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/emailservice\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/emailservice\", \"root_cause\": \"pod_cpu_overload\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 16
+}

@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Frontend logs show 174 'connection refused' errors dialing checkoutservice ClusterIP 10.68.228.153:5050. The checkoutservice pod is Running/Ready on node worker-01 with containerPort 5050 named 'grpc' (readiness/liveness grpc:5050 passing). However, the checkoutservice Service spec defines targetPort 'grpc-api', a named port that does not exist on the pod (pod exposes 'grpc'). This mismatch prevents the Service from routing to a valid backend port, causing connection refused. Selector app=checkoutservice matches, so selector is not the issue.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"service_port_mapping_mismatch\"}, {\"rank\": 2, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"service_selector_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"service_protocol_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 12
+}

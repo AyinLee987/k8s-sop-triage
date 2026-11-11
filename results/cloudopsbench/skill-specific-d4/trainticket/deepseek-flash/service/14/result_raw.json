@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alert shows POST /api/v1/inside_pay_service/inside_payment failing with HTTP 500. Logs from ts-inside-payment-service show it receives 500 from downstream /api/v1/paymentservice/payment. Direct logs from ts-payment-service show repeated IncorrectResultSizeDataAccessException / NonUniqueResultException: query did not return a unique result: 5. No error logs were found for tsdb-mysql, so the database is reachable and the fault is in ts-payment-service application query/result handling.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"code_wrong_return\"}, {\"rank\": 2, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"code_wrong_argument_order\"}, {\"rank\": 3, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"code_missing_parameter\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 9
+}

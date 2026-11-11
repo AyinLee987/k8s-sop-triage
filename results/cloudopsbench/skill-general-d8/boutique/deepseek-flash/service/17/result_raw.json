@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All boutique pods are Running and Ready, but checkoutservice has no usable Service endpoints and an active TCP check to checkoutservice:5050 fails. The pod exposes containerPort 5050 named `grpc`, while the checkoutservice Service targets named port `grpc-api`, which does not exist on the pod. The pod labels and Service selector match, ruling out selector mismatch as the primary cause.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"service_port_mapping_mismatch\"}, {\"rank\": 2, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"service_selector_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"service_protocol_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 10
+}

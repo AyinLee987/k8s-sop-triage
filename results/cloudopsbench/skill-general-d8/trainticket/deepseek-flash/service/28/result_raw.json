@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerting shows `ts-inside-payment-service` returning HTTP 500 on payment processing. Its downstream `ts-payment-service` is unavailable: the deployment has `unavailableReplicas=1`, and the pod `ts-payment-service-dd4c6c46b-qwzxg` is in `CrashLoopBackOff`. Error logs show payment startup failing with `java.net.UnknownHostException: tsdb-mysql-leader: Temporary failure in name resolution`; Istio proxy logs also show DNS lookup timeouts to `10.255.17.254`. The `tsdb-mysql-leader` Service exists and TCP connectivity to port 3306 succeeds from debug pods on worker-01/02/03, so the failure is scoped to the payment pod's DNS resolution rather than the database Service itself.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 2, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 16
+}

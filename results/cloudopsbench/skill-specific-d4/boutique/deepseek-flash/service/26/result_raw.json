@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"frontend logged 134/174 errors as 'dial tcp 10.68.90.185:7000: connect: connection refused' for currencyservice. DescribeResource shows currencyservice Service exposes port 7000 and targetPort 7000 using UDP, while the frontend is attempting a TCP gRPC connection. All currencyservice pods are Running and Ready, making a Service protocol configuration fault the strongest root cause.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/currencyservice\", \"root_cause\": \"service_protocol_mismatch\"}, {\"rank\": 2, \"fault_object\": \"app/currencyservice\", \"root_cause\": \"service_port_mapping_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"service_dns_resolution_failure\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 8
+}

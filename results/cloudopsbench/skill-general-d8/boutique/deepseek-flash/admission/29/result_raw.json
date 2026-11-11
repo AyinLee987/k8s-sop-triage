@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"productcatalogservice has desired=1 but 0 available pods and ReplicaFailure=FailedCreate with no pod created. The namespace ResourceQuota memory-request-quota is saturated at requests.memory 3000Mi/3Gi, and productcatalogservice would request another 300Mi, exceeding the hard limit. This confirms admission rejection due to namespace memory quota exhaustion.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"namespace/boutique\", \"root_cause\": \"namespace_memory_quota_exceeded\"}, {\"rank\": 2, \"fault_object\": \"namespace/boutique\", \"root_cause\": \"namespace_pod_quota_exceeded\"}, {\"rank\": 3, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"memory_capacity_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 8
+}

@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Node worker-01 shows a NETWORK_QUALITY_DEGRADED TCP retransmission spike (0.00 -> 0.70 retrans). Pods on worker-01 (frontend, productcatalogservice, currencyservice) exhibit traffic drops and frontend shows error spike/latency-metrics-vanished, while worker-02 services calling into worker-01 pods (checkoutservice +3559ms p50, recommendationservice +1186ms p50) show latency degradation. All pods are Running 2/2 with 0 restarts, and nodes report Ready with no Memory/Disk/PID pressure, ruling out component failure and resource saturation. TCP retransmissions specifically indicate node-level packet loss rather than a pod-scoped delay, and the wide blast radius across all worker-01 pods confirms a node-scoped network fault.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_packet_loss\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 7
+}

@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Service connectivity test to frontend:80 failed only from worker-01 while succeeding from worker-02 and worker-03. Inspection of worker-01 shows kube-proxy.service is inactive (dead), stopped via SIGTERM, which explains service availability disruption for pods/services relying on node-local routing. All boutique pods and services are otherwise present and running.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/worker-01\", \"root_cause\": \"kube_proxy_unavailable\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"kubelet_unavailable\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"containerd_unavailable\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 7
+}

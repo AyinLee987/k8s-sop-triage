@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"productcatalogservice pod is in CrashLoopBackOff with repeated OOMKilled (exit 137) at 128Mi memory limit. Describe shows State: Waiting CrashLoopBackOff, Last State Terminated Reason OOMKilled. Logs show the container dies immediately after 'loading catalog from local products.json file...'. Source code in catalog_loader.go loadCatalogFromLocalFile() contains an intentional runaway allocation: `numbers := make([]int, 1, 1); for i := 0; i < 1024*1024*8; i++ { numbers = append(numbers, 1) }`, allocating tens of MB of ints right after parsing the catalog, which exceeds the 128Mi limit and triggers OOMKill. Alerts on frontend/cartservice/recommendationservice/adservice availability are downstream fallout of productcatalogservice unavailability. All other pods are Running and healthy.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"code_memory_leak\"}, {\"rank\": 2, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"container_memory_limit_too_low\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"memory_capacity_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 8
+}

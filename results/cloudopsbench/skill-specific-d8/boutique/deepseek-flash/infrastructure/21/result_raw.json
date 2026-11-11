@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"checkoutservice pod is Pending with no scheduling events, while all worker nodes are Ready, untainted, and have ample allocatable CPU/memory. The pod has no node selectors, affinity, tolerations issues, or PVC constraints. kube-scheduler on master is inactive/dead, explaining why the pod cannot be scheduled and causing partial service unreachability.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/master\", \"root_cause\": \"kube_scheduler_unavailable\"}, {\"rank\": 2, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"node_affinity_mismatch\"}, {\"rank\": 3, \"fault_object\": \"node/master\", \"root_cause\": \"node_cordon_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 6
+}

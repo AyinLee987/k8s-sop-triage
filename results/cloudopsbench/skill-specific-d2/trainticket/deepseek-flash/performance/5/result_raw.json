@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Broad service-quality degradation is dominated by extreme latency on ts-inside-payment-service (p50=7.17s, p90=20.33s) and its caller ts-cancel-service (p90=21.67s), with gateway/UI latency fan-out. All pods are Running with no restarts and all nodes are Ready without pressure. Dependency mapping shows ts-cancel-service and ts-gateway-service call ts-inside-payment-service, while inside-payment application logs show fast internal processing and no sustained internal errors. This pattern supports pod-level network delay on ts-inside-payment-service rather than node failure or application crash.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-inside-payment-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"node/worker-03\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-travel-service\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 19
+}

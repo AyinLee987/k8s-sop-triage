@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"cartservice Service has no endpoints; cartservice Deployment is 0/1 available; its ReplicaSet shows repeated FailedCreate events: `exceeded quota: cpu-request-quota, requested: requests.cpu=1, used: requests.cpu=10, limited: requests.cpu=10`; ResourceQuota `cpu-request-quota` reports `requests.cpu: 10/10`. A transient missing cartservice ServiceAccount warning also appeared, but the ServiceAccount now exists.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"namespace/boutique\", \"root_cause\": \"namespace_cpu_quota_exceeded\"}, {\"rank\": 2, \"fault_object\": \"app/cartservice\", \"root_cause\": \"missing_service_account\"}, {\"rank\": 3, \"fault_object\": \"app/cartservice\", \"root_cause\": \"cpu_capacity_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 13
+}

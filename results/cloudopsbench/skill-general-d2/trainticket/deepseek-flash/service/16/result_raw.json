@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Payment requests returned HTTP 500. ts-inside-payment-service logged a downstream 500 from /api/v1/paymentservice/payment; ts-payment-service logs show 'org.springframework.dao.IncorrectResultSizeDataAccessException: query did not return a unique result: 5' / NonUniqueResultException, i.e., a repository query matched 5 rows instead of one. All pods are Running (2/2), so there is no scheduling, quota, or infra fault; DB conns/creds are fine (ts-payment-mysql secret valid, queries execute). This points to an application-code fault in ts-payment-service returning/duplicating non-unique results during payment.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"code_wrong_return\"}, {\"rank\": 2, \"fault_object\": \"app/ts-inside-payment-service\", \"root_cause\": \"code_missing_parameter\"}, {\"rank\": 3, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"code_missing_parameter\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 17
+}

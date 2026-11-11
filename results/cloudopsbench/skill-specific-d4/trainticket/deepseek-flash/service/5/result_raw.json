@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Active alerts show repeated HTTP 404s for POST /api/v1/preserveservice/preserve. All train-ticket pods are Running and ts-preserve-service logs show a healthy startup/registration. The decisive evidence is in ts-gateway-service configuration: route id 'preserve' has uri lb://${FOOD_SERVICE_HOST:ts-food-service} instead of routing to ts-preserve-service, causing preserve requests to be sent to the wrong backend and return 404. ts-ui-dashboard previous logs also show an early startup DNS error for ts-gateway-service, but the gateway Service exists and the ongoing symptom is specifically the misrouted preserve endpoint.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-gateway-service\", \"root_cause\": \"gateway_misrouted\"}, {\"rank\": 2, \"fault_object\": \"app/ts-ui-dashboard\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 3, \"fault_object\": \"app/ts-food-service\", \"root_cause\": \"code_wrong_return\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 14
+}

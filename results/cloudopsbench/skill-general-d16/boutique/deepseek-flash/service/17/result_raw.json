@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Frontend logs show 174/176 errors are deterministic connection refusals to checkoutservice at 10.68.228.153:5050. The checkoutservice pod is Running/Ready, and its container port is named `grpc` (containerPort 5050). However, the checkoutservice Service defines `port: 5050` with `targetPort: grpc-api`, a named port that does not exist on the pod. This mismatched targetPort leaves the Service without a valid working endpoint port, causing connection refused despite healthy workload pods.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"service_port_mapping_mismatch\"}, {\"rank\": 2, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"service_selector_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"service_protocol_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 8
+}

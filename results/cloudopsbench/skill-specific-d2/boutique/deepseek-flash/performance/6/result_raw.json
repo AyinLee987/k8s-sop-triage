@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Active alert localizes the fault to frontend: RESOURCE_SATURATION cpu_cfs throttled 1.333s, CPU core rose from 0.07 to 0.16 cores (+138%, near the 200m limit), and latency degraded sharply (p95 +880%, p50 +183%). All boutique pods are 2/2 Running, nodes are Ready with no Memory/Disk/PID pressure and no taints, no error logs, and code inspection (handlers, money, rpc, middleware, main, deployment_details) showed no busy loop or artificial delay. This indicates the frontend pod CPU is being overloaded and throttled, causing the service latency increase.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/frontend\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 2, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 3, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_artificial_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 17
+}

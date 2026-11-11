@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show frontend success-rate collapse and availability loss across downstream services. Pod status shows only productcatalogservice in CrashLoopBackOff. Its pod describe reports Last State Terminated with Reason OOMKilled, Exit Code 137, restart count 4, and container memory limit 128Mi. This supports low container memory limit as the primary fault causing productcatalogservice failures and downstream availability disruption.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"container_memory_limit_too_low\"}, {\"rank\": 2, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"code_memory_leak\"}, {\"rank\": 3, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"memory_capacity_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 4
+}

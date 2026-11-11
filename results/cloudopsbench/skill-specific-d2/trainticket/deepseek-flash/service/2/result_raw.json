@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All train-ticket pods are Running with healthy Deployments and matching Service selectors/ports. No gateway or preserve-service error logs were found, and active alerts are clean. User-facing dashboard logs show 499 client timeouts for preserve requests, while preserve-service progresses through downstream calls, indicating fan-out latency rather than a crash or selector/port failure. The matching team experience exp-02 identifies pod network delay on ts-travel-service as the common upstream cause of train-ticket fan-out latency; TCP connectivity to ts-travel-service succeeds but does not measure or exclude injected packet delay.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-travel-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-preserve-service\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-food-service\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 18
+}

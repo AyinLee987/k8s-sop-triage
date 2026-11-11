@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Frontend is the only service with alert-level CPU saturation and CFS throttling, plus p50/p90 latency spikes and 503s. All pods are Running and worker-01 node CPU remains low. Source inspection of frontend handlers.go reveals `chooseAd` executes a tight `for { if time.Now().Sub(start) > 800*time.Millisecond { break } }` busy loop on request paths, directly explaining frontend CPU burn, throttling, and request latency.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 2, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 3, \"fault_object\": \"app/frontend\", \"root_cause\": \"pod_cpu_overload\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 8
+}

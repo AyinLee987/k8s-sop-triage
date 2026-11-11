@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"ts-food-service pod is in CrashLoopBackOff on worker-01 failing with java.net.UnknownHostException: tsdb-mysql-leader (Temporary failure in name resolution), breaking Hikari/JPA init. The tsdb-mysql-leader Service exists (clusterIP 10.68.188.173) and TCP 3306 is reachable from debug pods on all three nodes, and FOOD_MYSQL_HOST=tsdb-mysql-leader is correct. However ts-food-service uniquely runs with dnsPolicy: None using nameserver 10.255.18.254 (not cluster DNS), so it cannot resolve in-cluster Service names; istio-proxy in the same pod also shows DNS i/o timeouts. This app-level DNS resolution failure crashes ts-food-service, and ts-preserve-service then throws 'Service Instance cannot be null' for its food-service dependency, producing partial service unreachability.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-food-service\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 2, \"fault_object\": \"app/ts-food-service\", \"root_cause\": \"service_env_var_address_mismatch\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 10
+}

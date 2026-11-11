@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Frontend pods are Running/Ready with no error logs. Alerts show frontend CPU saturation and a filesystem write surge. The failing paths `/` and `/product/{id}` both invoke `chooseAd`, whose source writes 30,000 CSV rows to `/tmp/tmp.csv` on each call. This directly matches the observed write surge and causes performance degradation on those paths.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_excessive_file_writes\"}, {\"rank\": 2, \"fault_object\": \"app/frontend\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 3, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_busy_loop\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 7
+}

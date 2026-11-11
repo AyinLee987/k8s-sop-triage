@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show severe latency degradation across many train-ticket services, with the most extreme increase on ts-travel-service (p50 88.74ms→18461.54ms, +20703%; p90 878.38ms→27692.31ms, +3052.7%). All pods are Running with no restarts, ruling out crash loops. This matches team note exp-02: pod_network_delay on app/ts-travel-service causing fan-out latency degradation.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-travel-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-travel-service\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-travel-service\", \"root_cause\": \"pod_cpu_overload\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 5
+}

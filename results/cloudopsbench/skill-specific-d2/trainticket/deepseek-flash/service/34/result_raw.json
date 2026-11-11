@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"`ts-preserve-service` returns 500s because `ts-travel-service` fails on `/trip_detail`, which is caused by `ts-basic-service` throwing `Service Instance cannot be null`. Only `ts-station-service` is unavailable (0/1, CrashLoopBackOff). Its container logs show `java.net.UnknownHostException: tsdb-mysql-leader: Temporary failure in name resolution`, causing Hikari/JPA startup failure and exit code 1. The `tsdb-mysql-leader` Service exists and TCP connectivity to port 3306 succeeds from debug pods on all nodes, so the backend Service itself is reachable; the fault is DNS resolution from the `ts-station-service` pod.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-station-service\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_packet_loss\"}, {\"rank\": 3, \"fault_object\": \"app/ts-station-service\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 13
+}

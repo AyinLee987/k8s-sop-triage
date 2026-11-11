@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"GetAlerts showed multi-service latency degradation and network drops, with worker-02 TCP retransmissions spiking from 0.02 to 8.46 (+50396.3%), far worse than worker-01. Pod placement from GetResources showed affected services such as frontend, checkoutservice, recommendationservice, adservice, emailservice, and shippingservice running on worker-02. This evidence matches the known incident note exp-12 for packet loss on node/worker-02.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_packet_loss\"}, {\"rank\": 2, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 6
+}

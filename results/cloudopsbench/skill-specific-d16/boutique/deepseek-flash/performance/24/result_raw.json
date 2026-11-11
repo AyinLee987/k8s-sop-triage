@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show a new TCP retransmission spike on worker-01 and widespread boutique latency/traffic degradation. Pods on worker-01 include frontend, productcatalogservice, currencyservice, paymentservice, and emailservice; worker-02 services such as checkoutservice and recommendationservice show severe p50 latency, consistent with calls to degraded worker-01-hosted dependencies. worker-01 is Ready with no resource pressure or taints, supporting localized node network packet loss as the primary fault.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_packet_loss\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_packet_loss\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 5
+}

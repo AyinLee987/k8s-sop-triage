@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show severe latency degradation centered on emailservice (p90 4.80ms -> 895.90ms) with propagated latency in checkoutservice (p50 17.36ms -> 516.72ms, p90 28.40ms -> 948.48ms) and frontend (p90 40.77ms -> 574.70ms). emailservice pods are Running with 0 restarts, no error logs, TCP connectivity to emailservice:5000 succeeds, and email_server.py contains no artificial delay or blocking logic. Other worker-02 services do not show alerts, making a node-wide fault less likely. This isolates the fault to pod-level network delay on emailservice.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/emailservice\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 12
+}

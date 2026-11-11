@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All pods are Running with no relevant restarts. Alerts show a 500 on the payment path. ts-inside-payment-service logs show it received a downstream 500 from /api/v1/paymentservice/payment. ts-payment-service logs show the root failure: IncorrectResultSizeDataAccessException / NonUniqueResultException: query did not return a unique result: 5. This is a deterministic application-generated 5xx on a healthy pod, consistent with an application code defect rather than infrastructure, network, or resource exhaustion.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"code_wrong_return\"}, {\"rank\": 2, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"code_missing_parameter\"}, {\"rank\": 3, \"fault_object\": \"app/ts-inside-payment-service\", \"root_cause\": \"code_wrong_return\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 9
+}

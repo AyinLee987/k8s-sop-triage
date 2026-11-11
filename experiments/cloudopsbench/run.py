@@ -44,6 +44,9 @@ def main() -> int:
     ap.add_argument("--workers", type=int, default=6)
     ap.add_argument("--python", default=sys.executable)
     ap.add_argument("--max-iterations", type=int, default=20)
+    ap.add_argument("--experience", default="", help="folder of NN.md experience notes (e.g. experiences/specific)")
+    ap.add_argument("--dose", type=int, default=0, help="use the first K notes; 0 = agent unchanged")
+    ap.add_argument("--case-timeout", type=int, default=420)
     args = ap.parse_args()
     env = dotenv()
     model = env.get("LLM_MODEL", "deepseek-flash")
@@ -56,7 +59,18 @@ def main() -> int:
         if w.exists():
             shutil.rmtree(w)
         shutil.copytree(dataset / "agents" / args.agent, w)
+        if args.dose:
+            # the only change to the reference agent: load experience_ext and let it add the catalog + tool
+            shutil.copy(Path(__file__).with_name("experience_ext.py"), w / "experience_ext.py")
+            src = (w / "run.py").read_text(encoding="utf-8")
+            anchor = "    state = init_case_state("
+            assert src.count(anchor) == 1, "agent run.py changed; re-check the patch point"
+            (w / "run.py").write_text(src.replace(
+                anchor, "    import experience_ext\n    experience_ext.install(registry, context)\n" + anchor), encoding="utf-8")
         pool.put(w)
+    child_env = dict(__import__("os").environ)
+    if args.dose:
+        child_env.update(EXPERIENCE_DIR=str(Path(args.experience).resolve()), EXPERIENCE_DOSE=str(args.dose))
 
     def result_path(c: dict) -> Path:
         return out / c["system"] / model / c["category"] / c["case"] / "result_raw.json"
@@ -75,7 +89,8 @@ def main() -> int:
             cfg_path.write_text(yaml.safe_dump(cfg), encoding="utf-8")
             started = time.monotonic()
             try:
-                p = subprocess.run([args.python, "run.py"], cwd=w, capture_output=True, text=True, timeout=900)
+                p = subprocess.run([args.python, "run.py"], cwd=w, capture_output=True, text=True,
+                                   timeout=args.case_timeout, env=child_env)
                 status = f"exit {p.returncode}"
             except subprocess.TimeoutExpired:
                 status = "timeout"

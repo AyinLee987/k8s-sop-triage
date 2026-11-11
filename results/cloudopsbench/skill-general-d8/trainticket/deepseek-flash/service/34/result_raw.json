@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show 500 errors in ts-preserve-service and ts-inside-payment-service. Logs from ts-inside-payment-service show its failures are downstream HTTP 500 responses from `/api/v1/paymentservice/payment`. Direct logs from ts-payment-service show repeated deterministic `IncorrectResultSizeDataAccessException: query did not return a unique result: 5` / `NonUniqueResultException`, producing the 500 responses. The ts-payment-service Deployment is Available with 1/1 ready replicas, indicating the fault is an application-level code/result-handling defect rather than pod, scheduling, network, or capacity failure.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"code_wrong_return\"}, {\"rank\": 2, \"fault_object\": \"app/ts-inside-payment-service\", \"root_cause\": \"code_wrong_return\"}, {\"rank\": 3, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"code_missing_parameter\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 7
+}

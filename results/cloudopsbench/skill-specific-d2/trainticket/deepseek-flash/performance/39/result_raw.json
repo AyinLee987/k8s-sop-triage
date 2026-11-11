@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"GetAlerts showed broad latency/throughput degradation across the train-ticket call chain, with ts-travel-service exhibiting an extreme p50 latency increase (88.74ms -> 18461.54ms). GetServiceDependencies confirmed ts-travel-service is a central upstream service called by gateway/preserve/travel-plan/route-plan/rebook/food, explaining fan-out. All pods were Running with no relevant restarts, ruling out crashes/scheduling failures. The team experience note exp-02 matches the symptom exactly and identifies pod network delay on app/ts-travel-service as the cause.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-travel-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-travel-service\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-seat-service\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 5
+}

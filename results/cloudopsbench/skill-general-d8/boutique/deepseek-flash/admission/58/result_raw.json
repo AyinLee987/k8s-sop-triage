@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"redis-cart pod is Pending with FailedScheduling: persistentvolumeclaim \\\"redis-cart-pvc\\\" not found. Only pre-existing-pvc exists; redis-cart-pv is Available. ResourceQuota storage-quota in boutique shows requests.storage 9Gi/10Gi, so a 2Gi PVC request cannot be admitted (9Gi + 2Gi > 10Gi).\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"namespace/boutique\", \"root_cause\": \"namespace_storage_quota_exceeded\"}, {\"rank\": 2, \"fault_object\": \"app/redis-cart\", \"root_cause\": \"pvc_capacity_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/redis-cart\", \"root_cause\": \"pv_binding_occupied\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 9
+}

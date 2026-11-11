@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Broad latency/throughput degradation affects many train-ticket services including ts-gateway-service, ts-basic-service, ts-route-service, ts-train-service, and ts-seat-service. Node health is normal across master/worker-01/worker-02/worker-03. GetServiceDependencies shows ts-travel-service is a common upstream calling ts-basic-service, ts-route-service, ts-train-service, and ts-seat-service, matching the fan-out latency pattern described in exp-02 for pod_network_delay on ts-travel-service. Logs show ts-travel-service processing requests without crash-loop evidence, consistent with injected network delay rather than application crash.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-travel-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-basic-service\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-route-service\", \"root_cause\": \"code_artificial_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 6
+}

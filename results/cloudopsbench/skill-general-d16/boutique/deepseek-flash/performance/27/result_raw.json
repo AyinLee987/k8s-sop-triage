@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show severe latency on adservice (+314%), checkoutservice (+752%), and recommendationservice (+3433%), all co-located on worker-02. worker-02 shows TCP retransmission spike from 0.00 to 6.67 (New Spike); worker-01 also elevated (0.07->0.61). All pods Running with 0 restarts, excluding pod crash or code faults. The pattern of multi-service co-located degradation with healthy pods and bidirectional retransmission spikes matches node-level packet loss.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_packet_loss\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_packet_loss\"}, {\"rank\": 3, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 4
+}

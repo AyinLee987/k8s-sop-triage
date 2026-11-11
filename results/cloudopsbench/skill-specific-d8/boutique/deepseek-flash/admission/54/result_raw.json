@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Frontend logs show repeated DNS failures resolving `shippingservice` (`lookup shippingservice ... no such host`). The `shippingservice` pod exists and is Running, but the Kubernetes Service `shippingservice` is absent. The namespace ResourceQuota `service-quota` reports `services: 11/11`, meaning the namespace service quota is exhausted and the missing Service cannot be created.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"namespace/boutique\", \"root_cause\": \"namespace_service_quota_exceeded\"}, {\"rank\": 2, \"fault_object\": \"app/shippingservice\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 3, \"fault_object\": \"app/shippingservice\", \"root_cause\": \"service_port_mapping_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 8
+}

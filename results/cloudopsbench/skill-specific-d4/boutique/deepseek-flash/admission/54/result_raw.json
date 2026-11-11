@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All pods are Running and Ready. The `shippingservice` Deployment exists and the supplied manifest declares a `shippingservice` Service, but the live Service and Endpoints objects are absent. Direct connectivity to `shippingservice:50051` fails. The namespace `boutique` has `service-quota` exhausted at `services: 11/11`, preventing creation of the missing Service and causing partial service unreachability.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"namespace/boutique\", \"root_cause\": \"namespace_service_quota_exceeded\"}, {\"rank\": 2, \"fault_object\": \"app/shippingservice\", \"root_cause\": \"service_selector_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/shippingservice\", \"root_cause\": \"service_port_mapping_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 10
+}

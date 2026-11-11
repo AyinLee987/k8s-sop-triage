@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"ts-train-service pod is 0/2 Ready in CrashLoopBackOff (exit 1) on worker-01. App logs show 'java.net.UnknownHostException: tsdb-mysql-leader: Temporary failure in name resolution' and sidecar 'lookup istiod.istio-system.svc on 10.255.12.254:53 ... i/o timeout'. The deployment uses non-standard dnsPolicy: None with dnsConfig nameserver 10.255.12.254 and no search domains, so short service names cannot resolve. kube-proxy on worker-01 is healthy, all nodes are Ready, tsdb-mysql-leader Service exists and is reachable (10.68.188.173:3306 open) from debug pods on all three workers, and other pods on worker-01 (e.g., ts-order-service) show no errors. Thus the fault is localized to ts-train-service's DNS configuration, explaining the downstream 500 alerts in preserve/payment flows.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-train-service\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_packet_loss\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 15
+}

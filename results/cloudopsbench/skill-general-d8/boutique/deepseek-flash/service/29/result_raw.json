@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All boutique pods are Running/Ready with no restarts, so pod failure is ruled out. The recommendationservice Service exposes port 8080 with protocol UDP, but its Deployment uses containerPort 8080 for gRPC with TCP-based gRPC readiness/liveness probes. An active TCP connectivity check to recommendationservice:8080 fails, matching the partial service unreachability symptom.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/recommendationservice\", \"root_cause\": \"service_protocol_mismatch\"}, {\"rank\": 2, \"fault_object\": \"app/recommendationservice\", \"root_cause\": \"service_port_mapping_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/recommendationservice\", \"root_cause\": \"service_dns_resolution_failure\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 7
+}

@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Widespread service latency alerts occurred while all boutique pods were Running/Ready and nodes were Ready without CPU, memory, disk, or PID pressure. Node-level alerts showed TCP retransmission spikes, especially on worker-02 (Normal=0.02 -> Current=8.46 retrans), while worker-02 also hosted several high-latency services such as frontend, checkoutservice, recommendationservice, adservice, and shippingservice. This pattern indicates a node network packet-loss fault rather than pod failure, resource saturation, or application-code latency.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_packet_loss\"}, {\"rank\": 2, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/frontend\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 5
+}

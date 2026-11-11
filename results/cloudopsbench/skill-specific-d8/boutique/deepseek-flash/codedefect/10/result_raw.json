@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"GetAlerts showed an isolated LATENCY_DEGRADATION on checkoutservice (p50 18.66ms -> 3750ms), while checkoutservice logs showed successful downstream payments/emails with no errors. GetSourceCode for checkoutservice/main.go revealed an injected `time.Sleep(time.Millisecond * time.Duration(3000))` at the start of PlaceOrder, matching the ~3s latency increase. This is an in-code artificial delay, not infra or downstream fault.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 2, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 3, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 8
+}

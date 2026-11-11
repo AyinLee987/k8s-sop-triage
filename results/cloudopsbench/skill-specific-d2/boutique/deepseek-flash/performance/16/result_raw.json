@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"GetAlerts showed latency degradation on frontend, checkoutservice, and emailservice, with emailservice having the most extreme relative jump (p90 4.8ms -> 895.9ms, +18581%). Pods were all Running/healthy with no restarts, and no namespace ResourceQuota existed. checkoutservice's dependency map places emailservice downstream (checkout -> email). emailservice has no downstream dependencies, its pod is healthy, and its server code (dummy mode) contains no artificial delay, so its self-latency spike must be network-induced and propagates upstream to checkoutservice and frontend — the classic pod_network_delay fan-out pattern described in exp-02.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/emailservice\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 9
+}

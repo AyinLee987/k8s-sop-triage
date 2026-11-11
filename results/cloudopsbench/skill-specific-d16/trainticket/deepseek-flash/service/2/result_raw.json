@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"GetAlerts returned no metric alerts. The ts-gateway-service ConfigMap contains `id: order` with Path `/api/v1/orderservice/**` but routes to `${ROUTE_SERVICE_HOST:ts-route-service}` instead of the order service, producing an incorrect gateway route for order-service requests. This matches exp-06: gateway misroute causing partial service unreachability.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-gateway-service\", \"root_cause\": \"gateway_misrouted\"}, {\"rank\": 2, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"service_selector_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"service_port_mapping_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 4
+}

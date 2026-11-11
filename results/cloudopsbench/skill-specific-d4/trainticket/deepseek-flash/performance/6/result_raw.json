@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"GetAlerts showed widespread LATENCY_DEGRADATION and throughput drops across the train-ticket call chain, with ts-gateway-service, ts-preserve-service, ts-order-service, ts-seat-service, ts-security-service, and ts-ui-dashboard all impacted. GetServiceDependencies identified ts-travel-service as a common upstream dependency for multiple affected services. The alerts also directly reported ts-travel-service latency degradation (p90 98.74ms -> 11000ms, peak 27000ms), while GetErrorLogs found no application error logs for ts-travel-service. This matches exp-02: pod network delay on app/ts-travel-service causing fan-out latency degradation while the service itself has no application exception signature.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-travel-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-travel-service\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-gateway-service\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 7
+}

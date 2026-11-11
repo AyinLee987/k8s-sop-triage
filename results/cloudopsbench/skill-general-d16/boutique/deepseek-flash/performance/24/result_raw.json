@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show a new TCP retransmission spike on worker-01 while multiple unrelated services co-located on worker-01 (frontend, currencyservice, paymentservice, productcatalogservice, emailservice) exhibit latency, throughput drops, and network traffic anomalies. All pods are Running with 0 restarts, and worker-01 has no MemoryPressure, DiskPressure, PIDPressure, or resource-capacity issue. This supports node-level packet loss as the root cause of the significant service latency.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_packet_loss\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"kube_proxy_unavailable\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 6
+}

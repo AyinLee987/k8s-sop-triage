@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Namespace `boutique` ResourceQuota `cpu-request-quota` is fully consumed (`requests.cpu: 10/10`). `cartservice` deployment is 0/1 available with `ReplicaFailure=True`, and repeated `FailedCreate` events state pods are forbidden because the quota is exceeded (`requested requests.cpu=1, used=10, limited=10`). This explains partial service unreachability caused by cartservice having no running pod.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"namespace/boutique\", \"root_cause\": \"namespace_cpu_quota_exceeded\"}, {\"rank\": 2, \"fault_object\": \"app/cartservice\", \"root_cause\": \"missing_service_account\"}, {\"rank\": 3, \"fault_object\": \"namespace/boutique\", \"root_cause\": \"namespace_pod_quota_exceeded\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 8
+}

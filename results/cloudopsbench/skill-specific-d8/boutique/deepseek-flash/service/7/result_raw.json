@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Frontend error logs show 125/176 errors are connection refused to currencyservice at 10.68.199.102:7001. DescribeResource for currencyservice shows Service port 7000 and TargetPort 7000 with a healthy endpoint 172.20.1.164:7000. GetAppYAML for frontend shows CURRENCY_SERVICE_ADDR set to currencyservice:7001. This direct configuration mismatch explains the dominant availability disruption. A smaller set of DNS lookup errors for productcatalogservice likely reflects a secondary/transient symptom, but the primary fault is the frontend env-var address mismatch.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/frontend\", \"root_cause\": \"service_env_var_address_mismatch\"}, {\"rank\": 2, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 3, \"fault_object\": \"app/currencyservice\", \"root_cause\": \"service_port_mapping_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 11
+}

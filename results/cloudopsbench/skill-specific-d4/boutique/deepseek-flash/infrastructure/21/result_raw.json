@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"checkoutservice pod is Pending with no scheduling events, despite ample node CPU/memory, no affinity/selector/taint issues, and no ResourceQuota. The kube-scheduler service on master is inactive (dead), explaining why the pod created after the scheduler stopped cannot be placed while all previously-created pods remain Running. This produces partial service unreachability (checkoutservice endpoints unavailable).\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/master\", \"root_cause\": \"kube_scheduler_unavailable\"}, {\"rank\": 2, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"node_affinity_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"deployment_zero_replicas\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 8
+}

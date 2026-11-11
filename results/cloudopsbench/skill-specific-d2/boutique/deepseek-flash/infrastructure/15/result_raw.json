@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Frontend logs show i/o timeouts to productcatalogservice and currencyservice, plus DNS lookup failure for checkoutservice. Connectivity to productcatalogservice succeeds from worker-02 and worker-03 but fails from worker-01. kube-proxy.service on worker-01 is inactive/dead, explaining node-local service-routing failure and partial service unreachability.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/worker-01\", \"root_cause\": \"kube_proxy_unavailable\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_packet_loss\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 8
+}

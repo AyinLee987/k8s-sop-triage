@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Widespread latency/RPS drops across many services with all pods Running/Ready and no errors. Dependency tracing shows the deepest affected service is the leaf service ts-route-service, which has no downstream calls and exhibits massive self-latency (p50 ~8s, p90 ~21s vs normal <10ms). Its recent logs show the 10-thread executor saturated with multi-second gaps between request entries, indicating requests are blocking in application code rather than waiting on downstream dependencies, network, or CPU/memory pressure.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-route-service\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-route-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-route-service\", \"root_cause\": \"pod_cpu_overload\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 17
+}

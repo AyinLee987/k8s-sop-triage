@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"GetAlerts showed latency degradation on ts-travel-service (p90 2221ms→8972ms) together with downstream/fan-out alerts on ts-seat-service (−69% RPS, p50 222ms→3409ms) and ts-preserve-service. GetServiceDependencies confirmed ts-travel-service is a central upstream/downstream hub calling ts-basic-service, ts-route-service, ts-train-service, and ts-seat-service while being called by gateway/preserve/travel-plan/route-plan/rebook/food services. Team experience exp-02 exactly matches this incident pattern and states pod_network_delay injected on app/ts-travel-service causes inherited latency across the call chain, with healthy pods and noisy downstream alerts.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-travel-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 3, \"fault_object\": \"app/ts-seat-service\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 4
+}
