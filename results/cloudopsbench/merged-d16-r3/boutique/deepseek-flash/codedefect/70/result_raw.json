@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Only productcatalogservice pod is in CrashLoopBackOff (4 restarts) while all peer pods are Running/Ready; DescribeResource shows last termination Reason: OOMKilled, Exit Code 137, with a 128Mi memory limit. Source code in catalog_loader.go loadCatalogFromLocalFile() unconditionally appends 8,388,608 integers to a slice during catalog load, causing unbounded memory growth that exceeds the limit and OOMKills the container. This matches exp-06 criteria: isolated workload OOMKilled with code-proven unbounded memory growth, peers/dependencies healthy, no node pressure or config/image/probe fault.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"code_memory_leak\"}, {\"rank\": 2, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"container_memory_limit_too_low\"}, {\"rank\": 3, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"code_busy_loop\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 7
+}

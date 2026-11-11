@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"GetAlerts isolated productcatalogservice with RESOURCE_SATURATION [cpu] and FILESYSTEM_WRITE_SURGE. Pods were Running/Ready with 0 restarts, ruling out crash/readiness issues. Source inspection showed ListProducts performs an os.Create/write/remove loop writing 30,000 CSV rows per request, directly explaining the filesystem-write spike and associated CPU degradation.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"code_excessive_file_writes\"}, {\"rank\": 2, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 3, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"code_busy_loop\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 7
+}

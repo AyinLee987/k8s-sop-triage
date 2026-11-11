@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"ts-inside-payment-service returns 500s because downstream ts-payment-service is unavailable. ts-payment-service is in CrashLoopBackOff with logs showing java.net.UnknownHostException for tsdb-mysql-leader and MySQL communications failure. The tsdb-mysql-leader Service exists and TCP 3306 connectivity succeeds from debug pods on worker-01, worker-02, and worker-03, ruling out a general Service/DB outage or node-wide TCP reachability issue. The ts-payment-service Deployment uses dnsPolicy=None with only nameserver 10.255.17.254 configured and no search domains, while the app resolves the short service name tsdb-mysql-leader; this explains the app-level DNS resolution failure and payment crash-loop.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 2, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"service_env_var_address_mismatch\"}, {\"rank\": 3, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 13
+}

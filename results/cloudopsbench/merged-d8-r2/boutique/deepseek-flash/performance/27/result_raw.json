@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All boutique pods are Running/Ready with zero restarts, ruling out crashes or scheduling failures. Alerts show significant latency degradation in adservice, checkoutservice, and recommendationservice, all hosted on worker-02. Node worker-02 has a severe new TCP retransmission spike (6.67 retrans), while worker-01 has a much smaller elevation (0.61). This strongly indicates node-level packet loss on worker-02 as the primary cause of the service latency increase.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_packet_loss\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_packet_loss\"}, {\"rank\": 3, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 4
+}

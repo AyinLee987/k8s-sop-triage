@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show emailservice p90 latency degrading from 4.80ms to 895.90ms, while checkoutservice p50/p90 rise to 516.72ms/948.48ms and frontend p90 rises to 574.70ms. emailservice is a leaf service called by checkoutservice, and it has a Running/Ready pod with 0 restarts, an open Service port 5000, no error logs, and dummy-mode source code without artificial delay. This isolates the primary fault to pod-scoped network delay on emailservice; checkoutservice and frontend are cascading victims.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/emailservice\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 19
+}

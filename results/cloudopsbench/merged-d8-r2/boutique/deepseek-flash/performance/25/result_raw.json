@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"productcatalogservice-p90 latency jumped from 2.50ms to 1158.68ms while pods were 2/2 Running with zero restarts and nodes were Ready without pressure. recommendationservice, an upstream caller, showed derived p50/p90 latency spikes, and frontend success rate fell to 25%. Other pods on worker-01 did not show similar latency, arguing against a node-wide fault. productcatalogservice is a leaf service, TCP connectivity succeeded, no error logs were present, and although the code contains `time.Sleep(extraLatency)`, the deployment YAML does not set EXTRA_LATENCY and startup logs show no extra-latency activation. This supports isolated pod-level network delay on productcatalogservice.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 13
+}

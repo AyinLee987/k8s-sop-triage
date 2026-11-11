@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All boutique pods were Running/Ready with zero restarts. Alerts showed broad service latency and traffic degradation, but the only node-level anomaly was worker-01 with a new TCP retransmission spike (0.00 -> 0.70 retrans). worker-01 was Ready with no MemoryPressure/DiskPressure/PIDPressure, and kube-proxy was active/running. Services on or dependent on worker-01 showed latency/traffic anomalies, making node network packet loss the best-supported root cause.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_packet_loss\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/frontend\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 6
+}

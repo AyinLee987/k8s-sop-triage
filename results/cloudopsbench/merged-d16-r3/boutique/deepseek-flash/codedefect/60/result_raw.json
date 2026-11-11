@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Frontend pods are Running/Ready with zero restarts and the Service selector/port are valid. Alerts show frontend 503s on `/` and `/product/{id}` plus a frontend-local filesystem write surge and CPU spike. Source inspection of `frontend/handlers.go` reveals `chooseAd` creates `/tmp/tmp.csv` and writes 30,000 CSV rows on each ad request, causing excessive disk I/O and slowdown for routes that call it.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_excessive_file_writes\"}, {\"rank\": 2, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 3, \"fault_object\": \"app/frontend\", \"root_cause\": \"pod_cpu_overload\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 12
+}

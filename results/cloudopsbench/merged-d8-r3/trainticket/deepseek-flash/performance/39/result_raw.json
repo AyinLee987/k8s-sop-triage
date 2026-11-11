@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All pods are Running/Ready with no significant restarts, and ts-order-service has no error logs. Alerts show severe latency centered on ts-order-service (p50 ~9.8s, p90 ~25.9s) and cascading degradation to ts-seat-service, ts-travel-service, ts-security-service, ts-preserve-service, and ts-gateway-service. Dependency tracing identifies ts-order-service as the deepest main-flow leaf called by those degraded upstream services. Its application logs show successful processing in tens to hundreds of milliseconds, indicating the latency is on the network path rather than application processing. No resource-pressure alerts are present.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-03\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 16
+}

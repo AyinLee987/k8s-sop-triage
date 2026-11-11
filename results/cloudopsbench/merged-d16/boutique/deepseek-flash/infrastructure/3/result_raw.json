@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Pods scheduled on worker-01 are stuck in Init:0/1 while pods on worker-02 are Running. Describing frontend shows FailedCreatePodSandBox because kubelet cannot connect to containerd socket /run/containerd/containerd.sock. CheckNodeServiceStatus confirms containerd.service on worker-01 is inactive (dead), explaining the service availability disruption.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/worker-01\", \"root_cause\": \"containerd_unavailable\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"kubelet_unavailable\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_packet_loss\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 5
+}

@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"ts-preserve-service returns 500 with 'Service Instance cannot be null' because downstream ts-food-service has no ready replica. ts-food-service is CrashLoopBackOff (exit 1); its logs show java.net.UnknownHostException: tsdb-mysql-leader and repeated DNS timeouts from the Istio sidecar to 10.255.18.254:53. The tsdb-mysql-leader Service exists and its leader pod tsdb-mysql-2 is Running, worker-01 is Ready, and kube-proxy is active, so the MySQL target and node infrastructure are not down. The evidence localizes the fault to DNS resolution failure within ts-food-service.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-food-service\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 2, \"fault_object\": \"app/ts-food-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_packet_loss\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 14
+}

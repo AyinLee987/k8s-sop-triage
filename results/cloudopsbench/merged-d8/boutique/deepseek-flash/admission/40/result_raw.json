@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"productcatalogservice has 0/1 ready replicas with ReplicaFailure=True and reason FailedCreate, while all other boutique workloads are Running/Ready. The namespace ResourceQuota pod-count-quota reports pods used=10 and hard=10, so admission of an additional productcatalogservice pod is blocked. This explains the service availability disruption for productcatalogservice.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"namespace/boutique\", \"root_cause\": \"namespace_pod_quota_exceeded\"}, {\"rank\": 2, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"missing_service_account\"}, {\"rank\": 3, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"incorrect_image_reference\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 7
+}

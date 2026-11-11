@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"currencyservice, a leaf dependency called by frontend and checkoutservice, shows extreme p90 latency (921.97ms, +24005%) with inbound/outbound packet-rate drops (-59%/-66%). Upstream frontend/checkout latency is likely derived. Pods are Running/Ready with 0 restarts, no currencyservice error logs, TCP connectivity to currencyservice:7000 succeeds, source code contains no blocking delay, and node worker-01 is Ready without pressure. Other co-located services do not show comparable anomalies, favoring an app/pod-scoped network delay rather than a node-wide fault.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/currencyservice\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_packet_loss\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 12
+}

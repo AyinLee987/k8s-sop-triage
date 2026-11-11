@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All train-ticket pods are Running/Ready with no crash or scheduling issue. Active alerts show a 500 on the payment path, and ts-inside-payment-service logs show the downstream `/api/v1/paymentservice/payment` returning 500. ts-payment-service logs reveal `IncorrectResultSizeDataAccessException: query did not return a unique result: 5` / `NonUniqueResultException`, while tsdb-mysql reports no error logs. This points to an application-level query defect in ts-payment-service rather than infrastructure, database, or network failure.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"code_missing_parameter\"}, {\"rank\": 2, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"code_wrong_argument_order\"}, {\"rank\": 3, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"code_wrong_return\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 12
+}

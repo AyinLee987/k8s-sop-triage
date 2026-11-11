@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"recommendationservice pod is Pending with no node selector, tolerations issues, or scheduling events; all worker nodes are Ready, untainted, and report ~8 CPU / ~15GB memory allocatable. CheckNodeServiceStatus on master shows kube-scheduler.service is inactive (dead), having exited cleanly and shut down its scheduling queue. Without a running scheduler, the new recommendationservice replica cannot be bound to a node, producing the availability disruption.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/master\", \"root_cause\": \"kube_scheduler_unavailable\"}, {\"rank\": 2, \"fault_object\": \"app/recommendationservice\", \"root_cause\": \"node_affinity_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/recommendationservice\", \"root_cause\": \"memory_capacity_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 8
+}

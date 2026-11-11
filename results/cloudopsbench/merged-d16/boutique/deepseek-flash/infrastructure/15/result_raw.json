@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All backend pods are Running/Ready and Services are present, but frontend errors show i/o timeouts to multiple ClusterIPs and a DNS lookup failure. kube-proxy on worker-01 is inactive (dead) since 16:06:23, while frontend pods on that node remain active. This is consistent with a node-local dataplane failure affecting only worker-01.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/worker-01\", \"root_cause\": \"kube_proxy_unavailable\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/frontend\", \"root_cause\": \"service_dns_resolution_failure\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 7
+}

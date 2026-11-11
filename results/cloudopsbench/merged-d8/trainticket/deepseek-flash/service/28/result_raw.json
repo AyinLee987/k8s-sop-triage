@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Only ts-payment-service is in CrashLoopBackOff. Its application logs show `UnknownHostException: tsdb-mysql-leader: Temporary failure in name resolution`, causing Hikari/JPA startup failure and exit code 1. The `tsdb-mysql-leader` Service exists and TCP connectivity to 10.68.188.173:3306 succeeds from worker-01, worker-02, and worker-03, ruling out a general MySQL/Service outage. The ts-payment-service Deployment uniquely uses `dnsPolicy: None` with `dnsConfig.nameservers` only, without cluster search domains, explaining failure to resolve the short service name while other pods remain healthy.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 2, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 7
+}

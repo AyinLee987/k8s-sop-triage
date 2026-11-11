@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"ts-train-service shows a severe latency spike (p50 8.35ms -> 2500ms, p90 411.79ms -> 4500ms) while its pod is Running/Ready, Service connectivity succeeds from worker-01/02/03, and there are no error logs. It is a leaf service with no downstream calls, so its latency is service-local rather than dependency-derived. Upstream services such as ts-basic-service and ts-preserve-service show compatible latency escalation, consistent with propagated delay from ts-train-service.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-train-service\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"pod_cpu_overload\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 13
+}

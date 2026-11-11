@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Multiple services show latency degradation, with the most extreme spike on ts-train-service (p50 8.35ms -> 2500ms). Pods are Running/Ready with no restarts, nodes are healthy with no pressure, and ts-train-service logs show only INFO entries with no errors. ts-train-service is a leaf downstream called by ts-basic-service, ts-travel-service, etc., so its slowness propagates to callers. This matches an application-level artificial delay rather than resource, network, or dependency issues.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-train-service\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-train-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 7
+}

@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All pods are Running/Ready except minor UI restarts; ts-preserve-service has correct Service selector/port and healthy endpoints. Active alerts report 20 repeated 404s on POST /api/v1/preserveservice/preserve via ts-preserve-service. Gateway ConfigMap explicitly routes Path=/api/v1/preserveservice/** to uri lb://${FOOD_SERVICE_HOST:ts-food-service}, not ts-preserve-service, causing deterministic path-specific 404s despite healthy preserve backends.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-gateway-service\", \"root_cause\": \"gateway_misrouted\"}, {\"rank\": 2, \"fault_object\": \"app/ts-preserve-service\", \"root_cause\": \"code_wrong_return\"}, {\"rank\": 3, \"fault_object\": \"app/ts-preserve-service\", \"root_cause\": \"service_port_mapping_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 11
+}

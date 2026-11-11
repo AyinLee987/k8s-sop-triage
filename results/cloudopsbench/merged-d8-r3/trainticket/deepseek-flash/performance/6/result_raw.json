@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Widespread latency/traffic degradation affects multiple services, with severe spikes in ts-order-service, ts-preserve-service, ts-seat-service, ts-travel-service, ts-security-service, ts-gateway-service, and ts-ui-dashboard. Pods are Running/Ready with no meaningful restarts; ts-order-service and ts-preserve-service logs show fast internal execution and no error logs; TCP connectivity to ts-order-service succeeds from all workers; cluster nodes are Ready with no pressure. The latency epicenter services ts-order-service, ts-preserve-service, ts-seat-service, ts-travel-service, and ts-ui-dashboard are colocated on worker-01, indicating node-level network delay rather than application failure.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_packet_loss\"}, {\"rank\": 3, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 14
+}

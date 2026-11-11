@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alert on frontend shows CPU CFS throttling (1.333s) and CPU usage increase +138% (0.07 to 0.16 cores) coinciding with severe latency increase (p50 15.87ms to 45ms, p95 27.67ms to 271.36ms). Frontend pod is Running/Ready with 0 restarts on worker-01, and deployment config shows CPU limit 200m. Source code inspection reveals MultiplySlow in money/money.go performing CPU-intensive repeated addition (busy loop) used in cart and order handlers, matching code_busy_loop.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 2, \"fault_object\": \"app/frontend\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 3, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_artificial_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 8
+}

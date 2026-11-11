@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show severe latency degradation (checkoutservice p50 17.35ms -> 3559.79ms; recommendationservice p50 3.01ms -> 1186.20ms) and a new TCP retransmission spike on worker-01 (0.00 -> 0.70 retrans). Multiple affected services (frontend, productcatalogservice, currencyservice, paymentservice, emailservice) are co-located on worker-01, while all pods are Running/Ready with zero restarts. Cluster nodes are Ready with no Memory/Disk/PID pressure, kube-proxy is active, and a direct productcatalogservice TCP connection succeeds, supporting intermittent node-level packet loss rather than pod readiness or resource saturation.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_packet_loss\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 7
+}

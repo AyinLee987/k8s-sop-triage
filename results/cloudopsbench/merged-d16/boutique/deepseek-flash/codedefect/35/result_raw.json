@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Frontend pods are Running/Ready with zero restarts, but alerts show CPU +1506% (0.01->0.13 cores), 1.204s CFS throttling, and p50 latency 24.73ms->2235.31ms with 503s. Frontend error logs dominated by 'failed to get ads: DeadlineExceeded'. However adservice logs show healthy, prompt request processing, so timeouts are derived. Source inspection of frontend handlers.go chooseAd() reveals an explicit CPU-intensive busy-wait loop (`for { if time.Now().Sub(start) > 800*time.Millisecond { break } }`) that spins 800ms per ad render on every home/product request, saturating the 200m CPU limit and causing throttling/latency degradation.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 2, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 3, \"fault_object\": \"app/frontend\", \"root_cause\": \"pod_cpu_overload\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 10
+}

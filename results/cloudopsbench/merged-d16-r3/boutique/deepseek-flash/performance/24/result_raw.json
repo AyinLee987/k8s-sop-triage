@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show widespread latency and throughput degradation, with the only node-level anomaly being a TCP retransmission spike on worker-01 (Normal=0.00 -> Current=0.70). Multiple affected pods (frontend, productcatalogservice, currencyservice, paymentservice, emailservice) are scheduled on worker-01, and downstream-dependent services such as checkoutservice and recommendationservice show elevated latency. Cluster nodes are otherwise Ready with no resource pressure or taints, making worker-01 network packet loss the strongest evidence-backed root cause.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_packet_loss\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"kube_proxy_unavailable\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 4
+}

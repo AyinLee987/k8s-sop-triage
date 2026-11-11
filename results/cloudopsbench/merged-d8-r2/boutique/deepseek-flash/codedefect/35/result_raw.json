@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts showed frontend CPU saturation/throttling and extreme latency with 503s. All boutique pods were Running/Ready with zero restarts, and node CPU was low. Inspection of frontend source code found an explicit CPU-burning busy-wait loop in chooseAd (`for { if time.Now().Sub(start) > 800*time.Millisecond { break } }`), which accounts for the CPU spike and latency on ad-including home/product flows.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 2, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 3, \"fault_object\": \"app/frontend\", \"root_cause\": \"pod_cpu_overload\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 8
+}

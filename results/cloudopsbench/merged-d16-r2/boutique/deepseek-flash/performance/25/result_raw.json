@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show productcatalogservice p90 latency rising from ~2.5ms to ~1158ms, while recommendationservice shows derived latency elevation from calling it. productcatalogservice is a leaf service, so its latency is service-local/client-observed rather than downstream-derived. Its pod is Running/Ready with 0 restarts, error logs are absent, TCP connectivity to port 3550 succeeds, nodes show no pressure, and the deployment lacks EXTRA_LATENCY while startup logs do not report extra latency enabled. Other services on worker-01 show traffic/RPS drops but not comparable latency degradation, supporting a pod-scoped network delay over a node-wide fault.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 16
+}

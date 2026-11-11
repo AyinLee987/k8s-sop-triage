@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Systemic latency/RPS degradation with ts-inside-payment-service as the deepest and most severe victim (p50 7.17s, p90 20.33s, +31000%, RPS -74%). All pods Running/Ready with zero restarts, nodes Ready with normal pressure, and inside-payment app logs show pay/drawback completing in ~20ms, ruling out resource, scheduling, and application-code causes. Downstream ts-payment/ts-order/ts-order-other show only derived throughput drops with no latency alerts. TCP connectivity to ts-inside-payment:18673 succeeds from worker-01/02/03, consistent with a delay (not outage) at the pod network layer.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-inside-payment-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"node/worker-03\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-inside-payment-service\", \"root_cause\": \"code_artificial_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 12
+}

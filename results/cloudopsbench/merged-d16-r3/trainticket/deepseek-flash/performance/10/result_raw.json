@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Widespread latency degradation and RPS drops across the train-ticket services trace back to ts-route-service, which is a leaf dependency called by multiple slow upstream services. ts-route-service shows extreme p50/p90 latency (about 8s/21s), but its pod is Running/Ready with zero restarts, node conditions are normal, no error logs are present, and direct TCP connectivity to port 11178 succeeds from all worker nodes. This indicates a service-local application latency fault rather than pod failure, network unreachability, node pressure, or dependency failure.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-route-service\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-route-service\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 3, \"fault_object\": \"app/ts-route-service\", \"root_cause\": \"pod_cpu_overload\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 11
+}

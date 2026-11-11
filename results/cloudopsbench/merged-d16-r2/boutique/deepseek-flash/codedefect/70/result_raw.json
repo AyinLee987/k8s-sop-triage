@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Only productcatalogservice is anomalous: its server container is in CrashLoopBackOff and was last terminated as OOMKilled (exit 137) under a 128Mi memory limit. Source inspection shows catalog_loader.go allocates and fills an 8,388,608-element int slice on startup, providing concrete evidence of excessive application-owned memory allocation. Peer services are Running and healthy.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"code_memory_leak\"}, {\"rank\": 2, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"container_memory_limit_too_low\"}, {\"rank\": 3, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"code_busy_loop\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 11
+}

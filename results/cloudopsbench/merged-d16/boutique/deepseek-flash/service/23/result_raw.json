@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All boutique pods are Running and Ready, and adservice Endpoints contain the healthy backend at 172.20.3.220:9555. However, the adservice Service explicitly sets `protocol: UDP` for port 9555, while the application container exposes port 9555 and uses gRPC probes, which rely on TCP. This Service protocol mismatch makes the adservice gRPC endpoint unreachable despite healthy pods and populated endpoints.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/adservice\", \"root_cause\": \"service_protocol_mismatch\"}, {\"rank\": 2, \"fault_object\": \"app/adservice\", \"root_cause\": \"service_port_mapping_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/adservice\", \"root_cause\": \"service_dns_resolution_failure\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 7
+}

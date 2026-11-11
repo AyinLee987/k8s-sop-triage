@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"A new TCP retransmission spike appeared on worker-01 during the fault window. Many degraded services (frontend, productcatalogservice, currencyservice, paymentservice, emailservice) run on worker-01, while pods are Running/Ready with zero restarts, kube-proxy is active, and productcatalogservice connectivity succeeds. Callers of productcatalogservice show latency without local error logs, consistent with a node network impairment rather than an app defect or service port mismatch.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_packet_loss\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 11
+}

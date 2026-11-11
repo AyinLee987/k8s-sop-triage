@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"System alerts show widespread derived latency/throughput degradation, but the deepest affected leaf is `ts-route-service`: its latency rises from p50 ~7.55ms to ~8026ms and p90 to ~21000ms. It has no downstream dependencies, all pods are Running/Ready without relevant restarts, no error logs are present, and TCP connectivity to port 11178 succeeds from worker-01, worker-02, and worker-03. This pattern points to service-local application delay rather than a downstream dependency, probe failure, resource crash, or basic reachability fault.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-route-service\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-route-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-03\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 12
+}

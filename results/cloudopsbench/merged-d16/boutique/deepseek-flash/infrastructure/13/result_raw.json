@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All boutique pods and Service endpoints are healthy and populated. Frontend logs show DNS resolution failures and TCP timeouts to multiple downstream services. Active connectivity test to currencyservice:7000 fails only from worker-01 while succeeding from worker-02/worker-03. worker-01's kube-proxy systemd service is inactive (dead), confirming a node-local dataplane failure causing service availability disruption.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/worker-01\", \"root_cause\": \"kube_proxy_unavailable\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_packet_loss\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 15
+}

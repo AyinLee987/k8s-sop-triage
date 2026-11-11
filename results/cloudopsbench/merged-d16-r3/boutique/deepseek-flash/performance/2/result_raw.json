@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show cartservice CPU saturation and CFS throttling (0.811s throttled; CPU usage rose from 0.02 to 0.16 cores, +544.6%) coincident with cartservice p95 latency increasing from 10.77ms to 83.83ms. checkoutservice and frontend show derived latency increases, while all pods are Running/Ready with zero restarts. Inspection of cartservice entrypoint, gRPC handlers, Redis store, and health service found no busy loop or artificial delay in active paths. This supports isolated excessive Pod CPU load in cartservice as the primary fault.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/cartservice\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 2, \"fault_object\": \"app/cartservice\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 3, \"fault_object\": \"app/cartservice\", \"root_cause\": \"code_artificial_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 13
+}

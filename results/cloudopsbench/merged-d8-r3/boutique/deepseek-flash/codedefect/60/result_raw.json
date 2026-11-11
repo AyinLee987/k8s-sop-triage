@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Active alerts show frontend CPU saturation and a large filesystem write surge, with frontend 503s on home and product-detail requests. All pods are Running/Ready with zero restarts. Source inspection of frontend handlers.go shows chooseAd writes 30,000 CSV rows to /tmp/tmp.csv on each ad selection, directly explaining the filesystem write spike and resulting CPU/request degradation.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_excessive_file_writes\"}, {\"rank\": 2, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 3, \"fault_object\": \"app/frontend\", \"root_cause\": \"pod_cpu_overload\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 7
+}

@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show severe latency in ts-cancel-service, ts-gateway-service, ts-inside-payment-service, and ts-ui-dashboard. The only concrete resource-saturation anomaly is ts-order-service CPU CFS throttling. All pods are Running/Ready with zero or minimal restarts, no application error logs were found, and nodes are Ready without pressure. ts-order-service is a shared downstream of the slow ts-cancel-service and ts-inside-payment-service, and its logs show heavy order/ticket query processing during the fault window, supporting CPU overload rather than node or network failure.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 2, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 3, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 15
+}

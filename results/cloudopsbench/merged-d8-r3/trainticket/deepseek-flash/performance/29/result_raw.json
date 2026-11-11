@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show RESOURCE_SATURATION (cpu_cfs throttling 0.589s) on ts-order-service, while ts-seat-service (its upstream caller) shows the most severe latency degradation (p50 222ms->3409ms, +1434%) and ts-preserve/ts-travel also degrade. All pods are Running/Ready with 0 recent restarts, endpoints populated, and ts-order-service error logs empty. Its Deployment caps CPU at 500m (request 200m) yet logs show CPU-heavy normal processing (queryOrders size 6653, getSoldTickets returning thousands of tickets), so the pod is CPU-throttled under load, cascading latency to callers.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 2, \"fault_object\": \"app/ts-seat-service\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 3, \"fault_object\": \"app/ts-travel-service\", \"root_cause\": \"code_artificial_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 8
+}

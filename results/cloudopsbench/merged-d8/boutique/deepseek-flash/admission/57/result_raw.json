@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"redis-cart is Pending and unschedulable because persistentvolumeclaim \\\"redis-cart-pvc\\\" was not found. No PVCs exist in namespace boutique, although the app configuration defines a 5Gi PVC and a matching Available 5Gi PV. The namespace storage-quota enforces requests.storage hard=1Gi, making the 5Gi PVC request inadmissible and preventing redis-cart from scheduling, disrupting cart-related availability.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"namespace/boutique\", \"root_cause\": \"namespace_storage_quota_exceeded\"}, {\"rank\": 2, \"fault_object\": \"app/redis-cart\", \"root_cause\": \"pvc_capacity_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/redis-cart\", \"root_cause\": \"pvc_storage_class_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 10
+}

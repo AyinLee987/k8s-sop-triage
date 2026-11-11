@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show ts-route-service latency exploding from p50 ~7.55ms to ~8026ms and p90 ~9.6ms to ~21000ms, with upstream services showing derivative latency/timeouts. Its pod is Running and Ready with zero restarts, error logs are absent, TCP connectivity to port 11178 succeeds from all workers, its Deployment resources/probes are normal, and dependency topology shows ts-route-service is a leaf with no downstream microservice calls. This points to an application-local delay in ts-route-service rather than pod failure, network reachability, or downstream dependency failure.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-route-service\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-route-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-route-service\", \"root_cause\": \"code_busy_loop\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 10
+}

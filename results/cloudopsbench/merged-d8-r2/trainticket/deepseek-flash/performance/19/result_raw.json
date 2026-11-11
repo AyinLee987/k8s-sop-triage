@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"The latency degradation window coincides with a RESOURCE_SATURATION alert showing CPU CFS throttling on ts-order-service. The ts-order-service pod is Running/Ready with zero restarts, no application error logs, and normal scheduling/events, ruling out crash, probe, image, and scheduling failures. Service dependencies show ts-cancel-service calls ts-order-service, and the latency seen in ts-cancel-service, gateway, and UI is consistent with propagation from an overloaded/throttled ts-order-service CPU path.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 2, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 3, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 8
+}

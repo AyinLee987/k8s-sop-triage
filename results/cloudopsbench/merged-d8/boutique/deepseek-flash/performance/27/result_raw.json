@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Latency alerts affected adservice, checkoutservice, and recommendationservice; all three pods are on worker-02. worker-02 showed a new TCP retransmission spike (0.00 -> 6.67), while worker-01 had a smaller increase (0.07 -> 0.61). All pods were Running 2/2 with zero restarts, pointing to node network degradation rather than pod crash or app restart.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_packet_loss\"}, {\"rank\": 2, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_packet_loss\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 4
+}

@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Widespread latency degradation and RPS drops across train-ticket services while all pods are Running/Ready. ts-route-service, a leaf dependency with no downstream calls, shows extreme service-local latency (p50 7.55ms->8026ms, p90->21s) with 0 restarts, no error logs, and successful TCP connectivity from all worker nodes. Upstream callers (ts-basic-service p50->18.9s, ts-travel-service, ts-preserve-service, ts-gateway-service, ts-ui-dashboard) exhibit cascading derived delays. Normal nodes/resources, healthy pods, and clean connectivity rule out infra/network faults, pointing to an injected application-level delay in ts-route-service.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-route-service\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-route-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-basic-service\", \"root_cause\": \"code_artificial_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 13
+}

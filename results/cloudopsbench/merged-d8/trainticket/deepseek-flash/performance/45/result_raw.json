@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"ts-train-service shows an extreme, near-fixed p50 latency spike from 8.35ms to 2500ms while its pods are Running/Ready with zero restarts, no error logs, normal resource configuration/probes, and no downstream dependencies. Upstream caller ts-basic-service also shows elevated latency consistent with waiting on ts-train-service. This pattern points to an application-local artificial delay rather than infrastructure, network, dependency, or probe failure.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-train-service\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-train-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-basic-service\", \"root_cause\": \"code_artificial_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 10
+}

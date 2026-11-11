@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Only checkoutservice has a severe latency alert (~3.75s p50, ~4.75s p90). Its pods are Running/Ready with zero restarts, no error logs are present, and dependencies are structurally normal. Source inspection reveals an explicit `time.Sleep(3000ms)` in checkoutservice PlaceOrder, matching the latency window and indicating application-code artificial delay.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 2, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 11
+}

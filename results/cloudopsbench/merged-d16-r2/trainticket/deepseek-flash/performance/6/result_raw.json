@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All pods Running/Ready across workers with no restart/OOM/pressure; node config healthy. Alerts show severe simultaneous latency and ~50-70% RPS drops system-wide. ts-gateway-service (1 replica on worker-03) shows p90 ~39s and 72% RPS drop. ts-order-service p50 3881ms/p90 17600ms and ts-preserve-service p50 30s, yet their own logs show millisecond local processing and no errors/exceptions. RPS drops across unrelated services (auth, contacts, user) implicate the shared entry gateway pod's network path rather than any single downstream app or code/DB fault.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-gateway-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"node/worker-03\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 20
+}

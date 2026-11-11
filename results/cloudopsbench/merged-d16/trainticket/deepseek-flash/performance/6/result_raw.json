@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Widespread latency degradation and RPS/network-rate drops with all pods Running/Ready and no node resource pressure. The most severe latency affects services co-located on worker-01 (ts-order-service, ts-preserve-service, ts-seat-service, ts-travel-service, ts-ui-dashboard), while callers such as ts-security-service and ts-gateway-service on other nodes show derived slowdowns. Service logs for ts-order-service and ts-preserve-service show fast local processing despite large externally observed latency, supporting a network-layer delay rather than application exceptions, restarts, readiness failures, or resource saturation.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-preserve-service\", \"root_cause\": \"code_artificial_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 20
+}

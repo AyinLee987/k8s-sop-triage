@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Only ts-train-service is failing (0/2 Error, CrashLoopBackOff, exit 1). Its logs show `java.net.UnknownHostException: tsdb-mysql-leader: Temporary failure in name resolution` with DNS queries timing out (`i/o timeout` to 10.255.12.254:53) for both the app container and istio-proxy (istiod.istio-system.svc lookup). The Service tsdb-mysql-leader exists and is correctly defined (ClusterIP 10.68.188.173:3306). GetAppYAML shows ts-train-service uniquely sets `dnsPolicy: None` with nameserver 10.255.12.254, while healthy peer ts-basic-service (also on worker-01) uses default ClusterFirst DNS and runs fine. This isolates the fault to ts-train-service's DNS configuration causing service name resolution failure and crash.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-train-service\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_packet_loss\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 12
+}

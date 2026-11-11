@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"currencyservice Pod is Running and Ready, the Service selector matches and an endpoint is populated. The currencyservice container exposes gRPC on TCP port 7000 with TCP-based gRPC probes, but the currencyservice Service is configured as `7000/UDP` with targetPort 7000. A TCP connectivity check to currencyservice:7000 failed, confirming the protocol mismatch as the availability disruption cause.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/currencyservice\", \"root_cause\": \"service_protocol_mismatch\"}, {\"rank\": 2, \"fault_object\": \"app/currencyservice\", \"root_cause\": \"service_port_mapping_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/currencyservice\", \"root_cause\": \"readiness_probe_incorrect_port\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 7
+}

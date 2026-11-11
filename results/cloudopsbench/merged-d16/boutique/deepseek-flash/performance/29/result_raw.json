@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All boutique pods are Running and Ready with 0 restarts, ruling out crashes/readiness failures. Alerts show broad service latency spikes and traffic drops. Node-level evidence shows TCP retransmission degradation: worker-02 jumped from 0.02 to 8.46 retrans (+50396.3%), much stronger than worker-01's 1.16. Node resources show no CPU/memory/disk pressure. This pattern is most consistent with node network packet loss on worker-02 causing widespread cross-service latency.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_packet_loss\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_packet_loss\"}, {\"rank\": 3, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 5
+}

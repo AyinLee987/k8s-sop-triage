@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All pods are Running/Ready with zero relevant restarts. Alerts show severe latency at ts-train-service (p50 2425ms, p90 4472ms) and downstream caller ts-basic-service (p50 3750ms), while ts-train-service is a leaf with no downstream calls. TCP connectivity to ts-train-service:14567 succeeds from worker-01, worker-02, and worker-03, ruling against DNS/connection failure. Logs show no application exceptions, and ts-train-service has no CPU/memory saturation alert. This isolates the fault to service-local latency in ts-train-service, most consistent with an artificial code delay.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-train-service\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-train-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 12
+}

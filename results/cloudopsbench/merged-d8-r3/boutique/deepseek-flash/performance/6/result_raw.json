@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"GetAlerts localized the anomaly to frontend: CPU CFS throttling of 1.333s, CPU usage rising from 0.07 to 0.16 cores (+138.1%), and p95 latency increasing from 27.67ms to 271.36ms (+880.8%). The frontend pod is Running 2/2 with 0 restarts, and its deployment configuration is normal. Source inspection of frontend `money/money.go` found `MultiplySlow`, a CPU-intensive repeated-addition loop invoked in request paths such as cart/order rendering, supporting an application code busy-loop root cause.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 2, \"fault_object\": \"app/frontend\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 9
+}

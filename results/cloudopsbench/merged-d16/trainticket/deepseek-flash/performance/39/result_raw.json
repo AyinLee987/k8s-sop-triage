@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show system-wide latency and throughput collapse (gateway p90 2.6s→46.5s, order-service p50 308ms→9843ms). All pods Running/Ready with no meaningful restarts, nodes Ready with no Memory/Disk/PID pressure, and ts-order-service (deepest node, no downstream calls) shows no errors and normal MySQL. Its log stream shows continuous order creation inflating a single account's order count (5408→5411 in seconds) and massive per-request sold-ticket payloads (thousands of Ticket entries), indicating a runaway application processing loop at ts-order-service that propagates latency to ts-seat-service, ts-travel-service, gateway, and UI. Upstream services (seat/travel/gateway) are victims, not the source.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 2, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"code_wrong_return\"}, {\"rank\": 3, \"fault_object\": \"app/ts-seat-service\", \"root_cause\": \"code_wrong_return\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 20
+}

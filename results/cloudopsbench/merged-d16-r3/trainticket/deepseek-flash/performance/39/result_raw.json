@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All pods are Running/Ready and nodes show no pressure or scheduling faults. Alerts show widespread latency/throughput degradation with ts-order-service p50 latency ~9.8s. ts-order-service logs repeatedly show queryOrders fetching >5400 orders per request and returning enormous ticket lists (thousands of entries), indicating retained/growing data and expensive per-request processing. This cascades to ts-seat-service, ts-travel-service, ts-preserve-service, and gateway, explaining the broad service-quality degradation.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"code_memory_leak\"}, {\"rank\": 2, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 3, \"fault_object\": \"app/ts-travel-service\", \"root_cause\": \"code_missing_parameter\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 13
+}

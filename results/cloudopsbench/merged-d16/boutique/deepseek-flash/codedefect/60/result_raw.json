@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show frontend CPU saturation and a new filesystem write surge (Normal=0.00B/s -> Current=171371.76B/s, Peak=414371.37B/s) with 503s on `/` and `/product/{id}`. All pods are Running/Ready, ruling out availability/scheduling faults. Source inspection of frontend `handlers.go` shows `chooseAd()` writes 30,000 CSV rows to `/tmp/tmp.csv` per ad selection, called on home and product pages, directly matching the write-surge/CPU/503 symptom pattern.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_excessive_file_writes\"}, {\"rank\": 2, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 3, \"fault_object\": \"app/frontend\", \"root_cause\": \"pod_cpu_overload\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 7
+}

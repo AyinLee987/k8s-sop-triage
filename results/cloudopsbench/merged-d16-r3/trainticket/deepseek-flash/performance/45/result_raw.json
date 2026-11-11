@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Pods are Running/Ready with no restarts or readiness failure; nodes are Ready with no MemoryPressure/DiskPressure and ample CPU. Alerts show the most isolated and extreme own-latency spike on ts-train-service (p50 8.35ms -> 2500ms, p90 411.79ms -> 4500ms). ts-train-service is a leaf service with no downstream dependencies, and its recent logs show normal successful train retrieval calls without error or exception spikes. Upstream/caller services such as ts-preserve-service and ts-basic-service show compounded latency, consistent with waiting on ts-train-service. ts-order-service has CFS throttling and traffic surge, but no latency alert or error logs, making it a likely secondary load effect rather than the root cause.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-train-service\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 3, \"fault_object\": \"app/ts-basic-service\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 10
+}

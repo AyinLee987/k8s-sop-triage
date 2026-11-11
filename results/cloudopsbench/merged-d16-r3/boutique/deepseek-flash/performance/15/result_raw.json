@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"currencyservice exhibits p90 latency of 921.97ms (+24005%) and inbound/outbound traffic drops of 59-66%, while all pods are Running/Ready with zero restarts, nodes show no pressure, error logs are empty, source code and deployment config are normal, and direct TCP connectivity to currencyservice:7000 succeeds. Other co-located pods on worker-01 (cartservice, productcatalogservice, redis-cart) are not anomalous, and checkoutservice/frontend latency is derived from calling currencyservice. This isolates the fault to currencyservice with a pod-scoped network delay.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/currencyservice\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/currencyservice\", \"root_cause\": \"code_artificial_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 12
+}

@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All boutique pods are Running and Ready with zero restarts. Alerts are isolated to frontend: CPU increased ~997%, CPU CFS throttling reached 0.947s, p50 latency rose from 20ms to 496ms, p90 from 49ms to 3833ms, with frontend-originated 503/500 errors. Source inspection found frontend's setCurrencyHandler repeatedly opens and fully reads /src/log.csv 10 times per request, an abnormal code path consistent with excessive file reads driving CPU saturation and latency.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_excessive_file_reads\"}, {\"rank\": 2, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 3, \"fault_object\": \"app/frontend\", \"root_cause\": \"pod_cpu_overload\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 6
+}

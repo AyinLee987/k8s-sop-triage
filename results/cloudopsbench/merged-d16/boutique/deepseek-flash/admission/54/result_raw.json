@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"The shippingservice pod is Running and Ready, but no shippingservice Service or Endpoints exist. Frontend logs repeatedly show `lookup shippingservice ... no such host`, checkout is failing on shipping quote retrieval, and a direct connectivity check to shippingservice fails. Other boutique pods, services, and endpoints are healthy with no metric alerts, indicating a localized service DNS failure for shippingservice.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/shippingservice\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 2, \"fault_object\": \"app/shippingservice\", \"root_cause\": \"service_selector_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/frontend\", \"root_cause\": \"service_env_var_address_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 10
+}

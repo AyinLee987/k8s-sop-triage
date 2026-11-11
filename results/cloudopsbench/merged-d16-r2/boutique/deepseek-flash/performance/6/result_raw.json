@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Frontend pod is healthy (2/2 Running, 0 restarts) but shows CPU CFS throttling and p95 latency rising from 27.67ms to 271.36ms. Source inspection found `money.MultiplySlow`, used in cart/checkout rendering, implements multiplication via repeated addition in a loop, causing CPU-intensive work on the request path and frontend-local latency.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 2, \"fault_object\": \"app/frontend\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 3, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_artificial_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 13
+}

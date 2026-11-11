@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All application pods are Running/Ready and most Services have populated Endpoints. However, `ts-food-delivery-service` has a Running/Ready pod and is referenced by the gateway route `lb://ts-food-delivery-service`, but there is no Kubernetes Service named `ts-food-delivery-service` and no corresponding Endpoints entry. An active connectivity check to `ts-food-delivery-service:18957` failed, confirming service-name resolution/reachability failure for this specific downstream path.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-food-delivery-service\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 2, \"fault_object\": \"app/ts-food-delivery-service\", \"root_cause\": \"service_selector_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/ts-food-delivery-service\", \"root_cause\": \"service_port_mapping_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 17
+}

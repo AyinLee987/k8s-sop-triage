@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show severe latency at ts-train-service (p50 2425ms, p90 4472ms) and propagated latency at upstream ts-basic-service. Pods are Running/Ready with zero restarts, service port 14567 is valid, TCP connectivity succeeds from all workers, and there are no application exceptions. ts-train-service has no downstream dependencies, making it the deepest latency source; the pattern matches application-internal delay rather than pod failure or service mapping issues.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-train-service\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-train-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 10
+}

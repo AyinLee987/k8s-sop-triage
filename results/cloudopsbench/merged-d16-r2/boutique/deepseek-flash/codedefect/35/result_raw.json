@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All boutique pods are Running/Ready with zero restarts, ruling out readiness/restart causes. Alerts isolate the anomaly to frontend: CPU CFS throttling (1.204s), CPU usage jump from 0.01 to 0.13 cores (+1506%), and p50 latency climbing from 24.73ms to 2235.31ms. Source inspection of frontend handlers.go shows chooseAd contains a busy-wait loop that spins for 800ms on every ad selection without sleeping, consuming CPU and blocking request handling.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 2, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 3, \"fault_object\": \"app/frontend\", \"root_cause\": \"pod_cpu_overload\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 6
+}

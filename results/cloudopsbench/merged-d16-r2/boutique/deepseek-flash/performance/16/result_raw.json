@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerting showed severe latency in checkoutservice (p50 516.72ms, p90 948.48ms), with upstream frontend and downstream emailservice also degraded. All pods were Running/Ready with zero restarts; nodes showed no pressure or taints; emailservice logs and source showed no delay; and direct emailservice TCP connectivity succeeded. checkoutservice's request path includes a CPU-intensive `MultiplySlow` loop executed while computing the order total, matching the latency profile with otherwise healthy dependencies and infrastructure.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 2, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 3, \"fault_object\": \"app/emailservice\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 19
+}

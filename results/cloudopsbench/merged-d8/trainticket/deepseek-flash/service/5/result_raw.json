@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All pods are Running/Ready with no restarts. ts-preserve-service has no error logs and its Service selector/port mapping are correct. The gateway ConfigMap shows route id `preserve` mapping `/api/v1/preserveservice/**` to `lb://${FOOD_SERVICE_HOST:ts-food-service}` instead of `ts-preserve-service`, causing preserve requests to hit the wrong backend and return 404.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-gateway-service\", \"root_cause\": \"gateway_misrouted\"}, {\"rank\": 2, \"fault_object\": \"app/ts-preserve-service\", \"root_cause\": \"gateway_misrouted\"}, {\"rank\": 3, \"fault_object\": \"app/ts-preserve-service\", \"root_cause\": \"code_wrong_return\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 17
+}

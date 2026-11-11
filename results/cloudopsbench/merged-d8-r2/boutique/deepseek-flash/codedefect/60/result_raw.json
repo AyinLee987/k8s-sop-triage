@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Frontend alerts show a filesystem write surge (up to ~414KB/s) and CPU increase, with 503s on home and product-detail requests. Pods are Running/Ready with zero restarts, Services and downstream configuration are valid, and other components are healthy. Source inspection of frontend handlers.go shows chooseAd writes 30,000 CSV rows to /tmp/tmp.csv per invocation, and chooseAd is called by both home and product handlers. This directly explains the frontend filesystem-write/CPU anomaly and path-specific 503 degradation.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_excessive_file_writes\"}, {\"rank\": 2, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 3, \"fault_object\": \"app/frontend\", \"root_cause\": \"pod_cpu_overload\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 11
+}

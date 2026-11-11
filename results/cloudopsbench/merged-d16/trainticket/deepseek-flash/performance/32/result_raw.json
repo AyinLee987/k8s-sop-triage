@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show ts-train-service p50 latency jumped from 7.38ms to ~2425ms (+32755%) and ts-basic-service (an upstream caller) similarly degraded. ts-train-service is a leaf service (no downstream calls) confirmed via dependency topology, so latency originates within it. Pods are Running/Ready with zero restarts, TCP connectivity on port 14567 succeeds from worker-01/02/03, and CPU usage is low (~0.03-0.05 cores, no busy-loop/throttle signal at train). Logs show only normal INFO retrieveByName handling with no errors/exceptions. This points to an application-local artificial delay rather than resource, network, crash, or dependency faults.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-train-service\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-train-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-basic-service\", \"root_cause\": \"code_artificial_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 8
+}

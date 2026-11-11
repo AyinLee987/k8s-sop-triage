@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All boutique pods are Running/Ready with zero restarts and normal node resources, ruling out crash/resource/rollout causes. The sole concrete infrastructure anomaly is worker-01's TCP retransmission spike (0.00 -> 0.70, 'new spike'). This coincides with broad cross-node latency: frontend (worker-01) repeatedly fails to reach adservice (worker-02) with 'upstream request timeout'/'DeadlineExceeded', while recommendationservice and checkoutservice (worker-02) show extreme latency calling worker-01-hosted services (productcatalogservice, currencyservice). adservice has no application errors and a direct TCP connect to adservice succeeds (intermittent loss). kube-proxy on worker-01 is healthy. Retransmissions specifically indicate packet loss on worker-01.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_packet_loss\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/adservice\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 12
+}

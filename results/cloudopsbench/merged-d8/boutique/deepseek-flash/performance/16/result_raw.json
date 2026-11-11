@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Latency alerts localize to checkoutservice (p50 +2876%, p90 +3239%) and emailservice (p90 +18582%), with frontend p90 +1310% propagated from checkoutservice. All pods are Running/Ready with zero restarts. checkoutservice and emailservice are both scheduled on worker-02, while frontend is on worker-01. TCP connectivity to emailservice:5000 succeeds, emailservice source is a trivial dummy handler, and logs show requests processed rapidly. Worker-02 is Ready with no pressure, and kube-proxy is active. This supports a node-level network delay affecting worker-02 rather than application code, pod health, or service configuration.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 2, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 3, \"fault_object\": \"app/emailservice\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 20
+}

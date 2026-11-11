@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show system-wide latency and throughput degradation, but the deepest localized anomaly is ts-route-service: normal p50 ~7.55ms rose to ~8026ms and p90 ~9.6ms to ~21000ms. Its pod is Running/Ready with zero restarts, TCP connectivity to port 11178 succeeds from all worker nodes, and there are no error logs. Upstream callers (ts-basic-service, ts-travel-service, ts-preserve-service, ts-gateway-service) show derived latency increases consistent with waiting on ts-route-service. Node resources and conditions are normal. This evidence supports application-level artificial delay in ts-route-service.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-route-service\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-route-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-03\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 19
+}

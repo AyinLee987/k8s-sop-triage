@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"currencyservice showed the deepest anomaly: p90 latency rose from 3.82ms to 921.97ms with a ~59% inbound and ~66% outbound packet-rate drop. Its pod is Running/Ready with zero restarts, Service TCP reachability succeeded, logs showed successful conversion handling without errors, and the inspected server code contains no artificial delay. Upstream frontend and checkoutservice latency is consistent with waiting on this leaf dependency. Other same-node services did not show comparable alerts, favoring an app/pod-scoped currencyservice network delay over a node-wide fault.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/currencyservice\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_packet_loss\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 11
+}

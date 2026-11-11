@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"`ts-food-service` is the only pod in CrashLoopBackOff. Its application container exits with `java.net.UnknownHostException: tsdb-mysql-leader` while trying to open the MySQL connection. The `tsdb-mysql-leader` Service exists, the configured DB host/port from the `ts-food-mysql` Secret match the Service (`tsdb-mysql-leader:3306`), and active TCP connectivity to `tsdb-mysql-leader:3306` succeeds from worker-01, worker-02, and worker-03. This isolates the incident to DNS resolution failure from the `ts-food-service` application context, causing its pod to crash and creating partial service unreachability.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-food-service\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_packet_loss\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 10
+}

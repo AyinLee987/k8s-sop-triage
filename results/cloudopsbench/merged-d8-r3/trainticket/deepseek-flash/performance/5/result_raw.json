@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"ts-inside-payment-service shows extreme p50 ~7.2s and p90 ~20.3s latency with a 74.4% throughput drop, while its pods are Running/Ready with zero current restarts. Callers such as ts-cancel-service and ts-gateway-service show derived latency. ts-order-service has no error logs, TCP connectivity to ts-inside-payment-service:18673 succeeds from all worker nodes, and other worker-03 services do not show comparable latency. Its own payment request logs show fast server-side handling, indicating delay outside normal application processing, consistent with pod-scoped network delay.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-inside-payment-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-inside-payment-service\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-inside-payment-service\", \"root_cause\": \"code_wrong_return\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 18
+}

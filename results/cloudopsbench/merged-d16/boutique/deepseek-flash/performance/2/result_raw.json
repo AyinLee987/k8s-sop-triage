@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All pods were Running/Ready with zero restarts, ruling out readiness/endpoint churn. Alerts showed cartservice p95 latency rising from 10.77ms to 83.83ms with CPU-core usage increasing 544.6% and 0.811s CPU CFS throttling. Frontend and checkoutservice also had elevated latency, but those are consistent with derived downstream impact from cartservice. The inspected cartservice business/Redis code had no obvious busy loop or artificial delay.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/cartservice\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 2, \"fault_object\": \"app/cartservice\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 3, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"code_artificial_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 7
+}

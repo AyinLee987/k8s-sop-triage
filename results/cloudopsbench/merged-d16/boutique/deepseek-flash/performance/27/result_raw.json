@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Pods are Running/Ready with zero restarts, ruling out readiness/endpoint churn. Alerts show severe latency in multiple unrelated services (adservice, checkoutservice, recommendationservice) that are co-located on worker-02. worker-02 also has a major TCP retransmission spike (0.00 -> 6.67), while node conditions show no CPU, memory, disk, or PID pressure. This supports node-level network packet loss on worker-02.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_packet_loss\"}, {\"rank\": 2, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/recommendationservice\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 5
+}
