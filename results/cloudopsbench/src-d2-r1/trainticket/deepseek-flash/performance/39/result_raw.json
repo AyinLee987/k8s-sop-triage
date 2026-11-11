@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All application pods are Running/Ready, nodes are Ready with no pressure, and there are no application error logs for ts-order-service. However, alerts show severe latency degradation in the order/seat/travel/preserve/gateway chain. ts-order-service logs show order queries, creates, and updates completing successfully and quickly, which argues against application code or DB failure and instead supports network-path latency at the ts-order-service pod. Other services on worker-03 do not show comparable latency, making a node-wide network fault less likely.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"node/worker-03\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-seat-service\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 13
+}

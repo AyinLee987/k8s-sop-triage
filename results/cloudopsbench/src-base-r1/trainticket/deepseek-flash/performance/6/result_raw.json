@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Widespread latency and throughput collapse affected order, preserve, seat, travel, gateway, and UI paths. The most severely degraded backend pods are concentrated on worker-01, including ts-order-service, ts-preserve-service, ts-seat-service, ts-travel-service, and ts-ui-dashboard. All pods are Running with no error logs, nodes are Ready without CPU/memory/disk pressure, and direct TCP connectivity to ts-order-service succeeds. Application logs show fast local processing, supporting network-level latency on worker-01 rather than an application, scheduling, probe, DNS, or resource fault.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_packet_loss\"}, {\"rank\": 3, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 14
+}

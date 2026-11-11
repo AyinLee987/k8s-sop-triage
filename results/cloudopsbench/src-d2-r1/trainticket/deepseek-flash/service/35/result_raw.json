@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"ts-train-service pod is in CrashLoopBackOff with exit code 1. Application logs show `java.net.UnknownHostException: tsdb-mysql-leader: Temporary failure in name resolution`. The `tsdb-mysql-leader` Service exists and connectivity tests from worker-01/02/03 succeed, ruling out Service absence or cluster-wide network failure. GetAppYAML reveals ts-train-service uses `dnsPolicy: None` with a `dnsConfig` that specifies only the nameserver `10.255.12.254` and no search domains, causing short-name DNS resolution to fail. Other Pods on worker-01 remain running, making a node-wide network fault unlikely.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-train-service\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-train-service\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 10
+}

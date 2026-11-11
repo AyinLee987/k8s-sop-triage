@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Active alerts show severe latency degradation across ts-cancel-service, ts-gateway-service, ts-inside-payment-service, and ts-ui-dashboard, while ts-order-service is the only service explicitly marked RESOURCE_SATURATION with CPU CFS throttling (0.306s). ts-cancel-service depends on ts-order-service, and its p50 latency rose to 2740ms. Recent ts-order-service logs show repeated heavy queryOrdersForRefresh/queryOrders calls returning 4717 orders and frequent large getSoldTickets outputs, with no application errors. Its deployment CPU limit is 500m, consistent with the Pod being CPU throttled under excessive load.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 2, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 3, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"code_excessive_file_writes\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 11
+}

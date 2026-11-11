@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts showed 20 occurrences of HTTP 404 on POST /api/v1/preserveservice/preserve from ts-preserve-service. All pods were Running and healthy, ts-preserve-service itself restarted cleanly, and its controller correctly maps /api/v1/preserveservice/preserve. Inspection of ts-gateway-service configuration revealed the gateway route 'preserve' has uri lb://${FOOD_SERVICE_HOST:ts-food-service} for path /api/v1/preserveservice/**, routing preserve requests to ts-food-service instead of ts-preserve-service. This mismatch causes the 404 availability disruption.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-gateway-service\", \"root_cause\": \"gateway_misrouted\"}, {\"rank\": 2, \"fault_object\": \"app/ts-preserve-service\", \"root_cause\": \"service_selector_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/ts-food-service\", \"root_cause\": \"service_port_mapping_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 17
+}

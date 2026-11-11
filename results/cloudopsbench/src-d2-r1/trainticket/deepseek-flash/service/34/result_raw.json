@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"ts-station-service is in CrashLoopBackOff with logs showing `java.net.UnknownHostException: tsdb-mysql-leader: Temporary failure in name resolution`. Its Deployment sets `dnsPolicy: None` and only a nameserver (10.255.13.254) without search domains, preventing short Service-name resolution. Connectivity checks from all workers to `tsdb-mysql-leader:3306` succeed, ruling out a DB Service or cluster-wide network outage. The DNS failure is therefore localized to ts-station-service's pod DNS configuration.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-station-service\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-station-service\", \"root_cause\": \"service_env_var_address_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 7
+}

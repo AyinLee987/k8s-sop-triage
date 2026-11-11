@@ -1,0 +1,226 @@
+{
+ "dataset": "LLM4Ops/Cloud-OpsBench",
+ "dataset_commit": "ec1d4f38b952a4dcb057af094290b4d35128c100",
+ "seed": 20261111,
+ "quota": {
+  "boutique/admission": 8,
+  "boutique/service": 10,
+  "boutique/infrastructure": 6,
+  "boutique/performance": 8,
+  "boutique/codedefect": 12,
+  "trainticket/service": 8,
+  "trainticket/performance": 8
+ },
+ "n": 16,
+ "cases": [
+  {
+   "id": "trainticket/service/2",
+   "system": "trainticket",
+   "category": "service",
+   "case": "2",
+   "difficulty": "medium",
+   "query": "Partial Service Unreachability.",
+   "truth": {
+    "fault_taxonomy": "Service_Routing_Fault",
+    "fault_object": "app/ts-gateway-service",
+    "root_cause": "gateway_misrouted"
+   }
+  },
+  {
+   "id": "trainticket/service/5",
+   "system": "trainticket",
+   "category": "service",
+   "case": "5",
+   "difficulty": "medium",
+   "query": "Service Availability Disruption.",
+   "truth": {
+    "fault_taxonomy": "Service_Routing_Fault",
+    "fault_object": "app/ts-gateway-service",
+    "root_cause": "gateway_misrouted"
+   }
+  },
+  {
+   "id": "trainticket/service/14",
+   "system": "trainticket",
+   "category": "service",
+   "case": "14",
+   "difficulty": "medium",
+   "query": "Service Availability Disruption.",
+   "truth": {
+    "fault_taxonomy": "Service_Routing_Fault",
+    "fault_object": "app/ts-gateway-service",
+    "root_cause": "gateway_misrouted"
+   }
+  },
+  {
+   "id": "trainticket/service/16",
+   "system": "trainticket",
+   "category": "service",
+   "case": "16",
+   "difficulty": "medium",
+   "query": "Service Availability Disruption.",
+   "truth": {
+    "fault_taxonomy": "Service_Routing_Fault",
+    "fault_object": "app/ts-gateway-service",
+    "root_cause": "gateway_misrouted"
+   }
+  },
+  {
+   "id": "trainticket/service/24",
+   "system": "trainticket",
+   "category": "service",
+   "case": "24",
+   "difficulty": "medium",
+   "query": "Partial Service Unreachability.",
+   "truth": {
+    "fault_taxonomy": "Service_Routing_Fault",
+    "fault_object": "app/ts-food-service",
+    "root_cause": "service_dns_resolution_failure"
+   }
+  },
+  {
+   "id": "trainticket/service/28",
+   "system": "trainticket",
+   "category": "service",
+   "case": "28",
+   "difficulty": "medium",
+   "query": "Service Availability Disruption.",
+   "truth": {
+    "fault_taxonomy": "Service_Routing_Fault",
+    "fault_object": "app/ts-payment-service",
+    "root_cause": "service_dns_resolution_failure"
+   }
+  },
+  {
+   "id": "trainticket/service/34",
+   "system": "trainticket",
+   "category": "service",
+   "case": "34",
+   "difficulty": "medium",
+   "query": "Service Availability Disruption.",
+   "truth": {
+    "fault_taxonomy": "Service_Routing_Fault",
+    "fault_object": "app/ts-station-service",
+    "root_cause": "service_dns_resolution_failure"
+   }
+  },
+  {
+   "id": "trainticket/service/35",
+   "system": "trainticket",
+   "category": "service",
+   "case": "35",
+   "difficulty": "medium",
+   "query": "Service Availability Disruption.",
+   "truth": {
+    "fault_taxonomy": "Service_Routing_Fault",
+    "fault_object": "app/ts-train-service",
+    "root_cause": "service_dns_resolution_failure"
+   }
+  },
+  {
+   "id": "trainticket/performance/5",
+   "system": "trainticket",
+   "category": "performance",
+   "case": "5",
+   "difficulty": "hard",
+   "query": "Service quality degradation.",
+   "truth": {
+    "fault_taxonomy": "Performance_Fault",
+    "fault_object": "app/ts-inside-payment-service",
+    "root_cause": "pod_network_delay"
+   }
+  },
+  {
+   "id": "trainticket/performance/6",
+   "system": "trainticket",
+   "category": "performance",
+   "case": "6",
+   "difficulty": "hard",
+   "query": "Service quality degradation.",
+   "truth": {
+    "fault_taxonomy": "Performance_Fault",
+    "fault_object": "app/ts-order-service",
+    "root_cause": "pod_network_delay"
+   }
+  },
+  {
+   "id": "trainticket/performance/10",
+   "system": "trainticket",
+   "category": "performance",
+   "case": "10",
+   "difficulty": "hard",
+   "query": "Service quality degradation.",
+   "truth": {
+    "fault_taxonomy": "Performance_Fault",
+    "fault_object": "app/ts-route-service",
+    "root_cause": "pod_network_delay"
+   }
+  },
+  {
+   "id": "trainticket/performance/19",
+   "system": "trainticket",
+   "category": "performance",
+   "case": "19",
+   "difficulty": "hard",
+   "query": "Service quality degradation.",
+   "truth": {
+    "fault_taxonomy": "Performance_Fault",
+    "fault_object": "app/ts-cancel-service",
+    "root_cause": "pod_network_delay"
+   }
+  },
+  {
+   "id": "trainticket/performance/29",
+   "system": "trainticket",
+   "category": "performance",
+   "case": "29",
+   "difficulty": "hard",
+   "query": "Service quality degradation.",
+   "truth": {
+    "fault_taxonomy": "Performance_Fault",
+    "fault_object": "app/ts-seat-service",
+    "root_cause": "pod_network_delay"
+   }
+  },
+  {
+   "id": "trainticket/performance/32",
+   "system": "trainticket",
+   "category": "performance",
+   "case": "32",
+   "difficulty": "hard",
+   "query": "Service quality degradation.",
+   "truth": {
+    "fault_taxonomy": "Performance_Fault",
+    "fault_object": "app/ts-train-service",
+    "root_cause": "pod_network_delay"
+   }
+  },
+  {
+   "id": "trainticket/performance/39",
+   "system": "trainticket",
+   "category": "performance",
+   "case": "39",
+   "difficulty": "hard",
+   "query": "Service quality degradation.",
+   "truth": {
+    "fault_taxonomy": "Performance_Fault",
+    "fault_object": "app/ts-order-service",
+    "root_cause": "pod_network_delay"
+   }
+  },
+  {
+   "id": "trainticket/performance/45",
+   "system": "trainticket",
+   "category": "performance",
+   "case": "45",
+   "difficulty": "hard",
+   "query": "Service quality degradation.",
+   "truth": {
+    "fault_taxonomy": "Performance_Fault",
+    "fault_object": "app/ts-train-service",
+    "root_cause": "pod_network_delay"
+   }
+  }
+ ],
+ "note": "the 16 TrainTicket cases of sample60.json (8 service, 8 performance)"
+}

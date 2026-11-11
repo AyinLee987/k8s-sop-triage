@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show severe latency degradation centered on ts-inside-payment-service (p50 ~7.2s, p90 ~20.3s), with propagated latency to upstream ts-cancel-service and ts-gateway-service. All pods are Running/Ready with zero app restarts, and downstream services such as ts-payment-service and ts-order-service do not show equivalent latency degradation. Peer services on the same node do not show equally severe latency, making a node-wide issue less likely. Inside-payment error logs show payment failures for order-not-found responses, which are consistent with delayed/failed downstream calls during the fault window. This supports a pod-scoped network delay on ts-inside-payment-service.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-inside-payment-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"node/worker-03\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-inside-payment-service\", \"root_cause\": \"code_artificial_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 11
+}

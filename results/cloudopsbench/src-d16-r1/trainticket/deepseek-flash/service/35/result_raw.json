@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Upstream 500s trace from ts-preserve-service -> ts-travel-service -> ts-basic-service, where ts-basic-service throws `IllegalArgumentException: Service Instance cannot be null`. The only unavailable dependency is `ts-train-service` (deployment 0/1; pod CrashLoopBackOff). Its logs show `java.net.UnknownHostException: tsdb-mysql-leader: Temporary failure in name resolution` and DNS timeouts to `10.255.12.254:53`. The `tsdb-mysql-leader` Service exists and TCP connectivity to port 3306 succeeds from worker-01/02/03, so this is not a missing or unreachable MySQL Service. The `ts-train-service` Deployment has `dnsPolicy: None` with an explicit nameserver `10.255.12.254`, consistent with pod-specific DNS resolution failure causing startup failure and cascading service unavailability.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-train-service\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-train-service\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 18
+}

@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"`ts-payment-service` is the only unhealthy workload (`CrashLoopBackOff`). Its application logs show `UnknownHostException: tsdb-mysql-leader: Temporary failure in name resolution`, causing Hikari/JPA startup failure and exit code 1. The `tsdb-mysql-leader` Service exists with ClusterIP 10.68.188.173, and the backing `tsdb-mysql` pods are Running, so the service/backend itself is present. The `ts-payment-service` Deployment has an anomalous `dnsPolicy: None` with a custom nameserver `10.255.17.254`; Istio sidecar logs also show DNS timeouts resolving `istiod.istio-system.svc` via that nameserver. This supports a pod-level service DNS resolution failure in `ts-payment-service` as the primary fault.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 2, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_packet_loss\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 7
+}

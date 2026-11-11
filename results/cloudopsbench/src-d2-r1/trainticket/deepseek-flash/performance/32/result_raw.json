@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show severe latency degradation in ts-train-service (p50 2425ms, p90 4472ms) and ts-basic-service (p50 3750ms). ts-train-service is a leaf with no downstream dependencies, its pod is Running/Ready with zero restarts, no application error logs (only istio-proxy broken pipe), and no CPU saturation alert for it. Peer services on worker-01 do not show latency degradation, ruling out node-wide network delay. This matches pod-scoped network delay on ts-train-service.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-train-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"pod_cpu_overload\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 10
+}

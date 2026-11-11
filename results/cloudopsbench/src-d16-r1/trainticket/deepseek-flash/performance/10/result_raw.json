@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All pods Running/Ready with no relevant restarts, node conditions clean. Widespread latency traces through dependency chain ui-dashboard→gateway→preserve/travel→basic→route-service. ts-route-service is a leaf with no downstream yet shows extreme latency (p50 7.55ms→8026ms, p90 9.6ms→21000ms). Its logs show fast normal INFO processing with no errors/exceptions, and source code has no artificial delay. Critically, sibling leaf ts-price-service on the SAME node worker-03 shows only throughput drop and NO latency degradation, and basic-service's other downstream leaves (station, train, price) are unaffected — proving the latency is localized to the route-service pod's network path, not the node or application code. This matches pod_network_delay.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-route-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-route-service\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-03\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 18
+}

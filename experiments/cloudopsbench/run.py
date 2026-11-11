@@ -46,6 +46,7 @@ def main() -> int:
     ap.add_argument("--max-iterations", type=int, default=20)
     ap.add_argument("--experience", default="", help="folder of NN.md experience notes (e.g. experiences/specific)")
     ap.add_argument("--dose", type=int, default=0, help="use the first K notes; 0 = agent unchanged")
+    ap.add_argument("--tt-source", default="", help="checkout of FudanSELab/train-ticket: adds source-code tools for TrainTicket cases")
     ap.add_argument("--order-seed", type=int, default=0, help="shuffle the accumulation order of the notes with this seed (0 = file order)")
     ap.add_argument("--case-timeout", type=int, default=420)
     args = ap.parse_args()
@@ -60,16 +61,23 @@ def main() -> int:
         if w.exists():
             shutil.rmtree(w)
         shutil.copytree(dataset / "agents" / args.agent, w)
+        # The only changes to the reference agent: optional extensions loaded at one point in its run.py.
+        inject = ""
+        if args.tt_source:
+            shutil.copy(Path(__file__).with_name("source_ext.py"), w / "source_ext.py")
+            inject += "    import source_ext\n    source_ext.install(registry, context, system)\n"
         if args.dose:
-            # the only change to the reference agent: load experience_ext and let it add the catalog + tool
             shutil.copy(Path(__file__).with_name("experience_ext.py"), w / "experience_ext.py")
+            inject += "    import experience_ext\n    experience_ext.install(registry, context)\n"
+        if inject:
             src = (w / "run.py").read_text(encoding="utf-8")
             anchor = "    state = init_case_state("
             assert src.count(anchor) == 1, "agent run.py changed; re-check the patch point"
-            (w / "run.py").write_text(src.replace(
-                anchor, "    import experience_ext\n    experience_ext.install(registry, context)\n" + anchor), encoding="utf-8")
+            (w / "run.py").write_text(src.replace(anchor, inject + anchor), encoding="utf-8")
         pool.put(w)
     child_env = dict(__import__("os").environ)
+    if args.tt_source:
+        child_env["TT_SOURCE_DIR"] = str(Path(args.tt_source).resolve())
     if args.dose:
         child_env.update(EXPERIENCE_DIR=str(Path(args.experience).resolve()), EXPERIENCE_DOSE=str(args.dose))
         if args.order_seed:

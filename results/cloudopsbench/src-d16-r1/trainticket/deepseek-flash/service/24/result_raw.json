@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"`ts-food-service` is CrashLoopBackOff with exit code 1. Logs show `java.net.UnknownHostException: tsdb-mysql-leader` and DNS lookups timing out from the pod. The `tsdb-mysql-leader` Service exists, and TCP connectivity to 3306 succeeds from worker-01/02/03, ruling out backend unavailability. The Deployment has `dnsPolicy: None` with an explicit nameserver, strongly indicating a pod-level service DNS resolution fault.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-food-service\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_packet_loss\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 8
+}

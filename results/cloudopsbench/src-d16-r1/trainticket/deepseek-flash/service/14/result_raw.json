@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Active alert reports repeated 500s on ts-inside-payment-service payment processing. Inside-payment logs show its downstream POST to ts-payment-service `/api/v1/paymentservice/payment` returns 500. ts-payment-service logs show repeated `IncorrectResultSizeDataAccessException` / `NonUniqueResultException: query did not return a unique result: 5` on the `findByOrderId` payment lookup. Pod/proxy logs indicate the workload is running and ready, so the failure is a deterministic application-code/data-access defect in ts-payment-service.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"code_wrong_return\"}, {\"rank\": 2, \"fault_object\": \"app/ts-inside-payment-service\", \"root_cause\": \"code_wrong_argument_order\"}, {\"rank\": 3, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"code_missing_parameter\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 20
+}

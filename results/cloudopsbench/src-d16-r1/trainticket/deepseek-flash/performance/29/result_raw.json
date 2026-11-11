@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All pods are Running/Ready with no crash or scheduling failure. Alerts show ts-order-service CPU CFS throttling, while ts-seat-service, ts-preserve-service, and ts-travel-service show latency degradation consistent with downstream calls to order-service. ts-order-service logs show it actively serving heavy ticket/order queries without application errors, and no node-wide or network-specific anomaly is directly evidenced.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 2, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 3, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"cpu_capacity_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 10
+}

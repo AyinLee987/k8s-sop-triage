@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All pods are Running/Ready and nodes are Ready without pressure or scheduling issues. Alerts show severe latency on ts-route-service (p50 ~8.0s, p90 ~21s) with throughput down ~57%. ts-route-service is a leaf service with no downstream calls, no application error logs, and its controller/service/repository source shows no artificial blocking delay. Upstream services such as gateway, travel, basic, and preserve show latency degradation consistent with propagation from ts-route-service. This pattern supports a pod-scoped network delay rather than node-wide failure, resource saturation, or application exception.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-route-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-route-service\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-03\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 15
+}

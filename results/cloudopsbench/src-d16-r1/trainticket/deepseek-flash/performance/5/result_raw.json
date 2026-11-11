@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Widespread latency and RPS drops occurred while all pods were Running/Ready with zero restarts and all nodes healthy/no pressure. The most severe non-entry latency was `ts-inside-payment-service` (p90 ~20.3s); its upstream callers, especially `ts-cancel-service` (p90 ~21.6s), gateway, and UI, showed propagated latency. Application logs for `ts-inside-payment-service` show fast successful processing (milliseconds), and `ts-cancel-service` also processes quickly locally. Gateway had no error logs. The Service port 18673/targetPort 18673 is correct and TCP connectivity succeeds from worker-01/02/03, ruling out service port/DNS/unreachability. The evidence points to pod-scoped network delay on `ts-inside-payment-service`.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-inside-payment-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"node/worker-03\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-inside-payment-service\", \"root_cause\": \"code_artificial_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 12
+}

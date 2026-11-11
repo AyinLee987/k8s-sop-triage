@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"ts-payment-service pod is in CrashLoopBackOff (0/2 ready) with app container exit code 1. Application logs show com.mysql.cj.jdbc.exceptions.CommunicationsException caused by java.net.UnknownHostException: tsdb-mysql-leader. GetAppYAML reveals the Deployment sets dnsPolicy: None with dnsConfig nameservers: [10.255.17.254]; istio-proxy sidecar logs show repeated DNS lookups to 10.255.17.254:53 timing out (i/o timeout). CheckServiceConnectivity to tsdb-mysql-leader:3306 succeeded from worker-01/02/03, and other pods on worker-02 are Running, so the DB and node network are healthy. The failure is DNS resolution failure scoped to the ts-payment-service app due to its custom DNS configuration.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 2, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_packet_loss\"}, {\"rank\": 3, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"service_env_var_address_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 9
+}

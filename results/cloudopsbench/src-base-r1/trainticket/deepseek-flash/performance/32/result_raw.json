@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Active alerts show the most severe latency degradation at ts-train-service: p50 latency rose from ~7.38ms to 2425ms and p90 from ~9.48ms to 4472ms, while resources were not saturated and no request errors were logged. ts-train-service is a leaf service and is called by upstream services including ts-basic-service, which also showed propagated latency. The pod is Running 2/2 with no restarts, the controller/service/repository code inspected showed no artificial delay, and TCP connectivity to ts-train-service:14567 succeeded from all worker nodes, indicating reachability but not ruling out elevated latency. Because the anomaly is strongly localized to this app pod and other pods on worker-01 do not show comparable broad latency, the best diagnosis is pod-level network delay on ts-train-service.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-train-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-train-service\", \"root_cause\": \"code_artificial_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 13
+}
