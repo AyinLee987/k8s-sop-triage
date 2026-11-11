@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Repeated `POST /api/v1/preserveservice/preserve` requests returned 404 at ts-ui-dashboard, while ts-preserve-service pods were healthy and its logs showed no inbound request handling. The ts-gateway-service ConfigMap explicitly defines the preserve route as `Path=/api/v1/preserveservice/**` with `uri: lb://${FOOD_SERVICE_HOST:ts-food-service}` instead of `ts-preserve-service`, confirming a gateway route-to-backend mismatch.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-gateway-service\", \"root_cause\": \"gateway_misrouted\"}, {\"rank\": 2, \"fault_object\": \"app/ts-preserve-service\", \"root_cause\": \"service_selector_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/ts-food-service\", \"root_cause\": \"code_wrong_return\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 11
+}

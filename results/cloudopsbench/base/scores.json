@@ -100,7 +100,9 @@
     "root_cause": "missing_service_account"
    },
    "steps": 6,
-   "finished": true
+   "finished": true,
+   "in_tok": 32218,
+   "out_tok": 1708
   },
   {
    "id": "boutique/admission/13",
@@ -120,7 +122,9 @@
     "root_cause": "namespace_cpu_quota_exceeded"
    },
    "steps": 6,
-   "finished": true
+   "finished": true,
+   "in_tok": 33920,
+   "out_tok": 1734
   },
   {
    "id": "boutique/admission/14",
@@ -140,7 +144,9 @@
     "root_cause": "namespace_cpu_quota_exceeded"
    },
    "steps": 5,
-   "finished": true
+   "finished": true,
+   "in_tok": 27255,
+   "out_tok": 1452
   },
   {
    "id": "boutique/admission/29",
@@ -160,7 +166,9 @@
     "root_cause": "namespace_memory_quota_exceeded"
    },
    "steps": 5,
-   "finished": true
+   "finished": true,
+   "in_tok": 27238,
+   "out_tok": 1615
   },
   {
    "id": "boutique/admission/40",
@@ -180,7 +188,9 @@
     "root_cause": "namespace_pod_quota_exceeded"
    },
    "steps": 5,
-   "finished": true
+   "finished": true,
+   "in_tok": 27041,
+   "out_tok": 1325
   },
   {
    "id": "boutique/admission/54",
@@ -200,7 +210,9 @@
     "root_cause": "namespace_service_quota_exceeded"
    },
    "steps": 9,
-   "finished": true
+   "finished": true,
+   "in_tok": 49232,
+   "out_tok": 3930
   },
   {
    "id": "boutique/admission/57",
@@ -220,7 +232,9 @@
     "root_cause": "namespace_storage_quota_exceeded"
    },
    "steps": 8,
-   "finished": true
+   "finished": true,
+   "in_tok": 44395,
+   "out_tok": 3311
   },
   {
    "id": "boutique/admission/58",
@@ -240,7 +254,9 @@
     "root_cause": "namespace_storage_quota_exceeded"
    },
    "steps": 8,
-   "finished": true
+   "finished": true,
+   "in_tok": 44829,
+   "out_tok": 4351
   },
   {
    "id": "boutique/service/3",
@@ -260,7 +276,9 @@
     "root_cause": "service_env_var_address_mismatch"
    },
    "steps": 7,
-   "finished": true
+   "finished": true,
+   "in_tok": 36926,
+   "out_tok": 2221
   },
   {
    "id": "boutique/service/7",
@@ -280,7 +298,9 @@
     "root_cause": "service_env_var_address_mismatch"
    },
    "steps": 8,
-   "finished": true
+   "finished": true,
+   "in_tok": 43570,
+   "out_tok": 9438
   },
   {
    "id": "boutique/service/13",
@@ -300,7 +320,9 @@
     "root_cause": "service_port_mapping_mismatch"
    },
    "steps": 10,
-   "finished": true
+   "finished": true,
+   "in_tok": 54670,
+   "out_tok": 8784
   },
   {
    "id": "boutique/service/17",
@@ -320,7 +342,9 @@
     "root_cause": "service_port_mapping_mismatch"
    },
    "steps": 8,
-   "finished": true
+   "finished": true,
+   "in_tok": 43479,
+   "out_tok": 4272
   },
   {
    "id": "boutique/service/23",
@@ -340,7 +364,9 @@
     "root_cause": "service_protocol_mismatch"
    },
    "steps": 6,
-   "finished": true
+   "finished": true,
+   "in_tok": 30770,
+   "out_tok": 2151
   },
   {
    "id": "boutique/service/26",
@@ -360,7 +386,9 @@
     "root_cause": "service_protocol_mismatch"
    },
    "steps": 5,
-   "finished": true
+   "finished": true,
+   "in_tok": 24610,
+   "out_tok": 2452
   },
   {
    "id": "boutique/service/29",
@@ -380,7 +408,9 @@
     "root_cause": "service_protocol_mismatch"
    },
    "steps": 4,
-   "finished": true
+   "finished": true,
+   "in_tok": 19262,
+   "out_tok": 2131
   },
   {
    "id": "boutique/service/37",
@@ -400,7 +430,9 @@
     "root_cause": "service_selector_mismatch"
    },
    "steps": 5,
-   "finished": true
+   "finished": true,
+   "in_tok": 25814,
+   "out_tok": 1302
   },
   {
    "id": "boutique/service/45",
@@ -420,7 +452,9 @@
     "root_cause": "service_selector_mismatch"
    },
    "steps": 6,
-   "finished": true
+   "finished": true,
+   "in_tok": 29288,
+   "out_tok": 1418
   },
   {
    "id": "boutique/service/46",
@@ -440,7 +474,9 @@
     "root_cause": "service_selector_mismatch"
    },
    "steps": 5,
-   "finished": true
+   "finished": true,
+   "in_tok": 25844,
+   "out_tok": 1080
   },
   {
    "id": "boutique/infrastructure/3",
@@ -460,7 +496,9 @@
     "root_cause": "containerd_unavailable"
    },
    "steps": 4,
-   "finished": true
+   "finished": true,
+   "in_tok": 24639,
+   "out_tok": 1642
   },
   {
    "id": "boutique/infrastructure/13",
@@ -480,7 +518,9 @@
     "root_cause": "kube_proxy_unavailable"
    },
    "steps": 9,
-   "finished": true
+   "finished": true,
+   "in_tok": 53886,
+   "out_tok": 8006
   },
   {
    "id": "boutique/infrastructure/15",
@@ -500,7 +540,9 @@
     "root_cause": "kube_proxy_unavailable"
    },
    "steps": 7,
-   "finished": true
+   "finished": true,
+   "in_tok": 39629,
+   "out_tok": 2574
   },
   {
    "id": "boutique/infrastructure/21",
@@ -520,7 +562,9 @@
     "root_cause": "kube_scheduler_unavailable"
    },
    "steps": 5,
-   "finished": true
+   "finished": true,
+   "in_tok": 26915,
+   "out_tok": 1765
   },
   {
    "id": "boutique/infrastructure/27",
@@ -540,7 +584,9 @@
     "root_cause": "kube_scheduler_unavailable"
    },
    "steps": 8,
-   "finished": true
+   "finished": true,
+   "in_tok": 44452,
+   "out_tok": 3578
   },
   {
    "id": "boutique/infrastructure/35",
@@ -560,7 +606,9 @@
     "root_cause": "kubelet_unavailable"
    },
    "steps": 5,
-   "finished": true
+   "finished": true,
+   "in_tok": 27692,
+   "out_tok": 2876
   },
   {
    "id": "boutique/performance/2",
@@ -580,7 +628,9 @@
     "root_cause": "pod_cpu_overload"
    },
    "steps": 11,
-   "finished": true
+   "finished": true,
+   "in_tok": 84373,
+   "out_tok": 5837
   },
   {
    "id": "boutique/performance/6",
@@ -600,7 +650,9 @@
     "root_cause": "code_busy_loop"
    },
    "steps": 15,
-   "finished": true
+   "finished": true,
+   "in_tok": 185476,
+   "out_tok": 14394
   },
   {
    "id": "boutique/performance/15",
@@ -620,7 +672,9 @@
     "root_cause": "pod_network_delay"
    },
    "steps": 13,
-   "finished": true
+   "finished": true,
+   "in_tok": 109683,
+   "out_tok": 12012
   },
   {
    "id": "boutique/performance/16",
@@ -640,7 +694,9 @@
     "root_cause": null
    },
    "steps": 20,
-   "finished": false
+   "finished": false,
+   "in_tok": 200405,
+   "out_tok": 25673
   },
   {
    "id": "boutique/performance/24",
@@ -660,7 +716,9 @@
     "root_cause": "node_network_packet_loss"
    },
    "steps": 7,
-   "finished": true
+   "finished": true,
+   "in_tok": 45003,
+   "out_tok": 4494
   },
   {
    "id": "boutique/performance/25",
@@ -680,7 +738,9 @@
     "root_cause": "pod_network_delay"
    },
    "steps": 19,
-   "finished": true
+   "finished": true,
+   "in_tok": 242494,
+   "out_tok": 20500
   },
   {
    "id": "boutique/performance/27",
@@ -700,7 +760,9 @@
     "root_cause": "node_network_packet_loss"
    },
    "steps": 3,
-   "finished": true
+   "finished": true,
+   "in_tok": 14028,
+   "out_tok": 1602
   },
   {
    "id": "boutique/performance/29",
@@ -720,7 +782,9 @@
     "root_cause": "node_network_packet_loss"
    },
    "steps": 6,
-   "finished": true
+   "finished": true,
+   "in_tok": 35819,
+   "out_tok": 4410
   },
   {
    "id": "boutique/codedefect/3",
@@ -740,7 +804,9 @@
     "root_cause": "code_wrong_argument_order"
    },
    "steps": 7,
-   "finished": true
+   "finished": true,
+   "in_tok": 65661,
+   "out_tok": 2160
   },
   {
    "id": "boutique/codedefect/9",
@@ -760,7 +826,9 @@
     "root_cause": "code_artificial_delay"
    },
    "steps": 7,
-   "finished": true
+   "finished": true,
+   "in_tok": 57926,
+   "out_tok": 5616
   },
   {
    "id": "boutique/codedefect/10",
@@ -780,7 +848,9 @@
     "root_cause": "code_artificial_delay"
    },
    "steps": 8,
-   "finished": true
+   "finished": true,
+   "in_tok": 64164,
+   "out_tok": 2224
   },
   {
    "id": "boutique/codedefect/13",
@@ -800,7 +870,9 @@
     "root_cause": "code_missing_parameter"
    },
    "steps": 15,
-   "finished": true
+   "finished": true,
+   "in_tok": 107891,
+   "out_tok": 9029
   },
   {
    "id": "boutique/codedefect/32",
@@ -820,7 +892,9 @@
     "root_cause": "code_wrong_argument_order"
    },
    "steps": 18,
-   "finished": true
+   "finished": true,
+   "in_tok": 215553,
+   "out_tok": 13732
   },
   {
    "id": "boutique/codedefect/35",
@@ -840,7 +914,9 @@
     "root_cause": "code_artificial_delay"
    },
    "steps": 9,
-   "finished": true
+   "finished": true,
+   "in_tok": 63033,
+   "out_tok": 7517
   },
   {
    "id": "boutique/codedefect/53",
@@ -860,7 +936,9 @@
     "root_cause": "code_excessive_file_reads"
    },
    "steps": 9,
-   "finished": true
+   "finished": true,
+   "in_tok": 98185,
+   "out_tok": 7821
   },
   {
    "id": "boutique/codedefect/60",
@@ -880,7 +958,9 @@
     "root_cause": "code_excessive_file_writes"
    },
    "steps": 8,
-   "finished": true
+   "finished": true,
+   "in_tok": 84634,
+   "out_tok": 2371
   },
   {
    "id": "boutique/codedefect/70",
@@ -900,7 +980,9 @@
     "root_cause": "code_memory_leak"
    },
    "steps": 7,
-   "finished": true
+   "finished": true,
+   "in_tok": 58981,
+   "out_tok": 3811
   },
   {
    "id": "boutique/codedefect/77",
@@ -920,7 +1002,9 @@
     "root_cause": "code_wrong_return"
    },
    "steps": 10,
-   "finished": true
+   "finished": true,
+   "in_tok": 57434,
+   "out_tok": 2576
   },
   {
    "id": "boutique/codedefect/78",
@@ -940,7 +1024,9 @@
     "root_cause": "code_wrong_return"
    },
    "steps": 9,
-   "finished": true
+   "finished": true,
+   "in_tok": 49653,
+   "out_tok": 6837
   },
   {
    "id": "boutique/codedefect/81",
@@ -960,7 +1046,9 @@
     "root_cause": "code_excessive_file_writes"
    },
    "steps": 6,
-   "finished": true
+   "finished": true,
+   "in_tok": 38124,
+   "out_tok": 1629
   },
   {
    "id": "trainticket/service/2",
@@ -980,7 +1068,9 @@
     "root_cause": null
    },
    "steps": 20,
-   "finished": false
+   "finished": false,
+   "in_tok": 548948,
+   "out_tok": 42470
   },
   {
    "id": "trainticket/service/5",
@@ -1000,7 +1090,9 @@
     "root_cause": "gateway_misrouted"
    },
    "steps": 10,
-   "finished": true
+   "finished": true,
+   "in_tok": 107312,
+   "out_tok": 7234
   },
   {
    "id": "trainticket/service/14",
@@ -1020,7 +1112,9 @@
     "root_cause": "code_wrong_return"
    },
    "steps": 7,
-   "finished": true
+   "finished": true,
+   "in_tok": 70257,
+   "out_tok": 7312
   },
   {
    "id": "trainticket/service/16",
@@ -1040,7 +1134,9 @@
     "root_cause": "code_missing_parameter"
    },
    "steps": 19,
-   "finished": true
+   "finished": true,
+   "in_tok": 465512,
+   "out_tok": 40370
   },
   {
    "id": "trainticket/service/24",
@@ -1060,7 +1156,9 @@
     "root_cause": "service_dns_resolution_failure"
    },
    "steps": 7,
-   "finished": true
+   "finished": true,
+   "in_tok": 94376,
+   "out_tok": 4466
   },
   {
    "id": "trainticket/service/28",
@@ -1080,7 +1178,9 @@
     "root_cause": "service_dns_resolution_failure"
    },
    "steps": 13,
-   "finished": true
+   "finished": true,
+   "in_tok": 155732,
+   "out_tok": 18105
   },
   {
    "id": "trainticket/service/34",
@@ -1100,7 +1200,9 @@
     "root_cause": "service_dns_resolution_failure"
    },
    "steps": 9,
-   "finished": true
+   "finished": true,
+   "in_tok": 137679,
+   "out_tok": 5611
   },
   {
    "id": "trainticket/service/35",
@@ -1120,7 +1222,9 @@
     "root_cause": "service_dns_resolution_failure"
    },
    "steps": 13,
-   "finished": true
+   "finished": true,
+   "in_tok": 234089,
+   "out_tok": 7505
   },
   {
    "id": "trainticket/performance/5",
@@ -1140,7 +1244,9 @@
     "root_cause": "code_artificial_delay"
    },
    "steps": 20,
-   "finished": true
+   "finished": true,
+   "in_tok": 454314,
+   "out_tok": 31603
   },
   {
    "id": "trainticket/performance/6",
@@ -1160,7 +1266,9 @@
     "root_cause": "node_network_delay"
    },
    "steps": 17,
-   "finished": true
+   "finished": true,
+   "in_tok": 568337,
+   "out_tok": 32498
   },
   {
    "id": "trainticket/performance/10",
@@ -1180,7 +1288,9 @@
     "root_cause": "code_artificial_delay"
    },
    "steps": 10,
-   "finished": true
+   "finished": true,
+   "in_tok": 119342,
+   "out_tok": 11139
   },
   {
    "id": "trainticket/performance/19",
@@ -1200,7 +1310,9 @@
     "root_cause": "pod_cpu_overload"
    },
    "steps": 9,
-   "finished": true
+   "finished": true,
+   "in_tok": 163015,
+   "out_tok": 11392
   },
   {
    "id": "trainticket/performance/29",
@@ -1220,7 +1332,9 @@
     "root_cause": "pod_cpu_overload"
    },
    "steps": 5,
-   "finished": true
+   "finished": true,
+   "in_tok": 262634,
+   "out_tok": 3208
   },
   {
    "id": "trainticket/performance/32",
@@ -1240,7 +1354,9 @@
     "root_cause": "code_artificial_delay"
    },
    "steps": 7,
-   "finished": true
+   "finished": true,
+   "in_tok": 55630,
+   "out_tok": 2498
   },
   {
    "id": "trainticket/performance/39",
@@ -1260,7 +1376,9 @@
     "root_cause": "node_network_delay"
    },
    "steps": 19,
-   "finished": true
+   "finished": true,
+   "in_tok": 2848533,
+   "out_tok": 38439
   },
   {
    "id": "trainticket/performance/45",
@@ -1280,7 +1398,9 @@
     "root_cause": "code_artificial_delay"
    },
    "steps": 9,
-   "finished": true
+   "finished": true,
+   "in_tok": 92367,
+   "out_tok": 7388
   }
  ]
 }

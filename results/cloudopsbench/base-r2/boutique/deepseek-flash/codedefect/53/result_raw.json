@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts localized severe CPU throttling and latency degradation to frontend. Frontend logs show downstream ad timeouts but adservice remains responsive with no error logs. Pods are running without restarts. Source inspection of frontend handlers.go found setCurrencyHandler performing ten repeated full CSV reads of /src/log.csv per request, matching the CPU/latency anomaly and the setCurrency 503 errors.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_excessive_file_reads\"}, {\"rank\": 2, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 3, \"fault_object\": \"app/frontend\", \"root_cause\": \"pod_cpu_overload\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 10
+}

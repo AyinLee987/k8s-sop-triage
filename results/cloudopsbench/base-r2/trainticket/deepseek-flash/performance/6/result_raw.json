@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"System-wide latency and throughput drop are centered on call paths through ts-order-service. ts-order-service shows severe latency (p50 ~3.9s, p90 ~17.6s) while its recent application logs show normal millisecond-level request execution. All pods are Running, cluster nodes are Ready, and TCP connectivity to ts-order-service:12031 succeeds from worker-01/02/03. This supports a network delay affecting the ts-order-service pod rather than an application error, resource exhaustion, or node outage. Worker-01 node-level network delay is the main alternative because ts-order-service and several slow callers are hosted there.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"code_artificial_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 13
+}

@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All pods are Running/Ready and every Service has healthy endpoints, so this is an application-level request failure rather than a startup/connectivity issue. Frontend logs repeatedly show HTTP 500 errors: 'could not retrieve currencies: rpc error: code = Unavailable desc = ... dial tcp 10.68.199.102:7001: connect: connection refused'. The currencyservice Service/endpoint listens on port 7000, but the frontend Deployment's CURRENCY_SERVICE_ADDR env var is 'currencyservice:7001', targeting a non-listening port. This is a service address environment variable misconfiguration on the frontend.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/frontend\", \"root_cause\": \"service_env_var_address_mismatch\"}, {\"rank\": 2, \"fault_object\": \"app/currencyservice\", \"root_cause\": \"service_port_mapping_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_wrong_return\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 8
+}

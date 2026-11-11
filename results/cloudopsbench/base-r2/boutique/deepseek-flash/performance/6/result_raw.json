@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Only frontend is alerted with RESOURCE_SATURATION: CPU CFS throttling of 1.333s, CPU usage increased from ~0.07 to ~0.16 cores (+138.1%), and p95 latency rose from ~27.67ms to ~271.36ms. The frontend pod is Running with 0 restarts, has no service error logs, and recent request logs show successful downstream calls. The frontend Deployment has a 200m CPU limit, and the observed throttling indicates excessive burst CPU load within the frontend pod rather than a downstream failure.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/frontend\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 2, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 3, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_artificial_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 18
+}

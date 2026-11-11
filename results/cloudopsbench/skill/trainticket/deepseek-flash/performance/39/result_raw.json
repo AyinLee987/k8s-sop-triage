@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Latency degradation alerts show ts-travel-service as the most extreme outlier (p50 88.74ms -> 18461.54ms, +20703%), with secondary impact on ts-seat-service, ts-order-service, ts-gateway-service, and ts-ui-dashboard. All pods are Running with no restarts/readiness failures, ruling out pod crashes. GetErrorLogs for ts-travel-service returned no error logs, excluding application-level errors. GetRecentLogs show normal internal processing with millisecond-level response times (e.g., seat queries ~20ms, distance calc ~0-30ms) despite externally reported ~18s+ latency. This internal-vs-external latency discrepancy with healthy pods and no app errors is the exclusion signature of chaosblade-injected pod network delay on ts-travel-service.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-travel-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-seat-service\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 7
+}

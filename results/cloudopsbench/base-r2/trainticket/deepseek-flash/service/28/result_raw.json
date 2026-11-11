@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"ts-payment-service is CrashLoopBackOff with logs showing MySQL Communications link failure caused by UnknownHostException: tsdb-mysql-leader. The pod resolves via custom DNS config dnsPolicy=None with nameserver 10.255.17.254, and istio-proxy logs show repeated DNS lookup timeouts to 10.255.17.254:53. The tsdb-mysql-leader Service exists, has a matching selector, and TCP connectivity to 10.68.188.173:3306 succeeds from all worker nodes. This localizes the fault to DNS resolution failure for ts-payment-service, which then disrupts ts-inside-payment-service payment processing with HTTP 500s.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 2, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_packet_loss\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 15
+}

@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All pods are Running/Ready. Frontend logs show repeated 'connection refused' to checkoutservice at 10.68.228.153:5050. The checkoutservice Service has selector app=checkoutservice matching the running pod, but its targetPort is the named port 'grpc-api', while the container actually names its port 'grpc' (containerPort 5050). kube-proxy cannot resolve targetPort 'grpc-api' to the pod's listening port, so traffic to Service:5050 is refused, even though the app is up (readiness/liveness grpc probes on 5050 pass). This is a Service port mapping mismatch.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"service_port_mapping_mismatch\"}, {\"rank\": 2, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"service_protocol_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"service_selector_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 9
+}

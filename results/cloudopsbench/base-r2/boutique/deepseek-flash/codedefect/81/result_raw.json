@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alert for productcatalogservice showed a filesystem write surge (0 B/s to ~83.7 KB/s, peak ~213.7 KB/s) and CPU increase. Source code in product_catalog.go confirms ListProducts creates /tmp/tmp.csv and writes 30,000 CSV rows per request, causing excessive filesystem writes and CPU load. The same handler also calls time.Sleep(extraLatency), a plausible secondary contributor to latency.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"code_excessive_file_writes\"}, {\"rank\": 2, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 3, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"pod_cpu_overload\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 5
+}

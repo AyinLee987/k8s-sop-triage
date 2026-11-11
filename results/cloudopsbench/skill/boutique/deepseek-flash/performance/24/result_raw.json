@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show a new TCP retransmission spike on node worker-01 (0.00 -> 0.70 retrans) coincident with broad service latency and traffic degradation. Frontend, currencyservice, productcatalogservice, paymentservice, and emailservice are hosted on worker-01. kube-proxy and containerd on worker-01 are healthy, ruling out node component unavailability. Frontend error logs contain numerous upstream request timeouts, Unavailable, and DeadlineExceeded errors, supporting network packet loss on worker-01.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_packet_loss\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_artificial_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 7
+}

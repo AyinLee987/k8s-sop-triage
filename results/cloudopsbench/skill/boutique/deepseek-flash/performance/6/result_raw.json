@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Frontend was flagged for CPU CFS throttling and significantly increased p50/p95 latency. The pod was Running with 0 restarts and no error logs. Resource limits included CPU limit 200m. Source inspection found `MultiplySlow` in `money/money.go` performing repeated active additions in a loop, providing direct evidence of a CPU-intensive busy-loop defect causing the saturation and latency.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 2, \"fault_object\": \"app/frontend\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 3, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_artificial_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 10
+}

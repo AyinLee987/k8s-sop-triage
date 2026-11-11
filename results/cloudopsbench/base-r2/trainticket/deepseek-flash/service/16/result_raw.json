@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Pods were Running, but alerts showed 19 404s for POST /api/v1/travelservice/trips/left via ts-travel-service. ts-gateway-service config shows the travel route incorrectly targets lb://${ORDER_SERVICE_HOST:ts-order-service}, so requests to /api/v1/travelservice/** are routed to ts-order-service rather than ts-travel-service, causing availability disruption. Error logs in ts-payment-service show a separate 500 NonUniqueResultException, but the strongest evidence for the reported travel-service symptom is the gateway misroute.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-gateway-service\", \"root_cause\": \"gateway_misrouted\"}, {\"rank\": 2, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"code_wrong_return\"}, {\"rank\": 3, \"fault_object\": \"app/ts-travel-service\", \"root_cause\": \"code_wrong_return\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 14
+}

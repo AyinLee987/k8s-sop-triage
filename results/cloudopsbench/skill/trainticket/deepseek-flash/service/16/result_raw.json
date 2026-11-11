@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Pods and Services are broadly healthy (all business pods Running; ts-travel-service Service selector/port correct with endpoints). Active alerts show a 404 on POST /api/v1/travelservice/trips/left (entry ts-travel-service) and a 500 on inside_payment. Gateway ConfigMap route 'travel' for Path=/api/v1/travelservice/** is misconfigured to uri lb://${ORDER_SERVICE_HOST:ts-order-service} instead of ts-travel-service. Because the ts-travel-service backend is healthy, the 404 on the travel route is explained by the gateway forwarding travel requests to the wrong backend (ts-order-service), confirming a gateway route-to-backend misroute.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-gateway-service\", \"root_cause\": \"gateway_misrouted\"}, {\"rank\": 2, \"fault_object\": \"app/ts-inside-payment-service\", \"root_cause\": \"db_readonly_mode\"}, {\"rank\": 3, \"fault_object\": \"app/ts-travel-service\", \"root_cause\": \"service_selector_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 7
+}

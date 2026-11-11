@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show severe latency degradation centered on ts-route-service, with p50 latency rising from ~7.55ms to ~8026ms and p90 to ~21000ms. Pods are healthy with no recent restarts, ts-route-service has no error logs, and recent ts-route-service logs show normal internal request handling without application exceptions. This pattern supports a pod-level network delay affecting ts-route-service and propagating latency to upstream services.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-route-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"node/worker-03\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-basic-service\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 8
+}

@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"GetAlerts showed 20 POST 404 errors for /api/v1/preserveservice/preserve through ts-preserve-service. Recent logs showed ts-preserve-service started successfully, registered with Nacos, and the Deployment reports 1 ready replica. The ts-preserve-service Service correctly targets port 14568 and selects app=ts-preserve-service. However, the ts-gateway-service ConfigMap route named 'preserve' for Path=/api/v1/preserveservice/** uses uri lb://${FOOD_SERVICE_HOST:ts-food-service}, misrouting preserve requests to ts-food-service and causing 404 responses.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-gateway-service\", \"root_cause\": \"gateway_misrouted\"}, {\"rank\": 2, \"fault_object\": \"app/ts-gateway-service\", \"root_cause\": \"service_env_var_address_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/ts-preserve-service\", \"root_cause\": \"gateway_misrouted\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 12
+}

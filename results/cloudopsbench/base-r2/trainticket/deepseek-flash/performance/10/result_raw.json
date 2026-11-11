@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All pods are Running and cluster nodes are Ready. Alerts show the primary latency spike on ts-route-service (p50 ~8s, p90 ~21s), a leaf service with no downstream calls; upstream services such as ts-gateway-service, ts-basic-service, ts-travel-service, and ts-preserve-service show cascading latency/throughput degradation. ts-route-service logs show normal request handling without errors, and its MySQL dependency is reachable. TCP connectivity to both ts-route-service:11178 and tsdb-mysql-leader:3306 succeeds, while the pod has no restarts or resource/event failures. This best matches injected artificial application delay in ts-route-service.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-route-service\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-route-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-03\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 15
+}

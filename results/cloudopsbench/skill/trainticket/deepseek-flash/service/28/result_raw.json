@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Only ts-payment-service is in CrashLoopBackOff (4 restarts). Its logs show com.mysql.cj.jdbc.exceptions.CommunicationsException caused by java.net.UnknownHostException: tsdb-mysql-leader: Temporary failure in name resolution, causing Spring/JPA startup failure. Active TCP connectivity to tsdb-mysql-leader:3306 succeeded from worker-01/02/03, so the DB Service exists and is reachable. GetAppYAML shows the deployment uses dnsPolicy: None with a single custom nameserver 10.255.17.254 and no search domains, and the istio-proxy logs show DNS lookups to 10.255.17.254:53 timing out. Thus the crash is caused by pod-local DNS resolution failure for the MySQL host.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 2, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"mysql_invalid_credentials\"}, {\"rank\": 3, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"mysql_invalid_port\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 8
+}

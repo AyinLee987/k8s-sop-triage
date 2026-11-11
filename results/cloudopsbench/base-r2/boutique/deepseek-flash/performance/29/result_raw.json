@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All nodes are Ready with no resource pressure and all boutique pods are Running. Alerts show widespread service latency spikes, but the strongest infrastructure signal is a massive TCP retransmission increase on worker-02 (0.02 -> 8.46 retrans, +50396%), with worker-01 also mildly elevated (0 -> 1.16). Since worker-02 hosts many affected services and cross-node calls to/from its pods would degrade broadly, the primary fault is consistent with node network packet loss on worker-02.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_packet_loss\"}, {\"rank\": 2, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_packet_loss\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 4
+}

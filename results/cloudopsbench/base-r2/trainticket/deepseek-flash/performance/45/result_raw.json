@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Cluster nodes are Ready with no pressure or taints. `ts-train-service` is a leaf dependency (no downstream calls) and shows severe latency degradation (p50 8.35ms -> 2500ms, p90 411.79ms -> 4500ms) while its Deployment is available with 1/1 ready replicas, normal resource limits/requests, and no error logs. Upstream services such as `ts-basic-service` and `ts-preserve-service` also show latency spikes, consistent with propagation from `ts-train-service`. Traffic surge alerts are likely secondary load effects.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-train-service\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-train-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"pod_cpu_overload\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 7
+}

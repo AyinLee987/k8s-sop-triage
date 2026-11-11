@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show multi-service latency degradation with ts-seat-service most severe (p50 222ms->3409ms +1434%, throughput -69.2%, inbound/outbound network surge ~+90-98%). All pods are Running with 0 recent restarts, excluding crashes/readiness failures. ts-seat-service error logs are empty (only benign istio-proxy broken-pipe messages), excluding application errors. Recent ts-seat-service logs show normal internal business processing (getLeftTicketOfInterval, distributeSeat) completing successfully despite externally observed latency, and the discrepancy between normal internal work and the externally measured latency supports a network-delay attribution by exclusion. The terminal conclusion for this symptom route is pod_network_delay on the dominant latency service, ts-seat-service. ts-order-service CPU cfs throttling (0.589s) remains a plausible alternative.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-seat-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 3, \"fault_object\": \"app/ts-seat-service\", \"root_cause\": \"code_artificial_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 12
+}

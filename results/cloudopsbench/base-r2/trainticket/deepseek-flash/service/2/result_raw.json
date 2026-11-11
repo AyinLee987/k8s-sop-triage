@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All pods are Running and most Services have valid endpoints. Direct connectivity to ts-order-service:12031 succeeds. However, ts-gateway-service ConfigMap routes id=order with Path=/api/v1/orderservice/** to lb://${ROUTE_SERVICE_HOST:ts-route-service}, incorrectly sending order API traffic to ts-route-service instead of ts-order-service. This explains partial service unreachability while other routes remain healthy.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-gateway-service\", \"root_cause\": \"gateway_misrouted\"}, {\"rank\": 2, \"fault_object\": \"app/ts-gateway-service\", \"root_cause\": \"service_env_var_address_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/ts-wait-order-service\", \"root_cause\": \"service_selector_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 18
+}

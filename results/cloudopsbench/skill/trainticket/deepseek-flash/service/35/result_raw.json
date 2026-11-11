@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"ts-train-service pod is in CrashLoopBackOff (exit 1, 4 restarts). Error logs show java.net.UnknownHostException: tsdb-mysql-leader: Temporary failure in name resolution, and HikariPool initialization failure. Istio-proxy logs show DNS timeouts to 10.255.12.254. The deployment YAML for ts-train-service uniquely sets dnsPolicy: None with nameserver 10.255.12.254, while the tsdb-mysql-leader Service exists (ClusterIP 10.68.188.173:3306) and peer services (e.g. ts-basic-service) use default DNS and run healthy. This establishes a pod-local DNS misconfiguration causing the crash.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-train-service\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-train-service\", \"root_cause\": \"service_env_var_address_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 8
+}

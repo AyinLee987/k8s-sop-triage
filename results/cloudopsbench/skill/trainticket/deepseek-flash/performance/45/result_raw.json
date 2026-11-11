@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Active alerts show severe latency degradation, with `ts-preserve-service` most affected (p50 7500ms, p90 9700ms; peaks up to 39690.85ms). Pod inspection shows all TrainTicket pods Running without crash/restart or readiness failures. `ts-preserve-service` has no application error logs, and its recent logs show normal business-step execution without application exceptions, supporting network delay over application error or pod failure.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-preserve-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-basic-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-preserve-service\", \"root_cause\": \"code_artificial_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 7
+}

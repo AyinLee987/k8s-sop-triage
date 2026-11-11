@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show cartservice as the earliest and strongest anomaly: CPU CFS throttling (0.811s), CPU usage rising from 0.02 to 0.16 cores (+544.6%), and p95 latency rising from 10.77ms to 83.83ms. checkoutservice and frontend latency increases are consistent with downstream impact. The cartservice pod is Running/Ready with 0 restarts, no application error logs, and its active Redis-backed cart code contains no busy loop or artificial delay. This points to excessive Pod CPU load on cartservice rather than an error, crash, probe failure, or obvious code loop.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/cartservice\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 2, \"fault_object\": \"app/cartservice\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 3, \"fault_object\": \"app/cartservice\", \"root_cause\": \"cpu_capacity_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 15
+}

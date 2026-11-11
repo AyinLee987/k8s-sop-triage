@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Widespread latency alerts were dominated by ts-order-service with p50 latency ~3.9s vs 9ms normal and p90 peak ~174s. All pods are Running with no meaningful recent restarts. ts-order-service has no application error logs, and recent logs show normal, fast internal request processing. Pod health and application errors are excluded, supporting pod-level network delay as the root cause.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"code_artificial_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 6
+}

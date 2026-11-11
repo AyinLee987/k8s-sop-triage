@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"ts-train-service is 0/1 with CrashLoopBackOff; logs show `java.net.UnknownHostException: tsdb-mysql-leader` and Istio proxy DNS timeout to 10.255.12.254. The deployment uses `dnsPolicy: None` with nameserver 10.255.12.254, while `tsdb-mysql-leader:3306` connectivity succeeds from worker-01/02/03. This localizes the incident to service DNS resolution failure in ts-train-service, which propagates 500s through ts-basic-service and ts-travel-service to ts-preserve-service.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-train-service\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-train-service\", \"root_cause\": \"service_env_var_address_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 14
+}

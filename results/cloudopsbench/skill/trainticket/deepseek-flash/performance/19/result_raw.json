@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"ts-cancel-service showed the most severe latency degradation (p50 81.78ms -> 2740.39ms, p90 240.83ms -> 7433.33ms). Its pod is Running 2/2 with no restarts, GetErrorLogs found no errors, and recent logs show normal, fast internal request processing (~tens of ms) despite externally observed multi-second latency. This exclusion-based evidence points to pod_network_delay. Alternative hypotheses include node-level network delay on worker-02, where ts-cancel-service runs, and pod CPU overload on ts-order-service due to the CFS throttling alert.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-cancel-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"pod_cpu_overload\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 6
+}

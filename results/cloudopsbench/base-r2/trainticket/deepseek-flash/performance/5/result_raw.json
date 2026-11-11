@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Widespread service-quality degradation with severe latency concentrated on ts-inside-payment-service and ts-cancel-service, both on worker-03. Despite extreme observed latency, their internal logs show fast successful processing. Gateway and UI latency are consistent with calls into slow worker-03 services. All pods are Running, nodes are Ready with no resource pressure, and TCP connectivity to the affected service is open, pointing to network latency rather than application crash, resource exhaustion, or service discovery failure. ts-order-service shows successful lookups and no errors, making code faults less likely; the 'order not found' messages are secondary/possibly retry-related effects.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/worker-03\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-inside-payment-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"code_wrong_return\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 18
+}

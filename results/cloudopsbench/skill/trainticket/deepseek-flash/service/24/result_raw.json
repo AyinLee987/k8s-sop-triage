@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"ts-food-service pod is in CrashLoopBackOff with exit code 1. Application logs show `UnknownHostException: tsdb-mysql-leader: Temporary failure in name resolution`; istio-proxy logs show DNS timeouts to the custom nameserver 10.255.18.254:53. The target Service `tsdb-mysql-leader` exists. The deployment config uses `dnsPolicy: \\\"None\\\"` with nameserver 10.255.18.254, confirming pod-level DNS misconfiguration.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-food-service\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-food-service\", \"root_cause\": \"mysql_invalid_port\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 7
+}

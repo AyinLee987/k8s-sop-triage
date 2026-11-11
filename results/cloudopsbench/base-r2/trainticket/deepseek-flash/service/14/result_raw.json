@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Payment processing alerts show HTTP 500s from ts-inside-payment-service, which traces to ts-payment-service. ts-payment-service logs show IncorrectResultSizeDataAccessException / NonUniqueResultException: query did not return a unique result: 5, indicating a database lookup is missing a required filter parameter and returning multiple rows. All relevant pods are Running, and tsdb-mysql shows no error logs, making infrastructure/DB failure less likely.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"code_missing_parameter\"}, {\"rank\": 2, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"code_wrong_argument_order\"}, {\"rank\": 3, \"fault_object\": \"app/ts-inside-payment-service\", \"root_cause\": \"code_missing_parameter\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 19
+}

@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Active alerts show broad service latency/throughput degradation, but the only direct infrastructure anomaly is a new TCP retransmission spike on worker-01 (Normal=0.00retrans -> Current=0.70retrans). All boutique pods are Running, and worker-01 is Ready with no MemoryPressure, DiskPressure, or PIDPressure, ruling out scheduling/resource/node-health causes. The node-level retransmission evidence best supports packet loss on worker-01 as the root cause, with cascading latency for services hosted there and their dependencies.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_packet_loss\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/frontend\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 4
+}
