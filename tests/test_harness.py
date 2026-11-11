@@ -17,10 +17,10 @@ GEN = {s["id"]: s for s in load_scenarios(split="all", source="generated")}
 
 # ---------------- scenario specs ----------------
 def test_scenario_specs_are_complete_and_split_by_mechanism():
-    assert len(SC) == 16
+    assert len(SC) == 19
     dev = {k for k, s in SC.items() if s["split"] == "dev"}
     holdout = {k for k, s in SC.items() if s["split"] == "holdout"}
-    assert dev == {f"R{i:02d}" for i in range(1, 10)}
+    assert dev == {f"R{i:02d}" for i in range(1, 10)} | {"L01", "L02", "L03"}
     assert holdout == {f"R{i:02d}" for i in range(10, 17)}
     for s in SC.values():
         for key in ("symptom", "inject", "confirm", "reset", "answer"):

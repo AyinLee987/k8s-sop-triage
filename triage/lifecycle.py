@@ -228,6 +228,19 @@ class Lifecycle:
         if kind == "service_endpoints_empty":
             n = self._endpoints_ready(check["service"], ns)
             return n == 0, f"service {check['service']} ready endpoints={n}"
+        if kind == "slow_requests":
+            # api request-log lines (image v3+) whose elapsed_ms is at least min_ms; needs at least `count` of them
+            res = self._run(["-n", ns, "logs", "-l", check.get("selector", "app=api"), "--tail=600", "--max-log-requests=10"], 30)
+            slow = total = 0
+            for line in res.stdout.splitlines():
+                try:
+                    rec = json.loads(line)
+                except json.JSONDecodeError:
+                    continue
+                if rec.get("phase") == "request":
+                    total += 1
+                    slow += float(rec.get("elapsed_ms") or 0) >= float(check["min_ms"])
+            return slow >= int(check.get("count", 5)), f"{slow}/{total} requests >= {check['min_ms']} ms"
         if kind == "logs_contain":
             res = self._run(["-n", ns, "logs", "-l", check["selector"], "--tail=200", "--all-containers",
                              "--prefix", "--max-log-requests=10"], 30)

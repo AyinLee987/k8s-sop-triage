@@ -30,7 +30,7 @@ def test_generated_scenarios_are_complete_and_unique():
 def test_each_mechanism_lives_in_exactly_one_split_across_all_sources():
     splits = {}
     for s in ALL:
-        splits.setdefault(s["answer"]["cause_category"], set()).add(s["split"])
+        splits.setdefault(s.get("mechanism") or s["answer"]["cause_category"], set()).add(s["split"])
     mixed = {k: v for k, v in splits.items() if len(v) > 1 and k != "no_fault"}
     assert not mixed, f"mechanism in both splits: {mixed}"
 
@@ -68,7 +68,7 @@ def test_render_rejects_missing_params_and_unknown_symptoms():
 
 
 def test_load_scenarios_sources_and_caps():
-    assert len(load_scenarios(split="all")) == 16
+    assert len(load_scenarios(split="all")) == 19
     assert len(load_scenarios(split="all", source="generated")) == 26
     capped = load_scenarios(split="all", source="generated", max_per_template=1)
     assert len(capped) == len({s["template"] for s in GEN})

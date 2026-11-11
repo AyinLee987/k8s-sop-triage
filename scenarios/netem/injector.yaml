@@ -1,0 +1,45 @@
+# L02 的故障注入器：给一个 api Pod 的网卡加网络延迟（tc netem）。
+# 只适用于 kind 节点（节点自带 tc 和 kubectl）；放在排障 agent 看不到的命名空间里，
+# 效果等同 Cloud-OpsBench 用 ChaosBlade 注入的 pod_network_delay：集群对象上没有任何痕迹。
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: infra-tools
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: net-injector
+  namespace: infra-tools
+spec:
+  hostNetwork: true
+  hostPID: true
+  restartPolicy: Never
+  terminationGracePeriodSeconds: 20
+  tolerations:
+  - operator: Exists
+  containers:
+  - name: injector
+    image: tiktok-k8s-lab:v3
+    imagePullPolicy: Never
+    securityContext:
+      privileged: true
+      runAsUser: 0
+    command:
+    - sh
+    - -c
+    - |
+      set -eu
+      host() { nsenter -t 1 -m -u -n -i -- sh -c "$1"; }
+      IP=$(host "kubectl --kubeconfig /etc/kubernetes/admin.conf -n tiktok-k8s-lab get pods -l app=api --field-selector=status.phase=Running --sort-by=.metadata.name -o jsonpath='{.items[0].status.podIP}'")
+      DEV=$(host "ip route get $IP" | sed -n 's/.* dev \([^ ]*\).*/\1/p')
+      case "$DEV" in veth*) ;; *) echo "unexpected device '$DEV' for $IP"; exit 1;; esac
+      host "tc qdisc replace dev $DEV root netem delay 200ms 40ms"
+      echo "netem on $DEV ($IP)"
+      trap 'host "tc qdisc del dev $DEV root" || true; exit 0' TERM INT
+      touch /tmp/ready
+      while :; do sleep 1; done
+    readinessProbe:
+      exec:
+        command: ["test", "-f", "/tmp/ready"]
+      periodSeconds: 2

@@ -140,12 +140,38 @@ if ($Rebuild -or $LASTEXITCODE -ne 0) {
     Need ($LASTEXITCODE -eq 0) 'docker build failed'
 }
 
+# api variants for the "slow but healthy" scenarios (L01-L03): v3 = request log, v3.1 = v3 + a code defect.
+# They are derived from a copy of the lab's source (lab_variants/make_variants.py); the lab folder is only read.
+$nodeImages = (& docker exec $node crictl images 2>&1 | Out-String)
+if ($Rebuild -or $nodeImages -notmatch 'tiktok-k8s-lab\s+v3\s' -or $nodeImages -notmatch 'tiktok-k8s-lab\s+v3\.1\s') {
+    Step 'building api variants v3 and v3.1'
+    & docker image inspect tiktok-k8s-lab:v1 2>&1 | Out-Null
+    if ($LASTEXITCODE -ne 0) {
+        & docker load --input (Join-Path $Lab '.local\images-v1.tar') | Out-Host
+        Need ($LASTEXITCODE -eq 0) 'docker load of the v1 image failed'
+    }
+    & docker run --rm -v "${Repo}:/work" -v "${Lab}:/lab:ro" --entrypoint python $Image /work/lab_variants/make_variants.py /lab /work/.local/variants
+    Need ($LASTEXITCODE -eq 0) 'make_variants.py failed (has the lab source changed?)'
+    $vdir = Join-Path $local 'variants'
+    $dockerfile = "FROM tiktok-k8s-lab:v1`nARG APP_VERSION`nENV APP_VERSION=`$APP_VERSION`nCOPY app ./app`n"
+    foreach ($v in 'v3', 'v3.1') {
+        [System.IO.File]::WriteAllText((Join-Path $vdir "$v\Dockerfile"), $dockerfile, (New-Object System.Text.UTF8Encoding($false)))
+        & docker build --platform linux/amd64 --build-arg "APP_VERSION=$v" -t "tiktok-k8s-lab:$v" (Join-Path $vdir $v)
+        Need ($LASTEXITCODE -eq 0) "docker build of tiktok-k8s-lab:$v failed"
+    }
+    $varArchive = Join-Path $vdir 'images-variants.tar'
+    & docker image save --output $varArchive tiktok-k8s-lab:v3 tiktok-k8s-lab:v3.1
+    Need ($LASTEXITCODE -eq 0) 'docker image save of the variants failed'
+    & $Kind load image-archive $varArchive --name $Cluster 2>&1 | Out-Host
+    Need ($LASTEXITCODE -eq 0) 'kind load of the variants failed'
+}
+
 $runArgs = @()
 switch ($Action) {
     'check'    { $runArgs = @('check') }
     'pilot'    { $runArgs = @('pilot', $Scenario); if ($Noise) { $runArgs += @('--noise', $Noise) }; if ($Skills) { $runArgs += @('--skills', $Skills) } }
     'noise'    { $runArgs = @('noise') }
-    'validate' { $runArgs = @('validate', $Scenario) }
+    'validate' { $runArgs = @('validate'); if ($Scenarios) { $runArgs += ($Scenarios -split ',') } else { $runArgs += $Scenario } }
     'shell'    { $runArgs = @('shell') }
     'batch'    {
         $runArgs = @('batch', '--repeats', "$Repeats")

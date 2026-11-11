@@ -1144,3 +1144,225 @@ scenarios:
     - 本项目的只读 RBAC 设计（k8s/rbac-diag.yaml）
     validated: true
     validation: k3s 实测（2026-11-10）：rec-feature 命名空间里的服务按预期反复重启，诊断器的只读凭据读不了这个命名空间。
+
+# ---- same symptom, different cause: slow but all pods healthy (the highest-error classes of Cloud-OpsBench, rebuilt on a live cluster) ----
+- id: L01
+  split: dev
+  kind: latent_slow
+  mechanism: code_wait_in_request
+  symptom: 提交事件的接口变慢了，偶尔还会超时；Pod 看起来都是正常的。
+  realism:
+    pattern: '新版本代码在请求路径里等待下游处理完成（Cloud-OpsBench: code_artificial_delay）。'
+    sources:
+    - Cloud-OpsBench Application Code Defect
+    validated: false
+    validate_note: 确认 api 请求日志的 elapsed_ms 普遍超过 600 毫秒，且所有 Pod 都是 Running/Ready。
+  inject:
+  - &id001
+    kubectl:
+    - -n
+    - '{ns}'
+    - set
+    - image
+    - deployment/api
+    - api=tiktok-k8s-lab:v3
+  - &id002
+    kubectl:
+    - -n
+    - '{ns}'
+    - rollout
+    - status
+    - deployment/api
+    - --timeout=150s
+  - kubectl:
+    - -n
+    - '{ns}'
+    - set
+    - image
+    - deployment/api
+    - api=tiktok-k8s-lab:v3.1
+  - kubectl:
+    - -n
+    - '{ns}'
+    - rollout
+    - status
+    - deployment/api
+    - --timeout=150s
+  - &id003
+    kubectl:
+    - -n
+    - '{ns}'
+    - exec
+    - deployment/worker
+    - -c
+    - worker
+    - --
+    - python
+    - -c
+    - "import json,uuid,threading,urllib.request as u\ndef run():\n    for i in range(10):\n        r=u.Request('http://api/events',data=json.dumps({'event_id':str(uuid.uuid4()),'user_id':'u%d'%(i%7),'event_type':'click'}).encode(),headers={'Content-Type':'application/json'})\n        try: u.urlopen(r,timeout=5).read()\n        except Exception: pass\nts=[threading.Thread(target=run) for _ in range(20)]\n[t.start() for t in ts]; [t.join() for t in ts]; print('load done')\n"
+  confirm:
+    timeout_s: 60
+    checks:
+    - type: slow_requests
+      min_ms: 600
+      count: 10
+  reset:
+  - kubectl:
+    - -n
+    - '{ns}'
+    - set
+    - image
+    - deployment/api
+    - api=tiktok-k8s-lab:v1
+  answer:
+    status: root_cause_found
+    object:
+      kind: Deployment
+      name: api
+    cause_category: other
+    explanation: api 的新镜像 v3.1 在提交接口里等待事件被 worker 处理完才返回（最多 1.5 秒），所以每次提交都要等 worker；Pod、Redis、worker 本身都正常。
+    key_evidence:
+    - v3.1
+    accept_cause_keywords:
+    - v3.1
+    - 代码
+    - code
+    - 镜像
+    - image
+    - 版本
+- id: L02
+  split: dev
+  kind: latent_slow
+  mechanism: pod_network_delay
+  symptom: 提交事件的接口变慢了，偶尔还会超时；Pod 看起来都是正常的。
+  realism:
+    pattern: '单个 Pod 的网络延迟（Cloud-OpsBench: pod_network_delay）。集群里看不到任何注入痕迹。'
+    sources:
+    - Cloud-OpsBench Performance
+    validated: false
+    validate_note: 只能在笔记本的 kind 上验证（云端内核没有 netem）；确认只有一个 api Pod 的请求变慢。
+  inject:
+  - *id001
+  - *id002
+  - kubectl:
+    - apply
+    - -f
+    - '{repo}/scenarios/netem/injector.yaml'
+  - kubectl:
+    - -n
+    - infra-tools
+    - wait
+    - --for=condition=Ready
+    - pod/net-injector
+    - --timeout=120s
+  - *id003
+  confirm:
+    timeout_s: 60
+    checks:
+    - type: slow_requests
+      min_ms: 150
+      count: 10
+  reset:
+  - kubectl:
+    - delete
+    - -f
+    - '{repo}/scenarios/netem/injector.yaml'
+    - --ignore-not-found
+    - --wait=true
+    - --timeout=90s
+  - kubectl:
+    - -n
+    - '{ns}'
+    - set
+    - image
+    - deployment/api
+    - api=tiktok-k8s-lab:v1
+  answer:
+    status: root_cause_found
+    object:
+      kind: Pod
+      name: api
+    accept_objects:
+    - api
+    cause_category: other
+    explanation: api 的其中一个 Pod 的网络被加了约 200 毫秒延迟：只有这个 Pod 上的请求慢，另一个 api Pod、Redis、worker 都正常；镜像、配置、资源都没有变化。
+    key_evidence:
+    - elapsed_ms
+    accept_cause_keywords:
+    - 网络
+    - network
+    - 延迟
+    - latency
+    - delay
+- id: L03
+  split: dev
+  kind: latent_slow
+  # 与 holdout 的 R15 同属 CPU limit 过低，但表现不同（R15 是探针失败，这里是变慢）。L 组不用于编写 SOP/经验。
+  mechanism: cpu_throttle_latency
+  symptom: 提交事件的接口变慢了，偶尔还会超时；Pod 看起来都是正常的。
+  realism:
+    pattern: 'CPU limit 过低被限流（Cloud-OpsBench: pod_cpu_overload）。'
+    sources:
+    - Cloud-OpsBench Performance
+    - k8s.af CPU throttling
+    validated: false
+    validate_note: 确认 api 请求日志的 elapsed_ms 中位数在 200 毫秒以上（正常是几毫秒），且 Pod 没有重启、没有变成 NotReady。
+  inject:
+  - *id001
+  - *id002
+  - kubectl:
+    - -n
+    - '{ns}'
+    - set
+    - resources
+    - deployment/api
+    - -c
+    - api
+    - --limits=cpu=60m
+    - --requests=cpu=60m
+  - kubectl:
+    - -n
+    - '{ns}'
+    - rollout
+    - status
+    - deployment/api
+    - --timeout=200s
+  - *id003
+  confirm:
+    timeout_s: 60
+    checks:
+    - type: slow_requests
+      min_ms: 200
+      count: 60
+  reset:
+  - kubectl:
+    - -n
+    - '{ns}'
+    - set
+    - resources
+    - deployment/api
+    - -c
+    - api
+    - --limits=cpu=500m,memory=192Mi
+    - --requests=cpu=100m,memory=96Mi
+  - kubectl:
+    - -n
+    - '{ns}'
+    - set
+    - image
+    - deployment/api
+    - api=tiktok-k8s-lab:v1
+  answer:
+    status: root_cause_found
+    object:
+      kind: Deployment
+      name: api
+    cause_category: other
+    explanation: api 的 CPU limit 被改成 60m，请求处理被 CFS 限流而变慢；镜像和代码没有问题。
+    key_evidence:
+    - 60m
+    accept_cause_keywords:
+    - cpu
+    - 限流
+    - throttl
+    - 60m
