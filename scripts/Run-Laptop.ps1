@@ -19,12 +19,15 @@ param(
     [int]$Repeats = 3,
     [string]$Tag = '',
     [string]$Noise = '',        # batch/pilot: none | random | comma-separated ids from scenarios/noise.yaml
+    [string]$Skills = '',       # batch/pilot: skill dirs relative to the repo, comma-separated; empty = no SOP
     [string]$Source = '',       # batch: handwritten (default) | generated | all
     [switch]$Rebuild
 )
 # Not 'Stop': in Windows PowerShell 5.1 any stderr line from a native command (docker progress, a failed
 # probe) becomes a terminating error under 'Stop'. Every native call below checks $LASTEXITCODE instead.
 $ErrorActionPreference = 'Continue'
+# 'a,b' typed unquoted reaches a [string] parameter as 'a b'; put the commas back.
+$Scenarios = $Scenarios -replace '\s+', ','; $Noise = $Noise -replace '\s+', ','; $Skills = $Skills -replace '\s+', ','
 $Repo = Split-Path -Parent $PSScriptRoot
 $Lab = Join-Path (Split-Path -Parent $Repo) 'tiktok-k8s-lab'
 $Kind = Join-Path $Lab '.tools\kind.exe'
@@ -140,7 +143,7 @@ if ($Rebuild -or $LASTEXITCODE -ne 0) {
 $runArgs = @()
 switch ($Action) {
     'check'    { $runArgs = @('check') }
-    'pilot'    { $runArgs = @('pilot', $Scenario); if ($Noise) { $runArgs += @('--noise', $Noise) } }
+    'pilot'    { $runArgs = @('pilot', $Scenario); if ($Noise) { $runArgs += @('--noise', $Noise) }; if ($Skills) { $runArgs += @('--skills', $Skills) } }
     'noise'    { $runArgs = @('noise') }
     'validate' { $runArgs = @('validate', $Scenario) }
     'shell'    { $runArgs = @('shell') }
@@ -149,6 +152,7 @@ switch ($Action) {
         if ($Scenarios) { $runArgs += @('--scenarios', $Scenarios) }
         if ($Tag) { $runArgs += @('--tag', $Tag) }
         if ($Noise) { $runArgs += @('--noise', $Noise) }
+        if ($Skills) { $runArgs += @('--skills', $Skills) }
         if ($Source) { $runArgs += @('--source', $Source) }
     }
 }

@@ -55,10 +55,11 @@ def grade(answer_text: str, expected: dict, noise_ids: list[str] | None = None) 
     }
 
 
-def run_one(sc_id: str, out: Path, max_steps: int, noise_ids: list[str]) -> dict:
+def run_one(sc_id: str, out: Path, max_steps: int, noise_ids: list[str], skills: str = "") -> dict:
     started = time.monotonic()
     proc = subprocess.run([sys.executable, str(REPO / "scripts" / "holmes_pilot.py"), sc_id,
-                           "--max-steps", str(max_steps), "--out", str(out), "--noise", ",".join(noise_ids)],
+                           "--max-steps", str(max_steps), "--out", str(out), "--noise", ",".join(noise_ids),
+                           "--skills", skills],
                           capture_output=True, text=True, timeout=1500)
     rec = {"scenario": sc_id, "noise": noise_ids, "exit": proc.returncode, "wall_s": round(time.monotonic() - started),
            "answer_file": str(out.relative_to(REPO))}
@@ -69,6 +70,9 @@ def run_one(sc_id: str, out: Path, max_steps: int, noise_ids: list[str]) -> dict
     rec.update({k: data.get(k) for k in ("total_tokens", "prompt_tokens", "completion_tokens", "cached_tokens",
                                          "num_llm_calls", "finish_reason")})
     rec["tool_calls"] = len(data.get("tool_calls") or [])
+    # which skills (SOP documents) the agent chose to read
+    rec["skills_fetched"] = [str(t.get("description") or "") for t in data.get("tool_calls") or []
+                             if t.get("tool_name") == "fetch_skill"]
     rec["answer"] = data.get("result") or ""
     return rec
 
@@ -106,6 +110,7 @@ def main() -> int:
     ap.add_argument("--repeats", type=int, default=3)
     ap.add_argument("--max-steps", type=int, default=25)
     ap.add_argument("--noise", default="none", help="none | random | comma-separated ids from scenarios/noise.yaml")
+    ap.add_argument("--skills", default="", help="comma-separated skill directories relative to the repo; empty = no SOP")
     ap.add_argument("--source", default="handwritten", choices=["handwritten", "generated", "all"])
     ap.add_argument("--tag", default=time.strftime("%Y%m%d-%H%M%S"))
     ap.add_argument("--finalize", action="store_true", help="required to run holdout scenarios")
@@ -133,10 +138,11 @@ def main() -> int:
         print(f"[{n}/{len(plan)}] {sc_id} repeat {rep} ...", flush=True)
         noise_ids = pick_noise(args.noise, sc_id, rep)
         print(f"    noise: {noise_ids or 'none'}", flush=True)
-        rec = run_one(sc_id, out_dir / f"{sc_id}-r{rep}.json", args.max_steps, noise_ids)
+        rec = run_one(sc_id, out_dir / f"{sc_id}-r{rep}.json", args.max_steps, noise_ids, args.skills)
         rec["repeat"] = rep
         rec["grade"] = grade(rec.get("answer", ""), all_sc[sc_id]["answer"], noise_ids) if not rec.get("error") else None
         status = "ERROR" if rec.get("error") else ("ok" if rec["grade"]["auto_correct"] else "WRONG?")
+        print(f"    skills read: {rec.get('skills_fetched')}", flush=True)
         print(f"    {status}  {rec.get('total_tokens')} tokens, {rec.get('num_llm_calls')} model calls, "
               f"{rec['wall_s']} s", flush=True)
         rec.pop("answer", None)  # the full answer stays in the per-run JSON

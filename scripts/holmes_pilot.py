@@ -32,6 +32,8 @@ def main() -> int:
     ap.add_argument("--model", default=None)
     ap.add_argument("--max-steps", type=int, default=25)
     ap.add_argument("--noise", default="", help="comma-separated ids from scenarios/noise.yaml to apply before the fault")
+    ap.add_argument("--skills", default="", help="comma-separated skill directories (relative to the repo), e.g. "
+                    "holmes/skills/sop,holmes/skills/cases; empty = HolmesGPT without any SOP")
     ap.add_argument("--out", default=None, help="where to write HolmesGPT's JSON answer (default: results/holmes_pilot/<id>-<time>.json)")
     args = ap.parse_args()
     load_dotenv()
@@ -57,6 +59,12 @@ def main() -> int:
         # 1536 MB is the value HolmesGPT's own CI settled on (.github/workflows/eval-benchmarks.yaml).
         "TOOL_MEMORY_LIMIT_MB": "1536",
     })
+    if args.skills:
+        dirs = [str(REPO / d) for d in args.skills.split(",") if d]
+        missing = [d for d in dirs if not Path(d).is_dir()]
+        if missing:
+            sys.exit(f"skill directories not found: {missing}")
+        env["CUSTOM_SKILL_PATHS"] = ",".join(dirs)
     prompt = f"命名空间 {ns} 里出了问题。用户反馈：{sc['symptom']}\n请排查根因。"
     noises = load_noises([i for i in args.noise.split(",") if i]) if args.noise else []
     lc.verify_healthy(log)
