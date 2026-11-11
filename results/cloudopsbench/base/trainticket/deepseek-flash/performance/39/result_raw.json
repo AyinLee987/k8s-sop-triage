@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"17 alerts show system-wide latency degradation and ~40-60% throughput drop with no application error logs. Container logs for ts-seat/ts-travel/ts-order show requests processed in ms internally, and TCP connectivity to ts-travel-service succeeded from all nodes. Latency is most severe on worker-01-hosted services (gateway p90 46s, travel p50 18s, preserve p50 45s, security p50 7s), and worker-01 also hosts shared dependencies ts-config-service and ts-basic-service called by nearly all services. Node statuses/conditions are healthy (no pressure), kube-proxy active. This points to a node-level network latency fault on worker-01 cascading through shared dependencies rather than application code or a component crash.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-config-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-basic-service\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 19
+}

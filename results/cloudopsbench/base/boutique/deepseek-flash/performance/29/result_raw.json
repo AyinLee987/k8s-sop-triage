@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Active alerts show widespread latency across boutique services, while node worker-02 has a severe TCP retransmission spike (8.46 retrans, +50396%). Many affected services, including frontend, checkoutservice, recommendationservice, adservice, emailservice, and shippingservice, run on worker-02. The cluster configuration shows worker-02 Ready with no CPU/memory pressure or taints, and frontend error logs show no application errors. This supports a node network packet-loss fault on worker-02 causing cascading service latency.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_packet_loss\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_packet_loss\"}, {\"rank\": 3, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 6
+}

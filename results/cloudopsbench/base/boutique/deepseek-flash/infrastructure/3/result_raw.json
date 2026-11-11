@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Pods on worker-01 are stuck in Init:0/1 with FailedCreatePodSandBox events: kubelet cannot connect to /run/containerd/containerd.sock. CheckNodeServiceStatus confirms containerd.service is inactive (dead) on worker-01. Pods on worker-02 are running normally, isolating the fault to worker-01's container runtime.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/worker-01\", \"root_cause\": \"containerd_unavailable\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"kubelet_unavailable\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"kube_proxy_unavailable\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 4
+}

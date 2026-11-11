@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"productcatalogservice shows extreme service latency (p90 2.50ms -> 1158.68ms) and recommendationservice, which calls product catalog, shows downstream latency spikes (p50 ~946ms, p90 ~2151ms). Pods are Running/Ready with no restarts, worker nodes are Ready without pressure, productcatalogservice Service TCP connectivity succeeds, and the deployment/pod does not configure EXTRA_LATENCY, making dormant application sleep code less likely. These findings support a pod-specific network latency fault on productcatalogservice.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"code_artificial_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 19
+}

@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"GetAlerts isolated productcatalogservice with CPU saturation and a filesystem write surge. Source code inspection of product_catalog.go showed ListProducts creates /tmp/tmp.csv and writes 30,000 CSV rows per request before deleting it, matching both the fs_write_bytes spike and CPU load. The service logs otherwise show normal startup and readiness.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"code_excessive_file_writes\"}, {\"rank\": 2, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 3, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"pod_cpu_overload\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 6
+}

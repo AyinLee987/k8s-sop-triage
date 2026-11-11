@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Only frontend alerted: RESOURCE_SATURATION cpu_cfs throttled 1.333s, CPU core 0.07->0.16 (+138%), p50 15.87->45ms (+183.6%), p95 27.67->271.36ms (+880.8%). All boutique pods are 2/2 Running with 0 restarts; frontend GetErrorLogs returned no error logs. Deployment config is standard (cpu limit 200m, requests 100m). All frontend source files were inspected; the request path applies money.MultiplySlow (add-to-self n-1 CPU loop) on cart/order flows. Local CPU saturation (throttling) plus latency with no errors and healthy pods points to an application-level CPU-intensive busy loop in frontend, not downstream or node faults.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 2, \"fault_object\": \"app/frontend\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 3, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_artificial_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 15
+}

@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Frontend logs show timeouts to multiple ClusterIP services. TCP connectivity to productcatalogservice:3550 fails from worker-01 but succeeds from worker-02 and worker-03. kube-proxy.service on worker-01 is inactive (dead), having been stopped at 16:06:23. This isolates the fault to worker-01's service networking path.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/worker-01\", \"root_cause\": \"kube_proxy_unavailable\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_packet_loss\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 7
+}

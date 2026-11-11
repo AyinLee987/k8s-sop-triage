@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show extreme latency degradation on ts-inside-payment-service (p50 ~7.2s, p90 ~20.3s) with severe throughput drop, and cascading latency on ts-cancel-service, ts-gateway-service, and ts-ui-dashboard. Pods are Running, nodes are Ready without pressure, and worker-03 kube-proxy is active. Downstream order services show no application errors, while inside-payment logs show order-not-found errors without infrastructure failures. This pattern is most consistent with an injected application-side delay in ts-inside-payment-service, with node/pod network delay as plausible alternatives.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-inside-payment-service\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-inside-payment-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-03\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 20
+}

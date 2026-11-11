@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"ts-route-service shows extreme latency degradation (p50 ~8s, p90 ~21s) while remaining Running with normal cluster/node health and no application error logs. Its upstream callers (ts-basic-service, ts-travel-service, ts-preserve-service, ts-gateway-service) show cascading latency/throughput degradation. Other pods on worker-03 do not uniformly show the same latency pattern, making a node-wide network fault less likely. The leaf-service localization and absence of resource/error evidence best support an introduced application delay in ts-route-service.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-route-service\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-route-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-03\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 10
+}

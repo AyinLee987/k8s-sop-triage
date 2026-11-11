@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show severe latency/throughput degradation at ts-seat-service, which depends on ts-order-service. ts-order-service is the only service with a concrete resource saturation alert: CPU CFS throttling (0.589s throttled), under a 500m CPU limit. Logs show successful order processing without application exceptions or restarts, making infrastructure/config crashes less likely and pointing to CPU overload causing downstream latency.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 2, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 3, \"fault_object\": \"app/ts-seat-service\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 5
+}

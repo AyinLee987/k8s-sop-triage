@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"ts-payment-service is CrashLoopBackOff with UnknownHostException resolving tsdb-mysql-leader. Its Deployment uniquely sets dnsPolicy None with only custom nameserver 10.255.17.254, while tsdb-mysql-leader exists and is reachable on TCP 3306 from all nodes. Downstream failure causes ts-inside-payment-service HTTP 500 'Service Instance cannot be null'.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 2, \"fault_object\": \"app/ts-inside-payment-service\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 3, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 13
+}

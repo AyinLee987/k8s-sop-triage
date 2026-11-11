@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show 500s from ts-preserve-service and ts-inside-payment-service. Error logs propagate downstream: ts-preserve-service -> ts-travel-service -> ts-basic-service, where the root exception is `IllegalArgumentException: Service Instance cannot be null`. Pod status shows `ts-train-service` is 0/2 Ready in CrashLoopBackOff. Its logs show `java.net.UnknownHostException: tsdb-mysql-leader` and Istio proxy DNS lookup timeouts to `10.255.12.254:53`. The deployment uses `dnsPolicy: None` with nameserver `10.255.12.254`. Connectivity to `tsdb-mysql-leader:3306` succeeds from worker-01/02/03 debug pods, so the database service is reachable and the fault is isolated to ts-train-service DNS resolution.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-train-service\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_packet_loss\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 13
+}

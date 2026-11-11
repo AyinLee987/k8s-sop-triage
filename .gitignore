@@ -5,3 +5,5 @@ __pycache__/
 .pytest_cache/
 .venv/
 results/cloudopsbench/_workers/
+# Cloud-OpsBench traces are large; scores.json and result_raw.json are kept
+results/cloudopsbench/*/*/*/*/*/[0-9]*.json

@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"frontend pod is Pending with Node-Selectors kubernetes.io/hostname=worker-01. Scheduler events show worker-01 is unavailable due to an untolerated unreachable taint. GetClusterConfiguration shows worker-01 status Unknown with node.kubernetes.io/unreachable taints. CheckNodeServiceStatus confirms kubelet.service on worker-01 is inactive/dead, directly explaining the node outage and pending frontend pod.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/worker-01\", \"root_cause\": \"kubelet_unavailable\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"containerd_unavailable\"}, {\"rank\": 3, \"fault_object\": \"app/frontend\", \"root_cause\": \"node_selector_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 5
+}

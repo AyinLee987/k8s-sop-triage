@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show 20 HTTP 404 failures for POST /api/v1/preserveservice/preserve on ts-preserve-service. The ts-preserve-service deployment and Service are correctly configured and running. The decisive evidence is ts-gateway-service's application.yml: route id 'preserve' for Path=/api/v1/preserveservice/** is configured with uri lb://${FOOD_SERVICE_HOST:ts-food-service}, so preserve traffic is routed to ts-food-service and returns 404.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-gateway-service\", \"root_cause\": \"gateway_misrouted\"}, {\"rank\": 2, \"fault_object\": \"app/ts-preserve-service\", \"root_cause\": \"gateway_misrouted\"}, {\"rank\": 3, \"fault_object\": \"app/ts-gateway-service\", \"root_cause\": \"service_env_var_address_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 10
+}

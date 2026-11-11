@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"System-wide alerts show severe latency and traffic drop, especially for ts-order-service, ts-preserve-service, ts-seat-service, ts-travel-service, and ts-ui-dashboard. These pods are concentrated on worker-01. Nodes are Ready with normal allocatable CPU/memory; kube-proxy on worker-01 is active; TCP connectivity to ts-order-service succeeds; application logs for order, preserve, and seat show successful, fast local processing without errors. This pattern indicates a network-path latency fault at worker-01 rather than application code, resource exhaustion, or DB failure.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_packet_loss\"}, {\"rank\": 3, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 17
+}

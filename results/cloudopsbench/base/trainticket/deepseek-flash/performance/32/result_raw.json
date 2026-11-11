@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show severe latency degradation specifically at ts-basic-service and ts-train-service. ts-basic-service depends on ts-train-service, while ts-train-service is a leaf service with no downstream calls. ts-train-service shows extreme p50/p90 latency inflation (p50 from ~7ms to ~2425ms; p90 from ~9ms to ~4472ms), but no significant CPU saturation alert and no functional application errors. Logs show normal requests being processed without exceptions or downstream waits, supporting an artificial application-level delay localized to ts-train-service.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-train-service\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-train-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-basic-service\", \"root_cause\": \"code_artificial_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 7
+}
