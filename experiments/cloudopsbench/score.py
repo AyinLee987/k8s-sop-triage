@@ -32,6 +32,9 @@ def main() -> None:
     ap.add_argument("--sample", default=str(Path(__file__).with_name("sample60.json")))
     ap.add_argument("--out", default=str(REPO / "results" / "cloudopsbench"))
     ap.add_argument("--model", default="deepseek-flash")
+    ap.add_argument("--price-in", type=float, default=0.30, help="USD per million input tokens")
+    ap.add_argument("--price-out", type=float, default=1.20, help="USD per million output tokens")
+    ap.add_argument("--quiet", action="store_true")
     args = ap.parse_args()
     cases = json.loads(Path(args.sample).read_text(encoding="utf-8"))["cases"]
     rows, agg = [], defaultdict(lambda: defaultdict(int))
@@ -47,6 +50,11 @@ def main() -> None:
                        cause=first.get("root_cause") == t["root_cause"], top3=any(hit(x) for x in preds),
                        pred={k: first.get(k) for k in ("fault_object", "root_cause")}, steps=raw.get("steps_used"),
                        finished=raw.get("finished"))
+            trace = p.with_name(f"{c['case']}.json")
+            if trace.exists():  # token usage is recorded per step in the trace
+                steps = json.loads(trace.read_text(encoding="utf-8")).get("steps") or []
+                row["in_tok"] = sum(int(st.get("input_tokens") or 0) for st in steps)
+                row["out_tok"] = sum(int(st.get("output_tokens") or 0) for st in steps)
         rows.append(row)
         for key in (("all",), (c["difficulty"],), (c["system"], c["category"])):
             a = agg["/".join(key)]
@@ -58,6 +66,11 @@ def main() -> None:
     print(f"{'group':28} n  ran top1 object cause top3")
     for k, a in agg.items():
         print(f"{k:28} {a['n']:2} {a['ran']:3} {a['top1']:4} {a['object']:6} {a['cause']:5} {a['top3']:4}")
+    tin, tout = sum(r.get("in_tok", 0) for r in rows), sum(r.get("out_tok", 0) for r in rows)
+    print(f"tokens: input {tin:,} output {tout:,}  -> at most ${tin / 1e6 * args.price_in + tout / 1e6 * args.price_out:.2f} "
+          f"(list price, no cache discount)")
+    if args.quiet:
+        return
     print("wrong top1:")
     for r in rows:
         if r["ran"] and not r["top1"]:
