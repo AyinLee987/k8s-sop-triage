@@ -4,3 +4,4 @@ results/*.jsonl
 __pycache__/
 .pytest_cache/
 .venv/
+results/cloudopsbench/_workers/
