@@ -134,6 +134,11 @@ class Lifecycle:
             last = "; ".join(d for ok, d in results if not ok)
             if time.monotonic() >= deadline:
                 log.add("confirm", False, last, time.monotonic() - started)
+                # optional diagnostics (kubectl argument lists) so a failed injection can be explained afterwards
+                for args in spec.get("debug_on_fail", []) or []:
+                    res = self._run([str(x).replace("{ns}", self.ns) for x in args], 30)
+                    log.add("confirm_debug", res.ok, (res.stdout + res.stderr).strip()[-600:])
+                    last += f" | {' '.join(map(str, args[-3:]))}: {(res.stdout + res.stderr).strip()[-300:]}"
                 raise EnvironmentError_(f"fault did not take effect: {last}")
             time.sleep(self.poll)
 

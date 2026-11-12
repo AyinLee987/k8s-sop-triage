@@ -1245,6 +1245,15 @@ scenarios:
   - *id001
   - *id002
   - kubectl:
+    - -n
+    - infra-tools
+    - delete
+    - pod
+    - net-injector
+    - --ignore-not-found
+    - --wait=true
+    - --timeout=90s
+  - kubectl:
     - apply
     - -f
     - '{repo}/scenarios/netem/injector.yaml'
@@ -1262,11 +1271,17 @@ scenarios:
     - type: slow_requests
       min_ms: 150
       count: 10
+    debug_on_fail:
+    - [-n, infra-tools, logs, net-injector, --tail=20]
+    - [-n, infra-tools, get, pod, net-injector, -o, wide]
+    - [-n, '{ns}', get, pods, -l, app=api, -o, wide]
   reset:
   - kubectl:
+    - -n
+    - infra-tools
     - delete
-    - -f
-    - '{repo}/scenarios/netem/injector.yaml'
+    - pod
+    - net-injector
     - --ignore-not-found
     - --wait=true
     - --timeout=90s
