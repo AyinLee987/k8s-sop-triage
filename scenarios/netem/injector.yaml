@@ -31,11 +31,15 @@ spec:
     - |
       set -eu
       host() { nsenter -t 1 -m -u -n -i -- sh -c "$1"; }
-      IP=$(host "kubectl --kubeconfig /etc/kubernetes/admin.conf -n tiktok-k8s-lab get pods -l app=api --field-selector=status.phase=Running --sort-by=.metadata.name -o jsonpath='{.items[0].status.podIP}'")
+      KC="kubectl --kubeconfig /etc/kubernetes/admin.conf -n tiktok-k8s-lab"
+      # wait until the previous rollout's pods are gone: a terminating pod still reports phase Running
+      i=0; while [ "$(host "$KC get pods -l app=api -o name | wc -l")" != "2" ]; do i=$((i+1)); [ $i -gt 60 ] && { echo "api pods did not settle"; exit 1; }; sleep 1; done
+      POD=$(host "$KC get pods -l app=api --sort-by=.metadata.name -o jsonpath='{.items[0].metadata.name}'")
+      IP=$(host "$KC get pod $POD -o jsonpath='{.status.podIP}'")
       DEV=$(host "ip route get $IP" | sed -n 's/.* dev \([^ ]*\).*/\1/p')
       case "$DEV" in veth*) ;; *) echo "unexpected device '$DEV' for $IP"; exit 1;; esac
       host "tc qdisc replace dev $DEV root netem delay 200ms 40ms"
-      echo "netem on $DEV ($IP)"
+      echo "netem on $DEV ($POD $IP)"; host "tc qdisc show dev $DEV"
       trap 'host "tc qdisc del dev $DEV root" || true; exit 0' TERM INT
       touch /tmp/ready
       while :; do sleep 1; done

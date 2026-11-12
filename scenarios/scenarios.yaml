@@ -1036,7 +1036,7 @@ scenarios:
     - wait
     - --for=jsonpath={.spec.containers[0].resources.limits.cpu}=50m
     - pod/redis-0
-    - --timeout=120s
+    - --timeout=180s
   - kubectl:
     - -n
     - '{ns}'
@@ -1125,7 +1125,7 @@ scenarios:
     - namespace
     - rec-feature
     - --wait=true
-    - --timeout=120s
+    - --timeout=180s
   answer:
     status: undetermined
     object: null
@@ -1254,7 +1254,7 @@ scenarios:
     - wait
     - --for=condition=Ready
     - pod/net-injector
-    - --timeout=120s
+    - --timeout=180s
   - *id003
   confirm:
     timeout_s: 60
