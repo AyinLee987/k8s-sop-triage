@@ -1,0 +1,11 @@
+---
+name: note-37-service-port-mapping-mismatch-principle-for-part
+description: "Team experience note: Service Port Mapping Mismatch Principle: For partial unreachability, verify Service port → targetPort → Endpoint port → pod containerPort/listening port before blaming app, DNS, or network."
+---
+
+# Service Port Mapping Mismatch Principle: For partial unreachability, verify Service port → targetPort → Endpoint port → pod containerPort/listening port before blaming app, DNS, or network.
+
+Diagnostic evidence: pods are Running/Ready, Service and Endpoints exist, callers get immediate “connection refused” to the Service ClusterIP, and Endpoints show a pod port that differs from the Deployment’s declared/listening container port.
+Distinguish from DNS failure (“no such host”), zero/empty Endpoints, readiness or restart failures, NetworkPolicy/timeout blackholes, and application crash or wrong listen config.
+Before concluding, rule out selector mismatch/no endpoints, not-ready pods, DNS resolution, network policy/timeouts, and app not actually listening on its declared port.
+A live endpoint plus endpoint-port vs container-port discrepancy confirms routing/port mapping fault, not general service unavailability.

@@ -1,0 +1,11 @@
+---
+name: note-27-node-scoped-runtime-outage-masquerading-as-parti
+description: "Team experience note: Node-Scoped Runtime Outage Masquerading as Partial Service Unreachability"
+---
+
+# Node-Scoped Runtime Outage Masquerading as Partial Service Unreachability
+
+Multiple unrelated pods stuck Pending/ContainerCreating with no pod IP, all colocated on one node while pods on other nodes run normally, points to a node-level fault rather than an application or service fault.
+Confirm the node is NotReady and the container runtime service on that same node is inactive/failed; successful scheduling with no image-pull, backoff, or resource-pressure events separates runtime unavailability from image, scheduling, and app causes.
+Rule out cluster-wide runtime/API failure, CNI/network faults, image/auth issues, node resource pressure, and pod-level misconfiguration; verify other nodes’ runtimes are healthy and affected pods recover after runtime restart.
+Conclude node infrastructure failure only when the symptom is node-correlated and the runtime service state directly explains the stuck containers.

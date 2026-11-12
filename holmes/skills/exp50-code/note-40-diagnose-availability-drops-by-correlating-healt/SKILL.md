@@ -1,0 +1,11 @@
+---
+name: note-40-diagnose-availability-drops-by-correlating-healt
+description: "Team experience note: Diagnose Availability Drops by Correlating Healthy Runtime State with Deterministic Application Parameter Errors"
+---
+
+# Diagnose Availability Drops by Correlating Healthy Runtime State with Deterministic Application Parameter Errors
+
+When availability drops but pods are Ready/Running and services/endpoints exist, treat it as likely application-level and inspect error logs for repeated, deterministic 4xx/5xx patterns before assuming infrastructure failure.
+The distinguishing evidence is a stable repeating handler error showing an empty/missing business parameter propagated downstream (for example NotFound for a blank ID), while dependencies remain reachable and runtime resources are not saturated.
+Before concluding, rule out pod-not-ready/endpoint loss, downstream outage or latency, resource exhaustion/restarts, network/DNS faults, bad deployment/config, and pure traffic surge.
+Confirm by tracing the failing request path and code to the unpopulated parameter and verifying the same request succeeds when it is supplied; this separates code defects from dependency and infrastructure causes.

@@ -1,0 +1,11 @@
+---
+name: note-15-diagnosing-repeated-crashloop-restarts-caused-by
+description: "Team experience note: Diagnosing Repeated CrashLoop Restarts Caused by an Application Memory Leak"
+---
+
+# Diagnosing Repeated CrashLoop Restarts Caused by an Application Memory Leak
+
+When availability loss is isolated to one workload that is CrashLoopBackOff with rising restarts while peer pods and dependencies remain healthy, treat an application memory leak as a candidate.
+Confirm with prior-container termination reason OOMKilled/exit 137, memory climbing across restarts, and a code path or heap profile showing unbounded growth; startup-only logs and no dependency errors support it.
+Before concluding, rule out node memory pressure/eviction, an undersized container limit, liveness/readiness probe misconfiguration or slow start, dependency-triggered panic, and bad config/image rollout.
+Only assign an application code defect when OOM evidence aligns with reproducible growth in application-owned memory and infrastructure/resource causes are excluded.

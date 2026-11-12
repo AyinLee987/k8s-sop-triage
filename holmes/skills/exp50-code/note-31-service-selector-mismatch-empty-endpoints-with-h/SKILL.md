@@ -1,0 +1,11 @@
+---
+name: note-31-service-selector-mismatch-empty-endpoints-with-h
+description: "Team experience note: Service-Selector Mismatch: Empty Endpoints With Healthy Backing Pods"
+---
+
+# Service-Selector Mismatch: Empty Endpoints With Healthy Backing Pods
+
+For partial service unreachability, inspect the Service selector against Running/Ready pod labels and the Endpoints object; a ClusterIP Service with zero endpoints while its pods are Ready and listening is strong evidence of selector mismatch.
+Distinguish this from pod/readiness failure by confirming the backing pods are Ready and probes pass, and from port/network faults by confirming Service port, targetPort, containerPort, and network policy would produce populated endpoints.
+Before concluding selector mismatch, rule out zero ready replicas, failing readiness/liveness probes, wrong port mappings, missing or mislabeled pods, DNS failure, NetworkPolicy denial, and node/control-plane outage.
+Confirm the selector/label mismatch directly and verify that correcting endpoint membership restores connectivity.

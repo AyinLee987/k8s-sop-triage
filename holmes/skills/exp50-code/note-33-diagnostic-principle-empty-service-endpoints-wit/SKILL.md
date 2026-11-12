@@ -1,0 +1,11 @@
+---
+name: note-33-diagnostic-principle-empty-service-endpoints-wit
+description: "Team experience note: Diagnostic principle: empty service endpoints with healthy backing pods indicate service-to-pod label selection failure."
+---
+
+# Diagnostic principle: empty service endpoints with healthy backing pods indicate service-to-pod label selection failure.
+
+When clients get connection refused to a service IP/port but pods are Running and Ready, inspect Endpoints/EndpointSlices first: `<none>` endpoints with live pods narrows to selector or port mapping, not application crash.
+Distinguish selector mismatch from pod failures by confirming zero pod restarts, passing readiness probes, and running containers; if endpoints are populated, investigate targetPort, NetworkPolicy, DNS, kube-proxy/node path instead.
+Before concluding selector mismatch, rule out unready pods, namespace/label typos, service port/targetPort errors, no listening container port, and endpoint propagation delay.
+Confirm by comparing the service selector with pod template labels and by querying pods using that exact selector; a mismatch is proven only when the selector returns no backing pods despite healthy pods.

@@ -1,0 +1,11 @@
+---
+name: note-19-diagnostic-principle-isolate-self-induced-cpu-sp
+description: "Team experience note: Diagnostic principle: Isolate self-induced CPU spin before blaming downstream or infrastructure."
+---
+
+# Diagnostic principle: Isolate self-induced CPU spin before blaming downstream or infrastructure.
+
+A code busy-loop is distinguished by latency localized to one service, CPU at/near limit with CFS throttling, no matching traffic/throughput surge, and healthy node/dependency/network metrics.
+Rule out node-wide CPU pressure/noisy neighbor, downstream DB/RPC latency, network/DNS faults, GC/memory pressure, and legitimate load/autoscaling effects first.
+Then inspect the request hot path for an unbounded or non-yielding loop and confirm it correlates with CPU and latency onset; restart/rollback or code fix should clear both.
+Do not conclude code defect from latency alone; require service-local CPU saturation plus elimination of external and load-driven causes.

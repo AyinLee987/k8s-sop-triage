@@ -1,0 +1,11 @@
+---
+name: note-11-title-differentiate-admission-quota-rejection-fr
+description: "Team experience note: Title: Differentiate Admission-Quota Rejection From Scheduling and Runtime Failures"
+---
+
+# Title: Differentiate Admission-Quota Rejection From Scheduling and Runtime Failures
+
+When availability drops and a new pod stays Pending with PodScheduled=False, check namespace ResourceQuota and dependent object creation before blaming nodes, images, or application health.
+Distinguishing evidence: quota is at/over limit, the referenced PVC is absent, the pod has no node assigned, and sibling pods remain Running—this points to admission rejection, not scheduling or runtime failure.
+Rule out node capacity/taints/affinity, missing or unbound PV/StorageClass, image-pull errors, crash loops, and readiness failures by confirming no scheduling events and that the dependent claim was never created.
+Conclude only after verifying the quota limit is the blocking condition and that raising quota or reducing demand allows the dependent object to be created and the pod to schedule.

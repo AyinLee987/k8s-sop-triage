@@ -1,0 +1,11 @@
+---
+name: note-49-node-localized-packet-loss-correlate-latency-wit
+description: "Team experience note: Node-Localized Packet Loss: Correlate Latency With Placement and TCP Retransmits"
+---
+
+# Node-Localized Packet Loss: Correlate Latency With Placement and TCP Retransmits
+
+When multiple unrelated pods co-located on one node show simultaneous latency rise while peers elsewhere stay normal, suspect node-level network packet loss rather than an application or dependency fault.
+The distinguishing evidence is a node-scoped TCP retransmission spike coincident with the latency window and multi-service impact aligned to that node’s pod placement.
+Rule out single-service slowdown, downstream dependency saturation, CPU/memory/disk pressure, pod restarts or recent config changes, DNS/connection-pool exhaustion, and cluster-wide network degradation before concluding.
+Confirm the symptom follows the node, not any one workload or service dependency, and that healthy peer nodes and stable resource/app metrics exclude alternative causes.

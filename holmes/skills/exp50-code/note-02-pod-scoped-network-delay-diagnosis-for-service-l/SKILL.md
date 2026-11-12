@@ -1,0 +1,11 @@
+---
+name: note-02-pod-scoped-network-delay-diagnosis-for-service-l
+description: "Team experience note: Pod-Scoped Network Delay Diagnosis for Service Latency Degradation"
+---
+
+# Pod-Scoped Network Delay Diagnosis for Service Latency Degradation
+
+When latency rises but pods are Running/Ready, endpoints are populated, restarts are zero, and only the target pod's inbound/outbound call latency is elevated while peer pods and downstream dependencies stay normal, suspect pod_network_delay.
+Distinguish it from CPU throttling/resource saturation by checking CFS throttling, memory, GC, and node pressure; from downstream/DB latency by tracing dependency spans and backend metrics; from service-wide/node-wide network issues by testing peers on the same node/namespace.
+Rule out application exceptions, probe failures, endpoint churn, and downstream saturation before concluding; confirm with per-pod latency isolation and correlation to the fault window.
+Prefer pod-level network fault evidence over aggregate service latency alerts alone, since propagated caller latency is a symptom, not the root cause.

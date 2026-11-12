@@ -1,0 +1,5 @@
+Diagnosing deterministic application errors when infrastructure appears healthy
+Confirm the failure is scoped to one request path or operation, with caller-side 5xx/application-level RPC errors while the implicated workload stays Ready, has stable restarts, and has a valid Service endpoint.
+Rule out restart/readiness failure, missing endpoints, DNS/port/network faults, resource saturation, downstream dependency outage, and config/data corruption before attributing to code; absence of target-side error logs despite a caller-visible deterministic error supports a silent code path.
+Distinguish code defect by inspecting the handler/return path and matching the caller’s error text and triggering action to an incorrect returned value or status; repeatable failure on a specific action over healthy transport is the key evidence.
+Before concluding, verify there is no observability gap or missing error logging, and confirm the same symptom is not caused by upstream timeout/retry or misrouted dependency.

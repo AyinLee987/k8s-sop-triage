@@ -1,0 +1,164 @@
+{
+ "swapped_out_network_notes": [
+  "14",
+  "17",
+  "20",
+  "22",
+  "29",
+  "36",
+  "38",
+  "46"
+ ],
+ "code_delay_incidents": [
+  {
+   "id": "boutique/codedefect/38",
+   "system": "boutique",
+   "category": "codedefect",
+   "case": "38",
+   "query": "Service Performance Degradation.",
+   "difficulty": "hard",
+   "truth": {
+    "fault_taxonomy": "Application_Code_Defect",
+    "fault_object": "app/frontend",
+    "root_cause": "code_artificial_delay"
+   }
+  },
+  {
+   "id": "boutique/codedefect/69",
+   "system": "boutique",
+   "category": "codedefect",
+   "case": "69",
+   "query": "Service Performance Degradation.",
+   "difficulty": "hard",
+   "truth": {
+    "fault_taxonomy": "Application_Code_Defect",
+    "fault_object": "app/productcatalogservice",
+    "root_cause": "code_artificial_delay"
+   }
+  },
+  {
+   "id": "boutique/codedefect/89",
+   "system": "boutique",
+   "category": "codedefect",
+   "case": "89",
+   "query": "Service Performance Degradation.",
+   "difficulty": "hard",
+   "truth": {
+    "fault_taxonomy": "Application_Code_Defect",
+    "fault_object": "app/shippingservice",
+    "root_cause": "code_artificial_delay"
+   }
+  }
+ ],
+ "filler_incidents": [
+  {
+   "id": "boutique/codedefect/76",
+   "system": "boutique",
+   "category": "codedefect",
+   "case": "76",
+   "query": "Service Availability Disruption.",
+   "difficulty": "hard",
+   "truth": {
+    "fault_taxonomy": "Application_Code_Defect",
+    "fault_object": "app/productcatalogservice",
+    "root_cause": "code_wrong_return"
+   }
+  },
+  {
+   "id": "boutique/infrastructure/20",
+   "system": "boutique",
+   "category": "infrastructure",
+   "case": "20",
+   "query": "Service Availability Disruption.",
+   "difficulty": "medium",
+   "truth": {
+    "fault_taxonomy": "Infrastructure_Fault",
+    "fault_object": "node/master",
+    "root_cause": "kube_scheduler_unavailable"
+   }
+  },
+  {
+   "id": "boutique/admission/21",
+   "system": "boutique",
+   "category": "admission",
+   "case": "21",
+   "query": "Service Availability Disruption.",
+   "difficulty": "medium",
+   "truth": {
+    "fault_taxonomy": "Admission_Fault",
+    "fault_object": "namespace/boutique",
+    "root_cause": "namespace_cpu_quota_exceeded"
+   }
+  },
+  {
+   "id": "boutique/admission/22",
+   "system": "boutique",
+   "category": "admission",
+   "case": "22",
+   "query": "Service Availability Disruption.",
+   "difficulty": "medium",
+   "truth": {
+    "fault_taxonomy": "Admission_Fault",
+    "fault_object": "namespace/boutique",
+    "root_cause": "namespace_memory_quota_exceeded"
+   }
+  },
+  {
+   "id": "boutique/admission/52",
+   "system": "boutique",
+   "category": "admission",
+   "case": "52",
+   "query": "Service Availability Disruption.",
+   "difficulty": "medium",
+   "truth": {
+    "fault_taxonomy": "Admission_Fault",
+    "fault_object": "namespace/boutique",
+    "root_cause": "namespace_service_quota_exceeded"
+   }
+  },
+  {
+   "id": "boutique/infrastructure/33",
+   "system": "boutique",
+   "category": "infrastructure",
+   "case": "33",
+   "query": "Service Availability Disruption.",
+   "difficulty": "medium",
+   "truth": {
+    "fault_taxonomy": "Infrastructure_Fault",
+    "fault_object": "node/worker-02",
+    "root_cause": "kubelet_unavailable"
+   }
+  },
+  {
+   "id": "boutique/infrastructure/14",
+   "system": "boutique",
+   "category": "infrastructure",
+   "case": "14",
+   "query": "Partial Service Unreachability.",
+   "difficulty": "medium",
+   "truth": {
+    "fault_taxonomy": "Infrastructure_Fault",
+    "fault_object": "node/worker-02",
+    "root_cause": "kube_proxy_unavailable"
+   }
+  },
+  {
+   "id": "boutique/infrastructure/34",
+   "system": "boutique",
+   "category": "infrastructure",
+   "case": "34",
+   "query": "Partial Service Unreachability.",
+   "difficulty": "medium",
+   "truth": {
+    "fault_taxonomy": "Infrastructure_Fault",
+    "fault_object": "node/worker-01",
+    "root_cause": "kubelet_unavailable"
+   }
+  }
+ ],
+ "code_heavy_code_slots": [
+  "14",
+  "17",
+  "20"
+ ]
+}

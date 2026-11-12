@@ -1,0 +1,11 @@
+---
+name: note-05-service-port-mapping-mismatch-triage
+description: "Team experience note: Service Port Mapping Mismatch Triage"
+---
+
+# Service Port Mapping Mismatch Triage
+
+When availability fails with client “connection refused” to a ClusterIP:port, compare Service port/targetPort with the backing pod’s declared containerPort name/number and the process’s actual listening port.
+The distinguishing evidence is a Running/Ready pod whose labels match the Service selector but whose Service targetPort names a container port absent from the pod spec, or uses a numeric port different from the listener; Endpoints/EndpointSlice will show no usable port or the wrong port.
+Rule out no-endpoint causes (selector mismatch, readiness failure, crashed pod), app-not-listening, DNS/name-resolution failure, NetworkPolicy/firewall, and Service type/exposure errors before concluding mapping mismatch.
+Confirm by correcting targetPort to the declared/listening port and observing endpoint port and client connectivity recover.

@@ -1,0 +1,11 @@
+---
+name: note-41-container-runtime-outage-as-a-node-scoped-pod-st
+description: "Team experience note: Container Runtime Outage as a Node-Scoped Pod Startup Failure"
+---
+
+# Container Runtime Outage as a Node-Scoped Pod Startup Failure
+
+When multiple new pods on one node remain Pending/ContainerCreating with no IP while pods on other nodes run, correlate pod events with node runtime health; FailedCreatePodSandBox with a container-runtime socket dial error distinguishes runtime outage from image-pull, scheduling, resource, or application faults.
+Confirm the runtime service is inactive/failed on that node and that all affected pods are co-located there, rather than a namespace-wide or pod-specific pattern.
+Rule out CNI/network-plugin failure, image registry/auth errors, insufficient CPU/memory or scheduling constraints, kubelet/API-server problems, and pod spec/config errors before concluding runtime unavailability.
+Remediate the node runtime and verify recovery; if socket errors persist after the runtime is active, investigate socket permissions, storage, or CNI integration.
