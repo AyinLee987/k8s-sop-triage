@@ -1,0 +1,11 @@
+---
+name: note-47-admission-quotas-can-cause-partial-unreachabilit
+description: "Team experience note: Admission Quotas Can Cause Partial Unreachability by Blocking New Service Objects"
+---
+
+# Admission Quotas Can Cause Partial Unreachability by Blocking New Service Objects
+
+When some callers cannot reach a dependency but all pods/deployments are Running/Ready, inspect namespace ResourceQuota and admission events before treating it as runtime networking.
+Evidence for this cause: the quota shows a service-count hard limit fully consumed and events/logs show Service creation denied for exceeded quota, leaving the affected Service object/ClusterIP absent while unrelated Services still resolve.
+Rule out pod crash/image/readiness failures, selector/endpoint mismatch, network policy/mesh/DNS faults, and quotas on pods/CPU/memory—those leave the Service present or pods unhealthy.
+Conclude only after confirming the missing Service is blocked at admission and existing endpoints work; then raise/remove the service quota or free capacity.

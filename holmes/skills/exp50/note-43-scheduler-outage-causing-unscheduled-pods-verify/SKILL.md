@@ -1,0 +1,11 @@
+---
+name: note-43-scheduler-outage-causing-unscheduled-pods-verify
+description: "Team experience note: Scheduler outage causing unscheduled Pods: verify Pending Pods with no node assigned while nodes are Ready and not resource-pressured."
+---
+
+# Scheduler outage causing unscheduled Pods: verify Pending Pods with no node assigned while nodes are Ready and not resource-pressured.
+
+Distinguishing evidence: the scheduler control-plane service is inactive/dead and scheduling events stop, unlike image pull, crashloop, node NotReady, taints/affinity, quota, or insufficient resources.
+Before concluding, rule out node/pod resource exhaustion, unbound PVCs, image/registry failures, application crashes, and network/Service/DNS faults.
+Confirm existing workloads remain healthy while only new placements fail, then restore the scheduler and verify Pending Pods bind.
+Do not treat cordoned/tainted nodes alone as root cause unless the scheduler is healthy and reports an explicit scheduling rejection.

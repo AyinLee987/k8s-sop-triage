@@ -3,7 +3,7 @@
   python scripts/build_exp_skills.py
 
 Writes holmes/skills/exp2/  (notes 02 and 07: pod network delay, application code delay)
-   and holmes/skills/exp16/ (all 16 notes).
+       holmes/skills/exp16/ (the first 16 notes) and holmes/skills/exp50/ (all 50).
 The notes were written from Cloud-OpsBench incidents outside our sample; none of them was written from this lab.
 The first line of a note becomes the skill description (what the agent sees in the catalog); the body is unchanged.
 """
@@ -14,7 +14,7 @@ from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[1]
 SRC = REPO / "experiments/cloudopsbench/experiences/general"
-SETS = {"exp2": ["02", "07"], "exp16": [f"{i:02d}" for i in range(1, 17)]}
+SETS = {"exp2": ["02", "07"], "exp16": [f"{i:02d}" for i in range(1, 17)], "exp50": [f"{i:02d}" for i in range(1, 51)]}
 
 
 def main() -> None:

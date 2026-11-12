@@ -1,0 +1,11 @@
+---
+name: note-25-service-port-to-targetport-mismatch-diagnosis
+description: "Team experience note: Service Port-to-TargetPort Mismatch Diagnosis"
+---
+
+# Service Port-to-TargetPort Mismatch Diagnosis
+
+When a caller gets connection refused to a ClusterIP port while backing pods are Running/Ready and the Service has non-empty Endpoints, compare Service port/targetPort, Endpoints port, and Pod containerPort/readiness-listen port.
+The root cause is a port mapping mismatch when the Service exposes the expected port but Endpoints resolve to a different pod port than the container listens on, so traffic reaches the pod IP on a closed port.
+Rule out pod crash/not-ready, selector mismatch or empty Endpoints, DNS failure (IP resolved; refusal not “no such host”), app not listening (readiness probe passes), network policy (usually timeout/drop), and transient rollout.
+Before concluding, confirm the caller port, selector, Endpoints set, readiness gating, and actual container listen port; verify by aligning targetPort to the real container port and retesting.

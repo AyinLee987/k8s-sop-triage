@@ -1,0 +1,11 @@
+---
+name: note-08-downstream-address-mismatch-diagnosis-for-partia
+description: "Team experience note: Downstream Address Mismatch Diagnosis for Partial Unreachability"
+---
+
+# Downstream Address Mismatch Diagnosis for Partial Unreachability
+
+When only one caller path fails while dependency pods, Services, and Endpoints are healthy, compare the caller’s configured downstream host:port with the actual Service name/port and inspect errors for a nonexistent or misspelled DNS name.
+The distinguishing evidence is DNS failure for a name no Service defines while other callers resolve/reach the same dependency normally; that indicates caller-side address config, not dependency outage or cluster DNS.
+Rule out pod readiness/restarts, Service selector/endpoint gaps, resolvable port mismatches, NetworkPolicy/CNI/DNS infrastructure faults, and target application errors before concluding.
+Confirm by correcting the caller’s address env/config and verifying resolution/reachability; apply the same check to any service-to-service dependency.

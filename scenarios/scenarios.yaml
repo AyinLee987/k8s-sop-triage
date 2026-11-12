@@ -1381,3 +1381,187 @@ scenarios:
     - 限流
     - throttl
     - 60m
+- id: L04
+  split: dev
+  kind: latent_slow
+  mechanism: pod_network_delay_with_unrelated_change
+  symptom: 提交事件的接口变慢了，偶尔还会超时；Pod 看起来都是正常的。
+  realism:
+    pattern: '单个 Pod 的网络延迟，同时有一次无害的配置变更（CPU limit 500m 改为 400m，远高于实际用量）。看得见的变更不是原因。'
+    sources:
+    - Cloud-OpsBench Performance
+    validated: false
+    validate_note: 只能在笔记本的 kind 上验证（云端内核没有 netem）；确认只有一个 api Pod 的请求变慢，且 400m 没有造成限流（另一个 Pod 仍是毫秒级）。
+  inject:
+  - *id001
+  - *id002
+  - kubectl:
+    - -n
+    - '{ns}'
+    - set
+    - resources
+    - deployment/api
+    - -c
+    - api
+    - --limits=cpu=400m
+  - kubectl:
+    - -n
+    - '{ns}'
+    - rollout
+    - status
+    - deployment/api
+    - --timeout=200s
+  - kubectl:
+    - -n
+    - infra-tools
+    - delete
+    - pod
+    - net-injector
+    - --ignore-not-found
+    - --wait=true
+    - --timeout=90s
+  - kubectl:
+    - apply
+    - -f
+    - '{repo}/scenarios/netem/injector.yaml'
+  - kubectl:
+    - -n
+    - infra-tools
+    - wait
+    - --for=condition=Ready
+    - pod/net-injector
+    - --timeout=180s
+  - *id003
+  confirm:
+    timeout_s: 60
+    checks:
+    - type: slow_requests
+      min_ms: 150
+      count: 10
+    debug_on_fail:
+    - [-n, infra-tools, logs, net-injector, --tail=20]
+    - [-n, infra-tools, get, pod, net-injector, -o, wide]
+    - [-n, '{ns}', get, pods, -l, app=api, -o, wide]
+  reset:
+  - kubectl:
+    - -n
+    - infra-tools
+    - delete
+    - pod
+    - net-injector
+    - --ignore-not-found
+    - --wait=true
+    - --timeout=90s
+  - kubectl:
+    - -n
+    - '{ns}'
+    - set
+    - resources
+    - deployment/api
+    - -c
+    - api
+    - --limits=cpu=500m,memory=192Mi
+    - --requests=cpu=100m,memory=96Mi
+  - kubectl:
+    - -n
+    - '{ns}'
+    - set
+    - image
+    - deployment/api
+    - api=tiktok-k8s-lab:v1
+  answer:
+    status: root_cause_found
+    object:
+      kind: Pod
+      name: api
+    accept_objects:
+    - api
+    cause_category: other
+    explanation: api 的其中一个 Pod 的网络被加了约 200 毫秒延迟：只有这个 Pod 上的请求慢，另一个 api Pod、Redis、worker 都正常；同一时间 api 的 CPU limit 从 500m 改成了 400m，但实际用量远低于它，这次变更与变慢无关。
+    key_evidence:
+    - elapsed_ms
+    accept_cause_keywords:
+    - 网络
+    - network
+    - 延迟
+    - latency
+    - delay
+- id: L05
+  split: dev
+  kind: latent_slow
+  mechanism: dependency_pod_network_delay
+  symptom: 提交事件的接口变慢了，偶尔还会超时；Pod 看起来都是正常的。
+  realism:
+    pattern: '依赖（Redis）的 Pod 网络延迟：所有调用方一起变慢，没有副本之间的差异可比。'
+    sources:
+    - Cloud-OpsBench Performance
+    validated: false
+    validate_note: 只能在笔记本的 kind 上验证（云端内核没有 netem）；确认两个 api Pod 都变慢，worker 的单条处理时间明显超过 300 毫秒。
+  inject:
+  - *id001
+  - *id002
+  - kubectl:
+    - -n
+    - infra-tools
+    - delete
+    - pod
+    - net-injector
+    - --ignore-not-found
+    - --wait=true
+    - --timeout=90s
+  - kubectl:
+    - apply
+    - -f
+    - '{repo}/scenarios/netem/injector-redis.yaml'
+  - kubectl:
+    - -n
+    - infra-tools
+    - wait
+    - --for=condition=Ready
+    - pod/net-injector
+    - --timeout=180s
+  - *id003
+  confirm:
+    timeout_s: 60
+    checks:
+    - type: slow_requests
+      min_ms: 150
+      count: 10
+    debug_on_fail:
+    - [-n, infra-tools, logs, net-injector, --tail=20]
+    - [-n, infra-tools, get, pod, net-injector, -o, wide]
+    - [-n, '{ns}', get, pods, -l, app=api, -o, wide]
+  reset:
+  - kubectl:
+    - -n
+    - infra-tools
+    - delete
+    - pod
+    - net-injector
+    - --ignore-not-found
+    - --wait=true
+    - --timeout=90s
+  - kubectl:
+    - -n
+    - '{ns}'
+    - set
+    - image
+    - deployment/api
+    - api=tiktok-k8s-lab:v1
+  answer:
+    status: root_cause_found
+    object:
+      kind: Pod
+      name: redis-0
+    accept_objects:
+    - redis
+    cause_category: other
+    explanation: redis-0 这个 Pod 的网络被加了约 200 毫秒延迟：两个 api Pod 一样慢，worker 每条事件的处理时间也变长；Redis 自身、镜像、配置、资源都没有变化。
+    key_evidence:
+    - elapsed_ms
+    accept_cause_keywords:
+    - 网络
+    - network
+    - 延迟
+    - latency
+    - delay

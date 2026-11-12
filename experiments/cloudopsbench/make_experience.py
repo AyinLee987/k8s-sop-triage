@@ -70,6 +70,26 @@ def draw_pool(dataset: Path, n: int, seed: int) -> list[dict]:
     return [rng.choice(by_cause[k]) for k in keys[:n]]
 
 
+def extend_pool(dataset: Path, pool: list[dict], total: int, seed: int) -> list[dict]:
+    """Grow the pool to TOTAL incidents. The extra ones are drawn uniformly from every case outside the sample
+    and the pool, so their mix of fault classes follows the benchmark's own proportions (repeats of a cause allowed,
+    as in a real incident history). Existing entries keep their positions."""
+    held_out = {c["id"] for c in json.loads((HERE / "sample60.json").read_text(encoding="utf-8"))["cases"]}
+    held_out |= {inc["id"] for inc in pool}
+    rest = []
+    for system, cats in CATEGORIES.items():
+        for cat in cats:
+            for d in sorted((dataset / "benchmark" / system / cat).iterdir()):
+                cid = f"{system}/{cat}/{d.name}"
+                if not d.name.isdigit() or cid in held_out:
+                    continue
+                meta = json.loads((d / "metadata.json").read_text(encoding="utf-8"))
+                rest.append({"id": cid, "system": system, "category": cat, "case": d.name, "query": meta.get("query"),
+                             "difficulty": meta.get("difficulty"), "truth": meta["result"]})
+    random.Random(seed + 1).shuffle(rest)
+    return pool + rest[: max(0, total - len(pool))]
+
+
 def trajectory_text(dataset: Path, case: dict, max_out: int = 1200) -> str:
     path = dataset / "golden-trajectory" / case["system"] / case["category"] / case["case"] / "path1.json"
     steps = json.loads(path.read_text(encoding="utf-8")).get("diagnostic_trace", [])
@@ -87,12 +107,19 @@ def main() -> None:
     ap.add_argument("--dataset", required=True)
     ap.add_argument("--n", type=int, default=16)
     ap.add_argument("--seed", type=int, default=20261111)
+    ap.add_argument("--extend", type=int, default=0, help="grow the existing pool to this many incidents")
+    ap.add_argument("--styles", default="specific,general")
     ap.add_argument("--limit", type=int, default=0, help="only write the first LIMIT entries (for a look at the style)")
     args = ap.parse_args()
     dataset = Path(args.dataset)
     pool_file = HERE / "pool.json"
     if pool_file.exists():
         pool = json.loads(pool_file.read_text(encoding="utf-8"))["incidents"]
+        if args.extend > len(pool):
+            pool = extend_pool(dataset, pool, args.extend, args.seed)
+            pool_file.write_text(json.dumps({"seed": args.seed, "excluded": "every case in sample60.json",
+                                             "extended_to": args.extend, "incidents": pool},
+                                            ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
     else:
         pool = draw_pool(dataset, args.n, args.seed)
         pool_file.write_text(json.dumps({"seed": args.seed, "excluded": "every case in sample60.json",
@@ -106,6 +133,8 @@ def main() -> None:
                     f"(fault class: {inc['truth']['fault_taxonomy']})\n\nHow the expert diagnosed it:\n"
                     f"{trajectory_text(dataset, inc)}")
         for style, instruction in STYLE.items():
+            if style not in args.styles.split(","):
+                continue
             target = HERE / "experiences" / style / f"{i:02d}.md"
             if target.exists():
                 continue

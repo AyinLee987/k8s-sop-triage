@@ -1,0 +1,11 @@
+---
+name: note-09-zero-pod-deployments-point-to-admission-failure
+description: "Team experience note: Zero-Pod Deployments Point to Admission Failure"
+---
+
+# Zero-Pod Deployments Point to Admission Failure
+
+When a Deployment reports 0 available/0 total pods and no pod object exists while sibling workloads run, inspect ReplicaSet/Deployment events for FailedCreate before treating dependent connection-refused logs as causal.
+The distinguishing evidence is an admission event naming a missing ServiceAccount referenced by the pod template; this separates it from crash, image-pull, scheduling, readiness, and application faults, which leave a pod object present.
+Rule out quota/limit-range admission, webhook or RBAC denial, invalid pod spec/security context, and missing ConfigMap/Secret before concluding the ServiceAccount is the blocker.
+Confirm the referenced ServiceAccount is absent or misspelled in the same namespace, and verify downstream dial errors are secondary symptoms rather than the root cause.
