@@ -1,0 +1,10 @@
+---
+name: note-03-application-code-defect-triage-for-deterministic
+description: "Team experience note: Application-code defect triage for deterministic 5xx/disruption with healthy pods"
+---
+
+# Application-code defect triage for deterministic 5xx/disruption with healthy pods
+
+Confirm the workload is Ready with no restarts, services have populated endpoints, and failures are confined to a specific request path returning deterministic errors rather than timeouts, connection failures, or resource exhaustion.
+Distinguish a wrong-return/code defect by tracing the error chain to an internally generated bad status/logic on valid input, while network connectivity, DNS, downstream availability, and capacity metrics remain normal and unrelated alerts do not explain the failing path.
+Rule out pod crashes, missing endpoints, saturation, network/DNS faults, dependency outage or overload, and deployment/config changes; then verify the bad return is reproducible from code and request inputs before concluding.

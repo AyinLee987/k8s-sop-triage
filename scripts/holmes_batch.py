@@ -98,7 +98,7 @@ def summarise(runs: list[dict], scenarios: dict) -> str:
                      f"{fmt(calls)} | {fmt(tools)} | {fmt(walls)} |")
     ok_all = [r for r in runs if not r.get("error")]
     total = sum(1 for r in ok_all if r["grade"]["auto_correct"])
-    lines += ["", f"Overall auto_correct: {total}/{len(ok_all)} successful runs ({len(runs) - len(ok_all)} runs failed).",
+    lines += ["", f"Runs: {len(ok_all)} finished, {len(runs) - len(ok_all)} failed. Auto-grade (keyword match, needs a human read): {total}/{len(ok_all)} correct.",
               "A scenario is stable when all its runs agree (all correct or all wrong)."]
     return "\n".join(lines) + "\n"
 

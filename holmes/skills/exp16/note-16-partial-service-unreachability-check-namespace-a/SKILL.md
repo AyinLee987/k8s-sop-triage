@@ -1,0 +1,11 @@
+---
+name: note-16-partial-service-unreachability-check-namespace-a
+description: "Team experience note: Partial Service Unreachability: Check Namespace Admission Quotas Before Network or Workload Faults"
+---
+
+# Partial Service Unreachability: Check Namespace Admission Quotas Before Network or Workload Faults
+
+When new instances cannot be admitted while existing pods remain Running/Ready, compare namespace ResourceQuota usage to hard limits and inspect admission-denial events; quota at cap plus denial timing is direct evidence.
+Distinguish from DNS, service-selector/endpoint, CNI/network-policy, and pod-health causes, which instead show lookup/connection errors, empty endpoints, or unhealthy pods.
+Before concluding quota, rule out pod crash/readiness failures, missing or incorrect Service endpoints, DNS failures, network-policy/CNI/node failures, and image/config rollout errors.
+Conclude quota only when an admission rejection aligns with the reachability gap and usage equals the hard limit; otherwise continue endpoint and network diagnosis.
