@@ -1,0 +1,11 @@
+---
+name: note-21-pending-pods-without-node-assignment-check-contr
+description: "Team experience note: Pending Pods Without Node Assignment: Check Control-Plane Scheduling Before Workload Tuning"
+---
+
+# Pending Pods Without Node Assignment: Check Control-Plane Scheduling Before Workload Tuning
+
+When sibling replicas are Running while a pod stays Pending with Node=<none>, no container logs, and a valid workload spec, suspect a scheduling-path failure, not an application, image, or readiness failure.
+Distinguishing evidence: the pod was never bound to a node and the scheduler control-plane component is inactive/not serving, while nodes are Ready with no pressure and existing workloads are healthy.
+Before concluding, rule out insufficient CPU/memory, taints/affinity/selectors, unbound PVCs, quota limits, image-pull failures, and kubelet/runtime faults on candidate nodes.
+Reusable rule: for Pending-and-unassigned pods, verify scheduler health and control-plane events first; only then investigate workload-level causes.

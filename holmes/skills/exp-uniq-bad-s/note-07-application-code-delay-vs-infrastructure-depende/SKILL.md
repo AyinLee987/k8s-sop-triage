@@ -1,0 +1,11 @@
+---
+name: note-07-application-code-delay-vs-infrastructure-depende
+description: "Team experience note: Application Code Delay vs Infrastructure/Dependency Latency"
+---
+
+# Application Code Delay vs Infrastructure/Dependency Latency
+
+When one service’s p50/p90 latency jumps by orders of magnitude while pods remain Running with no restarts, follow the dependency graph to the deepest service with elevated own latency and only derived caller timeouts/cancellations.
+Confirm the delay is local to that service’s request handling by verifying downstream dependencies, database, and shared infrastructure show normal latency and no resource alerts or traffic surge explain the spike.
+Distinguishing evidence for an application code delay: extreme service-local latency, healthy pods, low error ratio, normal dependencies, and source/config inspection showing an explicit sleep or delay in the request path.
+Before concluding, rule out CPU/memory throttling, node pressure, network latency/loss, dependency or DB slowness, bad rollout/config, and load surge; only then attribute the symptom to application code defect.
