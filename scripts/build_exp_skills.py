@@ -14,7 +14,9 @@ from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[1]
 SRC = REPO / "experiments/cloudopsbench/experiences/general"
-SETS = {"exp2": ["02", "07"], "exp16": [f"{i:02d}" for i in range(1, 17)], "exp50": [f"{i:02d}" for i in range(1, 51)]}
+SETS = {"exp2": ["02", "07"], "exp16": [f"{i:02d}" for i in range(1, 17)], "exp50": [f"{i:02d}" for i in range(1, 51)],
+        # one note per root cause: the first note of each cause in pool order (23 causes in the 50-note pool)
+        "exp-uniq": ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12", "13", "15", "16", "18", "19", "21", "23", "27", "30", "39", "48"]}
 
 
 def main() -> None:
