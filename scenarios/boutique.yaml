@@ -1,0 +1,192 @@
+# Online Boutique（命名空间 boutique，v0.10.3）上的场景：症状都出现在入口（frontend），根因在调用链下游。
+# 用于“按服务组织、可以互相跳转的 SOP”实验。字段含义同 scenarios.yaml；app: boutique 决定用哪套健康检查。
+# 调用关系：frontend -> productcatalogservice / currencyservice / cartservice -> redis-cart / recommendationservice /
+#           shippingservice / adservice / checkoutservice -> (productcatalog, cart, shipping, currency, payment, email)
+# 说明：改 Service 之后要重启后端 Pod。已建立的长连接不受 Service 变更影响（kube-proxy 不清 TCP 连接跟踪），
+#       不重启的话调用方会继续用旧连接，故障不生效。
+baseline: 命名空间 boutique 内 12 个 Deployment 各 1 个副本且 Ready；Service productcatalogservice 的 targetPort 为 3550；Service redis-cart 的 selector 为 app=redis-cart；checkoutservice 的 SHIPPING_SERVICE_ADDR 为 shippingservice:50051；首页可访问。
+scenarios:
+- id: B01
+  app: boutique
+  split: dev
+  kind: cross_service
+  mechanism: service_port_mapping_mismatch
+  hops: 1
+  symptom: 商城首页打不开，直接报 500 错误。
+  realism:
+    pattern: 'Service 的 targetPort 配错，后端 Pod 正常但流量到不了（Cloud-OpsBench: service_port_mapping_mismatch）。'
+    sources:
+    - Cloud-OpsBench Service
+    validated: false
+    validate_note: 确认首页经 API server 代理访问返回 500；productcatalogservice 的 Pod 是 Ready 的；frontend 日志里有访问 productcatalogservice 失败的记录。
+  inject:
+  - kubectl: ['-n', '{ns}', patch, service, productcatalogservice, --type=json, -p, '[{"op":"replace","path":"/spec/ports/0/targetPort","value":3551}]']
+  - kubectl: ['-n', '{ns}', rollout, restart, deployment/productcatalogservice]
+  - kubectl: ['-n', '{ns}', rollout, status, deployment/productcatalogservice, --timeout=180s]
+  confirm:
+    timeout_s: 120
+    checks:
+    - type: jsonpath_equals
+      resource: service/productcatalogservice
+      path: '{.spec.ports[0].targetPort}'
+      value: 3551
+    - type: http_probe
+      path: /
+      expect: fail
+  reset:
+  - kubectl: ['-n', '{ns}', patch, service, productcatalogservice, --type=json, -p, '[{"op":"replace","path":"/spec/ports/0/targetPort","value":3550}]']
+  answer:
+    status: root_cause_found
+    object: {kind: Service, name: productcatalogservice}
+    cause_category: other
+    explanation: Service productcatalogservice 的 targetPort 被改成 3551，而容器监听 3550；Pod 本身正常，frontend 调用商品目录失败，首页返回 500。
+    key_evidence: ['3551']
+    accept_cause_keywords: [targetport, 端口, port]
+
+- id: B02
+  app: boutique
+  split: dev
+  kind: cross_service
+  mechanism: service_env_var_address_mismatch
+  hops: 2
+  symptom: 用户能浏览商品、能加购物车，但点下单时报错，订单提交不了。
+  realism:
+    pattern: '调用方的下游地址环境变量配错（Cloud-OpsBench: service_env_var_address_mismatch）。shippingservice 本身正常，购物车页的运费估算由 frontend 直接调用也正常，只有 checkoutservice 调不到它。'
+    sources:
+    - Cloud-OpsBench Service
+    validated: false
+    validate_note: 确认 frontend 日志出现 failed to complete the order；首页和购物车页仍然正常；shippingservice 的 Pod 和 Service 没有任何变化。
+  inject:
+  - kubectl: ['-n', '{ns}', set, env, deployment/checkoutservice, 'SHIPPING_SERVICE_ADDR=shippingservice:50052']
+  - kubectl: ['-n', '{ns}', rollout, status, deployment/checkoutservice, --timeout=180s]
+  confirm:
+    timeout_s: 240
+    checks:
+    - type: logs_contain
+      selector: app=frontend
+      text: failed to complete the order
+    debug_on_fail:
+    - ['-n', '{ns}', logs, -l, app=checkoutservice, --tail=20]
+    - ['-n', '{ns}', logs, -l, app=loadgenerator, --tail=15]
+  reset:
+  - kubectl: ['-n', '{ns}', set, env, deployment/checkoutservice, 'SHIPPING_SERVICE_ADDR=shippingservice:50051']
+  answer:
+    status: root_cause_found
+    object: {kind: Deployment, name: checkoutservice}
+    cause_category: other
+    explanation: checkoutservice 的环境变量 SHIPPING_SERVICE_ADDR 被改成 shippingservice:50052（应为 50051），下单时调用运费服务失败；shippingservice 自身没有问题。
+    key_evidence: ['50052']
+    accept_cause_keywords: [shipping_service_addr, 环境变量, env, '50052']
+
+- id: B03
+  app: boutique
+  split: dev
+  kind: cross_service
+  mechanism: service_selector_mismatch
+  hops: 2
+  symptom: 商城首页打不开，直接报 500 错误。
+  realism:
+    pattern: 'Service 的 selector 配错导致没有后端（Cloud-OpsBench: service_selector_mismatch）。与 B01 症状相同，但根因隔了两层：frontend -> cartservice -> redis-cart。'
+    sources:
+    - Cloud-OpsBench Service
+    validated: false
+    validate_note: 确认 Service redis-cart 没有就绪端点；首页返回 500；redis-cart 和 cartservice 的 Pod 都是 Running。留意 cartservice 是否因探针失败变成 NotReady（如果是，记到 validate 结果里）。
+  inject:
+  - kubectl: ['-n', '{ns}', patch, service, redis-cart, --type=merge, -p, '{"spec":{"selector":{"app":"redis-cart-v2"}}}']
+  - kubectl: ['-n', '{ns}', rollout, restart, deployment/redis-cart]
+  - kubectl: ['-n', '{ns}', rollout, status, deployment/redis-cart, --timeout=180s]
+  confirm:
+    timeout_s: 150
+    checks:
+    - type: service_endpoints_empty
+      service: redis-cart
+    - type: http_probe
+      path: /
+      expect: fail
+    debug_on_fail:
+    - ['-n', '{ns}', logs, -l, app=cartservice, --tail=20]
+  reset:
+  - kubectl: ['-n', '{ns}', patch, service, redis-cart, --type=merge, -p, '{"spec":{"selector":{"app":"redis-cart"}}}']
+  answer:
+    status: root_cause_found
+    object: {kind: Service, name: redis-cart}
+    cause_category: other
+    explanation: Service redis-cart 的 selector 被改成 app=redis-cart-v2，匹配不到任何 Pod，端点为空；cartservice 连不上 Redis，frontend 取购物车失败，首页返回 500。
+    key_evidence: [redis-cart-v2]
+    accept_cause_keywords: [selector, 选择器, endpoint, 端点]
+
+- id: B04
+  app: boutique
+  split: dev
+  kind: cross_service
+  mechanism: pod_network_delay
+  hops: 1
+  symptom: 商城页面明显变慢了，但没有报错；Pod 看起来都是正常的。
+  realism:
+    pattern: '下游 Pod 的网络延迟（Cloud-OpsBench: pod_network_delay）。集群对象上没有痕迹，只能从各服务的耗时对比看出来。'
+    sources:
+    - Cloud-OpsBench Performance
+    validated: false
+    validate_note: 只能在笔记本的 kind 上验证。确认首页耗时比正常多 0.3 秒以上；所有 Pod 仍是 Ready、没有重启（延迟不能大到让探针超时）。
+  inject:
+  - kubectl: ['-n', infra-tools, delete, pod, net-injector, --ignore-not-found, --wait=true, --timeout=90s]
+  - kubectl: [apply, -f, '{repo}/scenarios/netem/injector-boutique-productcatalogservice.yaml']
+  - kubectl: ['-n', infra-tools, wait, --for=condition=Ready, pod/net-injector, --timeout=180s]
+  confirm:
+    timeout_s: 60
+    checks:
+    - type: http_probe
+      path: /
+      contains: Online Boutique
+      min_seconds: 0.3
+    debug_on_fail:
+    - ['-n', infra-tools, logs, net-injector, --tail=20]
+    - ['-n', infra-tools, get, pod, net-injector, -o, wide]
+  reset:
+  - kubectl: ['-n', infra-tools, delete, pod, net-injector, --ignore-not-found, --wait=true, --timeout=90s]
+  answer:
+    status: root_cause_found
+    object: {kind: Pod, name: productcatalogservice}
+    accept_objects: [productcatalogservice]
+    cause_category: other
+    explanation: productcatalogservice 的 Pod 网络被加了约 300 毫秒延迟；它自身的处理时间没有变，调用它的 frontend、recommendationservice、checkoutservice 都变慢。
+    key_evidence: [productcatalogservice]
+    accept_cause_keywords: [网络, network, 延迟, latency, delay]
+
+- id: B05
+  app: boutique
+  split: dev
+  kind: cross_service
+  mechanism: dependency_pod_network_delay
+  hops: 2
+  symptom: 商城页面明显变慢了，但没有报错；Pod 看起来都是正常的。
+  realism:
+    pattern: '与 B04 症状相同，根因隔了两层：frontend -> cartservice -> redis-cart 的 Pod 网络延迟。'
+    sources:
+    - Cloud-OpsBench Performance
+    validated: false
+    validate_note: 只能在笔记本的 kind 上验证。确认首页耗时比正常多 0.3 秒以上；redis-cart 和 cartservice 的 Pod 仍是 Ready、没有重启。
+  inject:
+  - kubectl: ['-n', infra-tools, delete, pod, net-injector, --ignore-not-found, --wait=true, --timeout=90s]
+  - kubectl: [apply, -f, '{repo}/scenarios/netem/injector-boutique-redis-cart.yaml']
+  - kubectl: ['-n', infra-tools, wait, --for=condition=Ready, pod/net-injector, --timeout=180s]
+  confirm:
+    timeout_s: 60
+    checks:
+    - type: http_probe
+      path: /
+      contains: Online Boutique
+      min_seconds: 0.3
+    debug_on_fail:
+    - ['-n', infra-tools, logs, net-injector, --tail=20]
+    - ['-n', infra-tools, get, pod, net-injector, -o, wide]
+  reset:
+  - kubectl: ['-n', infra-tools, delete, pod, net-injector, --ignore-not-found, --wait=true, --timeout=90s]
+  answer:
+    status: root_cause_found
+    object: {kind: Pod, name: redis-cart}
+    accept_objects: [redis-cart]
+    cause_category: other
+    explanation: redis-cart 的 Pod 网络被加了约 300 毫秒延迟；cartservice 每次读写购物车都变慢，frontend 的页面跟着变慢；各服务自身的配置、镜像、资源都没有变化。
+    key_evidence: [redis-cart]
+    accept_cause_keywords: [网络, network, 延迟, latency, delay]

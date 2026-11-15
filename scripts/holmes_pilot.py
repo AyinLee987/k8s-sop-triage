@@ -19,7 +19,7 @@ REPO = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO))
 
 from triage.kube import KubectlRunner  # noqa: E402
-from triage.lifecycle import Lifecycle, StepLog, load_noises, load_scenarios  # noqa: E402
+from triage.lifecycle import StepLog, load_noises, load_scenarios, make_lifecycle  # noqa: E402
 from triage.runner import cfg, load_dotenv, path_cfg  # noqa: E402
 
 HOLMES = os.environ.get("HOLMES_BIN", "holmes")
@@ -41,7 +41,8 @@ def main() -> int:
     model = args.model or cfg("LLM_MODEL", "deepseek-flash")
     sc = {s["id"]: s for s in load_scenarios(split="all", source="all")}[args.scenario]
     admin = KubectlRunner(kubeconfig=path_cfg("ADMIN_KUBECONFIG"), context=cfg("ADMIN_CONTEXT"))
-    lc = Lifecycle(admin, ns, cfg("LAB_K8S_DIR"))
+    lc = make_lifecycle(sc, admin, ns, cfg("LAB_K8S_DIR"))
+    ns = lc.ns  # boutique scenarios live in their own namespace
     log = StepLog()
     OUT.mkdir(parents=True, exist_ok=True)
     stamp = time.strftime("%Y%m%d-%H%M%S")

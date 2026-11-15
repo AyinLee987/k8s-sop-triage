@@ -16,6 +16,11 @@ import yaml
 
 REPO = Path(__file__).resolve().parent.parent
 SCENARIO_FILE = REPO / "scenarios" / "scenarios.yaml"
+BOUTIQUE_FILE = REPO / "scenarios" / "boutique.yaml"  # Online Boutique scenarios (app: boutique); never part of "handwritten"
+
+
+def load_boutique() -> list[dict]:
+    return yaml.safe_load(BOUTIQUE_FILE.read_text(encoding="utf-8"))["scenarios"] if BOUTIQUE_FILE.exists() else []
 
 
 def load_noises(ids: list[str] | None = None, path: Path | None = None) -> list[dict]:
@@ -38,6 +43,8 @@ def load_scenarios(path: Path = SCENARIO_FILE, split: str | None = None, ids: li
     if source in ("generated", "all"):
         from triage.generator import expand
         items += expand(max_per_template=max_per_template)
+    if source == "all":
+        items += load_boutique()
     if ids:
         source_ids = {s["id"] for s in items}
         missing = set(ids) - source_ids
@@ -233,6 +240,17 @@ class Lifecycle:
         if kind == "service_endpoints_empty":
             n = self._endpoints_ready(check["service"], ns)
             return n == 0, f"service {check['service']} ready endpoints={n}"
+        if kind == "http_probe":
+            # GET through the API server's service proxy (no port-forward needed). expect: ok | fail;
+            # min_seconds: the request must also take at least this long (latency faults).
+            path = f"/api/v1/namespaces/{ns}/services/{check.get('service', 'frontend')}:{check.get('port', 80)}/proxy{check.get('path', '/')}"
+            started = time.monotonic()
+            res = self._run(["get", "--raw", path], 40)
+            took = time.monotonic() - started
+            if check.get("expect", "ok") == "fail":
+                return (not res.ok) and not res.timed_out, f"GET {check.get('path', '/')} ok={res.ok} {res.stderr.strip()[:120]}"
+            ok = res.ok and check.get("contains", "") in res.stdout and took >= float(check.get("min_seconds", 0))
+            return ok, f"GET {check.get('path', '/')} ok={res.ok} took={took:.2f}s (need >= {check.get('min_seconds', 0)}s)"
         if kind == "slow_requests":
             # api request-log lines (image v3+) whose elapsed_ms is at least min_ms; needs at least `count` of them
             res = self._run(["-n", ns, "logs", "-l", check.get("selector", "app=api"), "--tail=600", "--max-log-requests=10"], 30)
@@ -304,3 +322,87 @@ class Lifecycle:
                 if (ep.get("conditions") or {}).get("ready"):
                     count += 1
         return count
+
+
+BOUTIQUE_DEPLOYMENTS = ("adservice", "cartservice", "checkoutservice", "currencyservice", "emailservice", "frontend",
+                        "loadgenerator", "paymentservice", "productcatalogservice", "recommendationservice",
+                        "redis-cart", "shippingservice")
+
+
+class BoutiqueLifecycle(Lifecycle):
+    """Online Boutique v0.10.3 in the namespace `boutique` (scripts/Setup-Boutique.ps1). Same phases as the lab app;
+    only the definition of "healthy" and the wait after reset differ. Nothing is restarted on reset beyond what the
+    scenario's own reset steps do."""
+
+    def __init__(self, admin_runner, lab_k8s_dir: str, poll_interval: float = 3.0, rollout_timeout: int = 240):
+        super().__init__(admin_runner, "boutique", lab_k8s_dir, poll_interval, fresh_pods=False, rollout_timeout=rollout_timeout)
+
+    def verify_healthy(self, log: StepLog, phase: str = "verify_healthy", wait_s: float = 240.0) -> None:
+        super().verify_healthy(log, phase, wait_s)
+        # how long the home page takes when nothing is wrong: the latency scenarios are judged against this
+        log.add("home_latency", True, self._check({"type": "http_probe", "path": "/"})[1])
+
+    def reset(self, scenario: dict, log: StepLog, noises: list[dict] | None = None) -> None:
+        started = time.monotonic()
+        errors = []
+        for step in scenario.get("reset", []) or []:
+            try:
+                self._kubectl_step(step, log, "reset")
+            except EnvironmentError_ as exc:
+                errors.append(str(exc))
+        for name in BOUTIQUE_DEPLOYMENTS:
+            res = self._run(["-n", self.ns, "rollout", "status", f"deployment/{name}", f"--timeout={self.rollout_timeout}s"],
+                            self.rollout_timeout + 10)
+            if not res.ok:
+                errors.append(f"rollout {name}: {res.stderr.strip()[:200]}")
+        log.add("reset", not errors, "; ".join(errors) or "reset steps applied", time.monotonic() - started)
+        self.verify_healthy(log, phase="verify_recovered")
+
+    def health_problems(self) -> list[str]:
+        problems = []
+        data = self._json(["-n", self.ns, "get", "deployments,pods"])
+        if data is None:
+            return ["cannot read namespace boutique with admin credentials"]
+        ready = {}
+        for item in data.get("items", []):
+            kind, name = item.get("kind"), item["metadata"]["name"]
+            if kind == "Deployment":
+                ready[name] = item.get("status", {}).get("readyReplicas", 0) or 0
+            elif kind == "Pod":
+                if item["metadata"].get("deletionTimestamp"):
+                    problems.append(f"pod {name} terminating")
+                    continue
+                for cs in item.get("status", {}).get("containerStatuses", []) or []:
+                    if not cs.get("ready"):
+                        problems.append(f"pod {name} not ready")
+                    if "waiting" in (cs.get("state") or {}):
+                        problems.append(f"pod {name} waiting {cs['state']['waiting'].get('reason')}")
+        for name in BOUTIQUE_DEPLOYMENTS:
+            if ready.get(name, 0) < 1:
+                problems.append(f"Deployment/{name} ready {ready.get(name, 0)}/1")
+        # the objects the scenarios change must be back at the release manifest's values
+        pc = (self._json(["-n", self.ns, "get", "service", "productcatalogservice"]) or {}).get("spec") or {}
+        if [p.get("targetPort") for p in pc.get("ports", [])] != [3550]:
+            problems.append("service productcatalogservice targetPort differs from baseline (3550)")
+        rc = (self._json(["-n", self.ns, "get", "service", "redis-cart"]) or {}).get("spec") or {}
+        if rc.get("selector") != {"app": "redis-cart"}:
+            problems.append("service redis-cart selector differs from baseline")
+        co = self._json(["-n", self.ns, "get", "deployment", "checkoutservice"]) or {}
+        env = {e.get("name"): e.get("value") for c in (co.get("spec") or {}).get("template", {}).get("spec", {}).get("containers", [])
+               for e in c.get("env", []) or []}
+        if env.get("SHIPPING_SERVICE_ADDR") != "shippingservice:50051":
+            problems.append("checkoutservice SHIPPING_SERVICE_ADDR differs from baseline")
+        if self._run(["-n", "infra-tools", "get", "pod", "net-injector"], 20).ok:
+            problems.append("pod infra-tools/net-injector still exists (network delay may still be applied)")
+        if not problems:
+            ok, detail = self._check({"type": "http_probe", "path": "/", "contains": "Online Boutique"})
+            if not ok:
+                problems.append(f"home page not served: {detail}")
+        return problems
+
+
+def make_lifecycle(scenario: dict, admin_runner, lab_namespace: str, lab_k8s_dir: str) -> Lifecycle:
+    """The lifecycle for the app a scenario belongs to (`app: boutique`, default = the lab app)."""
+    if scenario.get("app") == "boutique":
+        return BoutiqueLifecycle(admin_runner, lab_k8s_dir)
+    return Lifecycle(admin_runner, lab_namespace, lab_k8s_dir)

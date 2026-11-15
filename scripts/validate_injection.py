@@ -22,13 +22,14 @@ REPO = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO))
 
 from triage.kube import KubectlRunner  # noqa: E402
-from triage.lifecycle import EnvironmentError_, Lifecycle, StepLog, load_scenarios  # noqa: E402
+from triage.lifecycle import EnvironmentError_, StepLog, load_scenarios, make_lifecycle  # noqa: E402
 from triage.runner import cfg, load_dotenv, path_cfg  # noqa: E402
 
 OUT = REPO / "results" / "validation"
 
 
-def snapshot(k: KubectlRunner, ns: str, secret_value: str | None) -> dict:
+def snapshot(k: KubectlRunner, ns: str, secret_value: str | None,
+             selectors: tuple[str, ...] = ("app=api", "app=worker", "app=redis")) -> dict:
     def run(args, timeout=30):
         res = k.run(["-n", ns, *args], timeout=timeout)
         text = res.stdout if res.ok else f"[error] {res.stderr.strip()[:300]}"
@@ -42,7 +43,8 @@ def snapshot(k: KubectlRunner, ns: str, secret_value: str | None) -> dict:
         "workloads": run(["get", "deploy,sts", "-o", "wide"]),
         "endpoints": run(["get", "endpointslices"]),
     }
-    for sel in ("app=api", "app=worker", "app=redis"):
+    snap["services"] = run(["get", "services", "-o", "wide"])
+    for sel in selectors:
         snap[f"logs {sel}"] = run(["logs", "-l", sel, "--tail=25", "--all-containers", "--prefix", "--max-log-requests=10"])
         snap[f"previous logs {sel}"] = run(["logs", "-l", sel, "--tail=15", "--previous", "--prefix", "--max-log-requests=10"])
     return snap
@@ -56,7 +58,6 @@ def main() -> int:
     load_dotenv()
     ns = cfg("NAMESPACE", "tiktok-k8s-lab")
     admin = KubectlRunner(kubeconfig=path_cfg("ADMIN_KUBECONFIG"), context=cfg("ADMIN_CONTEXT"))
-    lc = Lifecycle(admin, ns, cfg("LAB_K8S_DIR"))
     pw_file = Path(cfg("LAB_K8S_DIR")).parent / ".local" / "redis-password.txt"
     secret = pw_file.read_text().strip() if pw_file.exists() else None
     OUT.mkdir(parents=True, exist_ok=True)
@@ -64,6 +65,8 @@ def main() -> int:
     status = 0
     for sid in args.ids:
         sc = scenarios[sid]
+        lc = make_lifecycle(sc, admin, ns, cfg("LAB_K8S_DIR"))
+        boutique = sc.get("app") == "boutique"
         log = StepLog()
         record = {"scenario": sid, "validate_note": sc.get("realism", {}).get("validate_note"),
                   "key_evidence": sc["answer"].get("key_evidence"), "confirmed": False}
@@ -79,7 +82,9 @@ def main() -> int:
             except EnvironmentError_ as exc:
                 record["confirm_error"] = str(exc)
             time.sleep(args.settle)
-            record["snapshot"] = snapshot(admin, ns, secret)
+            record["snapshot"] = (snapshot(admin, lc.ns, None, ("app=frontend", "app=checkoutservice", "app=cartservice",
+                                                               "app=productcatalogservice", "app=redis-cart"))
+                                  if boutique else snapshot(admin, ns, secret))
             blob = json.dumps(record["snapshot"], ensure_ascii=False)
             record["key_evidence_seen"] = {e: (e in blob) for e in record["key_evidence"] or []}
         except EnvironmentError_ as exc:
