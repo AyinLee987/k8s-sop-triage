@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Only `ts-food-service` is in CrashLoopBackOff. Its logs show `UnknownHostException: tsdb-mysql-leader: Temporary failure in name resolution` and repeated DNS timeouts to `10.255.18.254:53`. The `tsdb-mysql-leader` Service exists and TCP connectivity to `10.68.188.173:3306` succeeds from worker-01, worker-02, and worker-03, ruling out a missing Service or general backend outage. `ts-food-service` uniquely has `dnsPolicy: None` with custom nameserver `10.255.18.254`, unlike a healthy sibling such as `ts-order-service`, which uses default DNS. This supports an app-specific DNS resolution failure in `ts-food-service`.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-food-service\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_packet_loss\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 9
+}

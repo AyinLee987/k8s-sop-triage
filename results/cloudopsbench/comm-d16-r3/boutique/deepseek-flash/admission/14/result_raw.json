@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All boutique workloads except checkoutservice are Running/Ready. checkoutservice Deployment is 1 desired, 0 updated, 0 total with ReplicaFailure=True reason=FailedCreate, and no checkoutservice pod exists. Its ServiceAccount exists, ruling out missing ServiceAccount. ResourceQuota cpu-request-quota shows requests.cpu 10/10, exactly at the hard limit, so the checkoutservice pod requiring 2 CPU requests is rejected at admission.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"namespace/boutique\", \"root_cause\": \"namespace_cpu_quota_exceeded\"}, {\"rank\": 2, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"cpu_capacity_mismatch\"}, {\"rank\": 3, \"fault_object\": \"namespace/boutique\", \"root_cause\": \"namespace_pod_quota_exceeded\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 7
+}

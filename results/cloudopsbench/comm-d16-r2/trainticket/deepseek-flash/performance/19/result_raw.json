@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Active alerts show RESOURCE_SATURATION [cpu_cfs] on ts-order-service (0.306s throttled), while pods are Running/Ready with no abnormal restarts. Several callers, especially ts-cancel-service, show severe latency degradation, and ts-order-service logs show high-volume order/ticket processing with no error logs. Dependency topology confirms ts-cancel-service calls ts-order-service, so the extreme ts-cancel latency is consistent with downstream impact from ts-order-service CPU saturation.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 2, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 3, \"fault_object\": \"app/ts-cancel-service\", \"root_cause\": \"code_artificial_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 11
+}

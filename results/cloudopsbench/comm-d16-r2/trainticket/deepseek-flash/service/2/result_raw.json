@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All pods are Running/Ready, but `ts-food-delivery-service` has no matching Kubernetes Service in `train-ticket`. Its deployment declares container port 18957, dependency topology shows it is called by `ts-gateway-service`, and a direct connectivity check to `ts-food-delivery-service:18957` failed. This supports DNS/service-name resolution failure for the missing Service backing the healthy application pod.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-food-delivery-service\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 2, \"fault_object\": \"app/ts-food-delivery-service\", \"root_cause\": \"service_port_mapping_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/ts-gateway-service\", \"root_cause\": \"service_env_var_address_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 10
+}

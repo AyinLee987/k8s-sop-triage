@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"ts-payment-service is in CrashLoopBackOff with exit code 1. Logs show `java.net.UnknownHostException: tsdb-mysql-leader` causing MySQL communications failure. The `tsdb-mysql-leader` Service exists with endpoint 172.20.3.235:3306 and is reachable from debug pods on worker-01/02/03. The ts-payment-service Deployment uniquely uses `dnsPolicy: None` with only nameserver `10.255.17.254`, which breaks Kubernetes short-name DNS resolution inside that pod.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 2, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"service_env_var_address_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 9
+}

@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"ts-train-service is a leaf downstream dependency with extreme local latency (p50 ~2.4s, p90 ~4.5s), while its pod is Running/Ready with zero restarts, no downstream calls, no application error pattern, no CPU/memory saturation alert, and its upstream caller ts-basic-service shows propagated latency. This supports a service-local artificial delay.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-train-service\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-train-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 14
+}

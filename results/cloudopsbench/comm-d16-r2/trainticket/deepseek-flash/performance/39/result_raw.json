@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Widespread latency and RPS-drop alerts across many services with all pods Running/Ready and zero restarts. The most severe latency is on the shared entry path: ts-gateway-service p90 46.5s (peak 256s) and ts-ui-dashboard p90 48s, while downstream ts-order-service logs show fast, normal request processing (~100-300ms) and no errors. Topology is browser -> ts-ui-dashboard -> ts-gateway-service -> all business services; the gateway is a single-replica NodePort entry point on worker-01. Nodes are all Ready with no Memory/Disk/PID pressure, and TCP connectivity to ts-gateway-service:18888 succeeds from worker-01/02/03. Degraded services span all three nodes (order on worker-03, seat on worker-02, travel/security on worker-01), so the fault is not node-wide. This localizes to pod-scoped network delay at the gateway, propagating latency to every caller while backends remain healthy.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-gateway-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-gateway-service\", \"root_cause\": \"code_artificial_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 17
+}

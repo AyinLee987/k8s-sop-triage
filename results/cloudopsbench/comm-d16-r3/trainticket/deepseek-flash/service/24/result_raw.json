@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"ts-food-service pods are in CrashLoopBackOff with application logs showing `java.net.UnknownHostException: tsdb-mysql-leader: Temporary failure in name resolution` and JDBC/Hikari initialization failures. The `tsdb-mysql-leader` Service exists with backing MySQL pods, and direct TCP connectivity to it succeeds from worker-01/02/03, while kube-proxy on worker-01 is active. Istio sidecar logs also show DNS lookup timeouts for `istiod`. These findings point to DNS resolution failure affecting the `ts-food-service` application, causing startup failure and partial service unavailability.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-food-service\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 2, \"fault_object\": \"app/ts-food-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 12
+}

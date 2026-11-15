@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"cartservice Deployment desires 1 replica, but its ReplicaSet has 0 pods due to persistent FailedCreate errors: 'exceeded quota: cpu-request-quota, requested: requests.cpu=1, used: requests.cpu=10, limited: requests.cpu=10'. ResourceQuota cpu-request-quota is confirmed at requests.cpu 10/10, so no cartservice pod can be admitted, causing partial service unreachability. A one-time missing cartservice ServiceAccount error was also seen, but the ServiceAccount now exists and the recurring blocker is the CPU request quota.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"namespace/boutique\", \"root_cause\": \"namespace_cpu_quota_exceeded\"}, {\"rank\": 2, \"fault_object\": \"app/cartservice\", \"root_cause\": \"missing_service_account\"}, {\"rank\": 3, \"fault_object\": \"namespace/boutique\", \"root_cause\": \"namespace_pod_quota_exceeded\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 8
+}

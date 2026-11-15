@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All application pods are Running/Ready with no Pending pods, and no broad infrastructure fault is evident. Alerts and logs localize the strongest deterministic failure to the payment flow: ts-inside-payment-service calls /api/v1/paymentservice/payment and receives HTTP 500; ts-payment-service then logs IncorrectResultSizeDataAccessException/NonUniqueResultException 'query did not return a unique result: 5'. This is consistent with a caller/callee argument contract defect causing the payment lookup to match multiple records. The travel search 404 alert is an alternative path-specific application defect.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-inside-payment-service\", \"root_cause\": \"code_wrong_argument_order\"}, {\"rank\": 2, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"code_missing_parameter\"}, {\"rank\": 3, \"fault_object\": \"app/ts-travel-service\", \"root_cause\": \"code_wrong_return\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 20
+}

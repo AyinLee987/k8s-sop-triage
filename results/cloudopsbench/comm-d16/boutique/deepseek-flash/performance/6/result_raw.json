@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"The active alert is isolated to frontend: CFS throttling reaches 1.333s, CPU rises from 0.07 to 0.16 cores (+138%), p50 latency rises from 15.87ms to 45ms, and p95 rises from 27.67ms to 271.36ms. The frontend pod is Running and Ready (2/2) with 0 restarts, no frontend error logs were found, and all nodes are Ready without memory/disk/PID pressure. Source inspection found no explicit injected sleep/blocking delay in the frontend request path, making excessive pod CPU load the strongest explanation.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/frontend\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 2, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 3, \"fault_object\": \"app/frontend\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 19
+}

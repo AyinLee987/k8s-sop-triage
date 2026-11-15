@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Widespread latency degradation and throughput drops occurred while all pods remained Running/Ready with no meaningful restart or readiness failures. The most severe latency affected services co-located on worker-03, including ts-cancel-service and ts-inside-payment-service, while their application logs showed request processing completing quickly. Node conditions and allocatable resources were normal, and kube-proxy on worker-03 was active. This pattern is consistent with node-level network delay affecting co-located pods, with downstream/upstream services showing secondary latency and traffic drops.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/worker-03\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 2, \"fault_object\": \"node/worker-03\", \"root_cause\": \"node_network_packet_loss\"}, {\"rank\": 3, \"fault_object\": \"app/ts-inside-payment-service\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 19
+}

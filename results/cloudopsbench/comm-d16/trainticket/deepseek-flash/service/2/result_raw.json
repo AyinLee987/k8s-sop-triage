@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All pods are Running/Ready, and peer services have populated Endpoints. `ts-wait-order-service` has a Running pod with declared containerPort 17525, but the Service object `ts-wait-order-service` is absent, and an active connectivity check to `ts-wait-order-service:17525` fails. This explains partial unreachability as callers cannot resolve/reach that one service name.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-wait-order-service\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 2, \"fault_object\": \"app/ts-wait-order-service\", \"root_cause\": \"service_selector_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/ts-wait-order-service\", \"root_cause\": \"service_port_mapping_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 19
+}

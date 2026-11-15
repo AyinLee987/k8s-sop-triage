@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All boutique pods were Running and Ready, and Service endpoints were populated. productcatalogservice's Service exposes port 3550 but has targetPort 8081; its pod/container listens on 3550. The endpoint is 172.20.1.16:8081, and an active TCP check to productcatalogservice:3550 failed. This isolates the disruption to an incorrect Service port mapping.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"service_port_mapping_mismatch\"}, {\"rank\": 2, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"service_protocol_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"service_selector_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 11
+}

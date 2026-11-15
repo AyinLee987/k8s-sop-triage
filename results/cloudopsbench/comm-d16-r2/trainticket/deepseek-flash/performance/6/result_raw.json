@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Widespread service latency and throughput drops occurred while all pods stayed Running/Ready with essentially zero restarts. `ts-gateway-service` is the central entry point and had the largest p90 latency spike (about 39s, peak 176s), with most other services showing downstream traffic drops. `ts-order-service` logs showed fast successful request processing and no error logs, and its service port was reachable from all workers. Nodes were Ready without resource pressure. This pattern best matches a pod-scoped network delay affecting the shared gateway entry pod, rather than application errors, pod crashes, node pressure, or service-port misconfiguration.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-gateway-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"node/worker-03\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 19
+}

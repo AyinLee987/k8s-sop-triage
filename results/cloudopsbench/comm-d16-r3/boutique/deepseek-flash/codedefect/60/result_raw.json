@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts localized to frontend with a new filesystem write surge (peak 414371.37B/s) and CPU increase. Both affected routes ('/' and '/product/{id}') invoke chooseAd, whose source code creates /tmp/tmp.csv and writes 30,000 CSV rows synchronously per call. This explains path-specific degradation/503s with otherwise healthy pod logs and no downstream error evidence.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_excessive_file_writes\"}, {\"rank\": 2, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 3, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_artificial_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 8
+}

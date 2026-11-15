@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Active alert shows only frontend abnormal: CFS CPU throttling (1.333s), CPU usage rose from normal 0.07 cores to 0.16 cores (+138.1%), and frontend p95 latency increased from 27.67ms to 271.36ms. The frontend pod is Running 2/2 with 0 restarts on worker-01. Node configuration shows all nodes Ready with no Memory/Disk/PID pressure and 8 allocatable CPUs. Frontend error logs are absent, and inspected frontend source files show no explicit artificial delay, wrong return, or injected busy loop. Recent frontend logs show normal request completion once outside the alert window, supporting a transient pod-scoped CPU saturation rather than a persistent code or node fault.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/frontend\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 2, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 3, \"fault_object\": \"app/frontend\", \"root_cause\": \"cpu_capacity_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 18
+}

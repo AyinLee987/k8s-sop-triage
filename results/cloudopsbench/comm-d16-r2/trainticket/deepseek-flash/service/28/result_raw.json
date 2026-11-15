@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"ts-payment-service is the only unhealthy workload, in CrashLoopBackOff with exit code 1. Its logs show repeated Hikari/JDBC failures caused by java.net.UnknownHostException for tsdb-mysql-leader: Temporary failure in name resolution. The tsdb-mysql-leader Service exists and TCP connectivity to 10.68.188.173:3306 succeeds from worker-01, worker-02, and worker-03. The ts-payment-mysql Secret correctly sets PAYMENT_MYSQL_HOST=tsdb-mysql-leader and PAYMENT_MYSQL_PORT=3306, ruling out a basic host/port configuration mismatch. A Process payment 500 alert confirms downstream availability impact.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 2, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"service_env_var_address_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 10
+}

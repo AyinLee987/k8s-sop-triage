@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Widespread latency and throughput drops occurred while all pods remained Running/Ready with zero or minimal restarts, and node CPU/memory/disk pressure was absent. Dependency tracing identified ts-route-service as the deepest affected leaf service, with extremely elevated service-local latency (p50 ~8026 ms, p90 ~21000 ms) but no downstream calls, no application error logs, and successful TCP connectivity on port 11178 from all workers. Caller services such as ts-basic-service, ts-travel-service, ts-gateway-service, and ts-ui-dashboard showed propagated latency, supporting an artificial delay inside ts-route-service rather than infrastructure or dependency failure.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-route-service\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-route-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-route-service\", \"root_cause\": \"code_busy_loop\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 19
+}

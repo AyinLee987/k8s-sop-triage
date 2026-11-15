@@ -1,0 +1,75 @@
+{
+ "dose": 16,
+ "communities": [
+  {
+   "id": "G1",
+   "source": "C1",
+   "name": "Missing replicas while sibling workloads run",
+   "symptom": "An engineer observes expected new pods are absent or a Deployment has zero/partial replicas while sibling workloads continue running, often alongside downstream connection errors.",
+   "guide": "Namespace ResourceQuota saturated or at hard limit - check namespace quota used requests/limits equals the hard limit and a FailedCreate/forbidden admission event rejects pod creation while affected pods are not merely Pending, restarting, unready, or unreachable (exp-01, exp-16)\nMissing ServiceAccount referenced by pod template - check Deployment/ReplicaSet FailedCreate admission event naming an absent or misspelled ServiceAccount in the same namespace while no pod object exists and sibling workloads run (exp-09)\nDo not conclude before: ruling out scheduling/node pressure, image pull/startup, crashloop/readiness, DNS/network/endpoint failures, wrong namespace or stale events, normal autoscaling churn, and other admission denials such as webhook/RBAC, limit-range, invalid pod spec/security context, or missing ConfigMap/Secret.",
+   "members": [
+    "01",
+    "09",
+    "16"
+   ]
+  },
+  {
+   "id": "G2",
+   "source": "C2",
+   "name": "Availability drop with Pending PodScheduled=False pod",
+   "symptom": "Availability drops and a new pod stays Pending with PodScheduled=False while sibling pods remain Running.",
+   "guide": "Admission rejection by namespace ResourceQuota - check quota at/over limit, referenced PVC absent, pod has no node assigned, no scheduling events, and sibling pods Running (exp-11)\nDo not conclude before: ruling out node capacity/taints/affinity, missing or unbound PV/StorageClass, image-pull errors, crash loops, and readiness failures by confirming no scheduling events and that the dependent claim was never created.",
+   "members": [
+    "11"
+   ]
+  },
+  {
+   "id": "G3",
+   "source": "C3",
+   "name": "Service connectivity failure",
+   "symptom": "Clients see connection refused or timeouts, or partial unreachability, when accessing a Kubernetes Service while backing pods may be Running/Ready.",
+   "guide": "Service port/targetPort mapping mismatch - check a Running/Ready pod whose labels match the Service selector but whose targetPort names an absent container port or a numeric port different from the listener, with Endpoints/EndpointSlice showing no usable or wrong port (exp-05)\nGateway/ingress route misrouting - check a route-specific 404/Not Found while other routes work, with healthy target pods and populated endpoints (exp-06)\nCaller-side downstream address configuration mismatch - check DNS failure for a nonexistent or misspelled name no Service defines while other callers resolve/reach the same dependency normally (exp-08)\nNode-local packet-forwarding agent (kube-proxy/CNI) failure - check connectivity failure confined to clients on one node while the same Service is reachable from other nodes, with pods Running/Ready and endpoints populated, and that node's networking agent unit inactive/dead/killed (exp-10)\nService protocol/transport mismatch - check the Service transport differs from the app's expected transport (e.g., UDP Service for TCP/gRPC) and direct connectivity to that Service port fails while backends stay healthy (exp-13)\nDo not conclude before: ruling out pod crash/readiness failures, empty/mismatched/stale or misselected endpoints, DNS/name-resolution faults, NetworkPolicy/firewall/CNI/DNS infrastructure faults, control-plane/apiserver degradation, node NotReady/taints/resource pressure, app-not-listening/backend 5xx/timeouts, Service type/exposure errors, and unsupported targetPort/protocol assumptions.",
+   "members": [
+    "05",
+    "06",
+    "08",
+    "10",
+    "13"
+   ]
+  },
+  {
+   "id": "G4",
+   "source": "C4",
+   "name": "Path-specific deterministic 5xx/503 with healthy pods",
+   "symptom": "Engineers see deterministic 5xx/503 failures confined to a specific request path or business action while pods remain Ready with stable restarts and services have populated endpoints.",
+   "guide": "Wrong-return/code defect - check the error chain traces to an internally generated bad status or logic on valid input, with failures confined to a specific request path and normal connectivity, DNS, downstream availability, and capacity metrics (exp-03)\nEntry-handler application defect (swapped positional arguments or call-signature mismatch) - check failures concentrate on one handler/business action, overall error ratio is low, there is no broad connection/timeout/restart pattern, and source inspection matches caller argument order/types to the callee contract (exp-04)\nDo not conclude before: ruling out pod crashes/OOM/resource pressure, missing endpoints or service/endpoint/port misconfiguration, saturation/quota limits, network/DNS faults, dependency/database outage or overload, and deployment/config changes.",
+   "members": [
+    "03",
+    "04"
+   ]
+  },
+  {
+   "id": "G5",
+   "source": "C8",
+   "name": "Single-workload repeated CrashLoop restarts",
+   "symptom": "One workload is in CrashLoopBackOff with rising restarts while peer pods and dependencies remain healthy.",
+   "guide": "Application memory leak - check prior-container termination reason OOMKilled/exit 137, memory climbing across restarts, and a code path or heap profile showing unbounded growth (exp-15)\nDo not conclude before: ruling out node memory pressure/eviction, an undersized container limit, liveness/readiness probe misconfiguration or slow start, dependency-triggered panic, and bad config/image rollout",
+   "members": [
+    "15"
+   ]
+  },
+  {
+   "id": "G6",
+   "source": "LAT",
+   "name": "Healthy-pod latency degradation",
+   "symptom": "An engineer observes elevated service latency while pods remain Running/Ready with zero restarts and endpoints are populated.",
+   "guide": "Pod-scoped network delay - check that only the target pod's inbound/outbound call latency/RTT is elevated while peer pods, node, and downstream dependencies stay normal (exp-02)\nApplication code delay - check that the deepest service with elevated own latency has healthy pods, low error ratio, normal dependencies/DB/shared infrastructure, and source/config inspection shows an explicit sleep or delay in the request path (exp-07)\nNode-level packet loss - check multi-service co-located degradation with simultaneous bidirectional packet-rate drop and node NIC drop/error/retransmit metrics, comparing co-located pods against the same workloads on unaffected nodes (exp-12)\nShared upstream/entry pod network delay - check many services show simultaneous RPS drops and p90 latency spikes while pod-scoped latency/RTT is confined to one upstream/entry pod and its node, sibling pods, and downstream services remain healthy (exp-14)\nDo not conclude before: ruling out CPU/memory throttling or OOM, node CPU/memory/disk/network pressure, application exceptions/probe/readiness failures, endpoint churn, downstream/DB/cache latency, DNS failure, bad rollout/config, load surge, client/ingress issues, and packet loss or broad congestion.",
+   "members": [
+    "02",
+    "07",
+    "12",
+    "14"
+   ]
+  }
+ ]
+}

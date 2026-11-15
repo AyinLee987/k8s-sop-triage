@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"`ts-train-service` is in CrashLoopBackOff with repeated exits. Its logs show `java.net.UnknownHostException: tsdb-mysql-leader: Temporary failure in name resolution`, and the Istio sidecar reports DNS timeouts resolving `istiod.istio-system.svc` via `10.255.12.254:53`. The deployment has `dnsPolicy: None` with only a custom nameserver configured. The `tsdb-mysql-leader` Service exists and direct TCP connectivity to port 3306 succeeds from worker-01, worker-02, and worker-03, ruling out a bad Service target or cluster-wide network outage.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-train-service\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_packet_loss\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 9
+}

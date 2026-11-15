@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Frontend was the only alerted service, showing a new filesystem-write spike (171 KB/s, peak 414 KB/s) and abnormal CPU while all pods remained Running/Ready with no restarts or error logs. Normal request latencies and healthy dependencies pointed away from node/dependency failures. Source inspection of frontend handlers.go found chooseAd() creating /tmp/tmp.csv and writing 30,000 CSV rows on every home/product request, directly matching the observed filesystem-write surge and explaining the performance degradation.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_excessive_file_writes\"}, {\"rank\": 2, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 3, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_artificial_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 9
+}

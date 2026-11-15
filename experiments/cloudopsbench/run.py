@@ -48,6 +48,7 @@ def main() -> int:
     ap.add_argument("--dose", type=int, default=0, help="use the first K notes; 0 = agent unchanged")
     ap.add_argument("--tt-source", default="", help="checkout of FudanSELab/train-ticket: adds source-code tools for TrainTicket cases")
     ap.add_argument("--order-seed", type=int, default=0, help="shuffle the accumulation order of the notes with this seed (0 = file order)")
+    ap.add_argument("--communities", default="", help="JSON file grouping the notes into communities (two-level catalog)")
     ap.add_argument("--case-timeout", type=int, default=420)
     args = ap.parse_args()
     env = dotenv()
@@ -80,6 +81,8 @@ def main() -> int:
         child_env["TT_SOURCE_DIR"] = str(Path(args.tt_source).resolve())
     if args.dose:
         child_env.update(EXPERIENCE_DIR=str(Path(args.experience).resolve()), EXPERIENCE_DOSE=str(args.dose))
+        if args.communities:
+            child_env["EXPERIENCE_COMMUNITIES"] = str(Path(args.communities).resolve())
         if args.order_seed:
             stems = sorted(p.stem for p in Path(args.experience).glob("[0-9][0-9].md"))
             __import__("random").Random(args.order_seed).shuffle(stems)

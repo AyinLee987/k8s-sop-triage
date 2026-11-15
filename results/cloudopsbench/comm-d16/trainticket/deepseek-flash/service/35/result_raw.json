@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Only `ts-train-service` is in CrashLoopBackOff with exit code 1. Its logs show `java.net.UnknownHostException: tsdb-mysql-leader: Temporary failure in name resolution`, causing Spring startup to fail. The `tsdb-mysql-leader` Service exists with a valid endpoint, and active TCP connectivity to `tsdb-mysql-leader:3306` succeeds from worker-01/02/03. Nodes are Ready with no pressure. This isolates the fault to DNS resolution from the `ts-train-service` pod rather than the database Service or node-wide networking.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-train-service\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 2, \"fault_object\": \"app/ts-train-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 12
+}

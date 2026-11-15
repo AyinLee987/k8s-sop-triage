@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Frontend-only alerts show CPU CFS throttling (1.204s), CPU rising 0.01→0.13 cores (+1506%), and p50 latency 24.73ms→2235.31ms with 503s on GET / and /product/{id}. All frontend pods are Running with zero restarts. Source code in frontend/handlers.go contains `chooseAd`, which busy-spins for 800ms before returning, and is called by both home and product handlers. This CPU-intensive busy loop explains the localized CPU saturation, throttling, extreme latency, and resulting 503s.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 2, \"fault_object\": \"app/frontend\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 3, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_artificial_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 9
+}

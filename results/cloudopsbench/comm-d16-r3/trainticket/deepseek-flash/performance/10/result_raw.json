@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Widespread caller latency and throughput drops trace to ts-route-service, where p50 latency rose from 7.55ms to 8026.32ms and p90 from 9.6ms to 21000ms. ts-route-service is a leaf with no downstream service calls, its pod remains Running/Ready without relevant restarts, no error logs were found, TCP connectivity succeeds from all worker nodes, and nodes show no pressure. This localizes the fault to application-side request handling in ts-route-service, consistent with an injected artificial delay.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-route-service\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-route-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-route-service\", \"root_cause\": \"code_busy_loop\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 17
+}

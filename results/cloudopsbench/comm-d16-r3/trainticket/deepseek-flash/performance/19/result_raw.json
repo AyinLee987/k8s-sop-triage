@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All application pods are Running with no broad restart pattern. Alerts show extreme latency at ts-cancel-service, ts-gateway-service, ts-inside-payment-service, and ts-ui-dashboard, while the only direct resource anomaly is RESOURCE_SATURATION [cpu_cfs] on ts-order-service (0.306s throttled). ts-cancel-service depends on ts-order-service, and ts-order-service logs show CPU-heavy order queries and large sold-ticket list processing. This makes ts-order-service CPU overload the strongest root cause propagating latency to callers.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 2, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 3, \"fault_object\": \"app/ts-cancel-service\", \"root_cause\": \"code_artificial_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 13
+}

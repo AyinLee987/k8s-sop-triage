@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Active alerts show RESOURCE_SATURATION [cpu_cfs] on ts-order-service with 0.589s throttled. Pods are Running/Ready with zero restarts, and ts-order-service has no application error logs. ts-seat-service latency is associated with downstream order calls (Envoy upstream service times around 500-950ms), while ts-seat logs show no local errors. Other affected services (ts-preserve-service, ts-travel-service) show derived latency consistent with the ts-order-service CPU bottleneck.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 2, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 3, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"cpu_capacity_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 11
+}

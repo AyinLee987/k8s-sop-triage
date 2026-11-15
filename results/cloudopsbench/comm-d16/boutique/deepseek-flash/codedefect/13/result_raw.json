@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Checkout requests fail with frontend error: failed to convert price to CAD. currencyservice logs show TypeError: Cannot read properties of null (reading 'units') during conversion. checkoutservice source code explicitly sets `from = nil` before calling CurrencyService.Convert, omitting the required From money parameter and causing the downstream conversion failure and checkout 500s.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"code_missing_parameter\"}, {\"rank\": 2, \"fault_object\": \"app/currencyservice\", \"root_cause\": \"code_wrong_return\"}, {\"rank\": 3, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"code_wrong_return\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 18
+}

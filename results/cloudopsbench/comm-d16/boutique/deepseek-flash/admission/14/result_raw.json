@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"checkoutservice Deployment is 0/1; its ReplicaSet exists but has 0 pods. DescribeResource on checkoutservice-7545f6f597 shows repeated FailedCreate events: pods are forbidden because the `cpu-request-quota` would be exceeded (requested requests.cpu=2, used=10, limited=10). All sibling workloads are Running/Ready, so the fault is namespace CPU request quota exhaustion preventing checkoutservice pod creation.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"namespace/boutique\", \"root_cause\": \"namespace_cpu_quota_exceeded\"}, {\"rank\": 2, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"deployment_zero_replicas\"}, {\"rank\": 3, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"missing_service_account\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 6
+}

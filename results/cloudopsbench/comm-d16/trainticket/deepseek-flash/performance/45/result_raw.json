@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts showed an extreme latency spike at ts-train-service (p50 8.35ms -> 2500ms, p90 411.79ms -> 4500ms) with cascading latency in callers such as ts-basic-service and ts-preserve-service. Dependency inspection showed ts-train-service is the deepest leaf with no downstream service calls. Its pod is Running/Ready with zero restarts and no application error logs. The deployment has normal CPU/memory requests/limits and a valid readiness probe, and no ts-train-service CPU/memory saturation alert was present. These facts strongly support an application-level artificial delay in ts-train-service rather than dependency failure, resource exhaustion, pod restart, or probe misconfiguration.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-train-service\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-train-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 13
+}

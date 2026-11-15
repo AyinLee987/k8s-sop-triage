@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alert showed ts-train-service p50 latency jumping from 8.35ms to exactly 2500.00ms (peak 2970ms) and p90 to 4500ms. This leaf service has no downstream dependencies, so the latency is service-local. Its pods are Running/Ready with 0 restarts, no error logs, and no CPU/memory saturation alert on it. Node conditions on worker-01 (where the pod runs) are all healthy with no pressure/taints. Upstream callers ts-basic-service and ts-preserve-service show propagated latency. The exact round 2500ms figure is a hallmark of an injected code sleep/delay rather than organic network or resource latency.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-train-service\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-train-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 15
+}

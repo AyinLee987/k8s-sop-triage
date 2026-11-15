@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alert isolated extreme latency degradation to checkoutservice (p50 18.66ms -> 3750ms, p90 64ms -> 4750ms) with no error-rate anomalies. Logs show successful payment/email/downstream calls with no dependency errors, and pods were healthy (Envoy readiness succeeded, no restarts). Dependency graph shows checkoutservice as the deepest affected service. Source inspection of checkoutservice main.go reveals an explicit `time.Sleep(time.Millisecond * time.Duration(3000))` (3-second sleep) injected at the start of the PlaceOrder handler, which fully accounts for the ~3.75s p50 latency spike. This is an application-level artificial delay defect.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 2, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"pod_cpu_overload\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 8
+}

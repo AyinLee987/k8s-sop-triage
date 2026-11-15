@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"ts-station-service is in CrashLoopBackOff with exit code 1. Application logs show `java.net.UnknownHostException: tsdb-mysql-leader: Temporary failure in name resolution`, causing HikariPool initialization and Spring startup failure. The `tsdb-mysql-leader` Service exists and is reachable on port 3306 from debug pods on worker-01, worker-02, and worker-03, so the backend Service itself is healthy. The ts-station-service Deployment has an app-specific broken DNS configuration: `dnsPolicy: None` with only `nameservers: [10.255.13.254]` and no search domains, causing service-name resolution to fail for this pod. The pod's istio-proxy also shows DNS lookup timeouts for `istiod.istio-system.svc`, supporting an app-specific DNS configuration fault. This explains downstream 500s in services such as ts-preserve-service that depend on station data.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-station-service\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 2, \"fault_object\": \"app/ts-station-service\", \"root_cause\": \"service_env_var_address_mismatch\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 9
+}

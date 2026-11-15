@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"ts-train-service shows an extreme service-local latency spike (p50 ~2425 ms, p90 ~4472 ms vs normal millisecond latency) while its pod is Running/Ready with 0 restarts. It is a leaf dependency called by gateway/travel/basic services, and upstream services such as ts-basic-service show derived elevated latency. ts-train-service has no application errors, successful TCP connectivity from all workers, adequate CPU/memory limits, and no clear CPU/memory throttling or node-wide degradation evidence. This pattern most strongly supports an application-level artificial delay in ts-train-service.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-train-service\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-train-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 12
+}

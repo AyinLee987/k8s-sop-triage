@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show checkoutservice p50/p90 latency spikes, emailservice p90 latency spike of +18581.6%, and downstream-derived frontend latency degradation. All pods are Running with zero restarts. Emailservice is the deepest service with elevated latency and has no error logs; its source has no explicit sleep/blocking delay, and service connectivity on port 5000 succeeds. Other co-located pods on worker-02 are not broadly affected, and nodes are Ready without pressure, supporting a pod-scoped network delay on emailservice.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/emailservice\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 18
+}

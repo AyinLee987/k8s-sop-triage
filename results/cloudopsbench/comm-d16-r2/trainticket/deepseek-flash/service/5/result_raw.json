@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All pods are Running/Ready. The ts-preserve-service Service selects its pods and maps port 14568/targetPort 14568 correctly. The alert shows 20 failures for POST /api/v1/preserveservice/preserve with HTTP 404. Gateway config shows route id 'preserve' for Path=/api/v1/preserveservice/** incorrectly targets FOOD_SERVICE_HOST (ts-food-service), not ts-preserve-service, causing the path-specific 404.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-gateway-service\", \"root_cause\": \"gateway_misrouted\"}, {\"rank\": 2, \"fault_object\": \"app/ts-preserve-service\", \"root_cause\": \"service_port_mapping_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/ts-preserve-service\", \"root_cause\": \"code_wrong_return\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 18
+}

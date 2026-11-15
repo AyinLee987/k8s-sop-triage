@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Frontend shows CPU CFS throttling (1.333s), CPU usage rising from 0.07 to 0.16 cores (+138.1%), p50 latency increasing from 15.87ms to 45ms, and p95 increasing from 27.67ms to 271.36ms. The frontend pod is 2/2 Running with zero restarts and no error logs. Source inspection found money.MultiplySlow, an O(n) additive busy loop used in cart/order rendering, matching a code-level CPU-intensive loop rather than infrastructure or downstream failure.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 2, \"fault_object\": \"app/frontend\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 3, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_artificial_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 10
+}

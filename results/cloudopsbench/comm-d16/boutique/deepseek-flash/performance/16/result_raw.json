@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show checkoutservice p50 latency 516.72ms (vs 17.36ms normal) and p90 948.48ms, with downstream emailservice p90 895.90ms and upstream frontend p90 574.70ms. All pods are Running/Ready with zero restarts; emailservice has no error logs and its source has no artificial delay. The dependency path is frontend -> checkoutservice -> emailservice. Checkoutservice source shows PlaceOrder uses money.MultiplySlow per cart item, a repeated-addition busy loop in the request path, supporting a CPU-intensive application code loop as the primary root cause.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 2, \"fault_object\": \"app/emailservice\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 14
+}
