@@ -1,0 +1,38 @@
+[
+ {
+  "round": 1,
+  "scenario": "B04",
+  "run": "results/holmes_slim/boutique-sop0/B04-r1.json",
+  "skill": "boutique-productcatalogservice",
+  "summary": "新增“无错误型变慢”信号与第 7、8 步：用调用方发起→返回耗时与本服务 received→completed 时间戳对齐，多个调用方同时固定多出同一量级耗时、本服务自处理不慢即判定延迟在本服务 Pod 网络侧，结论写在本服务，不要因机制层不可见就归到调用方或写“未确认”。",
+  "chars_before": 3479,
+  "chars_after": 6049
+ },
+ {
+  "round": 2,
+  "scenario": "B04",
+  "run": "results/holmes_slim/boutique-sop0/B04-r2.json",
+  "skill": "boutique-productcatalogservice",
+  "summary": "强化无错误型变慢判据：多调用方固定约300ms增量且本服务自身处理毫秒级时，直接判本服务 Pod 网络/链路侧，禁止把 CPU 限流/节点争抢写成待确认根因。",
+  "chars_before": 6049,
+  "chars_after": 6677
+ },
+ {
+  "round": 3,
+  "scenario": "B05",
+  "run": "results/holmes_slim/boutique-sop0/B05-r2.json",
+  "skill": "boutique-redis-cart",
+  "summary": "在 redis-cart SOP 增加无错误型变慢的跨调用方耗时与 Redis 往返次数判据，明确 redis-cart Pod 网络固定延迟的归属，避免误判为 CPU 限流或回跳 cartservice。",
+  "chars_before": 4127,
+  "chars_after": 7429
+ },
+ {
+  "round": 4,
+  "scenario": "B04",
+  "run": "results/holmes_slim/boutique-sop0/B04-r3.json",
+  "skill": "boutique-frontend",
+  "summary": "在 frontend SOP 增加无错误型页面变慢的逐跳耗时比对，明确 recommendationservice 慢可能是其下游 productcatalogservice 固定网络延迟，多个调用方对同一后端出现固定增量时跳该后端 skill，避免误归因 recommendationservice 或 CPU 限流。",
+  "chars_before": 5154,
+  "chars_after": 7598
+ }
+]

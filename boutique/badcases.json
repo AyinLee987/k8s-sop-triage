@@ -1,0 +1,13 @@
+{
+ "note": "runs in which HolmesGPT, following the per-service SOPs, got an Online Boutique scenario wrong (human-graded), in the order they happened; fed to evolve_service_sops.py one per round",
+ "found_by": {
+  "B04": "所有 Pod 都正常、没有事件。把 frontend 请求日志的耗时和各下游服务自己日志的时间戳对齐后可以看到：凡是调用 productcatalogservice 的地方（frontend、recommendationservice、checkoutservice 三个调用方）每次都多出约 300 毫秒，而 productcatalogservice 自身处理很快，其它服务之间的调用是正常的。推荐服务看起来最慢，是因为它内部调用了 productcatalogservice，页面又为每个推荐商品再查一次。多个调用方同时变慢、被调用方自身处理不慢，说明延迟在被调用方 Pod 的网络上。",
+  "B05": "所有 Pod 都正常、没有事件。页面耗时和每个请求里 Redis 往返的次数成正比：读一次购物车多约 300 毫秒，加购（两次往返）多约 600 毫秒；frontend 到 cartservice 这一跳本身不慢，其它下游都是毫秒级。Redis 进程日志正常、数据量很小，没有任何 CPU 被限流的证据，所以是 redis-cart 这个 Pod 的网络延迟。"
+ },
+ "cases": [
+  {"scenario": "B04", "run": "results/holmes_slim/boutique-sop0/B04-r1.json", "wrong": "没有定位到具体服务，说是多条跨 Pod 链路都慢"},
+  {"scenario": "B04", "run": "results/holmes_slim/boutique-sop0/B04-r2.json", "wrong": "服务找对了，原因说成 CPU 限流"},
+  {"scenario": "B05", "run": "results/holmes_slim/boutique-sop0/B05-r2.json", "wrong": "服务找对了，原因说成 CPU 不足"},
+  {"scenario": "B04", "run": "results/holmes_slim/boutique-sop0/B04-r3.json", "wrong": "归因到 recommendationservice"}
+ ]
+}
