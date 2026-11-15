@@ -7,6 +7,41 @@ one of its admissible tool calls. Categories: A no Submit; B a milestone was nev
 C1-C4 all milestones covered but the answer is wrong (see cls()). Also counts invalid steps: empty model outputs
 (output_tokens == max_tokens: the reasoning used up the whole budget) and format errors.
 """
+import json,glob,collections,re,sys
+B = '/home/claude/research/bench/Cloud-OpsBench/'  # dataset checkout
+s=json.load(open('experiments/cloudopsbench/sample_disc31.json')); can=set(s['canaries'])
+cases={c['id']:c for c in s['cases'] if c['id'] not in can}
+def norm(v): return str(v).strip().lower()
+def match(step,use):
+    if step.get('action_name')!=use['tool_name']: return False
+    ai=step.get('action_input') or {}
+    if not isinstance(ai,dict): return False
+    for k,v in (use.get('arguments') or {}).items():
+        a=norm(ai.get(k,''))
+        vs=[norm(x) for x in v] if isinstance(v,list) else [norm(v)]
+        if a not in vs and not any(x in a for x in vs if len(x)>3): return False
+    return True
+def load(tag):
+    out={}
+    sc={r['id']:r for r in json.load(open(f'results/cloudopsbench/{tag}/scores.json'))['rows']}
+    for f in glob.glob(f'results/cloudopsbench/{tag}/*/*/*/*/[0-9]*.json'):
+        p=f.split('/'); cid=f"{p[3]}/{p[5]}/{p[6]}"
+        if cid not in cases: continue
+        d=json.load(open(f)); r=sc[cid]
+        ms=json.load(open(f"{B}process-label/{p[3]}/{p[5]}/{p[6]}/milestone.json"))
+        cov={}
+        for m in ms['milestones']:
+            cov[m['id']+':'+m['role']]=any(match(st,u) for st in d['steps'] for u in m['admissible_tool_uses'])
+        inv_empty=sum(1 for st in d['steps'] if st.get('action_type')=='invalid' and not (st.get('raw_model_output') or '').strip())
+        inv_fmt=sum(1 for st in d['steps'] if st.get('action_type')=='invalid' and (st.get('raw_model_output') or '').strip())
+        if not r.get('finished',True) or d.get('stop_reason')!='submit': oc='没交答案'
+        elif r.get('top1'): oc='答对'
+        elif r.get('object') and not r.get('cause'): oc='对象对、原因错'
+        elif r.get('cause') and not r.get('object'): oc='原因对、对象错'
+        else: oc='都错'
+        out[cid]=dict(oc=oc,cov=cov,allcov=all(cov.values()),ncov=sum(cov.values()),nms=len(cov),steps=len(d['steps']),inv_empty=inv_empty,inv_fmt=inv_fmt,
+                      pred=(r.get('pred') or [{}])[0] if isinstance(r.get('pred'),list) else r.get('pred'),truth=r['truth'],reads=[re.search(r'(\d+)',str(st.get('action_input'))).group(1) for st in d['steps'] if st.get('action_name')=='ReadExperience' and re.search(r'(\d+)',str(st.get('action_input')))])
+    return out
 
 
 def cls(r):
