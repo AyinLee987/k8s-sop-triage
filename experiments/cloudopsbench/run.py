@@ -52,6 +52,8 @@ def main() -> int:
     ap.add_argument("--llm-timeout", type=int, default=0, help="seconds per model call (0 = the agent's default, 60)")
     ap.add_argument("--system-prompt", default="", help="file that replaces the agent's harness/system_prompt.md")
     ap.add_argument("--sop", default="", help="one version of the document-form SOP library, e.g. sops/v0")
+    ap.add_argument("--free-answer", action="store_true",
+                    help="remove the closed list of root causes: the agent states the root cause in its own words (grade with judge_free.py)")
     ap.add_argument("--communities", default="", help="JSON file grouping the notes into communities (two-level catalog)")
     ap.add_argument("--case-timeout", type=int, default=420)
     args = ap.parse_args()
@@ -68,6 +70,17 @@ def main() -> int:
         shutil.copytree(dataset / "agents" / args.agent, w)
         if args.system_prompt:
             shutil.copy(Path(args.system_prompt), w / "harness" / "system_prompt.md")
+        if args.free_answer:
+            cp = w / "runtime" / "contracts.py"
+            src = cp.read_text(encoding="utf-8")
+            a, b = src.index('root_cause_list_str = """'), src.index('"""', src.index('root_cause_list_str = """') + 30) + 3
+            src = (src[:a] + 'root_cause_list_str = """\n(No list is given. State the root cause in your own words: one specific sentence '
+                   'naming the mechanism, i.e. what exactly is misconfigured, broken or misbehaving, and at which layer.)\n"""' + src[b:])
+            assert src.count("(Select from List A)") == 3
+            src = src.replace("(Select from List A)", "(one specific sentence in your own words)")
+            src = src.replace("**Constraint:** The object's type must match the `(Requires Target: ...)` tag defined next to your chosen root cause.", "")
+            src = src.replace("**[List A: Valid Root Causes]**", "**[Root cause]**")
+            cp.write_text(src, encoding="utf-8")
         # The only changes to the reference agent: optional extensions loaded at one point in its run.py.
         inject = ""
         if args.tt_source:

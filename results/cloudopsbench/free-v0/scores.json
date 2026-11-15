@@ -1,0 +1,1146 @@
+{
+ "summary": {
+  "all": {
+   "n": 46,
+   "ran": 46,
+   "top1": 0,
+   "object": 38,
+   "cause": 0,
+   "top3": 0
+  },
+  "medium": {
+   "n": 17,
+   "ran": 17,
+   "top1": 0,
+   "object": 11,
+   "cause": 0,
+   "top3": 0
+  },
+  "boutique/admission": {
+   "n": 5,
+   "ran": 5,
+   "top1": 0,
+   "object": 2,
+   "cause": 0,
+   "top3": 0
+  },
+  "boutique/service": {
+   "n": 4,
+   "ran": 4,
+   "top1": 0,
+   "object": 4,
+   "cause": 0,
+   "top3": 0
+  },
+  "boutique/infrastructure": {
+   "n": 3,
+   "ran": 3,
+   "top1": 0,
+   "object": 3,
+   "cause": 0,
+   "top3": 0
+  },
+  "hard": {
+   "n": 16,
+   "ran": 16,
+   "top1": 0,
+   "object": 14,
+   "cause": 0,
+   "top3": 0
+  },
+  "boutique/performance": {
+   "n": 6,
+   "ran": 6,
+   "top1": 0,
+   "object": 6,
+   "cause": 0,
+   "top3": 0
+  },
+  "boutique/codedefect": {
+   "n": 5,
+   "ran": 5,
+   "top1": 0,
+   "object": 5,
+   "cause": 0,
+   "top3": 0
+  },
+  "easy": {
+   "n": 13,
+   "ran": 13,
+   "top1": 0,
+   "object": 13,
+   "cause": 0,
+   "top3": 0
+  },
+  "boutique/runtime": {
+   "n": 3,
+   "ran": 3,
+   "top1": 0,
+   "object": 3,
+   "cause": 0,
+   "top3": 0
+  },
+  "boutique/scheduling": {
+   "n": 3,
+   "ran": 3,
+   "top1": 0,
+   "object": 3,
+   "cause": 0,
+   "top3": 0
+  },
+  "boutique/startup": {
+   "n": 3,
+   "ran": 3,
+   "top1": 0,
+   "object": 3,
+   "cause": 0,
+   "top3": 0
+  },
+  "trainticket/runtime": {
+   "n": 3,
+   "ran": 3,
+   "top1": 0,
+   "object": 3,
+   "cause": 0,
+   "top3": 0
+  },
+  "trainticket/startup": {
+   "n": 1,
+   "ran": 1,
+   "top1": 0,
+   "object": 1,
+   "cause": 0,
+   "top3": 0
+  },
+  "trainticket/service": {
+   "n": 5,
+   "ran": 5,
+   "top1": 0,
+   "object": 2,
+   "cause": 0,
+   "top3": 0
+  },
+  "trainticket/performance": {
+   "n": 5,
+   "ran": 5,
+   "top1": 0,
+   "object": 3,
+   "cause": 0,
+   "top3": 0
+  }
+ },
+ "rows": [
+  {
+   "id": "boutique/admission/14",
+   "difficulty": "medium",
+   "truth": {
+    "fault_taxonomy": "Admission_Fault",
+    "fault_object": "namespace/boutique",
+    "root_cause": "namespace_cpu_quota_exceeded"
+   },
+   "ran": true,
+   "top1": false,
+   "object": false,
+   "cause": false,
+   "top3": false,
+   "pred": {
+    "fault_object": "app/checkoutservice",
+    "root_cause": "The namespace CPU request quota cpu-request-quota is exhausted at 10/10 CPU requests, so the checkoutservice ReplicaSet cannot create its pod and the deployment has zero ready replicas."
+   },
+   "steps": 7,
+   "finished": true,
+   "in_tok": 37629,
+   "out_tok": 1745
+  },
+  {
+   "id": "boutique/service/13",
+   "difficulty": "medium",
+   "truth": {
+    "fault_taxonomy": "Service_Routing_Fault",
+    "fault_object": "app/productcatalogservice",
+    "root_cause": "service_port_mapping_mismatch"
+   },
+   "ran": true,
+   "top1": false,
+   "object": true,
+   "cause": false,
+   "top3": false,
+   "pred": {
+    "fault_object": "app/productcatalogservice",
+    "root_cause": "The productcatalogservice Kubernetes Service has targetPort 8081 while the container listens on 3550, so traffic is forwarded to a closed port and connections are refused."
+   },
+   "steps": 9,
+   "finished": true,
+   "in_tok": 52912,
+   "out_tok": 1989
+  },
+  {
+   "id": "boutique/infrastructure/13",
+   "difficulty": "medium",
+   "truth": {
+    "fault_taxonomy": "Infrastructure_Fault",
+    "fault_object": "node/worker-01",
+    "root_cause": "kube_proxy_unavailable"
+   },
+   "ran": true,
+   "top1": false,
+   "object": true,
+   "cause": false,
+   "top3": false,
+   "pred": {
+    "fault_object": "node/worker-01",
+    "root_cause": "kube-proxy is inactive on worker-01, breaking Service ClusterIP routing from that node and causing downstream connection failures."
+   },
+   "steps": 11,
+   "finished": true,
+   "in_tok": 76247,
+   "out_tok": 5616
+  },
+  {
+   "id": "boutique/performance/2",
+   "difficulty": "hard",
+   "truth": {
+    "fault_taxonomy": "Performance_Fault",
+    "fault_object": "app/cartservice",
+    "root_cause": "pod_cpu_overload"
+   },
+   "ran": true,
+   "top1": false,
+   "object": true,
+   "cause": false,
+   "top3": false,
+   "pred": {
+    "fault_object": "app/cartservice",
+    "root_cause": "The cartservice container's CPU limit of 200m is too low for its current request load, causing CFS throttling and elevated p95 latency; source inspection found no code-level CPU defect, so the fault is CPU limit pressure on the cartservice pod."
+   },
+   "steps": 13,
+   "finished": true,
+   "in_tok": 98875,
+   "out_tok": 4791
+  },
+  {
+   "id": "boutique/codedefect/10",
+   "difficulty": "hard",
+   "truth": {
+    "fault_taxonomy": "Application_Code_Defect",
+    "fault_object": "app/checkoutservice",
+    "root_cause": "code_artificial_delay"
+   },
+   "ran": true,
+   "top1": false,
+   "object": true,
+   "cause": false,
+   "top3": false,
+   "pred": {
+    "fault_object": "app/checkoutservice",
+    "root_cause": "An unconditional 3-second time.Sleep in checkoutservice's PlaceOrder handler artificially delays every checkout request, causing the severe latency degradation."
+   },
+   "steps": 8,
+   "finished": true,
+   "in_tok": 65166,
+   "out_tok": 1356
+  },
+  {
+   "id": "boutique/runtime/19",
+   "difficulty": "easy",
+   "truth": {
+    "fault_taxonomy": "Runtime_Fault",
+    "fault_object": "app/emailservice",
+    "root_cause": "liveness_probe_incorrect_timing"
+   },
+   "ran": true,
+   "top1": false,
+   "object": true,
+   "cause": false,
+   "top3": false,
+   "pred": {
+    "fault_object": "app/emailservice",
+    "root_cause": "The emailservice liveness probe is configured with an initial delay and timeout that are too short for its ~2 second startup, causing kubelet to kill the container repeatedly and produce CrashLoopBackOff."
+   },
+   "steps": 6,
+   "finished": true,
+   "in_tok": 37753,
+   "out_tok": 1926
+  },
+  {
+   "id": "boutique/runtime/5",
+   "difficulty": "easy",
+   "truth": {
+    "fault_taxonomy": "Runtime_Fault",
+    "fault_object": "app/paymentservice",
+    "root_cause": "liveness_probe_incorrect_protocol"
+   },
+   "ran": true,
+   "top1": false,
+   "object": true,
+   "cause": false,
+   "top3": false,
+   "pred": {
+    "fault_object": "app/paymentservice",
+    "root_cause": "The paymentservice liveness probe is incorrectly configured as an HTTP GET against the gRPC-only port 50051, causing malformed HTTP responses, failed liveness checks, and repeated SIGKILL restarts."
+   },
+   "steps": 5,
+   "finished": true,
+   "in_tok": 29428,
+   "out_tok": 1118
+  },
+  {
+   "id": "boutique/runtime/40",
+   "difficulty": "easy",
+   "truth": {
+    "fault_taxonomy": "Runtime_Fault",
+    "fault_object": "app/checkoutservice",
+    "root_cause": "readiness_probe_incorrect_port"
+   },
+   "ran": true,
+   "top1": false,
+   "object": true,
+   "cause": false,
+   "top3": false,
+   "pred": {
+    "fault_object": "app/checkoutservice",
+    "root_cause": "The checkoutservice Deployment's readinessProbe is configured to use gRPC port 5051 while the application listens on port 5050, so the readiness probe times out and the pod never becomes Ready."
+   },
+   "steps": 5,
+   "finished": true,
+   "in_tok": 26675,
+   "out_tok": 1289
+  },
+  {
+   "id": "boutique/scheduling/110",
+   "difficulty": "easy",
+   "truth": {
+    "fault_taxonomy": "Scheduling_Fault",
+    "fault_object": "app/redis-cart",
+    "root_cause": "node_selector_mismatch"
+   },
+   "ran": true,
+   "top1": false,
+   "object": true,
+   "cause": false,
+   "top3": false,
+   "pred": {
+    "fault_object": "app/redis-cart",
+    "root_cause": "The redis-cart deployment uses nodeSelector `disktype=ssd`, but the schedulable worker nodes are labeled `disk-type=ssd`, so its pod cannot be scheduled and redis-cart becomes unavailable."
+   },
+   "steps": 5,
+   "finished": true,
+   "in_tok": 30501,
+   "out_tok": 1659
+  },
+  {
+   "id": "boutique/scheduling/40",
+   "difficulty": "easy",
+   "truth": {
+    "fault_taxonomy": "Scheduling_Fault",
+    "fault_object": "app/productcatalogservice",
+    "root_cause": "memory_capacity_mismatch"
+   },
+   "ran": true,
+   "top1": false,
+   "object": true,
+   "cause": false,
+   "top3": false,
+   "pred": {
+    "fault_object": "app/productcatalogservice",
+    "root_cause": "The productcatalogservice Deployment requests 22Gi memory per pod, which exceeds every schedulable node's ~15-16Gi allocatable memory, leaving the pod Pending and the service without endpoints."
+   },
+   "steps": 6,
+   "finished": true,
+   "in_tok": 37606,
+   "out_tok": 1632
+  },
+  {
+   "id": "boutique/scheduling/134",
+   "difficulty": "easy",
+   "truth": {
+    "fault_taxonomy": "Scheduling_Fault",
+    "fault_object": "app/redis-cart",
+    "root_cause": "pvc_storage_class_mismatch"
+   },
+   "ran": true,
+   "top1": false,
+   "object": true,
+   "cause": false,
+   "top3": false,
+   "pred": {
+    "fault_object": "app/redis-cart",
+    "root_cause": "The redis-cart PVC requests a nonexistent StorageClass named 'fast-sdd', so the volume remains unbound, the redis-cart pod stays Pending, and the Service has no endpoints."
+   },
+   "steps": 9,
+   "finished": true,
+   "in_tok": 65240,
+   "out_tok": 3581
+  },
+  {
+   "id": "boutique/startup/33",
+   "difficulty": "easy",
+   "truth": {
+    "fault_taxonomy": "Startup_Fault",
+    "fault_object": "app/recommendationservice",
+    "root_cause": "incorrect_image_reference"
+   },
+   "ran": true,
+   "top1": false,
+   "object": true,
+   "cause": false,
+   "top3": false,
+   "pred": {
+    "fault_object": "app/recommendationservice",
+    "root_cause": "The recommendationservice Deployment references a misspelled container image repository ('recomendationservice' instead of 'recommendationservice'), so the kubelet cannot pull the image and the pod stays in ErrImagePull/ImagePullBackOff, leaving the service with no ready backends."
+   },
+   "steps": 8,
+   "finished": true,
+   "in_tok": 43324,
+   "out_tok": 6512
+  },
+  {
+   "id": "boutique/startup/4",
+   "difficulty": "easy",
+   "truth": {
+    "fault_taxonomy": "Startup_Fault",
+    "fault_object": "app/frontend",
+    "root_cause": "image_registry_dns_failure"
+   },
+   "ran": true,
+   "top1": false,
+   "object": true,
+   "cause": false,
+   "top3": false,
+   "pred": {
+    "fault_object": "app/frontend",
+    "root_cause": "The frontend Deployment is configured with an invalid container image registry hostname, `ghost-registry.example.net`, which cannot be resolved, causing the frontend pod to fail image pull and remain unavailable."
+   },
+   "steps": 7,
+   "finished": true,
+   "in_tok": 36437,
+   "out_tok": 1884
+  },
+  {
+   "id": "boutique/startup/62",
+   "difficulty": "easy",
+   "truth": {
+    "fault_taxonomy": "Startup_Fault",
+    "fault_object": "app/redis-cart",
+    "root_cause": "volume_mount_permission_denied"
+   },
+   "ran": true,
+   "top1": false,
+   "object": true,
+   "cause": false,
+   "top3": false,
+   "pred": {
+    "fault_object": "app/redis-cart",
+    "root_cause": "The redis-cart container crashes during startup because Redis cannot read its dump.rdb file from the HostPath volume /mnt/redis-data-hp due to permission denied, causing CrashLoopBackOff and breaking cart storage availability."
+   },
+   "steps": 9,
+   "finished": true,
+   "in_tok": 72798,
+   "out_tok": 2146
+  },
+  {
+   "id": "trainticket/runtime/37",
+   "difficulty": "easy",
+   "truth": {
+    "fault_taxonomy": "Runtime_Fault",
+    "fault_object": "app/ts-delivery-service",
+    "root_cause": "mysql_invalid_credentials"
+   },
+   "ran": true,
+   "top1": false,
+   "object": true,
+   "cause": false,
+   "top3": false,
+   "pred": {
+    "fault_object": "app/ts-delivery-service",
+    "root_cause": "The MySQL password configured in the ts-delivery-mysql Secret for ts-delivery-service is invalid, causing MySQL to deny authentication and the application to crash on startup."
+   },
+   "steps": 7,
+   "finished": true,
+   "in_tok": 69193,
+   "out_tok": 3216
+  },
+  {
+   "id": "trainticket/runtime/1",
+   "difficulty": "easy",
+   "truth": {
+    "fault_taxonomy": "Runtime_Fault",
+    "fault_object": "app/tsdb-mysql",
+    "root_cause": "db_connection_exhaustion"
+   },
+   "ran": true,
+   "top1": false,
+   "object": true,
+   "cause": false,
+   "top3": false,
+   "pred": {
+    "fault_object": "app/tsdb-mysql",
+    "root_cause": "The tsdb-mysql database exhausted its available connection slots, causing new JDBC connections to be rejected and multiple TrainTicket services to fail startup and enter CrashLoopBackOff."
+   },
+   "steps": 7,
+   "finished": true,
+   "in_tok": 66980,
+   "out_tok": 2112
+  },
+  {
+   "id": "trainticket/runtime/18",
+   "difficulty": "easy",
+   "truth": {
+    "fault_taxonomy": "Runtime_Fault",
+    "fault_object": "app/ts-contacts-service",
+    "root_cause": "deployment_zero_replicas"
+   },
+   "ran": true,
+   "top1": false,
+   "object": true,
+   "cause": false,
+   "top3": false,
+   "pred": {
+    "fault_object": "app/ts-contacts-service",
+    "root_cause": "The `ts-contacts-service` Deployment was scaled to zero replicas, so no backend pod exists and the Service has no endpoints, making the contacts service unreachable."
+   },
+   "steps": 5,
+   "finished": true,
+   "in_tok": 38330,
+   "out_tok": 2244
+  },
+  {
+   "id": "trainticket/startup/3",
+   "difficulty": "easy",
+   "truth": {
+    "fault_taxonomy": "Startup_Fault",
+    "fault_object": "app/ts-config-service",
+    "root_cause": "missing_secret_binding"
+   },
+   "ran": true,
+   "top1": false,
+   "object": true,
+   "cause": false,
+   "top3": false,
+   "pred": {
+    "fault_object": "app/ts-config-service",
+    "root_cause": "The ts-config-service deployment references a non-existent Kubernetes Secret named `ts-config-mysql1`, so kubelet cannot create the container and the pod remains in CreateContainerConfigError."
+   },
+   "steps": 6,
+   "finished": true,
+   "in_tok": 43367,
+   "out_tok": 5305
+  },
+  {
+   "id": "boutique/performance/14",
+   "difficulty": "hard",
+   "truth": {
+    "fault_taxonomy": "Performance_Fault",
+    "fault_object": "app/checkoutservice",
+    "root_cause": "pod_network_delay"
+   },
+   "ran": true,
+   "top1": false,
+   "object": true,
+   "cause": false,
+   "top3": false,
+   "pred": {
+    "fault_object": "app/checkoutservice",
+    "root_cause": "checkoutservice uses the inefficient `money.MultiplySlow` additive-loop multiplication during PlaceOrder total calculation, causing CPU-bound processing delays and severe request latency."
+   },
+   "steps": 9,
+   "finished": true,
+   "in_tok": 77641,
+   "out_tok": 2437
+  },
+  {
+   "id": "boutique/performance/23",
+   "difficulty": "hard",
+   "truth": {
+    "fault_taxonomy": "Performance_Fault",
+    "fault_object": "node/worker-02",
+    "root_cause": "node_network_delay"
+   },
+   "ran": true,
+   "top1": false,
+   "object": true,
+   "cause": false,
+   "top3": false,
+   "pred": {
+    "fault_object": "node/worker-02",
+    "root_cause": "A node-level network packet-loss condition on worker-02, evidenced by a new TCP retransmission spike, degraded traffic to services hosted there and caused cascading latency across the boutique application."
+   },
+   "steps": 11,
+   "finished": true,
+   "in_tok": 92165,
+   "out_tok": 7580
+  },
+  {
+   "id": "trainticket/service/13",
+   "difficulty": "medium",
+   "truth": {
+    "fault_taxonomy": "Service_Routing_Fault",
+    "fault_object": "app/ts-gateway-service",
+    "root_cause": "gateway_misrouted"
+   },
+   "ran": true,
+   "top1": false,
+   "object": false,
+   "cause": false,
+   "top3": false,
+   "pred": {
+    "fault_object": "app/tsdb-mysql",
+    "root_cause": "The payment database contains duplicate matching payment rows, so ts-payment-service queries that expect a unique result throw NonUniqueResultException and return HTTP 500."
+   },
+   "steps": 9,
+   "finished": true,
+   "in_tok": 100676,
+   "out_tok": 7642
+  },
+  {
+   "id": "boutique/admission/48",
+   "difficulty": "medium",
+   "truth": {
+    "fault_taxonomy": "Admission_Fault",
+    "fault_object": "namespace/boutique",
+    "root_cause": "namespace_service_quota_exceeded"
+   },
+   "ran": true,
+   "top1": false,
+   "object": false,
+   "cause": false,
+   "top3": false,
+   "pred": {
+    "fault_object": "app/emailservice",
+    "root_cause": "The Kubernetes Service object for emailservice is missing, so callers cannot resolve or reach the otherwise healthy emailservice pod."
+   },
+   "steps": 9,
+   "finished": true,
+   "in_tok": 53092,
+   "out_tok": 2516
+  },
+  {
+   "id": "boutique/service/2",
+   "difficulty": "medium",
+   "truth": {
+    "fault_taxonomy": "Service_Routing_Fault",
+    "fault_object": "app/checkoutservice",
+    "root_cause": "service_env_var_address_mismatch"
+   },
+   "ran": true,
+   "top1": false,
+   "object": true,
+   "cause": false,
+   "top3": false,
+   "pred": {
+    "fault_object": "app/checkoutservice",
+    "root_cause": "The checkoutservice Deployment has `PRODUCT_CATALOG_SERVICE_ADDR` misconfigured to the nonexistent hostname `productcatalogservice-invalid:3550`, so checkout requests fail when resolving/calling the product catalog backend."
+   },
+   "steps": 20,
+   "finished": true,
+   "in_tok": 176376,
+   "out_tok": 28369
+  },
+  {
+   "id": "boutique/performance/3",
+   "difficulty": "hard",
+   "truth": {
+    "fault_taxonomy": "Performance_Fault",
+    "fault_object": "app/checkoutservice",
+    "root_cause": "pod_cpu_overload"
+   },
+   "ran": true,
+   "top1": false,
+   "object": true,
+   "cause": false,
+   "top3": false,
+   "pred": {
+    "fault_object": "app/checkoutservice",
+    "root_cause": "checkoutservice uses money.MultiplySlow, a CPU-bound repeated-add loop for order-total calculation, causing CPU saturation, CFS throttling, and degraded response latency."
+   },
+   "steps": 10,
+   "finished": true,
+   "in_tok": 64551,
+   "out_tok": 5734
+  },
+  {
+   "id": "boutique/codedefect/59",
+   "difficulty": "hard",
+   "truth": {
+    "fault_taxonomy": "Application_Code_Defect",
+    "fault_object": "app/frontend",
+    "root_cause": "code_wrong_return"
+   },
+   "ran": true,
+   "top1": false,
+   "object": true,
+   "cause": false,
+   "top3": false,
+   "pred": {
+    "fault_object": "app/frontend",
+    "root_cause": "In frontend's productHandler, the valid product ID extracted from the URL path is unconditionally reset to an empty string with `id = \"\"` before use, causing every /product/{id} request to return HTTP 400 'product id not specified'."
+   },
+   "steps": 8,
+   "finished": true,
+   "in_tok": 50633,
+   "out_tok": 3298
+  },
+  {
+   "id": "trainticket/service/11",
+   "difficulty": "medium",
+   "truth": {
+    "fault_taxonomy": "Service_Routing_Fault",
+    "fault_object": "app/ts-gateway-service",
+    "root_cause": "gateway_misrouted"
+   },
+   "ran": true,
+   "top1": false,
+   "object": false,
+   "cause": false,
+   "top3": false,
+   "pred": {
+    "fault_object": "app/tsdb-mysql",
+    "root_cause": "Duplicate payment records in the tsdb-mysql database cause ts-payment-service's JPA query to return multiple rows, throwing NonUniqueResultException and producing HTTP 500 responses."
+   },
+   "steps": 8,
+   "finished": true,
+   "in_tok": 83270,
+   "out_tok": 9860
+  },
+  {
+   "id": "trainticket/service/10",
+   "difficulty": "medium",
+   "truth": {
+    "fault_taxonomy": "Service_Routing_Fault",
+    "fault_object": "app/ts-gateway-service",
+    "root_cause": "gateway_misrouted"
+   },
+   "ran": true,
+   "top1": false,
+   "object": false,
+   "cause": false,
+   "top3": false,
+   "pred": {
+    "fault_object": "app/ts-payment-service",
+    "root_cause": "ts-payment-service fails when a payment database query expected a single row but returned five rows, causing NonUniqueResultException and HTTP 500 responses from the payment API."
+   },
+   "steps": 7,
+   "finished": true,
+   "in_tok": 62848,
+   "out_tok": 2642
+  },
+  {
+   "id": "trainticket/performance/40",
+   "difficulty": "hard",
+   "truth": {
+    "fault_taxonomy": "Performance_Fault",
+    "fault_object": "app/ts-payment-service",
+    "root_cause": "pod_network_delay"
+   },
+   "ran": true,
+   "top1": false,
+   "object": true,
+   "cause": false,
+   "top3": false,
+   "pred": {
+    "fault_object": "app/ts-payment-service",
+    "root_cause": "The ts-payment-service is executing database queries that return multiple rows where a unique result is expected, causing NonUniqueResultException/IncorrectResultSizeDataAccessException, HTTP 500 responses, and severe latency degradation."
+   },
+   "steps": 7,
+   "finished": true,
+   "in_tok": 50698,
+   "out_tok": 2728
+  },
+  {
+   "id": "trainticket/performance/22",
+   "difficulty": "hard",
+   "truth": {
+    "fault_taxonomy": "Performance_Fault",
+    "fault_object": "app/ts-gateway-service",
+    "root_cause": "pod_network_delay"
+   },
+   "ran": true,
+   "top1": false,
+   "object": false,
+   "cause": false,
+   "top3": false,
+   "pred": {
+    "fault_object": "app/ts-payment-service",
+    "root_cause": "Injected pod network delay on ts-payment-service degraded inbound/outbound latency, causing its p90 latency metrics to vanish and cascading reduced throughput across the gateway→order→payment chain."
+   },
+   "steps": 12,
+   "finished": true,
+   "in_tok": 165215,
+   "out_tok": 40593
+  },
+  {
+   "id": "trainticket/performance/41",
+   "difficulty": "hard",
+   "truth": {
+    "fault_taxonomy": "Performance_Fault",
+    "fault_object": "app/ts-preserve-service",
+    "root_cause": "pod_network_delay"
+   },
+   "ran": true,
+   "top1": false,
+   "object": true,
+   "cause": false,
+   "top3": false,
+   "pred": {
+    "fault_object": "app/ts-preserve-service",
+    "root_cause": "Pod-level network delay is injected on ts-preserve-service, adding external request latency while its internal processing continues normally."
+   },
+   "steps": 7,
+   "finished": true,
+   "in_tok": 53069,
+   "out_tok": 10426
+  },
+  {
+   "id": "boutique/admission/38",
+   "difficulty": "medium",
+   "truth": {
+    "fault_taxonomy": "Admission_Fault",
+    "fault_object": "namespace/boutique",
+    "root_cause": "namespace_pod_quota_exceeded"
+   },
+   "ran": true,
+   "top1": false,
+   "object": false,
+   "cause": false,
+   "top3": false,
+   "pred": {
+    "fault_object": "app/frontend",
+    "root_cause": "The boutique namespace pod-count ResourceQuota is exhausted at 10/10, so the frontend ReplicaSet cannot create its pod and the frontend Service has no endpoints."
+   },
+   "steps": 6,
+   "finished": true,
+   "in_tok": 32171,
+   "out_tok": 4578
+  },
+  {
+   "id": "boutique/codedefect/12",
+   "difficulty": "hard",
+   "truth": {
+    "fault_taxonomy": "Application_Code_Defect",
+    "fault_object": "app/checkoutservice",
+    "root_cause": "code_missing_parameter"
+   },
+   "ran": true,
+   "top1": false,
+   "object": true,
+   "cause": false,
+   "top3": false,
+   "pred": {
+    "fault_object": "app/checkoutservice",
+    "root_cause": "checkoutservice's chargeCard handler clears the required CreditCardInfo by assigning paymentInfo = nil before calling paymentservice, causing payment charges to receive a null credit card number and checkout to fail with HTTP 500."
+   },
+   "steps": 14,
+   "finished": true,
+   "in_tok": 166912,
+   "out_tok": 8495
+  },
+  {
+   "id": "boutique/infrastructure/5",
+   "difficulty": "medium",
+   "truth": {
+    "fault_taxonomy": "Infrastructure_Fault",
+    "fault_object": "node/worker-01",
+    "root_cause": "containerd_unavailable"
+   },
+   "ran": true,
+   "top1": false,
+   "object": true,
+   "cause": false,
+   "top3": false,
+   "pred": {
+    "fault_object": "node/worker-01",
+    "root_cause": "The containerd container runtime service on worker-01 is stopped/inactive, so kubelet cannot create pod sandboxes and all newly scheduled pods on that node remain stuck in Init, causing partial service unreachability."
+   },
+   "steps": 4,
+   "finished": true,
+   "in_tok": 23702,
+   "out_tok": 1237
+  },
+  {
+   "id": "boutique/performance/11",
+   "difficulty": "hard",
+   "truth": {
+    "fault_taxonomy": "Performance_Fault",
+    "fault_object": "app/shippingservice",
+    "root_cause": "pod_cpu_overload"
+   },
+   "ran": true,
+   "top1": false,
+   "object": true,
+   "cause": false,
+   "top3": false,
+   "pred": {
+    "fault_object": "app/shippingservice",
+    "root_cause": "The shippingservice container is being CPU CFS throttled because its configured 200m CPU limit is too low for its request load, causing elevated shippingservice latency and downstream checkout latency."
+   },
+   "steps": 12,
+   "finished": true,
+   "in_tok": 106123,
+   "out_tok": 5188
+  },
+  {
+   "id": "boutique/service/28",
+   "difficulty": "medium",
+   "truth": {
+    "fault_taxonomy": "Service_Routing_Fault",
+    "fault_object": "app/productcatalogservice",
+    "root_cause": "service_protocol_mismatch"
+   },
+   "ran": true,
+   "top1": false,
+   "object": true,
+   "cause": false,
+   "top3": false,
+   "pred": {
+    "fault_object": "app/productcatalogservice",
+    "root_cause": "The productcatalogservice Kubernetes Service exposes port 3550 with protocol UDP, while the application listens for gRPC/TCP connections, causing frontend TCP connections to be refused."
+   },
+   "steps": 9,
+   "finished": true,
+   "in_tok": 51355,
+   "out_tok": 2662
+  },
+  {
+   "id": "trainticket/performance/8",
+   "difficulty": "hard",
+   "truth": {
+    "fault_taxonomy": "Performance_Fault",
+    "fault_object": "app/ts-preserve-service",
+    "root_cause": "pod_network_delay"
+   },
+   "ran": true,
+   "top1": false,
+   "object": true,
+   "cause": false,
+   "top3": false,
+   "pred": {
+    "fault_object": "app/ts-preserve-service",
+    "root_cause": "Network delay injected at the pod level of ts-preserve-service, causing externally observed multi-second latency while internal processing remains normal."
+   },
+   "steps": 7,
+   "finished": true,
+   "in_tok": 49301,
+   "out_tok": 18022
+  },
+  {
+   "id": "trainticket/service/19",
+   "difficulty": "medium",
+   "truth": {
+    "fault_taxonomy": "Service_Routing_Fault",
+    "fault_object": "app/ts-gateway-service",
+    "root_cause": "gateway_misrouted"
+   },
+   "ran": true,
+   "top1": false,
+   "object": true,
+   "cause": false,
+   "top3": false,
+   "pred": {
+    "fault_object": "app/ts-gateway-service",
+    "root_cause": "The ts-gateway-service route for /api/v1/travelservice/** is misconfigured to load-balance to nonexistent backend ts-nonexistent-travel-backend, so requests return HTTP 503 instead of reaching the healthy ts-travel-service."
+   },
+   "steps": 17,
+   "finished": true,
+   "in_tok": 251794,
+   "out_tok": 8549
+  },
+  {
+   "id": "boutique/admission/12",
+   "difficulty": "medium",
+   "truth": {
+    "fault_taxonomy": "Admission_Fault",
+    "fault_object": "namespace/boutique",
+    "root_cause": "namespace_cpu_quota_exceeded"
+   },
+   "ran": true,
+   "top1": false,
+   "object": true,
+   "cause": false,
+   "top3": false,
+   "pred": {
+    "fault_object": "namespace/boutique",
+    "root_cause": "The namespace ResourceQuota `cpu-quota` has an exhausted or misconfigured CPU-request limit, blocking creation of the adservice pod and causing partial service unreachability."
+   },
+   "steps": 9,
+   "finished": true,
+   "in_tok": 55486,
+   "out_tok": 4635
+  },
+  {
+   "id": "boutique/codedefect/87",
+   "difficulty": "hard",
+   "truth": {
+    "fault_taxonomy": "Application_Code_Defect",
+    "fault_object": "app/shippingservice",
+    "root_cause": "code_busy_loop"
+   },
+   "ran": true,
+   "top1": false,
+   "object": true,
+   "cause": false,
+   "top3": false,
+   "pred": {
+    "fault_object": "app/shippingservice",
+    "root_cause": "CreateQuoteFromFloat in shippingservice quote.go busy-waits for 500ms on each quote request, causing CPU saturation, CFS throttling, and severe response latency."
+   },
+   "steps": 12,
+   "finished": true,
+   "in_tok": 76083,
+   "out_tok": 9428
+  },
+  {
+   "id": "boutique/infrastructure/37",
+   "difficulty": "medium",
+   "truth": {
+    "fault_taxonomy": "Infrastructure_Fault",
+    "fault_object": "node/worker-01",
+    "root_cause": "kubelet_unavailable"
+   },
+   "ran": true,
+   "top1": false,
+   "object": true,
+   "cause": false,
+   "top3": false,
+   "pred": {
+    "fault_object": "node/worker-01",
+    "root_cause": "The kubelet service on worker-01 has stopped/inactive, making the node NotReady and causing pods scheduled there to be unreachable."
+   },
+   "steps": 7,
+   "finished": true,
+   "in_tok": 37901,
+   "out_tok": 5446
+  },
+  {
+   "id": "boutique/performance/7",
+   "difficulty": "hard",
+   "truth": {
+    "fault_taxonomy": "Performance_Fault",
+    "fault_object": "app/paymentservice",
+    "root_cause": "pod_cpu_overload"
+   },
+   "ran": true,
+   "top1": false,
+   "object": true,
+   "cause": false,
+   "top3": false,
+   "pred": {
+    "fault_object": "app/paymentservice",
+    "root_cause": "The paymentservice pod is experiencing CPU resource saturation (pod_cpu_overload) because its CPU demand exceeds the configured 200m limit, causing CFS throttling and latency degradation."
+   },
+   "steps": 11,
+   "finished": true,
+   "in_tok": 69069,
+   "out_tok": 4867
+  },
+  {
+   "id": "boutique/service/47",
+   "difficulty": "medium",
+   "truth": {
+    "fault_taxonomy": "Service_Routing_Fault",
+    "fault_object": "app/shippingservice",
+    "root_cause": "service_selector_mismatch"
+   },
+   "ran": true,
+   "top1": false,
+   "object": true,
+   "cause": false,
+   "top3": false,
+   "pred": {
+    "fault_object": "app/shippingservice",
+    "root_cause": "The shippingservice Kubernetes Service selector is misconfigured as `application=shippingservice`, so it matches no shipping pods and leaves the Service with empty endpoints, causing connection refused failures."
+   },
+   "steps": 10,
+   "finished": true,
+   "in_tok": 75583,
+   "out_tok": 5058
+  },
+  {
+   "id": "trainticket/performance/13",
+   "difficulty": "hard",
+   "truth": {
+    "fault_taxonomy": "Performance_Fault",
+    "fault_object": "app/ts-station-service",
+    "root_cause": "pod_network_delay"
+   },
+   "ran": true,
+   "top1": false,
+   "object": false,
+   "cause": false,
+   "top3": false,
+   "pred": {
+    "fault_object": "app/ts-basic-service",
+    "root_cause": "Injected pod network delay on ts-basic-service causes its outbound/inbound network path to add ~7.5-9.5s latency even though internal application processing completes in milliseconds, propagating slow responses to dependent services."
+   },
+   "steps": 7,
+   "finished": true,
+   "in_tok": 56491,
+   "out_tok": 3049
+  },
+  {
+   "id": "trainticket/service/32",
+   "difficulty": "medium",
+   "truth": {
+    "fault_taxonomy": "Service_Routing_Fault",
+    "fault_object": "app/ts-seat-service",
+    "root_cause": "service_dns_resolution_failure"
+   },
+   "ran": true,
+   "top1": false,
+   "object": true,
+   "cause": false,
+   "top3": false,
+   "pred": {
+    "fault_object": "app/ts-seat-service",
+    "root_cause": "ts-seat-service deployment is misconfigured with dnsPolicy None and an unreachable custom nameserver 10.255.14.254, causing DNS lookup timeouts that break Nacos registration and crash the container."
+   },
+   "steps": 7,
+   "finished": true,
+   "in_tok": 110102,
+   "out_tok": 2616
+  },
+  {
+   "id": "boutique/admission/6",
+   "difficulty": "medium",
+   "truth": {
+    "fault_taxonomy": "Admission_Fault",
+    "fault_object": "app/frontend",
+    "root_cause": "missing_service_account"
+   },
+   "ran": true,
+   "top1": false,
+   "object": true,
+   "cause": false,
+   "top3": false,
+   "pred": {
+    "fault_object": "app/frontend",
+    "root_cause": "The frontend Deployment's pod template references a nonexistent ServiceAccount 'frontend-missing', causing ReplicaSet FailedCreate admission errors and preventing any frontend pod from being created."
+   },
+   "steps": 9,
+   "finished": true,
+   "in_tok": 55335,
+   "out_tok": 3607
+  },
+  {
+   "id": "boutique/codedefect/36",
+   "difficulty": "hard",
+   "truth": {
+    "fault_taxonomy": "Application_Code_Defect",
+    "fault_object": "app/frontend",
+    "root_cause": "code_busy_loop"
+   },
+   "ran": true,
+   "top1": false,
+   "object": true,
+   "cause": false,
+   "top3": false,
+   "pred": {
+    "fault_object": "app/frontend",
+    "root_cause": "Frontend `chooseAd` contains an 800ms active busy-wait loop that burns CPU on every ad-fetching request, causing CPU throttling, severe latency, and 503 responses."
+   },
+   "steps": 11,
+   "finished": true,
+   "in_tok": 85258,
+   "out_tok": 4317
+  }
+ ]
+}

@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All affected pods are stuck at Init:0/1 only on worker-01, while pods on worker-02 are Running. The adservice pod event shows 'FailedCreatePodSandBox ... dial unix /run/containerd/containerd.sock: connect: no such file or directory'. CheckNodeServiceStatus confirms containerd.service on worker-01 is inactive (dead), so kubelet cannot create pod sandboxes and the services with replicas on worker-01 become partially unreachable.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/worker-01\", \"root_cause\": \"The containerd container runtime on node worker-01 is stopped/inactive, leaving the CRI socket unavailable and causing kubelet pod sandbox creation to fail for all pods scheduled there.\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"The containerd CRI socket at /run/containerd/containerd.sock is missing or unreachable on worker-01, preventing kubelet from creating pod sandboxes even though the pods are scheduled.\"}, {\"rank\": 3, \"fault_object\": \"app/frontend\", \"root_cause\": \"Frontend pods scheduled on worker-01 cannot start because of the node's container runtime failure, causing the frontend service to be partially unreachable.\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 4
+}

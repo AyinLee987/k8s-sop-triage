@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"productcatalogservice-c589fc787-gf9w5 is Pending with PodScheduled=False. Its container requests 22Gi of memory. Scheduler event: 0/4 nodes available: 1 unschedulable, 3 Insufficient memory. All other boutique pods are Running, so the unavailable backend service is productcatalogservice, causing partial service unreachability.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"The productcatalogservice Deployment requests 22Gi of memory per pod, making its only replica unschedulable on all worker nodes and leaving the Service with no ready endpoints.\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"worker-01 has insufficient allocatable memory or memory pressure, preventing the oversized productcatalogservice pod from being scheduled there.\"}, {\"rank\": 3, \"fault_object\": \"node/worker-02\", \"root_cause\": \"worker-02 has insufficient allocatable memory or memory pressure, preventing the oversized productcatalogservice pod from being scheduled there.\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 3
+}

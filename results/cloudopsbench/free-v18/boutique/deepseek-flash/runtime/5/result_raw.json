@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"paymentservice-597747d4d8-jbdgb had 2 restarts and exit code 137. DescribeResource showed kubelet killed it because the liveness probe failed with a malformed HTTP response from port 50051. GetAppYAML confirmed the livenessProbe is an HTTP GET on the gRPC port, while readiness uses gRPC correctly.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/paymentservice\", \"root_cause\": \"The paymentservice Deployment's liveness probe is misconfigured as an HTTP GET against gRPC port 50051, so kubelet receives malformed HTTP responses, repeatedly kills the container, and causes abnormal restarts.\"}, {\"rank\": 2, \"fault_object\": \"app/paymentservice\", \"root_cause\": \"The paymentservice liveness probe's 5-second initial delay and 1-second timeout are too aggressive for the gRPC service startup, causing kubelet to kill it before it stabilizes.\"}, {\"rank\": 3, \"fault_object\": \"node/worker-02\", \"root_cause\": \"A transient kubelet or network issue on worker-02 may be breaking liveness probe connections to the paymentservice pod, contributing to repeated restarts.\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 4
+}

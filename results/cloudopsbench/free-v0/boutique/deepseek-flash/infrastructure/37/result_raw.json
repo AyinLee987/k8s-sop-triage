@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"worker-01 is Unknown/NotReady with unreachable taints; kubelet.service on worker-01 is inactive (dead); frontend logs show connection refused to worker-01:10250. This node-level kubelet outage causes partial service unreachability for workloads on worker-01.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/worker-01\", \"root_cause\": \"The kubelet service on worker-01 has stopped/inactive, making the node NotReady and causing pods scheduled there to be unreachable.\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"A node-level network degradation on worker-01 prevents reliable communication with the kubelet and pods on that node.\"}, {\"rank\": 3, \"fault_object\": \"app/frontend\", \"root_cause\": \"A service connectivity/routing failure in frontend prevents proper access to downstream services despite the pods being otherwise healthy.\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 7
+}

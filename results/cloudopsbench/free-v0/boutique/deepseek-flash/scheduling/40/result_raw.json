@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"productcatalogservice pod is Pending with FailedScheduling: '0/4 nodes are available... 3 Insufficient memory'. Its Deployment requests 22Gi memory, while all worker nodes have only ~15-16Gi allocatable (master cordoned). No node can satisfy the request, so the service has no ready backend and becomes unreachable.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"The productcatalogservice Deployment requests 22Gi memory per pod, which exceeds every schedulable node's ~15-16Gi allocatable memory, leaving the pod Pending and the service without endpoints.\"}, {\"rank\": 2, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"The productcatalogservice Deployment's resource requests are misconfigured and overly large relative to cluster capacity, preventing scheduling.\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"Worker nodes have insufficient allocatable memory to schedule large workloads, causing resource-constrained pods to remain Pending.\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 6
+}

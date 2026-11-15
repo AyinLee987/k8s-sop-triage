@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"checkoutservice alerts show RESOURCE_SATURATION cpu_cfs throttling, elevated CPU usage, and p95 latency degradation. Pods are Running/Ready with no error logs, and all boutique pods are healthy. The deployment has a 200m CPU limit, but source inspection found money.MultiplySlow, a CPU-intensive repeated-add loop used during PlaceOrder order-total calculation. This code path best explains checkoutservice CPU saturation and latency without application errors or downstream connectivity failures.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"checkoutservice uses money.MultiplySlow, a CPU-bound repeated-add loop for order-total calculation, causing CPU saturation, CFS throttling, and degraded response latency.\"}, {\"rank\": 2, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"checkoutservice has an undersized CPU limit of 200m, causing CFS throttling and latency under normal order-processing load.\"}, {\"rank\": 3, \"fault_object\": \"node/worker-02\", \"root_cause\": \"worker-02 shows a CPU utilization increase that could contribute to localized contention affecting checkoutservice, although the absolute utilization remains low.\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 10
+}

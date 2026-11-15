@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show latency degradation on ts-preserve-service (p90 22s, +144.9%) and ts-ui-dashboard (p90 5.9s, +118.1%), plus CPU CFS throttling on ts-order-service (0.375s throttled). All pods are Running/Ready with no restarts, and ts-preserve-service has no error logs. Recent preserve-service logs show normal internal processing steps, supporting an exclusion-based pod network delay on ts-preserve-service as the primary fault.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-preserve-service\", \"root_cause\": \"Pod-level network delay is injected on ts-preserve-service, adding external request latency while its internal processing continues normally.\"}, {\"rank\": 2, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"CPU CFS throttling on ts-order-service causes its downstream callers, including ts-preserve-service, to experience elevated response times.\"}, {\"rank\": 3, \"fault_object\": \"app/ts-ui-dashboard\", \"root_cause\": \"Pod-level network delay on ts-ui-dashboard adds latency to user-facing requests and contributes to the observed service quality degradation.\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 7
+}

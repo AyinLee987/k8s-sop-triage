@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show LATENCY_DEGRADATION across ts-gateway-service, ts-preserve-service, and ts-ui-dashboard; ts-preserve-service has the largest p50/p90 increase (p50 ~7.5s, peak 24.75s). All pods are Running/Ready with no restarts (pod surface healthy), no error logs exist for ts-preserve-service, and its recent logs show normal fast internal processing (~tens of ms per step) despite the externally observed seconds-level latency. This exclusion-based pattern points to pod network delay injected on ts-preserve-service.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-preserve-service\", \"root_cause\": \"Network delay injected at the pod level of ts-preserve-service, causing externally observed multi-second latency while internal processing remains normal.\"}, {\"rank\": 2, \"fault_object\": \"app/ts-gateway-service\", \"root_cause\": \"Pod-level network delay on ts-gateway-service, which as the upstream entry point could propagate elevated latency to ui-dashboard and downstream business calls.\"}, {\"rank\": 3, \"fault_object\": \"app/ts-ui-dashboard\", \"root_cause\": \"Pod-level network delay on ts-ui-dashboard, degrading the front-end request path and inflating observed end-to-end latency.\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 7
+}

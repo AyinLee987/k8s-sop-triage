@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alert: 503 Service Unavailable on POST /api/v1/travelservice/trips/left ('Search ticket') entry ts-travel-service. All pods Running/Ready; services and endpoints broadly present. ts-gateway-service ConfigMap route 'travel' has uri: lb://ts-nonexistent-travel-backend instead of ts-travel-service for Path=/api/v1/travelservice/**. This misrouted backend does not exist, producing 503 despite healthy ts-travel-service pods.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-gateway-service\", \"root_cause\": \"The gateway's 'travel' route for /api/v1/travelservice/** is misconfigured to target the nonexistent backend lb://ts-nonexistent-travel-backend instead of ts-travel-service, causing 503 Service Unavailable responses.\"}, {\"rank\": 2, \"fault_object\": \"app/ts-travel-service\", \"root_cause\": \"The ts-travel-service backend is effectively unreachable from the gateway due to an unresolved service name, causing the ticket-search API to return 503.\"}, {\"rank\": 3, \"fault_object\": \"app/ts-ui-dashboard\", \"root_cause\": \"The dashboard/gateway call path fails to reach a healthy travel backend, surfacing HTTP 503 errors to users despite pods being Running.\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 9
+}

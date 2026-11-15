@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts reported 503s on ts-contacts-service contact APIs. Pods and Services were broadly healthy, but endpoints showed ts-contacts-service with <none>. Gateway logs repeatedly reported 'No servers available for service: ts-contacts-service'. The ts-contacts-service Deployment YAML showed spec.replicas: 0, confirming the backend was scaled down and had no pods or endpoints.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-contacts-service\", \"root_cause\": \"The ts-contacts-service Deployment was intentionally or accidentally scaled to zero replicas, leaving no pods or endpoints for the gateway to call and producing 503 Service Unavailable responses.\"}, {\"rank\": 2, \"fault_object\": \"app/ts-gateway-service\", \"root_cause\": \"The gateway load-balancer or route configuration for ts-contacts-service is misconfigured, causing it to report no available servers; however, route baseline checks showed the downstream dependency is defined correctly.\"}, {\"rank\": 3, \"fault_object\": \"app/ts-contacts-service\", \"root_cause\": \"The ts-contacts-service Kubernetes Service selector or endpoint registration is misconfigured, so even if a contacts pod were running it would not be registered as an available endpoint.\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 12
+}

@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Pods are broadly Running/Ready. The alert reports HTTP 500 for ts-inside-payment-service calling the payment API. Logs show ts-inside-payment-service receives 500 from /api/v1/paymentservice/payment. ts-payment-service logs show the actual failure: IncorrectResultSizeDataAccessException / NonUniqueResultException: query did not return a unique result: 5, so payment requests fail at the payment application/database query layer.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"ts-payment-service fails when a payment database query expected a single row but returned five rows, causing NonUniqueResultException and HTTP 500 responses from the payment API.\"}, {\"rank\": 2, \"fault_object\": \"app/tsdb-mysql\", \"root_cause\": \"Duplicate or inconsistent payment records in tsdb-mysql cause the payment service's unique-result query to return multiple rows, leading to HTTP 500 payment failures.\"}, {\"rank\": 3, \"fault_object\": \"app/ts-inside-payment-service\", \"root_cause\": \"ts-inside-payment-service propagates the downstream HTTP 500 from the payment service as a failure of the inside-payment operation.\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 7
+}

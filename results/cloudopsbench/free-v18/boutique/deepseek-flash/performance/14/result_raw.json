@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"checkoutservice showed severe latency (p50 7528.76ms, p90 23763.88ms), throughput drop (-93.3%), and success-rate collapse (100% -> 12.5%) while its pod remained Running/Ready with 0 restarts. No application error logs, downstream payment/email operations succeeded, the checkoutservice port was reachable, and alerts showed no CPU saturation or throttling. This matches pod-level network delay on checkoutservice after excluding code and application failures.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"Pod-level network delay on checkoutservice slows its request path, causing severe latency and success-rate drop while the pod remains healthy and downstream operations still succeed.\"}, {\"rank\": 2, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"The PlaceOrder path executes the CPU-intensive money.MultiplySlow loop with an unusually large quantity, introducing processing latency without application errors.\"}, {\"rank\": 3, \"fault_object\": \"node/worker-02\", \"root_cause\": \"Network degradation on worker-02, where the checkoutservice pod runs, delays traffic and causes the observed latency spike for checkoutservice and its callers.\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 12
+}

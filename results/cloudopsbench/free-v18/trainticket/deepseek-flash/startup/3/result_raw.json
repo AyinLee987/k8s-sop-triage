@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Pod ts-config-service-5cc47cd465-5v4d6 is 0/1 in CreateContainerConfigError. DescribeResource shows envFrom references Secret ts-config-mysql1 with Optional:false, and kubelet events report: Error: secret \\\"ts-config-mysql1\\\" not found. A direct GetResources lookup confirms the Secret does not exist in namespace train-ticket.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-config-service\", \"root_cause\": \"The ts-config-service Deployment references a required but nonexistent Secret named ts-config-mysql1, so the kubelet blocks container startup with CreateContainerConfigError.\"}, {\"rank\": 2, \"fault_object\": \"app/ts-config-service\", \"root_cause\": \"The ts-config-service pod startup is blocked by an invalid required configuration reference (Secret/ConfigMap envFrom), leaving the service without an available backend.\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"A node-local configuration or kubelet issue on worker-01 prevents the pod from resolving required Secret references during container setup.\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 5
+}

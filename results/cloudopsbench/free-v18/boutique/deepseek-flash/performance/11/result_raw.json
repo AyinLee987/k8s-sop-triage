@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show shippingservice with CPU CFS throttling, a large CPU-core increase, and p95 latency degradation, while checkoutservice also has elevated latency. Shippingservice pods are Running/Ready with no restarts, error logs are clean, resource limits are normal, and source inspection found no busy loop, artificial delay, or excessive file I/O. This supports shippingservice pod-level CPU overload as the root cause.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/shippingservice\", \"root_cause\": \"shippingservice is experiencing pod-level CPU saturation and CFS throttling under its CPU limit, causing elevated shipping RPC latency that propagates to checkoutservice.\"}, {\"rank\": 2, \"fault_object\": \"node/worker-02\", \"root_cause\": \"CPU contention on worker-02 may be degrading performance for the co-located shippingservice and checkoutservice pods, though node-level utilization evidence is weaker than the service-level throttling evidence.\"}, {\"rank\": 3, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"checkoutservice may have an independent application-level latency regression, but its latency increase is more consistent with waiting on the CPU-throttled shippingservice dependency.\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 13
+}

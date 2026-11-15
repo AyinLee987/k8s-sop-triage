@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"checkoutservice-757c84f65-48bhl is Running with 0 restarts but 0/1 Ready. DescribeResource shows repeated readiness probe failures connecting to 172.20.2.125:5051. GetAppYAML confirms the container exposes/listens on 5050 and liveness probes 5050, but readinessProbe.grpc.port is incorrectly set to 5051.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"The checkoutservice readiness probe is misconfigured to use gRPC port 5051 while the container listens on port 5050, so the pod never becomes Ready and the service reports abnormal availability.\"}, {\"rank\": 2, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"The checkoutservice container may not be completing gRPC startup or health registration within the probe timeout, causing readiness checks to time out independently of port configuration.\"}, {\"rank\": 3, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"The checkoutservice pod may have an internal listening or network-binding issue that prevents the readiness endpoint from accepting gRPC connections on the probed port.\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 5
+}

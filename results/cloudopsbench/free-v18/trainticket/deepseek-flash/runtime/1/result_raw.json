@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Many unrelated TrainTicket service pods are simultaneously in CrashLoopBackOff, all failing during database pool/EntityManager initialization with java.sql.SQLNonTransientConnectionException: Too many connections. The shared tsdb-mysql backend is Running but its logs contain 1,506 'Too many connections' warnings, confirming database connection exhaustion as the common cause.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/tsdb-mysql\", \"root_cause\": \"The shared MySQL database backend has exhausted its available connection limit, causing dependent TrainTicket services to fail Hikari/JPA connection-pool initialization and enter CrashLoopBackOff.\"}, {\"rank\": 2, \"fault_object\": \"app/ts-order-other-service\", \"root_cause\": \"An application-level database connection leak or excessive pool usage in one TrainTicket service may have consumed MySQL connections and triggered the shared 'Too many connections' failure.\"}, {\"rank\": 3, \"fault_object\": \"node/worker-02\", \"root_cause\": \"The node hosting the primary tsdb-mysql pod may have resource pressure or instability impairing MySQL's ability to serve connections, contributing to connection exhaustion.\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 7
+}

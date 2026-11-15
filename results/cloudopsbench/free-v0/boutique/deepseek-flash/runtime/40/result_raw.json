@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"checkoutservice-757c84f65-48bhl is Running but READY 0/1 with no restarts. Describe shows repeated readiness probe failures: failed to connect to 172.20.2.125:5051. Deployment YAML confirms containerPort 5050, PORT=5050, liveness grpc port 5050, but readiness grpc port 5051, a clear port mismatch preventing the pod from becoming Ready.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"The checkoutservice Deployment's readinessProbe is configured to use gRPC port 5051 while the application listens on port 5050, so the readiness probe times out and the pod never becomes Ready.\"}, {\"rank\": 2, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"The checkoutservice container is running but its readiness endpoint or gRPC health service is not responding correctly, causing readiness probe timeouts even though the process is running.\"}, {\"rank\": 3, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"Kubelet-to-pod readiness probe connectivity on worker-02 is intermittently failing, which can cause readiness probe timeouts for checkoutservice.\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 5
+}
