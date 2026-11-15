@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All other boutique pods are Running and Ready, but the adservice Deployment is 0/1 with no adservice pod created. The adservice ReplicaSet reports FailedCreate events: pod creation is forbidden because the namespace memory quota is exceeded (requested 300Mi, used 3000Mi, limited 3Gi). This directly explains the adservice availability disruption and the overall service availability symptom.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"namespace/boutique\", \"root_cause\": \"namespace_memory_quota_exceeded\"}, {\"rank\": 2, \"fault_object\": \"app/adservice\", \"root_cause\": \"deployment_zero_replicas\"}, {\"rank\": 3, \"fault_object\": \"namespace/boutique\", \"root_cause\": \"namespace_pod_quota_exceeded\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 8
+}

@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"checkoutservice-757c84f65-48bhl is Running with READY 0/1 and zero restarts. Describe shows readiness gRPC probe on port 5051 repeatedly failing with connection timeout, while the container PORT is 5050, liveness correctly probes 5050, and logs show 'starting to listen on tcp: \\\"[::]:5050\\\"'. This isolates the fault to an incorrect readiness probe port for checkoutservice.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"readiness_probe_incorrect_port\"}, {\"rank\": 2, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"readiness_probe_incorrect_timing\"}, {\"rank\": 3, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"service_port_mapping_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 4
+}

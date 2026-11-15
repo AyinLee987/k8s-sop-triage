@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"ts-gateway-service pod is 0/2 Ready with 4 restarts; app container exits code 1. Deployment sets dnsPolicy: None with custom nameserver 10.255.1.254. Both istio-proxy and app logs show DNS lookups to 10.255.1.254:53 timing out (i/o timeout, not NXDOMAIN), causing Nacos registration failure ('Client not connected, current status:STARTING') and crash. All other train-ticket pods, including many on worker-01, are Running/Ready, so the fault is pod-local DNS misconfiguration on the gateway rather than a node or cluster-wide problem.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-gateway-service\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-gateway-service\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 8
+}

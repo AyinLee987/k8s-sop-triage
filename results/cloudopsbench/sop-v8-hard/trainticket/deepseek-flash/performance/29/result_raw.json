@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show dominant latency degradation on ts-seat-service: p50 222.24ms -> 3409.09ms (+1434%), throughput -69.2%, with abnormal network traffic. All pods are Running with no recent restarts, excluding crash/readiness causes. ts-seat-service error logs contain only istio-proxy metric-scraping broken pipes, not business errors. Recent application logs show normal successful internal processing despite externally observed latency, matching the latency SOP's exclusion-based pod_network_delay attribution.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-seat-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 3, \"fault_object\": \"app/ts-preserve-service\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 6
+}

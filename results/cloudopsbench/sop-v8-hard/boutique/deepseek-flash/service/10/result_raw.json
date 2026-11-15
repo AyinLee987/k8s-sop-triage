@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Frontend logs repeatedly show connection refused dialing checkoutservice ClusterIP 10.68.125.216:5050. The checkoutservice Service exists with selector app=checkoutservice and endpoint 172.20.1.199:5051, but checkoutservice Deployment declares containerPort 5050, listens on PORT=5050, and probes gRPC on 5050. The Service port 5050 is incorrectly mapped to targetPort 5051, causing traffic to be sent to a closed port and producing partial service unreachability.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"service_port_mapping_mismatch\"}, {\"rank\": 2, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"readiness_probe_incorrect_port\"}, {\"rank\": 3, \"fault_object\": \"app/frontend\", \"root_cause\": \"service_env_var_address_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 7
+}

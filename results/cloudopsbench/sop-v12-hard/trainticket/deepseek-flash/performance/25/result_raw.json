@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"ts-payment-service shows p50 latency rising from ~16ms to ~6477ms and p90 from ~23ms to ~9295ms, with success rate dropping to 81.7%. Its logs repeatedly show `IncorrectResultSizeDataAccessException: query did not return a unique result: 2/4` and `NonUniqueResultException`, and its callers receive HTTP 500 from `/api/v1/paymentservice/payment`. Pods are Running/Ready without restarts, gateway endpoints and service dependencies are normal, gateway logs show no routing errors, and tsdb-mysql has no error logs. ts-order-service has a CPU CFS throttling alert but normal successful order operations and no error logs, making it a secondary alternative rather than the primary fault.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"code_wrong_return\"}, {\"rank\": 2, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 3, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"code_missing_parameter\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 19
+}

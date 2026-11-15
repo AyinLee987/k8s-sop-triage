@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"ts-inside-payment-service shows severe latency degradation (p50 363ms -> 8333ms) and inbound traffic surge, while pods/endpoints remain healthy with no crashes or missing backends. Its recent logs show successful payment processing with no independent code-defect evidence; errors are order-not-found messages during the latency window and are consistent with secondary effects. ts-order-service shows CPU CFS throttling, but no direct latency alert; it is a plausible alternative dependency-side cause, while the primary evidence supports network delay on ts-inside-payment-service.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-inside-payment-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 3, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 10
+}

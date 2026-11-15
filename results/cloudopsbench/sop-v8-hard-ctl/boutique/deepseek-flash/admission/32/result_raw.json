@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"shippingservice has 1 desired replica but 0 created. ReplicaSet shippingservice-696cc9d869 reports FailedCreate events: pods are forbidden because the namespace memory-request-quota is exceeded (requested requests.memory=300Mi, used=3000Mi, limit=3Gi). All other boutique pods are Running and Ready, localizing the outage to missing shippingservice pods due to namespace memory quota exhaustion.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"namespace/boutique\", \"root_cause\": \"namespace_memory_quota_exceeded\"}, {\"rank\": 2, \"fault_object\": \"namespace/boutique\", \"root_cause\": \"namespace_cpu_quota_exceeded\"}, {\"rank\": 3, \"fault_object\": \"namespace/boutique\", \"root_cause\": \"namespace_pod_quota_exceeded\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 7
+}

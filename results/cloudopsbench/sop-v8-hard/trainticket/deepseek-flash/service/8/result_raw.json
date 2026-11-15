@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All application pods, Services, and Endpoints are broadly healthy. The alert reports `POST /api/v1/preserveservice/preserve` failing with HTTP 404 at entry service `ts-preserve-service`. The gateway configuration routes `/api/v1/preserveservice/**` to `lb://ts-travel-service` instead of `ts-preserve-service`, creating a clear route-to-backend mismatch. Gateway logs show startup and route loading without an infrastructure failure, supporting gateway misrouting as the primary fault.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-gateway-service\", \"root_cause\": \"gateway_misrouted\"}, {\"rank\": 2, \"fault_object\": \"app/ts-preserve-service\", \"root_cause\": \"service_selector_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/ts-travel-service\", \"root_cause\": \"code_wrong_return\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 10
+}

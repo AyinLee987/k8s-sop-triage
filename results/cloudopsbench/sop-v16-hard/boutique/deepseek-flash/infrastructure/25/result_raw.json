@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"paymentservice pod is Pending with no node assignment and no scheduling events. Worker nodes are Ready with 8 CPU / ~15Gi allocatable and no taints; only master carries an unschedulable taint. kube-scheduler.service on master is inactive (dead), having stopped at 21:29:05, which explains the complete lack of scheduling progress and the pending pod.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/master\", \"root_cause\": \"kube_scheduler_unavailable\"}, {\"rank\": 2, \"fault_object\": \"app/paymentservice\", \"root_cause\": \"node_cordon_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/paymentservice\", \"root_cause\": \"taint_toleration_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 7
+}

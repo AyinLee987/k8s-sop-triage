@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"redis-cart-5d5fdb58ff-4xdq6 is Pending with PodScheduled=False. DescribeResource shows Node-Selectors: disktype=ssd. GetClusterConfiguration shows worker-01/02/03 have disk-type=ssd (hyphenated key), not disktype=ssd, and master lacks the label and is unschedulable. The scheduler reported 3 nodes not matching the pod's node affinity/selector and 1 unschedulable node, confirming an explicit node selector mismatch for redis-cart.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/redis-cart\", \"root_cause\": \"node_selector_mismatch\"}, {\"rank\": 2, \"fault_object\": \"app/redis-cart\", \"root_cause\": \"node_affinity_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/redis-cart\", \"root_cause\": \"node_cordon_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 5
+}

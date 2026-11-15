@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"productcatalogservice-ddb46fc86-h9klx is Pending with no node assignment and zero scheduler events; DescribeResource shows no nodeSelector/affinity/tolerations restricting placement and no PVC dependency. GetClusterConfiguration shows worker-01/02/03 are Ready, untainted, and each have 8 CPU / ~15.6Gi memory allocatable, refuting resource-capacity, selector, affinity, cordon, and taint blockers. CheckNodeServiceStatus(master, kube-scheduler) shows kube-scheduler.service is 'inactive (dead)' (stopped prematurely with no restarts), so no pod can be scheduled -> service availability disruption for productcatalogservice.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/master\", \"root_cause\": \"kube_scheduler_unavailable\"}, {\"rank\": 2, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"node_selector_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"taint_toleration_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 7
+}

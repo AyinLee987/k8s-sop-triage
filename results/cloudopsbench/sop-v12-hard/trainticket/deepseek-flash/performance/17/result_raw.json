@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show ts-assurance-service p90 latency rising from 7.86ms to ~2112ms, while all pods remain Running/Ready with no restarts. ts-assurance-service has no error logs, and recent logs show normal rapid internal request processing, making an application error or code-level delay unlikely. A separate alert shows CPU CFS throttling on ts-order-service, and ts-assurance-service runs on worker-01, so those remain secondary hypotheses.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-assurance-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 7
+}

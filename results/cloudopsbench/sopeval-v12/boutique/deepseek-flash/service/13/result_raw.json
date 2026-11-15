@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All boutique pods are Running and Ready, and productcatalogservice has healthy endpoints. Frontend logs show connection refused to productcatalogservice ClusterIP 10.68.1.75:3550. The Service spec maps port 3550 to targetPort 8081, but the container listens on containerPort 3550 with PORT=3550. Endpoints show productcatalogservice at 172.20.1.16:8081, so traffic is forwarded to the wrong container port.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"service_port_mapping_mismatch\"}, {\"rank\": 2, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"service_selector_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"service_protocol_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 9
+}

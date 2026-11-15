@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All TrainTicket pods are Running with healthy endpoints and Ready nodes, ruling out pod crash, missing replicas, or single-node unavailability. Alerts show a cluster-wide proportional RPS/traffic drop with the most severe degradation at the fan-out ingress: ts-gateway-service (-78% RPS) downstream of ts-ui-dashboard (-68%), and roughly ~50-65% drops on all downstream services. The gateway istio-proxy logs show network broken-pipe errors, and its container/app logs show no independent application errors, consistent with network-delay-induced stalls propagating to all downstream services. The gateway is the most upstream fan-out whose throughput anomaly best explains the widespread downstream propagation, supporting pod_network_delay on ts-gateway-service.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-gateway-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"node/worker-03\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-ui-dashboard\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 13
+}

@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All TrainTicket pods, Services, and Endpoints are broadly healthy. Alerts show 20 occurrences each of HTTP 404 for POST /api/v1/orderservice/order/refresh on the order-refresh business actions, with ts-order-service as the entry service. ts-order-service error logs are empty, and the gateway configuration shows the route id `order` matching Path=/api/v1/orderservice/** is incorrectly pointed at lb://${FOOD_SERVICE_HOST:ts-food-service} instead of ts-order-service. This route-to-backend mismatch explains the 404 without any backend pod or endpoint failure.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-gateway-service\", \"root_cause\": \"gateway_misrouted\"}, {\"rank\": 2, \"fault_object\": \"app/ts-gateway-service\", \"root_cause\": \"service_port_mapping_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/ts-gateway-service\", \"root_cause\": \"service_env_var_address_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 9
+}

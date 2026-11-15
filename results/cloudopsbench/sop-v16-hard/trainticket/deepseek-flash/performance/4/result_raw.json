@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show severe latency only on ts-gateway-service and its caller ts-ui-dashboard, with identical p50/p90 spikes, while many downstream services show throughput/traffic drops. Dependency data shows ts-ui-dashboard calls ts-gateway-service and gateway fans out to the backend services, so gateway latency best explains UI latency and downstream throughput collapse. Gateway pods are 2/2 Running with no restarts, endpoints are present, and no gateway error logs were found, excluding crash, restart, missing backend, and obvious application error causes. This supports pod_network_delay on ts-gateway-service.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-gateway-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-gateway-service\", \"root_cause\": \"code_artificial_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 9
+}

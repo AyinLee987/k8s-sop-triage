@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Pods, Services, and Endpoints are broadly healthy. Alert reports HTTP 500 on ts-inside-payment-service's payment action. Inside-payment logs show downstream HTTP 500 to /api/v1/paymentservice/payment. Gateway route for /api/v1/paymentservice/** correctly targets ts-payment-service, and the payment Deployment is available with pods running. ts-payment-service logs show IncorrectResultSizeDataAccessException / NonUniqueResultException: query did not return a unique result: 5, indicating an application-level query/code defect rather than routing, pod, DNS, or database read-only failure.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"code_missing_parameter\"}, {\"rank\": 2, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"code_wrong_argument_order\"}, {\"rank\": 3, \"fault_object\": \"app/ts-inside-payment-service\", \"root_cause\": \"code_missing_parameter\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 11
+}

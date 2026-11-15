@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Only emailservice is in CrashLoopBackOff. DescribeResource shows repeated liveness probe timeouts on 172.20.1.163:8080, followed by kubelet killing the container; last termination exit code is 137, and events report 'Container server failed liveness probe, will be restarted.' Logs show the email service starts and begins listening on port 8080 about 2 seconds after launch. GetAppYAML confirms the liveness probe is configured with initialDelaySeconds=1, periodSeconds=1, timeoutSeconds=1, failureThreshold=1, so kubelet probes and kills the container before startup is complete.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/emailservice\", \"root_cause\": \"liveness_probe_incorrect_timing\"}, {\"rank\": 2, \"fault_object\": \"app/emailservice\", \"root_cause\": \"container_memory_limit_too_low\"}, {\"rank\": 3, \"fault_object\": \"app/emailservice\", \"root_cause\": \"readiness_probe_incorrect_timing\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 5
+}

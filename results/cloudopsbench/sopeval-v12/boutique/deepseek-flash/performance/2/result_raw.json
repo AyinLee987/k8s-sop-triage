@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"cartservice is the only service with CPU CFS throttling and CPU-core saturation: CPU throttled 0.811s, CPU cores rose from 0.02 to 0.16 (+544.6%), and p95 latency rose from 10.77ms to 83.83ms (+678.2%). Its pod is Running/Ready with 0 restarts, logs show no application errors, resource limits are configured, and source review of the active CartService/RedisCartStore paths found no supported busy-loop, artificial-delay, or excessive-file-read defect. Frontend and checkoutservice latency is consistent with downstream impact.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/cartservice\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 2, \"fault_object\": \"app/cartservice\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 3, \"fault_object\": \"app/cartservice\", \"root_cause\": \"code_excessive_file_reads\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 11
+}

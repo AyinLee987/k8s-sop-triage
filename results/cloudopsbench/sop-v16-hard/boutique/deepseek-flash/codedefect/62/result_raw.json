@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Active alerts on frontend show FILESYSTEM_WRITE_SURGE (fs_write_bytes spiking to 162KB/s, peak 401KB/s) with only a modest CPU increase. Frontend pods are 2/2 Running with no restarts, no error logs, and normal 200 responses (~18-24ms). Source code in handlers.go shows chooseAd() opens /tmp/tmp.csv and writes 30,000 CSV rows on every home and product page request, then flushes/closes/removes it. This repeated unbounded file-write path directly explains the filesystem write surge on frontend.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_excessive_file_writes\"}, {\"rank\": 2, \"fault_object\": \"app/frontend\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 8
+}

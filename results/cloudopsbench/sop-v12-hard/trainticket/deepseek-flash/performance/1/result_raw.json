@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show widespread latency degradation with ts-preserve-service as the dominant anomaly (p50 177ms -> 19677ms, p90 238ms -> 27935ms), plus ts-basic, ts-travel, ts-gateway and ts-ui-dashboard degraded downstream. All TrainTicket pods are Running/Ready with no abnormal restarts, excluding pod crashes/readiness failures. GetErrorLogs for ts-preserve-service returned no errors. Recent logs for ts-preserve-service show normal, millisecond-spaced internal step execution (e.g., all preserve steps completing within ~140ms), inconsistent with the huge externally measured latency. This internal-fast vs external-slow discrepancy, with healthy pods and no application errors, is the exclusion-based signature of injected pod network delay on ts-preserve-service; gateway/UI latency is downstream propagation.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-preserve-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-basic-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-preserve-service\", \"root_cause\": \"code_artificial_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 6
+}

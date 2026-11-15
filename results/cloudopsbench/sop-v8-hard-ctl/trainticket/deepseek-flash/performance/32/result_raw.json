@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show severe LATENCY_DEGRADATION concentrated in ts-train-service (p50 +32754.6%, p90 +47095.3%) with secondary latency in ts-basic-service and traffic surges downstream. All pods are Running/Ready with no meaningful recent restarts, excluding crashes. ts-train-service error logs are clean (only an istio-proxy metric-scrape broken pipe), excluding application errors. Recent ts-train-service logs show fast, normal internal request handling while external latency is ~2.4-4.5s, an exclusion-based discrepancy consistent with injected pod network delay.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-train-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-basic-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 6
+}

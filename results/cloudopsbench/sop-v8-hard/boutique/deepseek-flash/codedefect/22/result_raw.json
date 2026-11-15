@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show checkoutservice CPU CFS throttling (0.987s), CPU core increase from 0.00 to 0.11 cores (+6759.7%), and severe latency degradation (p50 19ms -> 4364ms, p90 45ms -> 9024ms). The checkoutservice pod is Running/Ready with 0 restarts, no error logs, and a 200m CPU limit. Source review revealed a file-read loop in PlaceOrder but no confirmed active spin/busy-loop independently explaining the CPU magnitude, supporting pod-level CPU overload as the primary diagnosis. The node worker-01 CPU alert is minor (4.5% -> 6.77%).\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 2, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"code_excessive_file_reads\"}, {\"rank\": 3, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"code_busy_loop\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 8
+}

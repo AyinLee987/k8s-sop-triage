@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All pods Running/Ready with clean endpoints (no crashes, no missing backends, no scale-to-zero). Widespread LATENCY_DEGRADATION alerts across gateway, cancel, ui-dashboard, and most severely ts-inside-payment-service (p50 +32253%, p90 +13545%, throughput -71%) which sits upstream (as callee) of the slower callers and is the deepest service with its own latency/throughput anomaly. ts-inside-payment-service application logs show fast, normal internal processing (pay success in ms) despite externally observed multi-second latency, the characteristic signature of pod network delay. The ts-order-service CPU cfs throttle is on a separate service (secondary/separate candidate per SOP) without independent code-defect evidence; error logs (order-not-found, istio broken pipe) are latency-window secondary effects.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-inside-payment-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 3, \"fault_object\": \"app/ts-cancel-service\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 14
+}

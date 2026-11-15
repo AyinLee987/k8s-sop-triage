@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"shippingservice had CPU CFS throttling, a large CPU-core increase, and p50/p90 latency spikes while its pod remained Running and Ready. Application error logs were effectively clean, and the Deployment's CPU limit was modest but not independently anomalous. Source inspection showed quote.go's CreateQuoteFromFloat contains an active 500ms time-check spin loop, and main.go's GetQuote handler calls it via CreateQuoteFromCount on the request path. This directly explains CPU saturation and latency.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/shippingservice\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 2, \"fault_object\": \"app/shippingservice\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 3, \"fault_object\": \"app/shippingservice\", \"root_cause\": \"code_artificial_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 10
+}

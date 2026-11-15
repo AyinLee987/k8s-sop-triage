@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"checkoutservice logs show repeated DNS failures resolving emailservice ('lookup emailservice ... no such host'); the emailservice pod is Running and Ready, but there is no emailservice Service object and no emailservice endpoints; ResourceQuota service-count-quota is at 11/11, exhausting the Service count quota and preventing creation of the emailservice Service.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"namespace/boutique\", \"root_cause\": \"namespace_service_quota_exceeded\"}, {\"rank\": 2, \"fault_object\": \"app/emailservice\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 3, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"service_env_var_address_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 11
+}

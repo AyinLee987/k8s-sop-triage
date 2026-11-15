@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Active alerts show sharp latency degradation centered on ts-gateway-service and ts-ui-dashboard: gateway p50 rose from ~27ms to ~1929ms and p90 from ~205ms to 8000ms, with a 77.8% RPS drop and ~43.8% network traffic drop. Many downstream services also show throughput/traffic drops, consistent with upstream gateway slowness propagating through the call chain. Pod inspection shows all TrainTicket pods Running and Ready with 0 recent restarts, excluding crashes, restarts, or missing backends. GetErrorLogs for ts-gateway-service returned no application error logs, making an application error less likely and supporting network-delay attribution by exclusion.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-gateway-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-ui-dashboard\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 6
+}

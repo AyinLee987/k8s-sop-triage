@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Frontend Deployment has 0/1 ready with ReplicaFailure=True and FailedCreate events. The ReplicaSet frontend-fbbd6d5f5 shows 0 pods created and the event states: pods forbidden: error looking up service account boutique/frontend-missing: serviceaccount \\\"frontend-missing\\\" not found. Consequently no frontend pod exists, the frontend and frontend-external Services have empty endpoints, and the frontend Service is unreachable. All other services are Running/Ready with healthy endpoints.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/frontend\", \"root_cause\": \"missing_service_account\"}, {\"rank\": 2, \"fault_object\": \"app/frontend\", \"root_cause\": \"deployment_zero_replicas\"}, {\"rank\": 3, \"fault_object\": \"app/frontend\", \"root_cause\": \"service_selector_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 11
+}

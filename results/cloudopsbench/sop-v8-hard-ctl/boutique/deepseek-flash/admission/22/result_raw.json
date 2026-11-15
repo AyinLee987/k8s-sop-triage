@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"adservice Deployment is at 0/1 ready with ReplicaFailure FailedCreate and no adservice pod exists. ReplicaSet events show pod creation repeatedly forbidden: 'exceeded quota: memory-quota, requested: requests.memory=300Mi, used: requests.memory=3000Mi, limited: requests.memory=3Gi'. ResourceQuota memory-quota confirms requests.memory usage is 3000Mi/3Gi. ServiceAccount adservice exists, so missing service account is ruled out. This namespace memory quota exhaustion prevents adservice from starting, causing service availability disruption.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"namespace/boutique\", \"root_cause\": \"namespace_memory_quota_exceeded\"}, {\"rank\": 2, \"fault_object\": \"app/adservice\", \"root_cause\": \"memory_capacity_mismatch\"}, {\"rank\": 3, \"fault_object\": \"namespace/boutique\", \"root_cause\": \"namespace_pod_quota_exceeded\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 10
+}

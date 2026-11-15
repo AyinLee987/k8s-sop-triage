@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"The productcatalogservice pod is Pending because its node selector requires worker-01. Worker-01 is Unknown with node.kubernetes.io/unreachable taints, and CheckNodeServiceStatus confirms kubelet.service is inactive/dead on worker-01. This matches a kubelet unavailability fault on that node, causing the service scheduling failure and partial unreachability.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/worker-01\", \"root_cause\": \"kubelet_unavailable\"}, {\"rank\": 2, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"node_selector_mismatch\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_packet_loss\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 5
+}

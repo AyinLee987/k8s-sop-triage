@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Pod ts-config-service-5cc47cd465-5v4d6 is stuck in CreateContainerConfigError. DescribeResource events show: Error: secret \\\"ts-config-mysql1\\\" not found. The pod references Secret ts-config-mysql1 as a non-optional environment source. GetResources for that Secret confirms it does not exist in namespace train-ticket. All other pods are Running, so the primary fault is a missing Secret binding for ts-config-service, causing that service to be unavailable and producing partial service unreachability.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-config-service\", \"root_cause\": \"missing_secret_binding\"}, {\"rank\": 2, \"fault_object\": \"app/ts-config-service\", \"root_cause\": \"service_selector_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/ts-config-service\", \"root_cause\": \"service_port_mapping_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 5
+}

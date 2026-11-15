@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show widespread latency degradation with ts-inside-payment-service as the dominant anomaly (p50 42ms->13725ms, +32253%, peak 27s; throughput -71%). All pods are Running/Ready with no crash or restart pattern (rules out crash/readiness). Payment application error ratio is only 5% and logs show fast internal processing (ms-level pay/drawback operations) despite externally observed 13-26s latency, the classic exclusion-based signature of pod network delay. Affected services span worker-01/02/03, ruling out a single-node network fault. ts-order-service CPU throttling (0.353s) is a secondary symptom of retry load, insufficient to explain 13-26s latency.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-inside-payment-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 3, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"code_busy_loop\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 11
+}

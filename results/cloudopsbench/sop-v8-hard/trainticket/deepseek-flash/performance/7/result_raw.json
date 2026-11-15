@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All TrainTicket pods are Running/Ready (no crashes, restarts, or missing backends). Active alerts show LATENCY_DEGRADATION on ts-payment-service (p50 16.96ms->5000.00ms exact, p90 23.79ms->9000ms) and ts-inside-payment-service (p90 ~8488ms), plus minor cpu_cfs throttling on ts-order-service. ts-payment-service is a leaf service (upstream: gateway/inside-payment; no downstream calls) that only talks to tsdb-mysql, so a fixed ~5s round-trip indicates pod-level network delay rather than downstream dependency latency. Recent logs show payment requests being served with normal internal processing but the recurring NonUniqueResultException is a pre-existing data condition (fast failures in baseline) that only appears slow now because every DB round-trip incurs the injected delay. inside-payment's high latency is explained by waiting on the slower payment service.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"code_busy_loop\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 13
+}

@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"currencyservice Deployment has 0 available replicas and its ReplicaSet repeatedly fails pod creation with: exceeded quota memory-request-quota, requested 300Mi, used 3000Mi, limit 3Gi. The Service currencyservice has no endpoints, and no currencyservice pod exists. ResourceQuota memory-request-quota shows requests.memory 3000Mi/3Gi, confirming namespace-level memory quota exhaustion.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"namespace/boutique\", \"root_cause\": \"namespace_memory_quota_exceeded\"}, {\"rank\": 2, \"fault_object\": \"app/currencyservice\", \"root_cause\": \"deployment_zero_replicas\"}, {\"rank\": 3, \"fault_object\": \"namespace/boutique\", \"root_cause\": \"namespace_pod_quota_exceeded\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 9
+}

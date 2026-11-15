@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All pods are Running and Ready, but frontend logs show 115 'connection refused' errors to adservice ClusterIP 10.68.44.192:9555. Service inventory shows adservice is the only Service with no endpoints (GetResources endpoints: adservice <none>). Describe adservice shows targetPort 'grpc-api', while the deployment declares the container port name as 'grpc' (containerPort 9555). The named targetPort cannot resolve, so no endpoint port is produced and active TCP connectivity to adservice:9555 fails ('Connection Failed'). Secondary frontend DNS 'no such host' errors for productcatalogservice refer to a Service that exists with healthy endpoints (172.20.1.67:3550), making them a symptom/transient rather than the primary fault.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/adservice\", \"root_cause\": \"service_port_mapping_mismatch\"}, {\"rank\": 2, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 3, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"service_env_var_address_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 11
+}

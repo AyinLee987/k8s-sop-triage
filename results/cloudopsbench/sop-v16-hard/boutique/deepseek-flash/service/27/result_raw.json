@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All boutique pods are Running and Ready. Service inventory shows paymentservice Service exposed on port 50051 with protocol UDP, while the paymentservice Deployment container listens on containerPort 50051 using grpc (TCP) probes and PORT env 50051. The Service selector (app=paymentservice) and targetPort (50051) are correct, so endpoints are healthy, but the protocol is UDP instead of TCP. Clients calling paymentservice over gRPC/TCP cannot reach it, producing partial service unreachability specifically for paymentservice.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/paymentservice\", \"root_cause\": \"service_protocol_mismatch\"}, {\"rank\": 2, \"fault_object\": \"app/paymentservice\", \"root_cause\": \"service_port_mapping_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"service_env_var_address_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 5
+}

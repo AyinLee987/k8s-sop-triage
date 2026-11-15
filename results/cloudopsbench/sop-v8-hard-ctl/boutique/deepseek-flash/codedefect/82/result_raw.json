@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"The only alert is on productcatalogservice and shows a CPU saturation spike plus a filesystem-write surge. The pod is Running and Ready with 0 restarts and no application error logs. Source code for productcatalogservice shows ListProducts creates /tmp/tmp.csv and writes 30,000 CSV rows on each request, directly matching the observed filesystem-write anomaly and explaining the CPU resource saturation.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"code_excessive_file_writes\"}, {\"rank\": 2, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 3, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"code_artificial_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 10
+}

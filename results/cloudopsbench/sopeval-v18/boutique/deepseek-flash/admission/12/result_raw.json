@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"adservice has a Service but no running pod; Deployment adservice is 0/1 with ReplicaFailure and FailedCreate. ReplicaSet events repeatedly report 'exceeded quota: cpu-quota, requested: requests.cpu=1, used: requests.cpu=10, limited: requests.cpu=1'. ResourceQuota cpu-quota confirms requests.cpu 10/1, so adservice pods cannot be created and the Service has no endpoints.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"namespace/boutique\", \"root_cause\": \"namespace_cpu_quota_exceeded\"}, {\"rank\": 2, \"fault_object\": \"app/adservice\", \"root_cause\": \"missing_service_account\"}, {\"rank\": 3, \"fault_object\": \"app/adservice\", \"root_cause\": \"cpu_capacity_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 7
+}

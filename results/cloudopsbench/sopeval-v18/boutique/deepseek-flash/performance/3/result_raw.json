@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"checkoutservice alerts show CPU CFS throttling (0.703s), elevated CPU-core use (0.01 -> 0.15 cores, +1985.6%), and p95 latency degradation (28.83ms -> 93.18ms). Its pod is 2/2 Running with 0 restarts on worker-02, error logs are clean, and its CPU request/limit are ordinary (100m/200m). Source review found the standard MultiplySlow helper loop, but no independent evidence ties it to the observed CPU throttling or latency magnitude. This makes pod_cpu_overload the best-supported primary diagnosis.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 2, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 3, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 9
+}

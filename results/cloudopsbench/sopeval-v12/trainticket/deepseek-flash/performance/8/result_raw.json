@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show severe latency degradation for ts-preserve-service (p50 7.5s, p90 9.75s), with ts-gateway-service and ts-ui-dashboard also affected as upstream callers/impacted services. All pods are Running and Ready with no recent restarts, and ts-preserve-service has no error logs. Recent ts-preserve-service logs show normal internal processing steps completing quickly, supporting external/pod network delay rather than application failure.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-preserve-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-preserve-service\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 6
+}

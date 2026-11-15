@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All TrainTicket pods are Running/Ready with no relevant crashes, and Services/Endpoints are broadly healthy; GetAlerts is clean. The gateway ConfigMap shows the `order` route (Path=/api/v1/orderservice/**) is wired to ${TRAVEL_SERVICE_HOST:ts-travel-service} instead of ts-order-service, a clear route-to-backend mismatch causing order business requests to be sent to the wrong service (partial service unreachability). The missing ts-food-delivery-service Service object is only a candidate/deco during route comparison since the gateway routes via Nacos lb; the only actual route-target mismatch is the order route.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-gateway-service\", \"root_cause\": \"gateway_misrouted\"}, {\"rank\": 2, \"fault_object\": \"app/ts-gateway-service\", \"root_cause\": \"service_env_var_address_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/ts-food-delivery-service\", \"root_cause\": \"service_selector_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 9
+}

@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Checkout requests fail with HTTP 500 and checkoutservice logs show `panic: mismatching currency codes`. The service has restarted repeatedly. Source inspection shows `userID, userCurrency = userCurrency, userID` in `PlaceOrder`, swapping the two inputs before `prepareOrderItemsAndShippingQuoteFromCart`. As a result, order item prices are converted with the wrong currency code while order totals are initialized with `req.UserCurrency`, so `money.Sum` panics on differing currency codes.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"code_wrong_argument_order\"}, {\"rank\": 2, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"code_missing_parameter\"}, {\"rank\": 3, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"code_wrong_return\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 8
+}

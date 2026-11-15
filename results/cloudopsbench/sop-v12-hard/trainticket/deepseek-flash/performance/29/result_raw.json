@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Widespread latency with ts-seat-service dominant (+1434% p50 latency, peak 3.6s). All pods Running/Ready with no restarts. ts-seat-service error logs show no business errors (only Istio metric-pipe noise), and recent logs show fast internal processing (envoy upstream-service-time 15-96ms on several calls) despite externally observed latency. ts-seat-service alert uniquely combines TRAFFIC_ANOMALY network surge (+98% pps inbound/outbound), THROUGHPUT_DROP (-69% RPS) and severe latency — classic injected pod network delay, with downstream callers (ts-preserve, ts-travel) inheriting degraded latency. CPU cfs throttling alert on ts-order-service and node worker-02 network delay are plausible alternatives.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-seat-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 3, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 6
+}

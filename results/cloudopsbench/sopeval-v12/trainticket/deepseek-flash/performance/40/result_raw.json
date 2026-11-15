@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All TrainTicket pods are Running/Ready with no crash signal. Alerts show severe latency and error degradation on the payment path, especially ts-inside-payment-service and ts-payment-service. ts-inside-payment-service logs show HTTP 500 responses from /api/v1/paymentservice/payment, while ts-payment-service logs repeatedly show IncorrectResultSizeDataAccessException: query did not return a unique result (2/5). Gateway YAML, logs, and dependency graph show normal routing to ts-payment-service, excluding gateway misroute. ts-order-service logs show normal successful operations despite a CPU throttling alert, making it secondary. The concrete failure is a payment-service query/cardinality defect most consistent with a missing required parameter in an application call.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"code_missing_parameter\"}, {\"rank\": 2, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"code_wrong_argument_order\"}, {\"rank\": 3, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"code_wrong_return\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 16
+}

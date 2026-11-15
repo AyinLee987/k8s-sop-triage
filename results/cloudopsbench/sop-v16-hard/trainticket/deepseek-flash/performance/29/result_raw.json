@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"ts-seat-service shows the strongest primary latency anomaly: p50 222.24ms -> 3409.09ms (+1434.0%), p90 1689.06ms -> 4727.27ms (+179.9%), throughput -69.2%, and network surge. Dependency data shows ts-travel-service and ts-preserve-service call ts-seat-service, explaining their latency as propagation. All pods and endpoints are Running/Ready with no restarts; ts-seat-service logs show normal internal processing and only istio-proxy broken-pipe noise, supporting pod_network_delay by exclusion. ts-order-service has a CPU CFS throttling alert but no independent latency alert, making it a secondary/alternative candidate.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-seat-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 3, \"fault_object\": \"app/ts-travel-service\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 12
+}

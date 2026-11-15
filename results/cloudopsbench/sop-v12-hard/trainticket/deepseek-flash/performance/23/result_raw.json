@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Multiple services showed latency degradation and throughput drops, with ts-inside-payment-service having the most extreme anomaly: p50 latency 42.42ms -> 13725.49ms and p90 196ms -> 26745.10ms, plus RPS down 71%. Pod listing showed the service pod Running and Ready without recent restarts. Error logs showed only 5.04% business-level 'order not found' errors, not systemic application failure. Recent inside-payment logs demonstrated normal, fast internal payment processing, supporting externally observed latency caused by pod network delay rather than application code failure or pod crash.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-inside-payment-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 3, \"fault_object\": \"app/ts-cancel-service\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 6
+}

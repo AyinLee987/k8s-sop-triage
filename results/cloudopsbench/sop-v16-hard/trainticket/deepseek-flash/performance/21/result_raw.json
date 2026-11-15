@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show severe LATENCY_DEGRADATION on ts-food-service (p50 17.5ms -> 7500ms, p90 23.5ms -> 9500ms), with downstream/caller services ts-preserve-service, ts-gateway-service, and ts-ui-dashboard also degraded. All service endpoints and pods are healthy with no restarts, excluding missing backends or crashes. ts-food-service has no application error logs, and recent logs show successful fast internal food-order processing despite externally observed latency, consistent with injected pod network delay rather than code failure. ts-order-service has a separate CPU throttling signal, making CPU overload a plausible alternative but secondary to the primary latency path.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-food-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 3, \"fault_object\": \"app/ts-preserve-service\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 11
+}

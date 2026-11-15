@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Widespread latency degradation alerts hit ts-contacts-service (p50 7.57ms→4930ms, +65011%; p90→8977ms), ts-preserve-service (p50→7500ms), ts-gateway-service and ts-ui-dashboard. Pod/endpoint listing shows all backend pods Running and Ready with no restarts, excluding crash/readiness/missing-backend causes. Dependency graph shows ts-contacts-service is a LEAF node (no downstream calls) called by ts-gateway-service, ts-preserve-service, ts-preserve-other-service. Error logs are empty and recent logs show internal request processing completing in milliseconds, so the externally observed ~4930ms latency has no application-processing or downstream explanation -> network-level delay on the ts-contacts-service pod propagating to its callers.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-contacts-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-preserve-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"pod_cpu_overload\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 10
+}

@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"productcatalogservice-84d997fd97-kzfpn is Pending; scheduler reports 0/4 nodes available with worker-01 unschedulable/tainted. Cluster configuration shows worker-01 status Unknown with node.kubernetes.io/unreachable taints. CheckNodeServiceStatus confirms kubelet.service on worker-01 is inactive (dead), so pods pinned to worker-01 cannot be scheduled and services relying on those pods become partially unreachable.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/worker-01\", \"root_cause\": \"kubelet_unavailable\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_packet_loss\"}, {\"rank\": 3, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"node_selector_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 6
+}

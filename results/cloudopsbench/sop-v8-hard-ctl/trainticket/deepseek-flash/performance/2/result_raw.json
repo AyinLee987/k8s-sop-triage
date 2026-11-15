@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show ts-contacts-service with extreme latency (p50 7.52ms -> 4750ms, p90 9.56ms -> 8875ms) and throughput down 66.1%, while gateway/preserve/UI show likely cascading latency. All pods are Running/Ready with no relevant restarts; ts-contacts-service has no application error logs and recent logs show normal request handling. With pod health and application errors excluded, the SOP supports pod-level network delay on ts-contacts-service.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-contacts-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"node/worker-03\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-gateway-service\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 6
+}

@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"GetAlerts reported LATENCY_DEGRADATION only on ts-assurance-service (p90 7.86ms -> 2112.50ms, +26762.9%, peaked 2167ms) plus a separate cpu_cfs throttling signal on ts-order-service. ts-assurance-service is a leaf downstream service (called by ts-gateway-service, ts-preserve-service, ts-preserve-other-service) with a healthy endpoint 172.20.1.6:18888 and a 2/2 Running pod with 0 restarts, so missing-backend/pod-crash/readiness causes are excluded. GetErrorLogs returned no error logs, and GetRecentLogs show the request handler completing internally in milliseconds ('[getAllAssuranceTypes][find all assurance type success][list size: 1]'), creating a clear discrepancy between fast internal processing and externally observed multi-second latency. With pod health, endpoints, and application errors excluded, the latency is attributable to injected pod network delay on ts-assurance-service.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-assurance-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"pod_cpu_overload\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 9
+}

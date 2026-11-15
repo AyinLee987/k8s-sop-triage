@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Frontend logs show repeated connection refused to checkoutservice ClusterIP 10.68.125.216:5050. The checkoutservice pod is Running/Ready, but its Service defines port 5050 with targetPort 5051. The resulting endpoint is 172.20.1.199:5051, while the checkoutservice container listens on containerPort 5050 (PORT=5050 and probes target 5050). This Service targetPort mismatch prevents traffic from reaching the healthy backend.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"service_port_mapping_mismatch\"}, {\"rank\": 2, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"service_protocol_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/frontend\", \"root_cause\": \"gateway_misrouted\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 9
+}

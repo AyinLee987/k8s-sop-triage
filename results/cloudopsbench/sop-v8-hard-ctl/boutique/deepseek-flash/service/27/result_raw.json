@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Frontend checkout errors show payment failures with TCP connection refused to paymentservice ClusterIP 10.68.101.94:50051. The paymentservice Service is configured as protocol UDP for port 50051, while the container exposes a gRPC listener on TCP 50051 and callers use TCP. CheckServiceConnectivity to paymentservice:50051 also failed. This supports service_protocol_mismatch on paymentservice; secondary shipping DNS errors are also present but less directly confirmed.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/paymentservice\", \"root_cause\": \"service_protocol_mismatch\"}, {\"rank\": 2, \"fault_object\": \"app/shippingservice\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 3, \"fault_object\": \"app/paymentservice\", \"root_cause\": \"service_selector_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 7
+}

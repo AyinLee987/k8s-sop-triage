@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Only ts-gateway-service is abnormal: pod 0/2 Ready with 4 restarts and the ts-gateway-service Endpoint is empty. The alert reports HTTP 503 on user login through ts-auth-service. Gateway logs show repeated DNS lookup timeouts to istiod.istio-system.svc via nameserver 10.255.1.254, and the gateway Deployment explicitly sets dnsPolicy=None with that custom nameserver. This pod-local DNS misconfiguration prevents the gateway from becoming Ready, leaving no gateway endpoints and causing service availability disruption.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-gateway-service\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 2, \"fault_object\": \"app/ts-gateway-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 9
+}

@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Pods are broadly Running/Ready, and most Services/Endpoints are healthy. Gateway YAML shows route id `order` for path `/api/v1/orderservice/**` targeting `lb://${TRAVEL_SERVICE_HOST:ts-travel-service}` instead of the expected order-service backend. Gateway logs show successful startup and route loading with no other routing errors. This is a direct gateway route-to-backend mismatch causing partial unreachability.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-gateway-service\", \"root_cause\": \"gateway_misrouted\"}, {\"rank\": 2, \"fault_object\": \"app/ts-gateway-service\", \"root_cause\": \"service_env_var_address_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/ts-food-delivery-service\", \"root_cause\": \"service_selector_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 12
+}

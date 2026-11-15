@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"ts-basic-service pod is 0/2 Ready with 4 restarts and exit code 1. Application logs show Nacos registration failure with 'Client not connected, current status:STARTING'. Istio-proxy logs show repeated DNS lookup timeouts to 10.255.10.254:53 while resolving istiod.istio-system.svc. The deployment sets dnsPolicy: None with nameserver 10.255.10.254, indicating pod-specific DNS misconfiguration. Other services remain Running/Ready, so this is isolated to ts-basic-service.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-basic-service\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 2, \"fault_object\": \"app/ts-basic-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 7
+}

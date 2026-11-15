@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alert flagged productcatalogservice with RESOURCE_SATURATION (CPU 0.00 -> 0.02 cores, +833.9%) and FILESYSTEM_WRITE_SURGE (fs_write_bytes 0 -> 50KB/s, peak 112KB/s). Pod is Running/Ready on worker-01 with no restarts or application error logs. Source code in product_catalog.go shows ListProducts creates /tmp/tmp.csv and writes 30,000 CSV rows per request, directly matching the filesystem-write surge and associated CPU work. The extraLatency sleep is a distractor since EXTRA_LATENCY is unset (default 0).\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"code_excessive_file_writes\"}, {\"rank\": 2, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 3, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"pod_cpu_overload\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 9
+}

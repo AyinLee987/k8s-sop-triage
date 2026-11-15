@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show checkoutservice CPU CFS throttling (0.703s), a CPU-core increase from 0.01 to 0.15 cores, and p95 latency degradation from 28.83ms to 93.18ms. Its pods are Running/Ready, restart count is 0, and error logs are absent. Resource limits are 200m CPU/128Mi memory, and source review found no file-read loop; the only code-level CPU candidate is the ordinary money.MultiplySlow helper, which is not independently tied to the observed magnitude.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 2, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 3, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"code_excessive_file_reads\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 10
+}

@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"checkoutservice shows severe latency (p50 7.5s, p90 23.8s), throughput collapse, and error-rate spike, while its pods are Running and Ready on worker-02. No application error logs are present; recent logs show successful payment and email operations, service dependencies are reachable, and TCP connectivity to checkoutservice:5050 succeeds. No CPU throttling or saturation alert exists. Although source contains a MultiplySlow helper, the SOP treats such a helper as only a candidate when CPU evidence is absent and downstream operations succeed, supporting pod_network_delay over busy-loop as the primary cause.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 3, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 11
+}

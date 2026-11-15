@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show severe latency on ts-gateway-service (p50 1928.57ms vs 27.03ms normal; p90 8000ms vs 204.84ms) with matching ts-ui-dashboard latency and widespread throughput/traffic drops. All affected pods are Running/Ready with no recent restarts, and ts-gateway-service has no application error logs, supporting a network-delay root cause at the gateway rather than crashes or application errors.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-gateway-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-gateway-service\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 6
+}

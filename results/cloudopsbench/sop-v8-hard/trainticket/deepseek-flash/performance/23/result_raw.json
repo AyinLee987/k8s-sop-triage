@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Multiple services show LATENCY_DEGRADATION and THROUGHPUT_DROP, with ts-inside-payment-service being the most extreme (p50 42ms->13725ms, +32253%; p90 196ms->26745ms). Pod listing shows all pods Running/Ready with no crashes or elevated restarts, excluding pod crash/restart causes. ts-inside-payment-service error logs show only 18 old minor business errors (5%), not an active application failure. Recent application logs show normal, fast internal processing ('Pay Success' responses in tens of ms) while external latency is ~13.7s, the classic exclusion-based signature of injected pod network delay with no durable config artifact.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-inside-payment-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-inside-payment-service\", \"root_cause\": \"code_artificial_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 7
+}

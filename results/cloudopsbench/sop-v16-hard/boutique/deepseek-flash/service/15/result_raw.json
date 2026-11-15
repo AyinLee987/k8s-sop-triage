@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All pods are Running/Ready. The adservice Service selector matches the adservice pod label, but the Service targetPort is `grpc-api` while the container port is named `grpc`. The adservice endpoint is malformed/empty (`172.20.1.70` without a port in describe), and frontend logs show connection refused to adservice ClusterIP 10.68.44.192:9555. Direct connectivity to adservice also failed. This confirms a Service port mapping mismatch for adservice.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/adservice\", \"root_cause\": \"service_port_mapping_mismatch\"}, {\"rank\": 2, \"fault_object\": \"app/adservice\", \"root_cause\": \"service_selector_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/frontend\", \"root_cause\": \"service_dns_resolution_failure\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 16
+}

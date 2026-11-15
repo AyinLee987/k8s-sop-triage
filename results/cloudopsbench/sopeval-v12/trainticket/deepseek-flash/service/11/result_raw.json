@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All pods, Services, and Endpoints are broadly healthy (only unrelated flagd has no endpoints). The active alert shows a payment HTTP 500, but gateway route comparison reveals the concrete injected fault: the gateway route id `route` for Path=/api/v1/routeservice/** points to `lb://${FOOD_SERVICE_HOST:ts-food-service}` instead of `ts-route-service`. Thus requests to /api/v1/routeservice/** are sent to the wrong backend, making the route service partially unreachable through the gateway even though its pod/Service/Endpoint are healthy. The ts-payment-service NonUniqueResultException (query returned 5) is a separate downstream SQL/cardinality anomaly consistent with accumulated test data / code-level defect and is not the root cause of the reported partial unreachability.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-gateway-service\", \"root_cause\": \"gateway_misrouted\"}, {\"rank\": 2, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"code_wrong_argument_order\"}, {\"rank\": 3, \"fault_object\": \"app/ts-inside-payment-service\", \"root_cause\": \"code_wrong_return\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 14
+}

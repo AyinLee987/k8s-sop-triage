@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show multi-service latency centered on ts-station-service (p50 3.31ms -> 2477.27ms, +74810%). Dependency graph shows ts-station-service is a leaf callee of ts-basic-service. All pods and endpoints are Running/Ready with no relevant restarts. ts-station-service has no error logs, and recent logs show normal internal processing with large timing gaps, consistent with pod network delay; other latency candidates are callers awaiting this service.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-station-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-basic-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 11
+}

@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show LATENCY_DEGRADATION on ts-inside-payment-service (p90 7625ms) and ts-payment-service (p50/p90 ~6.5s/9.3s with error spike), plus CPU CFS throttling on ts-order-service. Dependency topology shows ts-inside-payment-service calls ts-payment-service and ts-order-service, so it is the upstream primary latency candidate. All service pods are Running/Ready and endpoints are present, excluding crash/restart/missing-backend causes. Logs show downstream 500s, order-not-found, and NonUniqueResultException during the same latency window, but no independent code-defect proof; per the latency SOP these are secondary/correlated effects. This supports pod_network_delay on the upstream candidate ts-inside-payment-service.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-inside-payment-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"pod_cpu_overload\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 15
+}

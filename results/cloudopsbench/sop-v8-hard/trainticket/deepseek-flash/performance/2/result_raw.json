@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show severe latency degradation and throughput drop dominated by ts-contacts-service (p50 7.52ms -> 4750ms, p90 9.56ms -> 8875ms; RPS -66.1%), with secondary latency alerts on ts-gateway-service, ts-preserve-service, and ts-ui-dashboard. Pod listings show ts-contacts-service Running and Ready with no crash/restart pattern. Error logs for ts-contacts-service are empty, and recent logs show normal, fast internal request handling, so external multi-second latency is most consistent with pod-level network delay rather than application error, crash, or resource failure.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-contacts-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"node/worker-03\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-gateway-service\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 7
+}

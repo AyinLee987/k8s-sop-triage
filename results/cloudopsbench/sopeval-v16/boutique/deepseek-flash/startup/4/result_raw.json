@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"frontend pod frontend-7968b59db9-zs7zp is in ErrImagePull/ImagePullBackOff. DescribeResource events show image pull failed because DNS resolution for ghost-registry.example.net failed with 'no such host'. Other boutique pods are Running and Ready, so the outage is isolated to the frontend application image pull.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/frontend\", \"root_cause\": \"image_registry_dns_failure\"}, {\"rank\": 2, \"fault_object\": \"app/frontend\", \"root_cause\": \"incorrect_image_reference\"}, {\"rank\": 3, \"fault_object\": \"app/frontend\", \"root_cause\": \"missing_image_pull_secret\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 5
+}

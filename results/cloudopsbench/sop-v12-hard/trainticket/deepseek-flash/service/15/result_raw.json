@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All pods are Running/Ready and Services/Endpoints are broadly healthy. Alerts show 20 HTTP 404 failures for POST /api/v1/travelservice/trips/left and 5 HTTP 500 failures for inside-payment. The ts-gateway-service application.yml shows the travel route path `/api/v1/travelservice/**` is incorrectly configured with `uri: lb://${USER_SERVICE_HOST:ts-user-service}`, routing travel-search requests to ts-user-service instead of ts-travel-service. This explains the travel-service 404s despite healthy pods and endpoints.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-gateway-service\", \"root_cause\": \"gateway_misrouted\"}, {\"rank\": 2, \"fault_object\": \"app/ts-inside-payment-service\", \"root_cause\": \"code_wrong_return\"}, {\"rank\": 3, \"fault_object\": \"app/ts-inside-payment-service\", \"root_cause\": \"db_readonly_mode\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 9
+}

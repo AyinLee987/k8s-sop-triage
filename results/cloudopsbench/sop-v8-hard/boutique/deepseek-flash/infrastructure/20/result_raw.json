@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"The cartservice pod cartservice-79b49f5555-mmhv4 is Pending with no node assignment, while worker-01/02/03 are Ready with ample CPU/memory and no blocking taints; the pod has no node selector, affinity, or PVC issue. There are no scheduling events. kube-scheduler on master is inactive/dead and logs show it shut down, confirming scheduler unavailability as the blocker for new pod scheduling.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/master\", \"root_cause\": \"kube_scheduler_unavailable\"}, {\"rank\": 2, \"fault_object\": \"app/cartservice\", \"root_cause\": \"node_cordon_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/cartservice\", \"root_cause\": \"cpu_capacity_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 7
+}

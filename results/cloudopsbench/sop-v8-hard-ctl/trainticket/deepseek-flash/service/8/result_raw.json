@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All application pods are Running and broadly healthy. Active alerts show POST /api/v1/preserveservice/preserve failing with HTTP 404. The gateway configuration maps the preserve route /api/v1/preserveservice/** to lb://${TRAVEL_SERVICE_HOST:ts-travel-service} instead of ts-preserve-service, so requests to the preserve service are routed to the wrong backend. This directly explains the partial service unreachability and 404. Other evidence includes a payment-path 500 and absent ts-food-delivery-service endpoints, but these are secondary/alternative anomalies rather than the strongest root cause.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-gateway-service\", \"root_cause\": \"gateway_misrouted\"}, {\"rank\": 2, \"fault_object\": \"app/ts-food-delivery-service\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 3, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"code_wrong_return\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 15
+}

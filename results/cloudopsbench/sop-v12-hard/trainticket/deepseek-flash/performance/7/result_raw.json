@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show severe latency on ts-payment-service and propagated latency to ts-inside-payment-service. All pods are Running/Ready with no restart pattern. ts-payment-service logs repeatedly show IncorrectResultSizeDataAccessException/NonUniqueResultException: query did not return a unique result, plus payment failures for missing orders, while ts-order-service has no error logs and continues processing requests. Gateway topology does not indicate a route misconfiguration, so the fault is localized to ts-payment-service application query logic.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"code_missing_parameter\"}, {\"rank\": 2, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"code_wrong_argument_order\"}, {\"rank\": 3, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"pod_cpu_overload\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 18
+}

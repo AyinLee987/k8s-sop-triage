@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Active alerts show dominant LATENCY_DEGRADATION on ts-payment-service: p50 16.12ms->6477ms (+40069%), p90 23.25ms->9295ms (+39880%), plus a success-rate drop to 81.7% consistent with client timeouts. All pods are Running/Ready with zero restarts (crashes/missing backends excluded). ts-payment-service is a leaf service (no downstream calls), so latency originates at/around the pod. Recent logs show controller INFO handling with millisecond internal processing times (e.g., 11:31:34.041->.044) while externally observed latency is 6-9s, i.e., the internal-processing-vs-external-latency discrepancy. The NonUniqueResultException/IncorrectResultSizeDataAccessException bursts are secondary data-side noise rather than the sustained latency driver. This supports chaos-injected pod network delay on ts-payment-service.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-gateway-service\", \"root_cause\": \"gateway_misrouted\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 18
+}

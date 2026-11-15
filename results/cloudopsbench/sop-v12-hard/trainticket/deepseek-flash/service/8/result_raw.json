@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All TrainTicket pods are Running/Ready, and Services/Endpoints are broadly healthy. Alerts show POST /api/v1/preserveservice/preserve failing with HTTP 404. The gateway ConfigMap route id 'preserve' maps /api/v1/preserveservice/** to lb://ts-travel-service, while the expected backend is ts-preserve-service. ts-preserve-service has no error logs and has a healthy endpoint, so the 404 is caused by gateway route misdirection rather than backend unavailability or application errors.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-gateway-service\", \"root_cause\": \"gateway_misrouted\"}, {\"rank\": 2, \"fault_object\": \"app/ts-travel-service\", \"root_cause\": \"code_wrong_return\"}, {\"rank\": 3, \"fault_object\": \"app/ts-preserve-service\", \"root_cause\": \"service_selector_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 10
+}

@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All ts-order-service pods, Service, and Endpoints are healthy. Alerts show HTTP 404s for POST /api/v1/orderservice/order/refresh. Inspecting ts-gateway-service ConfigMap reveals the `order` route maps Path=/api/v1/orderservice/** to lb://${FOOD_SERVICE_HOST:ts-food-service} instead of ts-order-service, causing order requests to be misrouted to the food service and return 404.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-gateway-service\", \"root_cause\": \"gateway_misrouted\"}, {\"rank\": 2, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"service_selector_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"code_wrong_return\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 8
+}

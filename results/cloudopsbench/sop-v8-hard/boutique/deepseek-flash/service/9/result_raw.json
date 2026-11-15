@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"adservice Service defines port 9555 -> targetPort 8080, but the adservice container listens on containerPort 9555 (PORT=9555, grpc probes on 9555). Endpoints show 172.20.1.187:8080. Frontend logs contain 118 'failed to get ads: connection refused' errors dialing adservice:9555. This proves the Service forwards traffic to a port the container does not listen on (service_port_mapping_mismatch). Secondary productcatalogservice DNS errors are consistent with transient startup resolution and are not the primary fault.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/adservice\", \"root_cause\": \"service_port_mapping_mismatch\"}, {\"rank\": 2, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 3, \"fault_object\": \"app/frontend\", \"root_cause\": \"service_env_var_address_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 9
+}

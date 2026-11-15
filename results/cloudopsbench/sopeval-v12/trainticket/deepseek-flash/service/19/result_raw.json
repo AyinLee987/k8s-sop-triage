@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Pods, Services, and Endpoints are broadly healthy. The alert reports a 503 for POST /api/v1/travelservice/trips/left via ts-travel-service. Inspection of ts-gateway-service configuration shows the travel route target is hardcoded to lb://ts-nonexistent-travel-backend instead of the existing ts-travel-service backend, causing service unavailability for travel API requests.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-gateway-service\", \"root_cause\": \"gateway_misrouted\"}, {\"rank\": 2, \"fault_object\": \"app/ts-gateway-service\", \"root_cause\": \"service_env_var_address_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/ts-gateway-service\", \"root_cause\": \"service_dns_resolution_failure\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 10
+}

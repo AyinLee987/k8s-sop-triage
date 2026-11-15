@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"recommendationservice pod is in ErrImagePull/ImagePullBackOff. DescribeResource shows kubelet failed to pull image us-central1-docker.pkg.dev/google-samples/microservices-demo/recomendationservice:v0.10.3 with 'not found'. GetAppYAML confirms the deployment uses the misspelled image name 'recomendationservice' instead of 'recommendationservice'. Other boutique pods are Running, so the incident is localized to recommendationservice.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/recommendationservice\", \"root_cause\": \"incorrect_image_reference\"}, {\"rank\": 2, \"fault_object\": \"app/recommendationservice\", \"root_cause\": \"image_registry_dns_failure\"}, {\"rank\": 3, \"fault_object\": \"app/recommendationservice\", \"root_cause\": \"missing_image_pull_secret\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 5
+}

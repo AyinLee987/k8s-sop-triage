@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Only ts-route-service is failing. It crashes because it cannot resolve tsdb-mysql-leader (UnknownHostException), although the Service and a healthy endpoint exist. The ts-route-service Deployment uniquely uses dnsPolicy: None with nameserver 10.255.11.254, and its istio-proxy logs show repeated DNS lookup timeouts to that nameserver. Other pods on the same node use default DNS and remain healthy.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-route-service\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_packet_loss\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 8
+}

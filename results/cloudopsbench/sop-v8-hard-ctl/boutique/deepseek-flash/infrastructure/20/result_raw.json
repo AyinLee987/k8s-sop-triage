@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"cartservice-79b49f5555-mmhv4 is Pending with no assigned node, no nodeSelector/affinity restrictions, and no scheduling events. Worker nodes are Ready and have ample CPU/memory. The kube-scheduler service on master is inactive (dead), so no pod can be scheduled, causing cartservice to remain unavailable.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/master\", \"root_cause\": \"kube_scheduler_unavailable\"}, {\"rank\": 2, \"fault_object\": \"node/master\", \"root_cause\": \"kubelet_unavailable\"}, {\"rank\": 3, \"fault_object\": \"app/cartservice\", \"root_cause\": \"node_affinity_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 6
+}

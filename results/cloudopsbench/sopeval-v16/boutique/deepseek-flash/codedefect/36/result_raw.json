@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"frontend alerts show CPU CFS throttling (1.274s throttled), CPU-core usage +1461.5%, and latency degradation (p50 21.25ms -> 2175.53ms, p90 230.50ms -> 4318.45ms). All frontend pods are Running/Ready with a 200m CPU limit. Source inspection of frontend handlers.go found chooseAd contains an active tight busy-wait loop that spins for up to 800ms on the home/product request path, directly explaining both CPU saturation and added latency. Application logs show downstream context cancellations/timeouts consistent with CPU starvation rather than a crash or readiness failure.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 2, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 3, \"fault_object\": \"app/frontend\", \"root_cause\": \"pod_cpu_overload\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 8
+}

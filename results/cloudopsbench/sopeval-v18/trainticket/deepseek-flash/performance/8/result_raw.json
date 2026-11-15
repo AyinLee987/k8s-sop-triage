@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show severe latency degradation on ts-gateway-service, ts-preserve-service, and ts-ui-dashboard. All service endpoints and pods are healthy with no restarts, and ts-preserve-service has no application error logs. Dependency data shows ts-preserve-service is downstream of gateway/UI, while its recent logs show normal fast internal processing, supporting network delay on ts-preserve-service.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-preserve-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-gateway-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-ui-dashboard\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 10
+}

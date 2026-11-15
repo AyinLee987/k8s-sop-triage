@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show LATENCY_DEGRADATION on ts-preserve-service (p90 8.98s -> 22s) and ts-ui-dashboard, plus RESOURCE_SATURATION cpu_cfs throttling on ts-order-service. All pods are Running/Ready with no recent restarts. GetErrorLogs for ts-preserve-service returned no errors. Recent ts-preserve-service logs show normal internal step processing times (hundreds of milliseconds per preserve step, e.g. 00:10:37.971 to 00:10:38.336) despite externally observed p90 latency of 22s, matching the SOP exclusion-based attribution for pod_network_delay.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-preserve-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 3, \"fault_object\": \"app/ts-ui-dashboard\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 6
+}

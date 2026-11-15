@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"frontend checkout logs show connection refused to paymentservice at 10.68.128.36:50051; paymentservice Deployment has 0/1 ready replicas and no pod exists; ReplicaSet events show FailedCreate: exceeded quota cpu-request-quota, requested requests.cpu=1, used requests.cpu=10, limited requests.cpu=10; ResourceQuota confirms requests.cpu 10/10 used in namespace boutique.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"namespace/boutique\", \"root_cause\": \"namespace_cpu_quota_exceeded\"}, {\"rank\": 2, \"fault_object\": \"app/paymentservice\", \"root_cause\": \"deployment_zero_replicas\"}, {\"rank\": 3, \"fault_object\": \"app/paymentservice\", \"root_cause\": \"cpu_capacity_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 10
+}

@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Only frontend is unhealthy (CrashLoopBackOff). Pod describe shows the server container last terminated with Reason OOMKilled and Exit Code 137 under a 128Mi memory limit, with 4 restarts. Recent logs show normal request processing immediately before termination, without panic/stack trace evidence of application failure.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/frontend\", \"root_cause\": \"container_memory_limit_too_low\"}, {\"rank\": 2, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_memory_leak\"}, {\"rank\": 3, \"fault_object\": \"namespace/boutique\", \"root_cause\": \"namespace_memory_quota_exceeded\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 5
+}

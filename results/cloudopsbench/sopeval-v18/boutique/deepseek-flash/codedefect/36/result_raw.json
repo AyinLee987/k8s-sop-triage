@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Frontend pods were Running and Ready, but alerts showed CPU CFS throttling, CPU usage increase, and severe latency. Source inspection of frontend handlers found chooseAd performing an active busy-wait loop for up to 800ms on home/product request paths, matching the CPU saturation and latency symptoms. Logs showed downstream timeout warnings but no local crash or config error.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 2, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 3, \"fault_object\": \"app/frontend\", \"root_cause\": \"pod_cpu_overload\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 8
+}

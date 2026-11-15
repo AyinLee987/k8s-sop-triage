@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show widespread latency degradation, with the most severe and dominant anomaly on ts-contacts-service (p50 7.57ms -> 4930.56ms, p90 9.65ms -> 8977.02ms). All pods are Running/Ready with no recent restarts, and ts-contacts-service has no error logs and normal internal request processing in recent logs. This supports pod-level network delay on ts-contacts-service by exclusion. A secondary CPU throttling alert exists on ts-order-service, but it is less consistent with the dominant contacts-service latency spike.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-contacts-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 3, \"fault_object\": \"app/ts-contacts-service\", \"root_cause\": \"code_artificial_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 6
+}

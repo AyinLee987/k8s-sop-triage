@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show severe latency degradation in shippingservice (p50 ~3721ms, p90 ~4744ms) and frontend (p90 ~4370ms). All shippingservice pods are Running/Ready, logs show successful GetQuote requests with no application errors or downstream timeouts, and shippingservice is a leaf dependency. Source inspection of shippingservice main.go reveals an explicit `time.Sleep(time.Millisecond * 3000)` inside the GetQuote handler, directly matching the observed multi-second latency.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/shippingservice\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 2, \"fault_object\": \"app/shippingservice\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/frontend\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 9
+}

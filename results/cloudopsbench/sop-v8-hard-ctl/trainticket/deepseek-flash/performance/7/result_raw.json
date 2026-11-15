@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Active alerts show LATENCY_DEGRADATION on ts-payment-service (p50 exactly 5000.00ms, p90 9000.00ms, sharply above ~17-24ms baseline) and on its caller ts-inside-payment-service (p90 8488ms), plus minor CPU cfs throttling on ts-order-service. All pods are Running/Ready with no crash or restart pattern, excluding pod/node infrastructure faults. ts-payment-service is a leaf node (no downstream calls per dependency topology), so its self-measured ~5s latency must originate internally - the round 5000ms/9000ms values are characteristic of injected artificial code delay. ts-inside-payment-service logs only show propagated 500s from the paymentservice path, and payment's NonUniqueResultException/'order not found' entries are secondary behavioral/data noise, not a latency source. Hence the root cause is an artificial delay in ts-payment-service.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 3, \"fault_object\": \"app/ts-inside-payment-service\", \"root_cause\": \"code_artificial_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 14
+}

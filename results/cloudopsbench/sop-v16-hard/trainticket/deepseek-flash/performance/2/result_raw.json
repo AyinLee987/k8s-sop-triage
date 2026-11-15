@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"ts-contacts-service shows the strongest latency and throughput anomaly (p50 +63081.7%, p90 +92734.7%, RPS -66.1%). Pods and endpoints are healthy with no restarts, no error logs, and normal internal request processing. As a leaf service with no downstream calls, its delay explains propagated latency in ts-preserve-service and ts-gateway-service.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-contacts-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-preserve-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-gateway-service\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 9
+}

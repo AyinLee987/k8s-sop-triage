@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"paymentservice has Deployment 0/1 ready and no running pod. Its ReplicaSet reports FailedCreate events: pod creation is forbidden because the namespace memory quota is exceeded (requests.memory=1Gi, used=3000Mi, limited=3Gi). This prevents the paymentservice pod from being created, leaving the service unavailable.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"namespace/boutique\", \"root_cause\": \"namespace_memory_quota_exceeded\"}, {\"rank\": 2, \"fault_object\": \"app/paymentservice\", \"root_cause\": \"deployment_zero_replicas\"}, {\"rank\": 3, \"fault_object\": \"app/paymentservice\", \"root_cause\": \"memory_capacity_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 7
+}

@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Only ts-seat-service pod is abnormal (0/2, 4 restarts) while all other pods are Running/Ready. The deployment sets dnsPolicy: None with dnsConfig nameserver 10.255.14.254. Error logs show Nacos registration failing with 'Client not connected, current status:STARTING', and istio-proxy logs show repeated 'lookup istiod.istio-system.svc on 10.255.14.254:53 ... i/o timeout'. The app container exits with code 1 on each restart. The nacos/nacos-headless services and all nacos pods are present and healthy, excluding a missing-target cause. This points to a pod-local DNS resolver misconfiguration causing resolution failure and the resulting service availability disruption.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-seat-service\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 2, \"fault_object\": \"app/ts-seat-service\", \"root_cause\": \"service_env_var_address_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/ts-seat-service\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 7
+}

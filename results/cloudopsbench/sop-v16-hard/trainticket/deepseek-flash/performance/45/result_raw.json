@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show widespread latency degradation with ts-basic-service (p50 3709ms), ts-preserve-service (p50 7500ms), and ts-train-service (p50 8.35ms->2500ms) all degraded. Dependency topology: ts-preserve-service -> ts-basic-service -> ts-train-service; ts-train-service is a leaf with no downstream calls, so it cannot be a downstream victim. All pods Running/Ready with no significant restarts; endpoints fully populated, excluding pod crash or missing backend. ts-train-service error logs are empty and recent logs show normal internal controller processing with normal INFO entries, so the external latency spike lacks any application-error or code-defect evidence, consistent with pod network delay by exclusion.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-train-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-basic-service\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 12
+}

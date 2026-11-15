@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"frontend Deployment shows 1 desired replica but 0 created/available and ReplicaFailure=True/FailedCreate. Its ReplicaSet event explicitly reports: pods are forbidden because serviceaccount \\\"frontend-missing\\\" was not found in namespace boutique. All other application pods are Running and Ready, so the partial unreachability is isolated to frontend and caused by the missing ServiceAccount preventing pod creation.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/frontend\", \"root_cause\": \"missing_service_account\"}, {\"rank\": 2, \"fault_object\": \"app/frontend\", \"root_cause\": \"deployment_zero_replicas\"}, {\"rank\": 3, \"fault_object\": \"app/frontend\", \"root_cause\": \"service_selector_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 5
+}

@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"cartservice-79b49f5555-mmhv4 is Pending (0/1) with no Node assignment and no scheduling events, despite worker-01/02/03 being Ready, untainted, and having ample CPU/memory (8 cores, ~15Gi each). The deployment has no nodeSelector/affinity constraints and modest requests (200m CPU/64Mi). Checking the control plane shows kube-scheduler.service on master is inactive (dead), having stopped ~1min50s ago—just before the cartservice pod was created—while all pre-existing pods scheduled earlier remain Running. This confirms the scheduler outage prevents new pod placement.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/master\", \"root_cause\": \"kube_scheduler_unavailable\"}, {\"rank\": 2, \"fault_object\": \"app/cartservice\", \"root_cause\": \"node_cordon_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/cartservice\", \"root_cause\": \"taint_toleration_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 8
+}

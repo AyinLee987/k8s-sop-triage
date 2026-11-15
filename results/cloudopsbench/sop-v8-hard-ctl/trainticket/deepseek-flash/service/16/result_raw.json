@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Pods, Services, and Endpoints are broadly healthy. Active alerts show POST /api/v1/travelservice/trips/left failing with HTTP 404 at ts-travel-service. The gateway ConfigMap route `travel` matches `/api/v1/travelservice/**` but targets `lb://${ORDER_SERVICE_HOST:ts-order-service}` instead of `ts-travel-service`. Because ts-travel-service endpoints are present and healthy, requests are being sent to the wrong backend, causing the observed 404. The payment 500 alert is secondary/less specific evidence.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-gateway-service\", \"root_cause\": \"gateway_misrouted\"}, {\"rank\": 2, \"fault_object\": \"app/ts-inside-payment-service\", \"root_cause\": \"db_readonly_mode\"}, {\"rank\": 3, \"fault_object\": \"app/ts-travel-service\", \"root_cause\": \"code_wrong_return\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 8
+}

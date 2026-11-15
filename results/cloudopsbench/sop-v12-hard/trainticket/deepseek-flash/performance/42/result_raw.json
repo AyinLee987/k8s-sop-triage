@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show extreme latency inflation for ts-basic-service (p50 40ms -> 16571ms, p90 72.69ms -> 27314ms) and ts-route-service, with secondary downstream symptoms across other services. Pod listings show no crash/restart pattern explaining the latency; ts-basic-service has no error logs; recent logs show normal successful internal processing in milliseconds, while external latency is tens of seconds. This exclusion-based evidence supports pod_network_delay on the dominant latency service ts-basic-service.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-basic-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-route-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 6
+}

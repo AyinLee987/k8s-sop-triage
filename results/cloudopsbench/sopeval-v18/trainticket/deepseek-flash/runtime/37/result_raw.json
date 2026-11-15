@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"ts-delivery-service pod is in CrashLoopBackOff with 4 restarts, exit code 1. Container logs show HikariPool initialization failure with java.sql.SQLException: Access denied for user 'ts'@'172.20.3.207' (using password: YES), SQLState 28000 / error 1045, causing JPA EntityManagerFactory failure and app startup abort. Deployment references Secret ts-delivery-mysql (user=ts, password=Xiqzghymo347, host=tsdb-mysql-leader, port=3306). The DB was reachable (access denied, not connection refused), so this is a rejected-credential failure, i.e., invalid MySQL credentials for this service.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-delivery-service\", \"root_cause\": \"mysql_invalid_credentials\"}, {\"rank\": 2, \"fault_object\": \"app/ts-delivery-service\", \"root_cause\": \"mysql_invalid_port\"}, {\"rank\": 3, \"fault_object\": \"app/ts-delivery-service\", \"root_cause\": \"db_connection_exhaustion\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 8
+}

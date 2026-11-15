@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show severe LATENCY_DEGRADATION for ts-train-service (p50 7.38ms -> 2425ms, p90 9.48ms -> 4472.22ms) and ts-basic-service. Dependency inspection shows ts-basic-service calls ts-train-service, while ts-train-service is a leaf with no downstream calls, making it the primary upstream latency candidate. Services and endpoints are present, and pods are Running/Ready without meaningful restarts. ts-train-service logs show normal controller request processing, and its only error is an Istio metrics broken pipe, not an application defect.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-train-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-train-service\", \"root_cause\": \"code_artificial_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 10
+}

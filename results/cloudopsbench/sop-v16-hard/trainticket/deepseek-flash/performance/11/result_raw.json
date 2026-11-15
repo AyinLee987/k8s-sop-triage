@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Widespread LATENCY_DEGRADATION alerts across ts-gateway-service, ts-preserve-service, ts-seat-service, ts-travel-service, ts-ui-dashboard. ts-seat-service has the strongest anomaly (p50 +15445%, p90 +6847%) and an 81% throughput drop, and by GetServiceDependencies it is upstream of the other degraded callers (gateway/preserve/travel call it). Pods and endpoints for ts-seat-service are healthy (2/2 Running, 0 restarts, endpoint 172.20.1.51:18898), excluding crashes/missing backends. GetErrorLogs returned no errors, and GetRecentLogs show normal, fast internal processing (envoy x-envoy-upstream-service-time ~5-6ms) despite externally observed multi-second latency, the exclusion-based signature of pod network delay. Other worker-01 services are unaffected, weakening a node-wide hypothesis but leaving it as an alternative.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-seat-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-seat-service\", \"root_cause\": \"pod_cpu_overload\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 8
+}

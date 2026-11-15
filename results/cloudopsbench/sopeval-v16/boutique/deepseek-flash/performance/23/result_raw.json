@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All boutique services show sharp throughput drops and p50 latency spikes (frontend +71921%, checkoutservice +39696%, cartservice +50450%). The only node-level anomaly is worker-02: NETWORK_QUALITY_DEGRADED [TCP Retransmission] with a new spike (0.00 -> 0.92 retrans). The backends with the most degraded latency/throughput (cartservice, currencyservice, emailservice, productcatalogservice, recommendationservice, shippingservice) are hosted on worker-02. Nodes are Ready with no pressure, kube-proxy on worker-02 is active, and TCP connectivity to productcatalogservice still succeeds, ruling out a full outage or control-plane component failure. TCP retransmissions point specifically to packet loss on worker-02's network.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_packet_loss\"}, {\"rank\": 2, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/cartservice\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 9
+}

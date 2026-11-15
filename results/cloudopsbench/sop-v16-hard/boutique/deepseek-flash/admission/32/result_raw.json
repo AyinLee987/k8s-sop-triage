@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"shippingservice Deployment has 0/1 ready replicas and no backing pod. Its ReplicaSet reports Repeated FailedCreate events: pods are forbidden because `exceeded quota: memory-request-quota, requested: requests.memory=300Mi, used: requests.memory=3000Mi, limited: requests.memory=3Gi`. The namespace ResourceQuota confirms `memory-request-quota` is at `requests.memory: 3000Mi/3Gi`. This caused shippingservice to have no ready pods, its Service Endpoints to be empty, and frontend logs to show `connect: connection refused` to shippingservice at 10.68.123.226:50051.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"namespace/boutique\", \"root_cause\": \"namespace_memory_quota_exceeded\"}, {\"rank\": 2, \"fault_object\": \"namespace/boutique\", \"root_cause\": \"namespace_pod_quota_exceeded\"}, {\"rank\": 3, \"fault_object\": \"app/shippingservice\", \"root_cause\": \"memory_capacity_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 13
+}

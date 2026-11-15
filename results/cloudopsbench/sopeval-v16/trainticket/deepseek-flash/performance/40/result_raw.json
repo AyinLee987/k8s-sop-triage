@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show multi-service latency degradation: ts-payment-service p50 +26638% (16.7ms→4464ms), ts-inside-payment-service p50 +1913% with success-rate drop to 67.6%, and ts-order-service CPU throttling. All pods are Running/Ready with no abnormal restarts. Dependency graph shows ts-payment-service is a leaf (called by inside-payment) with intrinsic latency that fully explains inside-payment's degradation since inside-payment calls payment. Payment error logs contain NonUniqueResultException/IncorrectResultSizeDataAccessException, but these coincide with the latency window and lack independent code-defect evidence, so per the latency SOP they are secondary effects. The order-service CPU throttling cannot explain the leaf payment latency. This supports pod_network_delay on ts-payment-service.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-inside-payment-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"pod_cpu_overload\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 11
+}

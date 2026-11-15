@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"currencyservice deployment is 0/1 available with ReplicaSet FailedCreate events stating: exceeded quota: pod-quota, requested: pods=1, used: pods=10, limited: pods=10. No currencyservice pod exists, causing frontend connection refusals to currencyservice at port 7000, while other application pods are Running and Ready.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"namespace/boutique\", \"root_cause\": \"namespace_pod_quota_exceeded\"}, {\"rank\": 2, \"fault_object\": \"app/currencyservice\", \"root_cause\": \"deployment_zero_replicas\"}, {\"rank\": 3, \"fault_object\": \"namespace/boutique\", \"root_cause\": \"namespace_cpu_quota_exceeded\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 9
+}

@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All TrainTicket pods are Running/Ready, Services and Endpoints are populated, and alerts are clean. The gateway config shows the order route Path=/api/v1/orderservice/** is incorrectly sent to lb://${TRAVEL_SERVICE_HOST:ts-travel-service} instead of the order backend ts-order-service. This route-to-backend mismatch explains partial service unreachability despite healthy pods and endpoints.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-gateway-service\", \"root_cause\": \"gateway_misrouted\"}, {\"rank\": 2, \"fault_object\": \"app/ts-gateway-service\", \"root_cause\": \"service_env_var_address_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"service_port_mapping_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 14
+}

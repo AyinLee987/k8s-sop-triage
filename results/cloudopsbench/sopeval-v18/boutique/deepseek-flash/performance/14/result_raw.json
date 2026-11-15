@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"checkoutservice showed p50 latency rising from 17.36ms to 7528.76ms and p90 from 30.51ms to 23763.88ms, with throughput dropping 93.3% and success rate falling to 12.5%. Its pods remained Running and Ready; logs showed successful downstream payment/email operations with no error logs; the service TCP port was open. No CPU throttling or saturation alert appeared. Source review found only the standard MultiplySlow loop, which lacks independent CPU evidence and does not explain the observed delay magnitude as well as pod network delay.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 3, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 12
+}

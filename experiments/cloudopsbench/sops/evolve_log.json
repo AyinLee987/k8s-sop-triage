@@ -134,5 +134,175 @@
    "lines": 98,
    "steps": 11
   }
+ },
+ {
+  "round": 9,
+  "case": "boutique/codedefect/39",
+  "truth": "code_memory_leak",
+  "sop": "boutique/oom_or_memory_exhaustion",
+  "summary": "Revised oom_or_memory_exhaustion to route CrashLoopBackOff with OOMKilled/137 to the OOM SOP, reject ordinary finite limits such as 128Mi as too-low without stronger evidence, and require source review for code_memory_leak even when logs are normal.",
+  "before": {
+   "chars": 4439,
+   "lines": 57,
+   "steps": 6
+  },
+  "after": {
+   "chars": 6859,
+   "lines": 66,
+   "steps": 6
+  }
+ },
+ {
+  "round": 10,
+  "case": "boutique/codedefect/22",
+  "truth": "code_excessive_file_reads",
+  "sop": "boutique/service_cpu_or_resource_saturation",
+  "summary": "Added a file-read code branch to the CPU-saturation SOP so a repeated/unbounded file-read loop on the failing path is confirmed as code_excessive_file_reads instead of being dismissed and defaulting to pod_cpu_overload.",
+  "before": {
+   "chars": 5886,
+   "lines": 57,
+   "steps": 5
+  },
+  "after": {
+   "chars": 8933,
+   "lines": 67,
+   "steps": 6
+  }
+ },
+ {
+  "round": 11,
+  "case": "boutique/codedefect/57",
+  "truth": "code_wrong_return",
+  "sop": "boutique/application_request_or_response_failure",
+  "summary": "Clarified that a request handler which extracts a present path/query/body value and then clears it or selects a 'not specified' error branch is code_wrong_return, not code_missing_parameter.",
+  "before": {
+   "chars": 6549,
+   "lines": 61,
+   "steps": 5
+  },
+  "after": {
+   "chars": 8035,
+   "lines": 62,
+   "steps": 5
+  }
+ },
+ {
+  "round": 12,
+  "case": "trainticket/service/2",
+  "truth": "gateway_misrouted",
+  "sop": "trainticket/http_request_failure",
+  "summary": "Expanded http_request_failure to cover partial service unreachability and to require gateway route comparison before treating a missing or unreachable downstream Service as DNS, selector, port, missing-Service, or application-code root cause.",
+  "before": {
+   "chars": 9881,
+   "lines": 99,
+   "steps": 11
+  },
+  "after": {
+   "chars": 12909,
+   "lines": 105,
+   "steps": 11
+  }
+ },
+ {
+  "round": 13,
+  "case": "boutique/codedefect/71",
+  "truth": "code_missing_parameter",
+  "sop": "boutique/application_request_or_response_failure",
+  "summary": "Revised the request-failure SOP so handler-side clearing/emptying of an extracted valid parameter is classified as code_missing_parameter, not code_wrong_return, including cases like productID = \"\" causing a downstream empty-ID or NotFound error.",
+  "before": {
+   "chars": 8036,
+   "lines": 63,
+   "steps": 5
+  },
+  "after": {
+   "chars": 8673,
+   "lines": 63,
+   "steps": 5
+  }
+ },
+ {
+  "round": 14,
+  "case": "trainticket/performance/1",
+  "truth": "pod_network_delay",
+  "sop": "trainticket/service_latency_degradation",
+  "summary": "Revised the latency SOP to resolve multiple degraded services by dependency order and attribute pod_network_delay to the upstream primary candidate instead of the downstream service with the largest absolute latency.",
+  "before": {
+   "chars": 3034,
+   "lines": 42,
+   "steps": 4
+  },
+  "after": {
+   "chars": 5428,
+   "lines": 55,
+   "steps": 5
+  }
+ },
+ {
+  "round": 15,
+  "case": "boutique/codedefect/45",
+  "truth": "code_missing_parameter",
+  "sop": "boutique/application_request_or_response_failure",
+  "summary": "Broadened code_missing_parameter to cover a caller assigning nil/empty to a required value (even when it does not come from the request path) before building a downstream RPC request, and explicitly excluded that case from code_wrong_return.",
+  "before": {
+   "chars": 8674,
+   "lines": 64,
+   "steps": 5
+  },
+  "after": {
+   "chars": 11865,
+   "lines": 69,
+   "steps": 5
+  }
+ },
+ {
+  "round": 16,
+  "case": "trainticket/performance/7",
+  "truth": "pod_network_delay",
+  "sop": "trainticket/service_latency_degradation",
+  "summary": "Revised service_latency_degradation to treat SQL/cardinality and downstream HTTP errors during a latency window as possible secondary effects, preventing a switch to code-defect or HTTP-request-failure attribution and requiring pod_network_delay confirmation when pods are healthy.",
+  "before": {
+   "chars": 5429,
+   "lines": 56,
+   "steps": 5
+  },
+  "after": {
+   "chars": 7521,
+   "lines": 58,
+   "steps": 5
+  }
+ },
+ {
+  "round": 17,
+  "case": "trainticket/performance/25",
+  "truth": "pod_network_delay",
+  "sop": "trainticket/service_latency_degradation",
+  "summary": "Revised latency SOP to select the service whose own latency/throughput best explains propagation, which may be a downstream leaf, rather than automatically choosing the most upstream candidate; and clarified that application errors on a service do not exclude it from being the primary latency candidate.",
+  "before": {
+   "chars": 7522,
+   "lines": 59,
+   "steps": 5
+  },
+  "after": {
+   "chars": 8471,
+   "lines": 59,
+   "steps": 5
+  }
+ },
+ {
+  "round": 18,
+  "case": "boutique/codedefect/56",
+  "truth": "code_wrong_return",
+  "sop": "boutique/application_request_or_response_failure",
+  "summary": "Revised the request/response failure SOP to distinguish local defective error branches or return paths that reject a valid extracted parameter as code_wrong_return from true missing/cleared downstream required parameters.",
+  "before": {
+   "chars": 11865,
+   "lines": 69,
+   "steps": 5
+  },
+  "after": {
+   "chars": 14581,
+   "lines": 71,
+   "steps": 5
+  }
  }
 ]

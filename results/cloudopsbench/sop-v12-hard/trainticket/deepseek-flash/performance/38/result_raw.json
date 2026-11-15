@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts identify ts-inside-payment-service as the dominant latency-anomalous service: p50 rose from 363ms to 8333ms (+2194%, ~8s plateau) and p90 from 6185ms to 22000ms, accompanied by a +139% inbound traffic surge. All pods are Running/Ready with no restarts, excluding crash/readiness faults. ts-inside-payment-service application logs show pay requests processed internally in ~30-500ms with successful 'Pay Success' results, so the multi-second external latency cannot be attributed to internal application processing or application errors. The fixed ~8s externally observed delay versus fast internal processing is the exclusion-based signature of pod network delay. ts-order-service's CPU CFS throttling (0.435s) is a secondary resource-saturation signal whose logs show millisecond-level successful operations, not the source of the multi-second payment latency.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-inside-payment-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 3, \"fault_object\": \"app/ts-inside-payment-service\", \"root_cause\": \"code_artificial_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 7
+}

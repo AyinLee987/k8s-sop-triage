@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"frontend error logs show 94 'failed to get ads' connection-refused errors to adservice at 10.68.152.172:9555. GetResources services showed adservice Service exists with selector app=ad_service, while the running adservice pod is labeled app=adservice, and endpoints for adservice are <none>. DescribeResource confirmed Selector: app=ad_service and Endpoints: empty. This confirms a Service selector mismatch causing adservice unreachability. Frontend also logged productcatalogservice DNS 'no such host' errors, but the productcatalogservice Service exists with a healthy endpoint and direct TCP connectivity to 10.68.186.93:3550 succeeded, so that is not the primary fault.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/adservice\", \"root_cause\": \"service_selector_mismatch\"}, {\"rank\": 2, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 3, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"service_env_var_address_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 10
+}

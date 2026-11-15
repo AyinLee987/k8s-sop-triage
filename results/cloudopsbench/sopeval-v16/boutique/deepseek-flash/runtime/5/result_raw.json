@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"paymentservice pod shows 2 recent restarts. Describe events show repeated 'Liveness probe failed: Get http://172.20.2.186:50051/: malformed HTTP response' followed by 'Container server failed liveness probe, will be restarted'. The payment server is a gRPC service on port 50051, but the liveness probe is configured as HTTP GET (http-get) rather than gRPC, while the readiness probe correctly uses gRPC. The HTTP probe cannot interpret the HTTP/2 gRPC response, causing probe failures and restart loops.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/paymentservice\", \"root_cause\": \"liveness_probe_incorrect_protocol\"}, {\"rank\": 2, \"fault_object\": \"app/paymentservice\", \"root_cause\": \"container_memory_limit_too_low\"}, {\"rank\": 3, \"fault_object\": \"app/paymentservice\", \"root_cause\": \"liveness_probe_incorrect_timing\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 3
+}

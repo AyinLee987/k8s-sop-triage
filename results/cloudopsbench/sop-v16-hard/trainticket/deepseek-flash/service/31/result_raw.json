@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"`ts-route-service` is the only pod in Error/CrashLoopBackOff with 4 restarts and its Service has no endpoints. Its previous logs show `java.net.UnknownHostException: tsdb-mysql-leader: Temporary failure in name resolution`, and istio-proxy logs show DNS timeouts resolving `istiod.istio-system.svc` via `10.255.11.254:53`. The deployment uniquely sets `dnsPolicy: None` with custom nameserver `10.255.11.254`. Gateway configuration/logs and dependency graph did not show a route mismatch, and other TrainTicket services have healthy endpoints. This pod-local DNS failure explains partial service unreachability and downstream 500s in business flows.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-route-service\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_packet_loss\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 15
+}

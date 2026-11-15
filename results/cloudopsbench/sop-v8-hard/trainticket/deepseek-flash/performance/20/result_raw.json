@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show severe latency degradation isolated most strongly to ts-contacts-service: p50 7.57ms -> 4930.56ms and p90 9.65ms -> 8977.02ms. Pods across train-ticket are Running/Ready with no crash/restart pattern. ts-contacts-service has no application error logs, and recent logs show normal request processing and successful queries despite externally observed multi-second latency, supporting pod network delay by exclusion.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-contacts-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-contacts-service\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 6
+}

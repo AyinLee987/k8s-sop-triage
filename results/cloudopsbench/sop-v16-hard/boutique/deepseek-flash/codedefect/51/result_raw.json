@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Frontend shows severe CPU CFS throttling (0.985s throttled), CPU usage rising from 0.01 to 0.12 cores (+974.4%), and latency degradation (p50 537.50ms, p90 4007.26ms), while its pods remain Running and Ready. Source inspection of frontend/handlers.go reveals setCurrencyHandler repeatedly opens /src/log.csv and calls ReadAll() in a 10-iteration loop on the request path, matching excessive file reads as the code-level cause of CPU pressure and latency.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_excessive_file_reads\"}, {\"rank\": 2, \"fault_object\": \"app/frontend\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 10
+}

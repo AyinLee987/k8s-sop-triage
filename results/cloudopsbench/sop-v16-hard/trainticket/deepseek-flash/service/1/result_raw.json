@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts reported HTTP 404 on POST /api/v1/orderservice/order/refresh for ts-order-service. Pods, Services, and Endpoints were broadly healthy. The gateway ConfigMap shows the `order` route path `/api/v1/orderservice/**` configured with `uri: lb://${FOOD_SERVICE_HOST:ts-food-service}` instead of targeting ts-order-service. Gateway logs show it started successfully and loaded route definitions. This route-to-backend mismatch explains the 404 partial service unreachability.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-gateway-service\", \"root_cause\": \"gateway_misrouted\"}, {\"rank\": 2, \"fault_object\": \"app/ts-food-service\", \"root_cause\": \"code_wrong_return\"}, {\"rank\": 3, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"code_wrong_return\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 10
+}

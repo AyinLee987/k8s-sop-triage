@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show severe latency in shippingservice (p50 0.44ms->3721ms, p90 4.09ms->4744ms) and frontend. Shippingservice pod is 2/2 Running/Ready on worker-01 with 0 restarts, error logs ~0.14% (only benign tracing/stats notices), and GetRecentLogs show successful [GetQuote] received/completed pairs with a ~3s gap, no downstream timeouts. ServiceDependencies confirms shippingservice is a leaf service (no downstream). Source code main.go GetQuote handler contains an explicit active `time.Sleep(time.Millisecond * 3000)` matching the observed ~3.7s latency. Frontend latency is a consequence of calling shippingservice.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/shippingservice\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 2, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 3, \"fault_object\": \"app/shippingservice\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 9
+}

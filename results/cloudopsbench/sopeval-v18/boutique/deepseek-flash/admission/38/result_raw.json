@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All backend pods are Running and Ready, but the frontend Deployment has 0/1 ready replicas and its ReplicaSet reports FailedCreate. The exact event is: pods are forbidden because the namespace exceeded pod-count-quota (requested pods=1, used pods=10, limited pods=10). This prevents frontend pod creation and causes partial Service unreachability.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"namespace/boutique\", \"root_cause\": \"namespace_pod_quota_exceeded\"}, {\"rank\": 2, \"fault_object\": \"app/frontend\", \"root_cause\": \"missing_service_account\"}, {\"rank\": 3, \"fault_object\": \"app/frontend\", \"root_cause\": \"deployment_zero_replicas\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 6
+}

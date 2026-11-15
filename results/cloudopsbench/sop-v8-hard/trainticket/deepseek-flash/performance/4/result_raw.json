@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All pods are Running/Ready with no recent restarts, excluding pod crashes. ts-gateway-service shows severe latency degradation (p50 27ms->1928ms, +7035%; p90 204ms->8000ms) with matching values on its caller ts-ui-dashboard, indicating the latency originates at the gateway and propagates upstream. Widespread throughput drops across all business services are consistent with the slow gateway reducing downstream call volume. Gateway error logs are empty, excluding application errors; pods healthy and internal processing normal point to pod network delay on the gateway.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-gateway-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-ui-dashboard\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 9
+}

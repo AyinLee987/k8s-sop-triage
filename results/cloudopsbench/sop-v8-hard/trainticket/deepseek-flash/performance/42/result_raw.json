@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show widespread latency degradation with the strongest dependency-level anomaly at ts-route-service: p50 increased from 7.50ms to 8103.45ms and p90 from 9.50ms to 22000.00ms. All pods are Running/Ready with no relevant crashes or restarts, and ts-route-service has no application error logs. Its recent logs show normal request handling, while service topology shows ts-route-service is a downstream leaf called by ts-basic-service, ts-travel-service, ts-travel2-service, and others, explaining propagated latency to upstream services. This is consistent with pod network delay on ts-route-service.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-route-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-basic-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-route-service\", \"root_cause\": \"code_artificial_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 9
+}

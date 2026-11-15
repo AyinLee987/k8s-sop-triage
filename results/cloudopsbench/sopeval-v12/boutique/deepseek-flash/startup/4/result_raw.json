@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Frontend Service has no ready backend because the frontend pod is in ErrImagePull. Its image is configured as `ghost-registry.example.net/google-samples/microservices-demo/frontend:v0.10.3`, and kubelet reports DNS failure resolving `ghost-registry.example.net` with `no such host`. Other services, such as productcatalogservice, use a valid registry image and are Running/Ready, so the fault is localized to the frontend image reference rather than a cluster-wide registry DNS failure.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/frontend\", \"root_cause\": \"incorrect_image_reference\"}, {\"rank\": 2, \"fault_object\": \"app/frontend\", \"root_cause\": \"image_registry_dns_failure\"}, {\"rank\": 3, \"fault_object\": \"app/frontend\", \"root_cause\": \"missing_image_pull_secret\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 12
+}

@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"ts-basic-service pod is 0/2 Running with 4 restarts (exit code 1). App logs show NacosException 'Client not connected, current status:STARTING' failing to register with nacos-headless:8848, causing Spring context startup failure. istio-proxy logs show DNS lookups to 10.255.10.254:53 timing out ('i/o timeout') for istiod.istio-system.svc. GetAppYAML reveals dnsPolicy: \\\"None\\\" with a single custom nameserver 10.255.10.254 (unreachable), while the real nacos:8848 service is confirmed reachable from all nodes. This pod-local DNS misconfiguration prevents Nacos/istiod resolution, crashing startup.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-basic-service\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 2, \"fault_object\": \"app/ts-basic-service\", \"root_cause\": \"service_env_var_address_mismatch\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 8
+}

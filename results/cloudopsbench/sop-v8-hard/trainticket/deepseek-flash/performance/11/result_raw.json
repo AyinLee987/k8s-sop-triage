@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show severe LATENCY_DEGRADATION with ts-seat-service most affected: p50 increased from 19.72ms to 3065.48ms, p90 from 66.40ms to 4613.10ms, and throughput dropped 81%. All pods are Running/Ready with no crash/restart pattern, and ts-seat-service has no error logs. Recent ts-seat-service logs show successful request handling and low x-envoy-upstream-service-time values, suggesting internal processing is normal while externally measured latency is abnormally high. This supports pod-level network delay on ts-seat-service.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-seat-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-seat-service\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 6
+}

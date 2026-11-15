@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Active alerts show severe latency degradation with the strongest relative anomaly at ts-station-service: p50 3.31ms -> 2477.27ms (+74810%) and p90 6.64ms -> 4492.19ms (+67553%). Latency also appears in dependent/upstream services (ts-basic-service, ts-preserve-service, ts-travel-service, ts-gateway-service, ts-ui-dashboard), consistent with cascading delay. All checked pods are Running/Ready with no crash/restart pattern. ts-station-service has no error logs, and recent logs show normal StationController request processing without exceptions, supporting external network delay rather than application error or pod failure.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-station-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-basic-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 6
+}

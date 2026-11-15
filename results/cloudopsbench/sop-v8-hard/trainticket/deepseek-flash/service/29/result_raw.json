@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Pod ts-preserve-service-6bd658cfc9-gpc6b is 0/2 Ready with 4 restarts and container exit code 1. Its deployment uses dnsPolicy: None with a custom nameserver 10.255.6.254. Both istio-proxy and application logs show repeated DNS lookup timeouts (dial tcp: lookup istiod.istio-system.svc on 10.255.6.254:53: i/o timeout) and failure to register with Nacos ('Client not connected, current status:STARTING'), causing crash loops. Nacos and istiod themselves are running, so the fault is a pod-local DNS nameserver misconfiguration in ts-preserve-service.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-preserve-service\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 2, \"fault_object\": \"app/ts-preserve-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 6
+}

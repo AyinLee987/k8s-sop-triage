@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All pods are Running and Ready. Frontend logs show repeated connection-refused errors dialing checkoutservice ClusterIP 10.68.125.216:5050. The checkoutservice Service exposes port 5050 but maps targetPort to 5051, while the checkoutservice container listens on 5050; endpoints therefore show 172.20.1.199:5051, producing connection refused and partial service unreachability.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"service_port_mapping_mismatch\"}, {\"rank\": 2, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"service_protocol_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"service_selector_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 8
+}

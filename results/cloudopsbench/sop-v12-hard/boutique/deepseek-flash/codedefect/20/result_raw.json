@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show checkoutservice CPU CFS throttling, a 0.12-core CPU increase, and severe latency degradation (p90 ~9.2s). The checkoutservice pod is Running and Ready with only 1 warning log, so crash/readiness/routing faults are not supported. Source inspection of checkoutservice main.go shows PlaceOrder executes a loop 10 times per request that opens /src/log.csv and calls ReadAll(), creating repeated file reads on the hot request path that account for CPU consumption and latency.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"code_excessive_file_reads\"}, {\"rank\": 2, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 3, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"code_busy_loop\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 8
+}

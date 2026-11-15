@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All boutique pods are Running/Ready except cartservice-79b49f5555-mmhv4 which is Pending with no FailedScheduling events. The pod has no nodeSelector/affinity, modest requests (200m CPU/64Mi), and all three worker nodes are Ready with ~8 CPU and ~15Gi allocatable and no taints (only master is cordoned). The absence of any scheduling events combined with ample eligible capacity indicates the scheduler is not processing the pod. Direct inspection shows kube-scheduler.service on master is inactive (dead) since 21:13:59, confirming kube_scheduler_unavailable as the root cause of the Pending pod and service availability disruption.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/master\", \"root_cause\": \"kube_scheduler_unavailable\"}, {\"rank\": 2, \"fault_object\": \"app/cartservice\", \"root_cause\": \"taint_toleration_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/cartservice\", \"root_cause\": \"node_cordon_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 6
+}

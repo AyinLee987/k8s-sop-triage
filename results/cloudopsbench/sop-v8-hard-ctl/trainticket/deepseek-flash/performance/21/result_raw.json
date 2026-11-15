@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show dominant LATENCY_DEGRADATION on ts-food-service (p50 17.5ms -> 7500ms, p90 23.5ms -> 9500ms), with downstream latency visible at gateway/UI. All pods are Running with no relevant restarts, and ts-food-service has no error logs. Recent ts-food-service logs show createFoodOrder processing and MQ dispatch completing within milliseconds, indicating normal internal processing despite externally observed latency, consistent with pod network delay.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-food-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 3, \"fault_object\": \"app/ts-gateway-service\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 6
+}

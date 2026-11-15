@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"ts-payment-service uniquely shows 'LATENCY_MISSING [p90latency] | Metrics dropped to zero/NaN after injection' while all pods are Running/Ready with no restarts and endpoints populated. It is a downstream leaf (called by ts-gateway-service and ts-inside-payment-service). Its recent logs show normal PaymentController processing that stops at 22:10:23 and resumes at 22:12:25, a ~2-minute gap matching the alert window (22:10:28-22:12:18). The NonUniqueResultException at 22:09:50 is a latency-correlated secondary effect. Node conditions/capacity are healthy, master cordon is expected. The broad throughput/network drops across services are cascading callers blocked on the delayed payment pod. This supports pod_network_delay on ts-payment-service.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-gateway-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 10
+}

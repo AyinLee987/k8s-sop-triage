@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"redis-cart pod is Pending with %PodScheduled False; scheduler reports '3 node(s) didn't match Pod's node affinity/selector'. The pod spec declares Node-Selectors: disktype=ssd, while all schedulable nodes expose the label disk-type=ssd (hyphenated), so no node satisfies the selector. Other services are Running/Ready, and node resources are healthy, ruling out capacity or node downtime.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/redis-cart\", \"root_cause\": \"node_selector_mismatch\"}, {\"rank\": 2, \"fault_object\": \"app/redis-cart\", \"root_cause\": \"node_affinity_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/redis-cart\", \"root_cause\": \"pvc_selector_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 4
+}

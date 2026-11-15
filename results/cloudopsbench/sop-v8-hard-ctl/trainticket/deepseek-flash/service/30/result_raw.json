@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"ts-price-service pod is in CrashLoopBackOff (exit 1, 4 restarts). App logs show UnknownHostException: tsdb-mysql-leader: Temporary failure in name resolution causing HikariPool/JDBC connection failure. istio-proxy logs show DNS timeouts to nameserver 10.255.15.254 (read udp ... i/o timeout). Deployment YAML sets dnsPolicy: None with nameservers [10.255.15.254], an unreachable custom resolver. Target Service tsdb-mysql-leader exists with ClusterIP and other pods on the same node resolve fine, confirming pod-local DNS misconfiguration rather than missing service or node-wide network fault.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-price-service\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_packet_loss\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 10
+}

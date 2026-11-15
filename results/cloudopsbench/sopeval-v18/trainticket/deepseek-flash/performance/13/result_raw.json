@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Widespread latency alerts propagated through ts-gateway-service, ts-basic-service, ts-preserve-service, and ts-ui-dashboard. Dependency inspection identified ts-station-service as a downstream leaf with extremely elevated latency (p50 3.31ms -> 2477.27ms; p90 6.64ms -> 4492.19ms). All relevant pods were Running/Ready with healthy endpoints, no recent crash symptoms, no ts-station-service error logs, and recent application logs showed normal internal controller processing. This supports pod-level network delay on ts-station-service rather than crashes, missing backends, or an application exception.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-station-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-station-service\", \"root_cause\": \"code_artificial_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 9
+}

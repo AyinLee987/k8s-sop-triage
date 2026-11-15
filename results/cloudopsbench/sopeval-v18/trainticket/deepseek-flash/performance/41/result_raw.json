@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Latency alerts: ts-preserve-service p90 8983->22000ms (+144.9%) and ts-ui-dashboard 2732->5958ms (+118.1%); ts-order-service only shows RESOURCE_SATURATION cpu_cfs throttling (0.375s). All pods Running/Ready, endpoints healthy, no restarts. ts-preserve-service application error logs empty. ts-preserve-service internal logs show a complete multi-step request flow finishing in ~1s with sub-second downstream calls (checkSecurity ~474ms, order create ~365ms), yet external p90 latency is 22s -> large internal-vs-external discrepancy consistent with pod network delay. ts-order-service logs show normal successful order processing (create success, get sold tickets); its CPU throttle is small and cannot explain the 22s preserve latency, making it a secondary downstream candidate. The 22s latency originates on ts-preserve-service's pod network path (downstream RPCs are fast), so pod_network_delay is attributed to ts-preserve-service.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-preserve-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 3, \"fault_object\": \"app/ts-ui-dashboard\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 11
+}

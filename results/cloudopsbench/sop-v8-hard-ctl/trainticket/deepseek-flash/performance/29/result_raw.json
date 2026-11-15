@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Active alerts show dominant latency degradation on ts-seat-service: p50 increased from 222.24ms to 3409.09ms (+1434%), p90 increased by 179.9%, and RPS dropped 69.2%. All pods are Running/Ready with zero recent restarts. ts-seat-service error logs contain only Istio proxy metric-scrape broken-pipe errors, not business errors. Recent ts-seat-service logs show requests completing with normal internal/upstream processing times despite externally measured multi-second latency, supporting pod network delay by exclusion. The ts-order-service CPU CFS throttle alert is present but less consistent with the dominant latency victim and may be secondary to traffic/retry effects.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-seat-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 3, \"fault_object\": \"app/ts-seat-service\", \"root_cause\": \"code_artificial_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 6
+}

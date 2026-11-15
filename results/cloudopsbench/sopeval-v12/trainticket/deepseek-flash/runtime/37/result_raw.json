@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Only ts-delivery-service is abnormal (CrashLoopBackOff, 4 restarts, exit code 1). Describe shows readiness probe and normal scheduling; container repeatedly starts and exits. Error logs show HikariPool initialization failing with java.sql.SQLException: Access denied for user 'ts'@'172.20.3.207' (using password: YES), SQLState 28000/error 1045. The deployment sources credentials from Secret ts-delivery-mysql (envFrom secretRef). The Secret is properly bound and populated (user=ts, host=tsdb-mysql-leader, port=3306, db=ts, password present), so the failure is an authentication/credential mismatch against MySQL, not a missing secret, missing binding, or port/routing issue. This isolates the root cause to invalid MySQL credentials for ts-delivery-service.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-delivery-service\", \"root_cause\": \"mysql_invalid_credentials\"}, {\"rank\": 2, \"fault_object\": \"app/ts-delivery-service\", \"root_cause\": \"missing_secret_binding\"}, {\"rank\": 3, \"fault_object\": \"app/ts-delivery-service\", \"root_cause\": \"db_connection_exhaustion\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 7
+}

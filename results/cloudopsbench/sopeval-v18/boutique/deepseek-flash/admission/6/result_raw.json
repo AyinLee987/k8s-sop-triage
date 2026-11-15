@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Frontend Service exists with selector app=frontend, but has no endpoints. No frontend pod exists; Deployment frontend reports 0/1 ready and ReplicaFailure=True/Reason=FailedCreate. ReplicaSet frontend-fbbd6d5f5 events show pod creation is forbidden because serviceaccount boutiques/frontend-missing was not found. This directly localizes the fault to the frontend application and confirms a missing ServiceAccount as the root cause.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/frontend\", \"root_cause\": \"missing_service_account\"}, {\"rank\": 2, \"fault_object\": \"app/frontend\", \"root_cause\": \"service_selector_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/frontend\", \"root_cause\": \"deployment_zero_replicas\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 12
+}

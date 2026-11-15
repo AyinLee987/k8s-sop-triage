@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Cluster-wide latency and throughput degradation is present, with the only node-level anomaly being new TCP retransmissions on worker-02. Many degraded backend services are scheduled on worker-02, while frontend/checkout latency is consistent with calls into those delayed backends. kube-proxy and containerd on worker-02 are healthy, node conditions are normal, and cartservice error logs show no application failure. The retransmission spike is not supported by packet-drop counters or sustained loss evidence, making node network delay more likely than packet loss.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 2, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_packet_loss\"}, {\"rank\": 3, \"fault_object\": \"app/cartservice\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 11
+}

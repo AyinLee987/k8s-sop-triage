@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alert localized to shippingservice with FILESYSTEM_WRITE_SURGE (peak ~304 KB/s) and CPU saturation. Shipping pod is Running/Ready, error logs are negligible, and request logs show normal handling. Source code in quote.go confirms CreateQuoteFromFloat performs 30,000 CSV writes to /tmp/tmp.csv on each GetQuote path, directly matching the filesystem-write anomaly.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/shippingservice\", \"root_cause\": \"code_excessive_file_writes\"}, {\"rank\": 2, \"fault_object\": \"app/shippingservice\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 3, \"fault_object\": \"app/shippingservice\", \"root_cause\": \"pod_cpu_overload\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 10
+}

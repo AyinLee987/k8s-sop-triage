@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Shippingservice shows p95 latency degradation (+345.1%) with CPU CFS throttling (0.594s throttled) and CPU-core usage increasing from normal 0.00 to 0.15 cores. Its pod is Running and Ready with zero restarts, error logs are clean, deployment resource limits are 200m CPU, and source review found no busy loop, artificial delay, or excessive file-read/write defect. The node-level CPU alert on worker-02 is only a mild rise to 5.09%, so the fault is localized to the shippingservice pod.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/shippingservice\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 2, \"fault_object\": \"app/shippingservice\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"pod_cpu_overload\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 11
+}

@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show severe latency degradation centered on ts-basic-service (p50 ~7.3s, p90 ~9.5s) with throughput drop; upstream gateway/UI/travel/preserve services are also affected. All pods are Running/Ready, ts-basic-service has no error logs, and recent ts-basic-service logs show normal millisecond-scale internal processing, ruling out crashes and application errors and supporting pod network delay on ts-basic-service.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-basic-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-basic-service\", \"root_cause\": \"code_artificial_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 6
+}

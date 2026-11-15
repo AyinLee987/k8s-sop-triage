@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"shippingservice shows CPU CFS throttling, elevated CPU cores, and severe latency while its pod is Running/Ready with clean error logs. Source review found `CreateQuoteFromFloat` in quote.go executes an active 500ms busy-wait loop and is called on the GetQuote request path, directly explaining the observed CPU saturation/throttling and latency.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/shippingservice\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 2, \"fault_object\": \"app/shippingservice\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 3, \"fault_object\": \"app/shippingservice\", \"root_cause\": \"code_artificial_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 9
+}

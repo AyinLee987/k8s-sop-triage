@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All application pods except shippingservice were Running and Ready. shippingservice Deployment had 0/1 available replicas, its Service had no endpoints, and frontend logs showed connection refused to shippingservice ClusterIP 10.68.123.226:50051. The shippingservice ReplicaSet repeatedly failed Pod creation with: exceeded quota: memory-request-quota, requested requests.memory=300Mi, used requests.memory=3000Mi, limited 3Gi.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"namespace/boutique\", \"root_cause\": \"namespace_memory_quota_exceeded\"}, {\"rank\": 2, \"fault_object\": \"namespace/boutique\", \"root_cause\": \"namespace_cpu_quota_exceeded\"}, {\"rank\": 3, \"fault_object\": \"app/shippingservice\", \"root_cause\": \"memory_capacity_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 10
+}

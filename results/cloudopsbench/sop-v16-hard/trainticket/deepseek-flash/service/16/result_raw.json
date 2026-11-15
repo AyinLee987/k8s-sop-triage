@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All pods were Running/Ready but GetAlerts showed HTTP failures, notably 404 'Search ticket' on POST /api/v1/travelservice/trips/left (entry ts-travel-service). SOP http_request_failure required gateway route comparison. ts-gateway-service YAML reveals the 'travel' route with path /api/v1/travelservice/** is configured with uri lb://${ORDER_SERVICE_HOST:ts-order-service} instead of ts-travel-service. This route-to-backend mismatch sends travel requests to ts-order-service, which lacks that endpoint, producing the 404. The ts-travel-service itself is healthy (pod 2/2, correct endpoints present). The missing ts-food-delivery-service Service/endpoints is only a candidate symptom per SOP and not the confirmed primary fault.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-gateway-service\", \"root_cause\": \"gateway_misrouted\"}, {\"rank\": 2, \"fault_object\": \"app/ts-food-delivery-service\", \"root_cause\": \"service_selector_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/ts-travel-service\", \"root_cause\": \"code_wrong_return\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 9
+}

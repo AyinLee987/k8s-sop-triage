@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Only ts-price-service is abnormal: pod is 0/2 Ready, in CrashLoopBackOff with exit code 1. Application logs show UnknownHostException: tsdb-mysql-leader: Temporary failure in name resolution, and Istio sidecar logs show DNS timeouts resolving istiod.istio-system.svc via 10.255.15.254:53. The tsdb-mysql-leader Service exists. Deployment YAML shows dnsPolicy: None with custom nameserver 10.255.15.254, confirming pod-local DNS misconfiguration as the root cause.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-price-service\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 2, \"fault_object\": \"app/ts-price-service\", \"root_cause\": \"mysql_invalid_port\"}, {\"rank\": 3, \"fault_object\": \"app/ts-price-service\", \"root_cause\": \"service_env_var_address_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 7
+}
