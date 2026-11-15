@@ -1,0 +1,163 @@
+{
+ "communities": [
+  {
+   "id": "C1",
+   "name": "Missing workload pods / admission rejection",
+   "symptom": "Expected replicas or pods are absent while sibling workloads run; controllers show FailedCreate or admission denial and no pod object exists.",
+   "members": [
+    "01",
+    "09",
+    "16",
+    "24",
+    "48"
+   ]
+  },
+  {
+   "id": "C2",
+   "name": "Pods Pending, ContainerCreating, or node-scoped startup failure",
+   "symptom": "New or affected pods stay Pending/ContainerCreating with no node assignment or pod IP, often on one node or with scheduler/kubelet/runtime unhealthy.",
+   "members": [
+    "11",
+    "21",
+    "23",
+    "27",
+    "41",
+    "43"
+   ]
+  },
+  {
+   "id": "C3",
+   "name": "Service/route unreachable with healthy pods",
+   "symptom": "Clients cannot reach a Service or route while backing pods are Running/Ready; failures are connection refused/timeout/404/no-such-host and endpoints may be empty, wrong, or node-local.",
+   "members": [
+    "05",
+    "06",
+    "08",
+    "10",
+    "13",
+    "18",
+    "25",
+    "28",
+    "31",
+    "32",
+    "33",
+    "34",
+    "37",
+    "47",
+    "50"
+   ]
+  },
+  {
+   "id": "C4",
+   "name": "Deterministic 5xx/503 on specific application paths",
+   "symptom": "Pods are Running/Ready with stable restarts and Services have endpoints, but specific request paths or business actions return deterministic 5xx/503 errors.",
+   "members": [
+    "03",
+    "04",
+    "30",
+    "40",
+    "44"
+   ]
+  },
+  {
+   "id": "C5",
+   "name": "Application-code latency or CPU-bound slowdown",
+   "symptom": "One healthy workload shows sharp latency or CPU/throttling increase without restarts, traffic surge, downstream latency, or node-wide saturation.",
+   "members": [
+    "07",
+    "19",
+    "26",
+    "35",
+    "45"
+   ]
+  },
+  {
+   "id": "C6",
+   "name": "Pod-scoped network delay",
+   "symptom": "Latency or throughput degradation is isolated to one pod/workload while pods stay Running/Ready, endpoints populated, restarts zero, and resources/dependencies normal.",
+   "members": [
+    "02",
+    "14",
+    "17",
+    "20",
+    "22",
+    "29",
+    "36",
+    "38",
+    "46"
+   ]
+  },
+  {
+   "id": "C7",
+   "name": "Node-scoped packet loss/network degradation",
+   "symptom": "Multiple unrelated pods co-located on one node show simultaneous latency inflation or packet-rate/retransmit anomalies while pods elsewhere remain normal.",
+   "members": [
+    "12",
+    "49"
+   ]
+  },
+  {
+   "id": "C8",
+   "name": "CrashLoop/OOM/restarts in one workload",
+   "symptom": "One workload is CrashLoopBackOff or repeatedly restarting with OOMKilled/exit 137 or rising restarts while peer pods and dependencies remain healthy.",
+   "members": [
+    "15",
+    "39",
+    "42"
+   ]
+  }
+ ],
+ "secondary": {
+  "01": [
+   "C3"
+  ],
+  "02": [
+   "C7"
+  ],
+  "09": [
+   "C3"
+  ],
+  "10": [
+   "C7"
+  ],
+  "11": [
+   "C1"
+  ],
+  "16": [
+   "C3"
+  ],
+  "22": [
+   "C7"
+  ],
+  "24": [
+   "C3"
+  ],
+  "27": [
+   "C3"
+  ],
+  "28": [
+   "C7"
+  ],
+  "29": [
+   "C7"
+  ],
+  "36": [
+   "C7"
+  ],
+  "39": [
+   "C5"
+  ],
+  "41": [
+   "C3"
+  ],
+  "47": [
+   "C1"
+  ],
+  "48": [
+   "C3"
+  ],
+  "50": [
+   "C1"
+  ]
+ }
+}
