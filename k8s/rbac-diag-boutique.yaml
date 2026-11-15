@@ -1,0 +1,37 @@
+# 诊断器只读身份在 boutique 命名空间里的授权，规则与 rbac-diag.yaml 相同（不给 secrets，不给写操作）。
+# 需要先应用 rbac-diag.yaml（它创建 diag-system 命名空间和 diag-agent 这个 ServiceAccount）。
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: diag-readonly
+  namespace: boutique
+rules:
+  - apiGroups: [""]
+    resources: ["pods", "pods/log", "events", "services", "endpoints", "configmaps", "persistentvolumeclaims", "resourcequotas", "serviceaccounts", "limitranges"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["apps"]
+    resources: ["deployments", "statefulsets", "replicasets"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["batch"]
+    resources: ["jobs", "cronjobs"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["discovery.k8s.io"]
+    resources: ["endpointslices"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["events.k8s.io"]
+    resources: ["events"]
+    verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: diag-readonly
+  namespace: boutique
+subjects:
+  - kind: ServiceAccount
+    name: diag-agent
+    namespace: diag-system
+roleRef:
+  kind: Role
+  name: diag-readonly
+  apiGroup: rbac.authorization.k8s.io
