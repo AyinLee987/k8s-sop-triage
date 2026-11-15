@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"emailservice pod is in CrashLoopBackOff with exit code 137/Reason Error. Kubelet events repeatedly show 'Liveness probe failed: timeout... within 1s' and 'Container server failed liveness probe, will be restarted'. Logs show the Python gRPC service only begins listening on 8080 ~2s after start, but the deployment's liveness probe uses initialDelaySeconds=1, periodSeconds=1, timeoutSeconds=1, failureThreshold=1 — too aggressive, so the container is killed before it can respond to probes. Port 8080 matches containerPort/PORT, so it is a timing misconfiguration, not a port or OOM issue.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/emailservice\", \"root_cause\": \"liveness_probe_incorrect_timing\"}, {\"rank\": 2, \"fault_object\": \"app/emailservice\", \"root_cause\": \"container_memory_limit_too_low\"}, {\"rank\": 3, \"fault_object\": \"app/emailservice\", \"root_cause\": \"liveness_probe_incorrect_port\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 6
+}

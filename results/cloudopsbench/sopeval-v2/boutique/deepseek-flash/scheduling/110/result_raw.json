@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"redis-cart is the only abnormal pod, stuck in Pending with PodScheduled=False. The scheduler reports that 3 nodes did not match the pod's node affinity/selector, while the 4th node is unschedulable. The pod specifies Node-Selectors: disktype=ssd, but the schedulable worker nodes are labeled disk-type=ssd, so no eligible node matches. This prevents redis-cart from starting and causes service availability disruption for dependent cart functionality.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/redis-cart\", \"root_cause\": \"node_selector_mismatch\"}, {\"rank\": 2, \"fault_object\": \"app/redis-cart\", \"root_cause\": \"node_affinity_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/redis-cart\", \"root_cause\": \"pvc_storage_class_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 4
+}

@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Only checkoutservice is Running but not Ready (0/1). Its container port and env PORT are 5050, while the readiness probe is configured as grpc on port 5051. Kubelet repeatedly reports readiness probe timeout connecting to 172.20.2.125:5051. Liveness probe correctly targets 5050, and the container is running with 0 restarts.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"readiness_probe_incorrect_port\"}, {\"rank\": 2, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"readiness_probe_incorrect_protocol\"}, {\"rank\": 3, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"service_port_mapping_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 3
+}

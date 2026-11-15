@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Multiple pods on worker-01 are stuck in Init:0/1, while pods on worker-02 are Running. Describing an affected pod shows FailedCreatePodSandBox with kubelet unable to dial /run/containerd/containerd.sock. CheckNodeServiceStatus confirms containerd.service on worker-01 is inactive (dead). This node-local container runtime outage prevents pods scheduled to worker-01 from starting, causing partial service unreachability.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/worker-01\", \"root_cause\": \"containerd_unavailable\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"kubelet_unavailable\"}, {\"rank\": 3, \"fault_object\": \"app/frontend\", \"root_cause\": \"pod_crash_over_or_restart\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 4
+}

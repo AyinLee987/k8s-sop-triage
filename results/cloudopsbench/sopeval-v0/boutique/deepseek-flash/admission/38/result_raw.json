@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Frontend deployment has 0/1 ready replicas; its ReplicaSet repeatedly fails to create pods with events stating: exceeded quota: pod-count-quota, requested: pods=1, used: pods=10, limited: pods=10. All other service pods are Running and Ready, so the frontend absence is caused by namespace Pod count quota exhaustion, producing partial service unreachability.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"namespace/boutique\", \"root_cause\": \"namespace_pod_quota_exceeded\"}, {\"rank\": 2, \"fault_object\": \"app/frontend\", \"root_cause\": \"deployment_zero_replicas\"}, {\"rank\": 3, \"fault_object\": \"namespace/boutique\", \"root_cause\": \"namespace_cpu_quota_exceeded\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 8
+}

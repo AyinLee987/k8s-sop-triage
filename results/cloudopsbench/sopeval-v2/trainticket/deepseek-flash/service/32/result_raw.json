@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Only ts-seat-service pod is abnormal (0/2 Ready, 4 restarts). Application logs show Nacos registration failure with `NacosException: Client not connected, current status:STARTING`, and istio-proxy logs show repeated DNS timeouts resolving `istiod.istio-system.svc` via nameserver 10.255.14.254. The deployment YAML explicitly sets `dnsPolicy: None` and hardcodes `dnsConfig.nameservers: [10.255.14.254]`. Nacos services and all other pods are healthy, so the failure is isolated to the pod-local DNS configuration of ts-seat-service.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-seat-service\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-seat-service\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 8
+}

@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"ts-seat-service pod is 0/2 Ready with 4 restarts and empty Service endpoints. Pod describe shows app container exited with code 1. Error logs show Nacos registration failure and istio-proxy DNS lookup timeouts to nameserver 10.255.14.254:53 resolving istiod.istio-system.svc. Deployment YAML confirms dnsPolicy: 'None' with custom nameserver 10.255.14.254. Other pods and services are healthy. This indicates a pod-local DNS misconfiguration causing startup failure and service unavailability.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-seat-service\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-seat-service\", \"root_cause\": \"container_memory_limit_too_low\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 12
+}

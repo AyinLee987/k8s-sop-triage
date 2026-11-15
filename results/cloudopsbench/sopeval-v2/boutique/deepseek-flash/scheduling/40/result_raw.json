@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"productcatalogservice-c589fc787-gf9w5 is Pending with PodScheduled=False. Its container requests 22Gi memory. Scheduler event says 0/4 nodes available: 1 unschedulable and 3 Insufficient memory. Cluster nodes have only ~15.7GB allocatable memory each, so no eligible node can satisfy the pod request. This leaves productcatalogservice without ready endpoints, causing partial service unreachability.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"memory_capacity_mismatch\"}, {\"rank\": 2, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"node_cordon_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"cpu_capacity_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 8
+}

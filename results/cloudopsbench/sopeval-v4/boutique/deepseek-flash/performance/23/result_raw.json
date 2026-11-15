@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Widespread service latency and throughput drops align with a network anomaly on worker-02. The node alert reports a new TCP retransmission spike, while worker-02 is Ready with no pressure conditions or taints, kube-proxy and containerd are healthy, pods are Running/Ready, and connectivity to cartservice succeeds without application error logs. No direct packet-drop counters or repeated connection failures were observed, so node network delay is better supported than packet loss.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 2, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_packet_loss\"}, {\"rank\": 3, \"fault_object\": \"app/cartservice\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 11
+}

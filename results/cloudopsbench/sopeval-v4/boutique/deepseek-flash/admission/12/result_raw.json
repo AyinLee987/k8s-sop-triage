@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Frontend logs show 126/128 errors failing to reach adservice at 10.68.139.87:9555 with connection refused. The adservice Service exists with selector app=adservice and targetPort 9555, but has empty Endpoints because no adservice pod exists. The adservice Deployment is 0/1 available, and its ReplicaSet repeatedly reports FailedCreate due to namespace quota: 'exceeded quota: cpu-quota, requested: requests.cpu=1, used: requests.cpu=10, limited: requests.cpu=1'. An initial serviceaccount lookup warning also appears, but the persistent blocker is the CPU quota.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"namespace/boutique\", \"root_cause\": \"namespace_cpu_quota_exceeded\"}, {\"rank\": 2, \"fault_object\": \"app/adservice\", \"root_cause\": \"missing_service_account\"}, {\"rank\": 3, \"fault_object\": \"app/adservice\", \"root_cause\": \"cpu_capacity_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 10
+}

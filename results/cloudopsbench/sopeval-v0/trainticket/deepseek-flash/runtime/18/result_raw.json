@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"ts-contacts-service has an empty Endpoints list and its Deployment explicitly has spec.replicas: 0, so no backend pod exists. Alerts show 20 occurrences each of 503 Service Unavailable on GET contacts and POST create contact, matching the missing backend. All other TrainTicket pods are Running/Ready, indicating a localized deployment scale-to-zero fault rather than cluster-wide failure.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-contacts-service\", \"root_cause\": \"deployment_zero_replicas\"}, {\"rank\": 2, \"fault_object\": \"app/ts-contacts-service\", \"root_cause\": \"service_selector_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/ts-preserve-service\", \"root_cause\": \"code_wrong_return\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 8
+}

@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"shippingservice p95 latency rose from 4.27ms to 18.99ms (+345.1%) with CFS throttling of 0.594s and CPU usage rising from 0.00 to 0.15 cores. Its pod is Running/Ready on worker-02, logs show requests completing without error, and source review of main.go, quote.go, and tracker.go found no active busy loop, artificial delay, or excessive file I/O. checkoutservice latency is likely downstream impact; worker-02 node CPU is only 5.09%, excluding node-wide CPU saturation.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/shippingservice\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 2, \"fault_object\": \"app/shippingservice\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 3, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 10
+}

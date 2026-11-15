@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"emailservice pod is in CrashLoopBackOff with repeated liveness probe timeouts. DescribeResource shows Last State Terminated with Exit Code 137 and repeated 'Liveness probe failed: timeout ... within 1s' events. GetAppYAML confirms livenessProbe initialDelaySeconds=1, periodSeconds=1, timeoutSeconds=1, failureThreshold=1, which kills the container during startup before it can reliably serve gRPC. Logs show the service starts and listens on port 8080, and the probe port/protocol match, supporting incorrect liveness probe timing as the primary cause.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/emailservice\", \"root_cause\": \"liveness_probe_incorrect_timing\"}, {\"rank\": 2, \"fault_object\": \"app/emailservice\", \"root_cause\": \"container_memory_limit_too_low\"}, {\"rank\": 3, \"fault_object\": \"app/emailservice\", \"root_cause\": \"pod_cpu_overload\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 8
+}

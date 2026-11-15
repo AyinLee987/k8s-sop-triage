@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Pods, Services, and Endpoints are broadly healthy. The alert reports HTTP 500 for 'Process payment' via ts-inside-payment-service. ts-inside-payment-service logs show a downstream HTTP 500 from /api/v1/paymentservice/payment. The gateway route for /api/v1/paymentservice/** correctly targets ts-payment-service, and gateway logs show no routing error. ts-payment-service logs show IncorrectResultSizeDataAccessException / NonUniqueResultException: query did not return a unique result: 5. There is no evidence of DB read-only mode, DNS failure, gateway misrouting, or backend endpoint absence.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"code_missing_parameter\"}, {\"rank\": 2, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"code_wrong_argument_order\"}, {\"rank\": 3, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"code_wrong_return\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 11
+}

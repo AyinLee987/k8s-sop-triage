@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"ts-config-service pod is in CreateContainerConfigError. Pod events explicitly report `Error: secret \\\"ts-config-mysql1\\\" not found`. Direct Secret lookup for `ts-config-mysql1` in namespace train-ticket returned NotFound. This prevents ts-config-service from starting, causing partial service unreachability.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-config-service\", \"root_cause\": \"missing_secret_binding\"}, {\"rank\": 2, \"fault_object\": \"app/ts-config-service\", \"root_cause\": \"service_env_var_address_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/ts-config-service\", \"root_cause\": \"missing_service_account\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 6
+}

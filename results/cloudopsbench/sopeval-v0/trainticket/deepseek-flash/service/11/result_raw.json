@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"The `ts-food-delivery-service` pod is Running, but unlike all other TrainTicket services it has no corresponding Service or Endpoints entry. `ts-food-delivery-service` is downstream of `ts-gateway-service`, and an active TCP connectivity check to `ts-food-delivery-service:18957` failed. This confirms callers cannot resolve/reach the service due to missing service DNS/endpoint registration.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-food-delivery-service\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 2, \"fault_object\": \"app/ts-food-delivery-service\", \"root_cause\": \"service_selector_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/ts-food-delivery-service\", \"root_cause\": \"service_port_mapping_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 8
+}

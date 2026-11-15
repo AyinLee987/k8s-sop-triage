@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Multiple pods on worker-01 are stuck in Init:0/1 while pods on worker-02 are Running. Describing frontend pod shows FailedCreatePodSandBox: kubelet cannot connect to /run/containerd/containerd.sock on worker-01 (no such file or directory). Checking worker-01 confirms containerd.service is inactive/dead. Thus container runtime unavailability on worker-01 prevents pod startup and causes partial service unreachability.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/worker-01\", \"root_cause\": \"containerd_unavailable\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"kubelet_unavailable\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"kube_proxy_unavailable\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 4
+}

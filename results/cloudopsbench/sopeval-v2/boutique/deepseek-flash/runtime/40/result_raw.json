@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"checkoutservice pod is Running with 0/1 Ready and zero restarts. Describe shows container port/PORT/Service targetPort all 5050, but readinessProbe grpc port is 5051. Kubelet events repeatedly report readiness probe failure connecting to 172.20.2.125:5051. Deployment YAML confirms readinessProbe.grpc.port=5051 versus containerPort=5050.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"readiness_probe_incorrect_port\"}, {\"rank\": 2, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"readiness_probe_incorrect_timing\"}, {\"rank\": 3, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"service_port_mapping_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 5
+}

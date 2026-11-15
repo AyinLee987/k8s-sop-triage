@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"checkoutservice shows severe latency degradation (p50 17ms->7528ms, p90 30ms->23763ms), throughput drop 93%, and error spike, while its pods are Running/Ready with zero restarts. Application/error logs are clean and recent logs show successful payment/email downstream operations with no timeouts. Service connectivity to checkoutservice:5050 is open and all downstream dependencies are reachable. No CPU saturation or throttling alert is present, so the money.MultiplySlow loop is a red herring not independently explaining the latency. Frontend latency is a downstream consequence of calling slow checkoutservice. Fault is isolated to checkoutservice (other services on worker-02 unaffected), pointing to pod-level network delay rather than node-level degradation.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 3, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 13
+}

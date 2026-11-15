@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Multiple unrelated TrainTicket pods are in CrashLoopBackOff. A representative crashing service (ts-user-service) shows HikariPool initialization failure with java.sql.SQLNonTransientConnectionException: Too many connections, which then causes Hibernate SessionFactory initialization failure and application startup failure. The shared tsdb-mysql pods are running (3/3) but MySQL logs show connection/authentication activity and the application-level failures consistently point to connection exhaustion rather than a missing database or node-wide infrastructure outage.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/tsdb-mysql\", \"root_cause\": \"db_connection_exhaustion\"}, {\"rank\": 2, \"fault_object\": \"app/tsdb-mysql\", \"root_cause\": \"mysql_invalid_credentials\"}, {\"rank\": 3, \"fault_object\": \"app/ts-user-service\", \"root_cause\": \"db_connection_exhaustion\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 5
+}

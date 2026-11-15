@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All boutique pods are Running and Ready. Frontend logs show dominant failures dialing shippingservice at 10.68.91.181:50051 with connection refused, plus some productcatalogservice DNS lookup errors. Active TCP connectivity to shippingservice:50051 fails. Describing the shippingservice Service shows Selector: application=shippingservice but Endpoints empty. The shippingservice pod is Ready with label app=shippingservice. Thus the Service selector does not match the backend pod labels, leaving no endpoints and causing partial service unreachability.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/shippingservice\", \"root_cause\": \"service_selector_mismatch\"}, {\"rank\": 2, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 3, \"fault_object\": \"app/shippingservice\", \"root_cause\": \"service_port_mapping_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 10
+}

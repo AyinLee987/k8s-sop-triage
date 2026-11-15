@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"The frontend pod is in ErrImagePull/ImagePullBackOff. Its describe events show kubelet failed to resolve `ghost-registry.example.net` with `lookup ghost-registry.example.net on 127.0.0.53:53: no such host`. The frontend deployment uses that registry, while a healthy service (adservice) uses `us-central1-docker.pkg.dev`, confirming the registry hostname is the failing component rather than general image-pull authorization failure.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/frontend\", \"root_cause\": \"image_registry_dns_failure\"}, {\"rank\": 2, \"fault_object\": \"app/frontend\", \"root_cause\": \"incorrect_image_reference\"}, {\"rank\": 3, \"fault_object\": \"app/frontend\", \"root_cause\": \"missing_image_pull_secret\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 6
+}

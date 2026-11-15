@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All pods are Running/Ready, so this is not a crash or scaled-to-zero issue. The alert showed ts-inside-payment-service returning HTTP 500 on the payment path; tracing showed ts-payment-service emitting NonUniqueResultException (a data/code anomaly). However, the high-level symptom 'Partial Service Unreachability' is explained by the gateway config: route id 'route' matches Path=/api/v1/routeservice/** but has uri lb://${PRICE_SERVICE_HOST:ts-price-service} instead of ts-route-service. This wrong backend target makes ts-route-service unreachable via the gateway, a clear gateway route-to-backend mismatch. The payment path itself routes correctly, so the payment 500 is a secondary/independent data anomaly.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-gateway-service\", \"root_cause\": \"gateway_misrouted\"}, {\"rank\": 2, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"code_wrong_return\"}, {\"rank\": 3, \"fault_object\": \"app/ts-route-service\", \"root_cause\": \"service_selector_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 9
+}

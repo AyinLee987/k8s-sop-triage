@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All pods are Running/Ready; cartservice, checkoutservice, and frontend show severe latency. Most affected backend pods are on worker-02. cartservice remains reachable and has no error logs. worker-02 kube-proxy and containerd are healthy, and node status is Ready with no pressure. The only transport signal is a new TCP retransmission spike on worker-02 without packet-drop counters or connection resets, supporting node-level network delay rather than packet loss.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 2, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_packet_loss\"}, {\"rank\": 3, \"fault_object\": \"app/cartservice\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 11
+}

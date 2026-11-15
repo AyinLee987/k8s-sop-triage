@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show paymentservice CPU throttling (0.614s throttled), CPU usage rising to 0.16 cores (+4141%), and p95 latency increasing from 4.81ms to 60.66ms. The paymentservice pod is Running on worker-02 with 0 restarts, no error logs, and a CPU limit of 200m. Source inspection of charge.js, server.js, and index.js found no busy loop, artificial delay, or other clear code-level CPU defect, supporting pod_cpu_overload as the primary diagnosis.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/paymentservice\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 2, \"fault_object\": \"app/paymentservice\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 3, \"fault_object\": \"app/paymentservice\", \"root_cause\": \"code_artificial_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 10
+}

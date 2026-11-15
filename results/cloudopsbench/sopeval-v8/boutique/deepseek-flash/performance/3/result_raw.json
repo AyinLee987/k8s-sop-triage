@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Checkoutservice is the only anomalous service: CPU CFS throttling reached 0.703s, CPU-core use rose from 0.01 to 0.15 cores (+1985.6%), and p95 latency increased from 28.83ms to 93.18ms. Its pod is Running and Ready (2/2, 0 restarts) on worker-02, error logs are clean, CPU limit is 200m and request 100m, and worker-02 shows only a minor CPU-utilization change. Source review found money.MultiplySlow on the order path, but no independent evidence ties that loop to the observed CPU or latency magnitude, so pod_cpu_overload is the strongest supported root cause.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 2, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 3, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 9
+}

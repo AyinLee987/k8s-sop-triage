@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"paymentservice pod shows 2 restarts with Last State Terminated, Exit Code 137. Events repeatedly show 'Liveness probe failed: Get http://172.20.2.186:50051/: net/http: HTTP/1.x transport connection broken: malformed HTTP response' followed by 'Container server failed liveness probe, will be restarted'. The Deployment YAML confirms livenessProbe uses httpGet path=/ on port 50051, but the container serves gRPC (readinessProbe correctly uses grpc.port 50051). The HTTP probe cannot parse the gRPC/HTTP2 response, so liveness fails and kubelet kills/restarts the container.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/paymentservice\", \"root_cause\": \"liveness_probe_incorrect_protocol\"}, {\"rank\": 2, \"fault_object\": \"app/paymentservice\", \"root_cause\": \"liveness_probe_incorrect_timing\"}, {\"rank\": 3, \"fault_object\": \"app/paymentservice\", \"root_cause\": \"container_memory_limit_too_low\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 5
+}

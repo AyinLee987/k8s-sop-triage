@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"paymentservice is the only workload with abnormal restarts (2 restarts). Pod events show repeated `Liveness probe failed` with `malformed HTTP response` from `http://172.20.2.186:50051/`, followed by `Killing` and restart. Deployment YAML confirms the container serves gRPC on port 50051, while livenessProbe incorrectly uses `httpGet` on the same port; readinessProbe correctly uses `grpc`. Last termination exit code 137 is consistent with kubelet killing the container after liveness probe failure.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/paymentservice\", \"root_cause\": \"liveness_probe_incorrect_protocol\"}, {\"rank\": 2, \"fault_object\": \"app/paymentservice\", \"root_cause\": \"liveness_probe_incorrect_port\"}, {\"rank\": 3, \"fault_object\": \"app/paymentservice\", \"root_cause\": \"container_memory_limit_too_low\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 6
+}

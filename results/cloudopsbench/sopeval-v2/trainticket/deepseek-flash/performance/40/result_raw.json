@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show severe latency and error spikes centered on the payment path: ts-payment-service p50 latency rose from ~16.7ms to ~4464ms, and ts-inside-payment-service had a success-rate drop with 500 errors. Pods are Running/Ready with no payment-service restarts. Logs from ts-payment-service repeatedly show IncorrectResultSizeDataAccessException / NonUniqueResultException: 'query did not return a unique result: 2/3/4/5', causing 500 responses. ts-inside-payment-service logs confirm it receives 500s from /api/v1/paymentservice/payment. Dependency data shows ts-payment-service is a leaf in the call path, so the failure originates within its application/database query logic rather than a downstream service outage.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"code_missing_parameter\"}, {\"rank\": 2, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"code_wrong_argument_order\"}, {\"rank\": 3, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"pod_cpu_overload\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 12
+}

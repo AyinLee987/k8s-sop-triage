@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All pods are Running/Ready and Service selectors/endpoints are healthy, so this is not a pod/missing-backend issue. The active alert reports HTTP 500 on POST /api/v1/inside_pay_service/inside_payment from ts-inside-payment-service, whose logs show a downstream 500 from ts-payment-service (/api/v1/paymentservice/payment). Inspecting ts-gateway-service's ConfigMap application.yml reveals a definitive route misconfiguration: route id `route` with Path=/api/v1/routeservice/** is wired to `lb://${PRICE_SERVICE_HOST:ts-price-service}` (ts-price-service) instead of ts-route-service. This route-to-backend mismatch is the root cause; downstream payment/SQL exceptions are secondary effects, consistent with the http_request_failure SOP.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-gateway-service\", \"root_cause\": \"gateway_misrouted\"}, {\"rank\": 2, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"code_wrong_return\"}, {\"rank\": 3, \"fault_object\": \"app/ts-route-service\", \"root_cause\": \"service_port_mapping_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 13
+}

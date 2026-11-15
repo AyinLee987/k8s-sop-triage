@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All application pods are Running and Ready. `shippingservice` has no Endpoints despite a healthy pod. Its Service selector is `application=shippingservice`, while the pod label is `app=shippingservice`, so the selector does not match and traffic to ClusterIP 10.68.91.181:50051 is refused. Frontend logs show repeated `failed to get shipping quote` with connection refused to the shippingservice ClusterIP.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/shippingservice\", \"root_cause\": \"service_selector_mismatch\"}, {\"rank\": 2, \"fault_object\": \"app/shippingservice\", \"root_cause\": \"service_port_mapping_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/frontend\", \"root_cause\": \"service_env_var_address_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 9
+}

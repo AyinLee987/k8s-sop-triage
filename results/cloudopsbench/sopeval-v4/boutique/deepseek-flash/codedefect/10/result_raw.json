@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Checkoutservice showed severe latency only (p50 ~3750 ms) while its pod was Running/Ready, had no error logs, and successfully completed downstream payment/email operations. Source inspection of checkoutservice main.go found an explicit active `time.Sleep(time.Millisecond * time.Duration(3000))` in the PlaceOrder execution path, closely matching the observed ~3.75 s latency.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 2, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"code_busy_loop\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 10
+}

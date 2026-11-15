@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show severe LATENCY_DEGRADATION, most prominently at ts-basic-service (p50 39.29ms -> 7500ms, p90 60ms -> 9500ms), with upstream services such as ts-preserve-service and ts-gateway-service also degraded. Pod listing shows all pods Running/Ready with no relevant restarts. ts-basic-service has no error logs, and recent logs show normal fast internal processing (millisecond-scale successful route/station/price handling), while externally observed latency is multi-second. This supports pod network delay on ts-basic-service rather than crashes, application errors, or internal processing slowdown.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-basic-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-basic-service\", \"root_cause\": \"code_artificial_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 7
+}

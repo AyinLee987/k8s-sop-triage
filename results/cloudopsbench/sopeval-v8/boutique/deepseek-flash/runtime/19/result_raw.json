@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"emailservice pod is in CrashLoopBackOff with 4 restarts and exit code 137. Events show repeated liveness probe timeouts and kubelet killing the container for failed liveness checks. Logs show the service starts successfully and listens on port 8080. Deployment YAML confirms liveness probe timing is initialDelaySeconds=1, periodSeconds=1, timeoutSeconds=1, failureThreshold=1, which is too aggressive and causes repeated restarts.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/emailservice\", \"root_cause\": \"liveness_probe_incorrect_timing\"}, {\"rank\": 2, \"fault_object\": \"app/emailservice\", \"root_cause\": \"container_memory_limit_too_low\"}, {\"rank\": 3, \"fault_object\": \"app/emailservice\", \"root_cause\": \"liveness_probe_incorrect_protocol\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 6
+}

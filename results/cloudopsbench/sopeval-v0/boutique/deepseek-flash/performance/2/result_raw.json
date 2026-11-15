@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show cartservice p95 latency increased from 10.77ms to 83.83ms, CPU usage rose from 0.02 to 0.16 cores (+544.6%), and CPU CFS throttling reached 0.811s. cartservice pod is Running/Ready with no restarts, no error logs, and source inspection found no active busy loop or artificial delay. checkoutservice/frontend latency increases are consistent with downstream propagation from cartservice.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/cartservice\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 2, \"fault_object\": \"app/cartservice\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 3, \"fault_object\": \"app/cartservice\", \"root_cause\": \"code_artificial_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 13
+}

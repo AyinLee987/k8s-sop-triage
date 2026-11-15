@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show RESOURCE_SATURATION cpu_cfs throttling on ts-order-service (0.375s throttled) plus LATENCY_DEGRADATION on ts-preserve-service (p90 8.9s->22s) and ts-ui-dashboard (2.7s->6s). All pods are Running/Ready with no restarts, and error logs for ts-preserve-service and ts-order-service are empty. ts-order-service, a downstream dependency of ts-preserve-service, logs show heavy repeated processing of very large datasets (orders size ~5841, huge ticket lists) and has a 500m CPU limit, so it is CPU-saturated and throttled, propagating latency to callers. Root fault: excessive Pod CPU load on ts-order-service.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 2, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 3, \"fault_object\": \"app/ts-preserve-service\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 10
+}

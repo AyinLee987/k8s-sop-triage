@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Only ts-delivery-service is abnormal: pod ts-delivery-service-787cbf858d-lt9ss is in CrashLoopBackOff (4 restarts, Ready=False), terminating with exit code 1. Logs show HikariPool initialization failure: java.sql.SQLException 'Access denied for user ts@172.20.3.207 (using password: YES)' (SQL Error 1045, SQLState 28000), which aborts Spring/Hibernate startup. The Deployment correctly binds Secret ts-delivery-mysql providing DELIVERY_MYSQL_USER=ts, DELIVERY_MYSQL_PASSWORD, DELIVERY_MYSQL_HOST=tsdb-mysql-leader, DELIVERY_MYSQL_PORT=3306. All other TrainTicket services connecting to the same MySQL are Running/Ready, so the DB server and user ts are reachable/valid; the credentials in ts-delivery-mysql are invalid for this service. This is a MySQL authentication/credential failure, not a port, DNS, or scheduling issue.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-delivery-service\", \"root_cause\": \"mysql_invalid_credentials\"}, {\"rank\": 2, \"fault_object\": \"app/ts-delivery-service\", \"root_cause\": \"missing_secret_binding\"}, {\"rank\": 3, \"fault_object\": \"app/ts-delivery-service\", \"root_cause\": \"mysql_invalid_port\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 8
+}

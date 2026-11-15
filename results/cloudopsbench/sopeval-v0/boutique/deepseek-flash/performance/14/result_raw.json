@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"checkoutservice shows severe latency (p50 7528ms, p90 23763ms), throughput drop (-93.3%), and error spike, while its pod is Running/Ready with 0 restarts and no error logs. Source review confirms the PlaceOrder path actively invokes money.MultiplySlow, a CPU-intensive repeated-addition busy loop, which explains the latency without downstream errors.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 2, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 9
+}

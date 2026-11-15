@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"worker-01 is Unknown with unreachable NoSchedule/NoExecute taints. kubelet.service on worker-01 is inactive (dead). productcatalogservice-84d997fd97-kzfpn is Pending because it requires node selector kubernetes.io/hostname=worker-01, and the scheduler reports 0/4 nodes available. This node failure leaves productcatalogservice without a ready pod, causing partial service unreachability.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/worker-01\", \"root_cause\": \"kubelet_unavailable\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"containerd_unavailable\"}, {\"rank\": 3, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"node_selector_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 7
+}

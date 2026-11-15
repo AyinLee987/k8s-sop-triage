@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All TrainTicket pods are Running/Ready and Service endpoints exist, excluding pod outage or scaled-to-zero causes. The active payment alert shows ts-inside-payment-service receiving HTTP 500 from ts-payment-service, whose logs show NonUniqueResultException; however, the gateway route for `/api/v1/paymentservice/**` correctly targets ts-payment-service. In contrast, ts-gateway-service has a clear misroute: `/api/v1/routeservice/**` is configured to route to `ts-food-service` instead of `ts-route-service`, matching the partial service unreachability symptom.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-gateway-service\", \"root_cause\": \"gateway_misrouted\"}, {\"rank\": 2, \"fault_object\": \"app/ts-route-service\", \"root_cause\": \"gateway_misrouted\"}, {\"rank\": 3, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"code_wrong_return\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 12
+}

@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Latency degradation is node-correlated on worker-02. Alerts: worker-02 NETWORK_QUALITY_DEGRADED (TCP retransmission 0.00→0.92 new spike) plus p50 latency surges (cartservice 2.45ms→1236ms, checkoutservice 17.6ms→7004ms, frontend 16ms→11557ms) and 55-72% throughput drops across all boutique services. Pod mapping shows cartservice, currencyservice, emailservice, productcatalogservice, recommendationservice, shippingservice all scheduled on worker-02, while frontend/checkoutservice (which call these backends) run on worker-01. worker-02 is Ready with NetworkUnavailable=False and no taints; kube-proxy and containerd are active/running; cartservice TCP connectivity succeeds; cartservice has no error logs. A single new retransmission spike from a zero baseline with successful connections and latency-dominant symptoms is insufficient for packet loss per SOP and supports node network delay.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 2, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_packet_loss\"}, {\"rank\": 3, \"fault_object\": \"app/cartservice\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 12
+}

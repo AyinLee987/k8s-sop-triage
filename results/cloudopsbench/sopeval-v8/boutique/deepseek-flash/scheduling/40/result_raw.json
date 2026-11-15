@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"productcatalogservice has no Service endpoints because its only pod is Pending. DescribeResource showed a 22Gi memory request/limit, while all three schedulable worker nodes have only ~15.6Gi allocatable; scheduler events report 3 Insufficient memory and 1 unschedulable node. Other services and frontend connectivity are healthy, so the empty productcatalogservice endpoints explain the partial service unreachability.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"memory_capacity_mismatch\"}, {\"rank\": 2, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"node_cordon_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"container_memory_limit_too_low\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 10
+}

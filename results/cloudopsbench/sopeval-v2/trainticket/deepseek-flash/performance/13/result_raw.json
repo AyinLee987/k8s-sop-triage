@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Widespread latency/throughput alerts affected gateway, UI, preserve, basic, travel, and station services. ts-station-service showed the most extreme relative latency increase (p50 3.31ms -> 2477.27ms; p90 6.64ms -> 4492.19ms). It is a leaf dependency called by ts-basic-service and gateway. All relevant pods were Running/Ready with no crash/restart pattern, no error logs were found for ts-station-service, and recent application logs showed normal station query processing. This supports pod-level network delay on ts-station-service, propagating latency to upstream callers.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-station-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-basic-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 8
+}

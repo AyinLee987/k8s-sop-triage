@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Active alert shows shippingservice CPU saturation/throttling (cpu_cfs 1.082s throttled; CPU +9995.8%) and severe latency (p50 784.67ms, p90 1345.20ms). shippingservice pod is Running/Ready with 0 restarts on worker-01, has no meaningful application error logs, and its configured CPU limit is 200m. Source inspection of shippingservice/quote.go found CreateQuoteFromFloat using an active busy-wait loop that spins until 500ms elapse, explaining CPU pressure and latency.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/shippingservice\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 2, \"fault_object\": \"app/shippingservice\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 3, \"fault_object\": \"app/shippingservice\", \"root_cause\": \"code_artificial_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 11
+}

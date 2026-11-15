@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"ts-delivery-service pod is in CrashLoopBackOff (exit code 1, 4 restarts) while all other pods are Running. Application logs show 'java.sql.SQLException: Access denied for user ts@172.20.3.207 (using password: YES)' causing Hibernate/JPA init failure and process exit. The Deployment binds secret ts-delivery-mysql whose DELIVERY_MYSQL_PASSWORD decodes to 'Xiqzghymo347', whereas a sibling service ts-order-service using the same host tsdb-mysql-leader, user 'ts', and port 3306 succeeds with password 'Ts_123456'. This confirms the delivery secret holds an incorrect password, causing auth failure and crash loop.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-delivery-service\", \"root_cause\": \"mysql_invalid_credentials\"}, {\"rank\": 2, \"fault_object\": \"app/ts-delivery-service\", \"root_cause\": \"missing_secret_binding\"}, {\"rank\": 3, \"fault_object\": \"app/ts-delivery-service\", \"root_cause\": \"mysql_invalid_port\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 8
+}

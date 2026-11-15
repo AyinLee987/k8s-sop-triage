@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"paymentservice is the only anomalous service: alert shows RESOURCE_SATURATION cpu_cfs 0.614s throttled, CPU usage rising from 0.00 to 0.16 cores (+4141%), and p95 latency from 4.81ms to 60.66ms (+1161%). The paymentservice pod is Running and Ready with 0 restarts, has no error logs, and is configured with a 200m CPU limit. Source inspection of charge.js, server.js, and index.js found no busy-loop or other supported code-level CPU defect, so the CPU saturation/throttling is attributable to Pod CPU overload rather than an application crash or obvious code bug.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/paymentservice\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 2, \"fault_object\": \"app/paymentservice\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 3, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 10
+}

@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Widespread LATENCY_DEGRADATION alerts affect ts-station-service (p50 2,477ms vs 3.31ms; p90 4,492ms) and its upstream callers ts-basic-service, ts-travel-service, ts-preserve-service, ts-gateway-service, and ts-ui-dashboard. All pods are Running/Ready with no relevant crashes, and ts-station-service has no error logs; recent logs show normal query handling, supporting externally injected network delay rather than application errors. The leaf/caller propagation points to ts-station-service as the primary victim.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-station-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-station-service\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 6
+}

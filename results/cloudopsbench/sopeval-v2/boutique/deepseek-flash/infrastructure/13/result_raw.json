@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All boutique pods are Running/Ready with valid Service endpoints, so startup/crash and selector faults are excluded. kube-proxy.service on worker-01 is 'inactive (dead)' after being killed by SIGTERM at 15:51:11. An active TCP probe to cartservice:7070 succeeded from worker-02 and worker-03 but failed from a debug pod on worker-01 ('punt! Terminated / Connection Failed'). Frontend errors show a downstream checkout failure: 'cart failure: failed to get user cart during checkout: ... dial tcp 10.68.106.186:7070: i/o timeout' — checkoutservice runs on worker-01 and must DNAT the cartservice ClusterIP via that node's kube-proxy. Pods on worker-01 (adservice, checkoutservice, productcatalogservice, redis-cart) therefore cannot egress to Service VIPs, producing the availability disruption.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/worker-01\", \"root_cause\": \"kube_proxy_unavailable\"}, {\"rank\": 2, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"service_dns_resolution_failure\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 12
+}

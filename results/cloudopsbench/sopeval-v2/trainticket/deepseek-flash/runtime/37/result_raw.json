@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Only ts-delivery-service is abnormal, with pod status CrashLoopBackOff and 4 restarts. The container exits with code 1 after Spring Boot fails to initialize HikariPool/JPA due to `java.sql.SQLException: Access denied for user 'ts'@'172.20.3.207' (using password: YES)`. The deployment correctly references secret `ts-delivery-mysql`, which contains MySQL host, port, database, user, and password bindings. This indicates the database is reachable but authentication is rejected, pointing to invalid MySQL credentials for ts-delivery-service.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-delivery-service\", \"root_cause\": \"mysql_invalid_credentials\"}, {\"rank\": 2, \"fault_object\": \"app/ts-delivery-service\", \"root_cause\": \"mysql_invalid_port\"}, {\"rank\": 3, \"fault_object\": \"app/ts-delivery-service\", \"root_cause\": \"missing_secret_binding\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 7
+}

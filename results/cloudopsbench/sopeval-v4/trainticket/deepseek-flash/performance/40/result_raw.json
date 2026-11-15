@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show ts-inside-payment-service ERROR_SPIKE (100%->67.6%) + LATENCY_DEGRADATION (p50 300ms->6048ms) and ts-payment-service LATENCY_DEGRADATION (p50 16.7ms->4464ms). All pods are Running/Ready with no crashes. ts-payment-service logs repeatedly throw InvalidResultSizeDataAccessException/NonUniqueResultException 'query did not return a unique result: 2/3/4/5'; ts-inside-payment-service logs show the resulting HTTP 500 from /api/v1/paymentservice/payment. ts-order-service has no error logs. Gateway deployment is normal and gateway logs show only a benign container-history error, with no route-to-backend mismatch evidence. Payment is a leaf service querying its own DB, so the exception originates in ts-payment-service application/query logic (a code-level defect) that propagates as 500s and latency to its caller.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"code_wrong_return\"}, {\"rank\": 2, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"code_missing_parameter\"}, {\"rank\": 3, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"code_wrong_argument_order\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 15
+}

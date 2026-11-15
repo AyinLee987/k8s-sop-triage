@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Broad symmetric TRAFFIC_ANOMALY (inbound/outbound pps -40% to -66%) and THROUGHPUT_DROP (RPS -60% to -78%) across nearly all services, with ts-gateway-service showing the sharpest drop (-78% RPS, inbound -57.5%, outbound -62.5%) as the upstream entry point. All pods are Running/Ready (2/2, no restarts) excluding crash/scheduling causes. Gateway error logs contain only istio-proxy metric-scrape 'broken pipe' noise (not application errors), and recent logs show normal internal processing vs externally observed degradation—consistent with an exclusion-based attribution of pod network delay on the gateway.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-gateway-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-ui-dashboard\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-gateway-service\", \"root_cause\": \"code_artificial_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 6
+}

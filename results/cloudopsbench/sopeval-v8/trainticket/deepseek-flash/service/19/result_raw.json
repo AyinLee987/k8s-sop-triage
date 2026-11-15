@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Pods and endpoints are broadly healthy, including ts-travel-service at 172.20.1.243:12346. The alert reports HTTP 503 for POST /api/v1/travelservice/trips/left against the Search ticket action. The ts-gateway-service ConfigMap explicitly routes /api/v1/travelservice/** to lb://ts-nonexistent-travel-backend instead of the expected ts-travel-service backend, matching the observed service-unavailable symptom.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-gateway-service\", \"root_cause\": \"gateway_misrouted\"}, {\"rank\": 2, \"fault_object\": \"app/ts-travel-service\", \"root_cause\": \"code_wrong_return\"}, {\"rank\": 3, \"fault_object\": \"app/ts-travel-service\", \"root_cause\": \"service_port_mapping_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 10
+}

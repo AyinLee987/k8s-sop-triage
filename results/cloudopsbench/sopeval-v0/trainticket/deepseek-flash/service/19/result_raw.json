@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alert shows POST /api/v1/travelservice/trips/left (Search ticket) via ts-travel-service returning HTTP 503. All pods are Running/Ready, ts-travel-service has a valid endpoint (172.20.1.243:12346), and direct TCP connectivity from all nodes succeeds, so the backend is healthy. The ts-gateway-service ConfigMap shows the travel route's uri set to `lb://ts-nonexistent-travel-backend` rather than `ts-travel-service`, while all other routes point to correct backends. This route-to-backend mismatch causes the 503 on travel requests.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-gateway-service\", \"root_cause\": \"gateway_misrouted\"}, {\"rank\": 2, \"fault_object\": \"app/ts-travel-service\", \"root_cause\": \"service_selector_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/ts-travel-service\", \"root_cause\": \"service_port_mapping_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 13
+}

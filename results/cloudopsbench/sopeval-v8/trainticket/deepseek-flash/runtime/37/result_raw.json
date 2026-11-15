@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"ts-delivery-service pod is in CrashLoopBackOff with 4 restarts and exits with code 1. Application logs repeatedly show SQLException: Access denied for user 'ts'@'172.20.3.207' (using password: YES), SQLState 28000 / error 1045, causing Hibernate/JPA startup failure. The deployment references Secret ts-delivery-mysql, which exists and provides DB host/user/password/port. TCP connectivity to tsdb-mysql-leader:3306 succeeds from all worker nodes, ruling out service/network unavailability and supporting invalid credentials.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-delivery-service\", \"root_cause\": \"mysql_invalid_credentials\"}, {\"rank\": 2, \"fault_object\": \"app/ts-delivery-service\", \"root_cause\": \"missing_secret_binding\"}, {\"rank\": 3, \"fault_object\": \"app/ts-delivery-service\", \"root_cause\": \"mysql_invalid_port\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 8
+}

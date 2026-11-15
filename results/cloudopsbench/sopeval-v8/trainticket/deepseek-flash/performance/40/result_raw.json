@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show error spikes and severe latency on ts-inside-payment-service, latency on ts-payment-service, and CPU throttling on ts-order-service. Pods are Running/Ready without restarts. ts-payment-service logs repeatedly throw NonUniqueResultException (query did not return a unique result: 2/3/4/5), and ts-inside-payment-service logs show HTTP 500 errors propagated from /api/v1/paymentservice/payment. This directly implicates ts-payment-service application logic, likely wrong argument/query handling, as the primary fault.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"code_wrong_argument_order\"}, {\"rank\": 2, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"code_wrong_return\"}, {\"rank\": 3, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"pod_cpu_overload\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 10
+}

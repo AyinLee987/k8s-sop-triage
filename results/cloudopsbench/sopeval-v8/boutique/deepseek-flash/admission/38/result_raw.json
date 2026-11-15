@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"frontend deployment is 0/1 available with no frontend pod. ReplicaSet frontend-657dd795f reports FailedCreate: `exceeded quota: pod-count-quota, requested: pods=1, used: pods=10, limited: pods=10`. ResourceQuota pod-count-quota confirms pods 10/10. Thus frontend creation is blocked by namespace pod-count quota exhaustion, leaving the service without a ready backend.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"namespace/boutique\", \"root_cause\": \"namespace_pod_quota_exceeded\"}, {\"rank\": 2, \"fault_object\": \"namespace/boutique\", \"root_cause\": \"namespace_cpu_quota_exceeded\"}, {\"rank\": 3, \"fault_object\": \"app/frontend\", \"root_cause\": \"missing_service_account\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 7
+}

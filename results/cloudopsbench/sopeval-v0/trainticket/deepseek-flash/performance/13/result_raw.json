@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show sustained latency degradation centered on ts-station-service (p50 3.31ms -> 2477.27ms, p90 6.64ms -> 4492.19ms), with upstream services such as ts-basic-service, ts-travel-service, ts-preserve-service, ts-gateway-service, and ts-ui-dashboard also degraded. All pods are Running/Ready without crash loops. ts-station-service is a downstream leaf dependency, and its recent logs show normal handler activity while no application error logs were found, supporting network delay on the ts-station-service pod rather than application failure.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-station-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-basic-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 11
+}

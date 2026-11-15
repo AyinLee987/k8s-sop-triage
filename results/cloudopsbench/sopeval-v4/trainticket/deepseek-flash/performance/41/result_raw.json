@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"ts-preserve-service shows dominant latency degradation (p90 8983ms -> 22000ms). Its pod is Running/Ready with 0 restarts, no application error logs were found, and recent logs show preserve workflow steps completing quickly internally (typically sub-second steps) while external latency remains high. This is consistent with pod-level network delay. ts-order-service also shows CPU CFS throttling, making CPU overload a plausible secondary contributor; artificial code delay is a weaker alternative because internal log timestamps do not show sustained processing stalls.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-preserve-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 3, \"fault_object\": \"app/ts-preserve-service\", \"root_cause\": \"code_artificial_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 6
+}

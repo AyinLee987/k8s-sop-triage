@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"productcatalogservice has one Pending pod constrained by nodeSelector to worker-01. Scheduler events show no available nodes, and cluster configuration shows worker-01 status Unknown with unreachable taints. CheckNodeServiceStatus confirms kubelet.service on worker-01 is inactive/dead, directly explaining node unreachability and pod scheduling failure.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/worker-01\", \"root_cause\": \"kubelet_unavailable\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"containerd_unavailable\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_packet_loss\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 5
+}

@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show checkoutservice CPU CFS throttling (0.703s) and p95 latency increase from 28.83ms to 93.18ms. Pod is healthy (2/2 Running, 0 restarts) on worker-02 with no error logs. Source inspection reveals money.MultiplySlow called in PlaceOrder, an O(n) CPU-intensive addition loop, matching the CPU saturation and throttling evidence. Node worker-02 shows only minor CPU utilization increase (5.12%).\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 2, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 3, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"code_artificial_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 9
+}

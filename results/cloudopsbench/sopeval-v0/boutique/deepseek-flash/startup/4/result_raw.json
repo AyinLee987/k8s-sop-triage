@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Only `frontend-7968b59db9-zs7zp` is abnormal: READY 0/1, STATUS ErrImagePull. Pod events show image pull failure for `ghost-registry.example.net/google-samples/microservices-demo/frontend:v0.10.3` with `lookup ghost-registry.example.net on 127.0.0.53:53: no such host`. The frontend Deployment uses that unresolvable registry, while a healthy service (`adservice`) uses a different registry (`us-central1-docker.pkg.dev`) and is Running. This isolates the fault to frontend's image registry DNS resolution.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/frontend\", \"root_cause\": \"image_registry_dns_failure\"}, {\"rank\": 2, \"fault_object\": \"app/frontend\", \"root_cause\": \"incorrect_image_reference\"}, {\"rank\": 3, \"fault_object\": \"app/frontend\", \"root_cause\": \"missing_image_pull_secret\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 6
+}

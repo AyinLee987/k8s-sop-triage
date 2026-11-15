@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Pods on worker-01 are stuck at Init:0/1 while pods on worker-02 are Running. A frontend pod event shows FailedCreatePodSandBox with dialing /run/containerd/containerd.sock: no such file or directory. Direct check confirms containerd.service on worker-01 is inactive (dead), proving the container runtime is unavailable on worker-01 and causing partial service unreachability.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/worker-01\", \"root_cause\": \"containerd_unavailable\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"kubelet_unavailable\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_packet_loss\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 5
+}

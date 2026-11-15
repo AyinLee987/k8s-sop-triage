@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"checkoutservice shows severe latency (p50 7528.76ms vs 17.36ms; p90 23763.88ms vs 30.51ms), throughput drop (-93.3%), and success-rate collapse to 12.5%, with secondary frontend p90 latency. The checkoutservice pod is Running and Ready (2/2), has no error logs, and recent logs show successful payment/email operations completing in milliseconds with no downstream timeout. Downstream dependencies are reachable, checkoutservice:5050 is open, and there is no CPU throttling/saturation alert. The source contains a slow loop (`MultiplySlow`), but it is not independently supported by CPU evidence and does not match the fast log completion times, so pod network delay is the best supported explanation.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 3, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 12
+}
