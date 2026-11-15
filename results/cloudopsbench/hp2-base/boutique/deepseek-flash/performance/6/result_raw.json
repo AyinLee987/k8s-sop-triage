@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"The sole active alert is for frontend from 2025-12-25 16:19:42 to 16:21:37: CPU CFS throttling reached 1.333s, CPU usage rose from a normal 0.07 cores to 0.16 cores (+138.1%), p50 latency rose from 15.87ms to 45.00ms (+183.6%), and p95 latency rose from 27.67ms to 271.36ms (+880.8%). The frontend pod frontend-6778bd7b8b-dtd4f is Running with 0 restarts and no error events; frontend error logs were empty, and recent request logs show responses succeeding rather than failing. Its app container has a 200m CPU limit and a 100m request, consistent with cgroup-level CPU throttling under load. No evidence indicates a downstream service failure, node-level fault, scheduling issue, or application exception.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/frontend\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 2, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 3, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_artificial_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 19
+}

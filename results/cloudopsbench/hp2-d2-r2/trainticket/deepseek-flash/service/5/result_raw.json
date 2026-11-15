@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"The primary alert is 20 occurrences of HTTP 404 Not Found for POST /api/v1/preserveservice/preserve attributed to ts-preserve-service. The ts-preserve-service pod is Running (2/2), recently started cleanly, registered successfully with Nacos, and GetErrorLogs returned no error logs for ts-preserve-service. ts-gateway-service and ts-order-service also show no error logs. No pod crash, restart, or scheduling failure was observed. A healthy-running preserve service that consistently returns 404 on its own business endpoint is most consistent with an application code path returning the wrong response/status. The single ts-inside-payment-service 500 alert is much lower-frequency and was not tied to the preserve failure.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-preserve-service\", \"root_cause\": \"code_wrong_return\"}, {\"rank\": 2, \"fault_object\": \"app/ts-gateway-service\", \"root_cause\": \"gateway_misrouted\"}, {\"rank\": 3, \"fault_object\": \"app/ts-preserve-service\", \"root_cause\": \"service_env_var_address_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 19
+}

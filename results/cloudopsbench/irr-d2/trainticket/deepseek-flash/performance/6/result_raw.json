@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show synchronized traffic drops plus severe latency concentrated in the booking chain: ts-order-service p50 ~3.88s/p90 ~17.6s, ts-seat-service ~3.9s, ts-security-service ~3.75s, ts-preserve-service ~30s, ts-gateway-service p90 ~39s. However ts-order-service logs show millisecond-fast successful processing, and all pods are Running with nodes Ready, indicating the latency is in the network path to/from the order-service pod rather than app processing. Service connectivity to ts-order-service:12031 succeeds from all workers. Because ts-order-service is the shared downstream leaf and callers show a consistent ~3.8s delay, the primary diagnosis is pod_network_delay on app/ts-order-service.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"code_artificial_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 19
+}

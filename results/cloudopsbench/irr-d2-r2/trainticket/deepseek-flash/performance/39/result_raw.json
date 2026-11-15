@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All nodes Ready without pressure/taints and all pods Running with IPs (rules out runtime/scheduling/quota faults). ts-travel-service, ts-seat-service, and ts-order-service logs show fast, error-free internal processing (envoy upstream-service-time ~9-130ms), and TCP connectivity to ts-seat-service:18898 succeeds from worker-01/02/03. Despite healthy pods and fast internal handling, metrics show severe end-to-end latency concentrated on the travel/seat/order chain (ts-travel p50 18s, ts-order p50 9.8s, ts-preserve p50 45s, ts-seat p50 11.6s) and throughput drops cascading to gateway/ui. Since ts-seat-service is the common downstream of the slow callers and its own processing is fast while latency is extreme, the fault is a pod-scoped network delay on the ts-seat-service pod.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-seat-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-travel-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 15
+}

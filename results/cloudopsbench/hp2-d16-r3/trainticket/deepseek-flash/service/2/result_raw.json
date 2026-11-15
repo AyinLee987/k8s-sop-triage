@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All application Deployments report 1/1 ready and the app pods are Running. The Services and Endpoints lists show entries for every application service except `ts-food-delivery-service`; its Deployment and pod exist, but no Service or Endpoints object is present. Without a Service DNS record, clients of `ts-food-delivery-service` cannot resolve or reach it, matching the reported partial service unreachability.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-food-delivery-service\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 2, \"fault_object\": \"app/ts-food-delivery-service\", \"root_cause\": \"service_selector_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/ts-food-service\", \"root_cause\": \"service_env_var_address_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 19
+}

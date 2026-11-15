@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"`ts-food-service-74f4df4f7-djvnb` is in `CrashLoopBackOff` (0/2, 4 restarts) and its logs repeatedly show `java.net.UnknownHostException: tsdb-mysql-leader: Temporary failure in name resolution`, causing Hikari/JPA initialization and Spring Boot startup to fail. The `tsdb-mysql-leader` Service exists (ClusterIP 10.68.188.173) and an active TCP test to 10.68.188.173:3306 succeeded from worker-01, worker-02, and worker-03, so the database service endpoint itself is reachable. The pod's istio-proxy also logged DNS lookups timing out to `10.255.18.254:53`, with the same DNS failure affecting `istiod.istio-system.svc`. This supports an app-scoped DNS resolution failure on `ts-food-service`; alerts for `ts-preserve-service` and `ts-inside-payment-service` are likely downstream workflow symptoms.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-food-service\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 2, \"fault_object\": \"app/ts-food-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_packet_loss\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 19
+}

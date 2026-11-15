@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Broad latency cascades across upstream services, but ts-route-service is a leaf dependency with the most severe latency spike (p50 ~8s, p90 ~21s), no application error logs, successful TCP connectivity from all worker nodes, healthy pod status, and no clear node-wide anomaly. This points to an app-level artificial latency fault in ts-route-service rather than a failing dependency, network reachability issue, or node outage.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-route-service\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-route-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-route-service\", \"root_cause\": \"code_busy_loop\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 12
+}

@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"ts-station-service-6c9db8cccd-b622n (worker-01) is in CrashLoopBackOff (main container exit code 1). Application logs show `java.net.UnknownHostException: tsdb-mysql-leader: Temporary failure in name resolution`, and the co-located istio-proxy sidecar reports DNS lookups to 10.255.13.254:53 timing out (i/o timeout). The ts-station-service Deployment uniquely sets dnsPolicy: None with a hardcoded nameserver 10.255.13.254, whereas healthy peers like ts-basic-service use default DNS. The tsdb-mysql-leader Service exists and a direct TCP connectivity check to tsdb-mysql-leader:3306 succeeds from worker-01, worker-02 and worker-03, proving the DB and network path are reachable. Thus the fault is pod-level DNS resolution failure specific to ts-station-service, causing startup failure, CrashLoopBackOff, and downstream 500 alerts on ts-preserve-service and ts-inside-payment-service.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-station-service\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_packet_loss\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 17
+}

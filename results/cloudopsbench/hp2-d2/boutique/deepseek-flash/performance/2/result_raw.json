@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"cartservice is the only service with direct resource saturation evidence: CPU CFS throttling at 0.811s and CPU usage rising from 0.02 to 0.16 cores (+544.6%), alongside p95 latency increasing from 10.77ms to 83.83ms (+678.2%). Its pod cartservice-7c5f46fc47-5jrjd is Running/Ready with 0 restarts, CPU limit 200m, and request 100m; logs show normal GetCartAsync/AddItemAsync activity and no error logs. checkoutservice and frontend show latency degradation only, consistent with propagated impact rather than being the origin.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/cartservice\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 2, \"fault_object\": \"app/cartservice\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 3, \"fault_object\": \"app/cartservice\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 19
+}

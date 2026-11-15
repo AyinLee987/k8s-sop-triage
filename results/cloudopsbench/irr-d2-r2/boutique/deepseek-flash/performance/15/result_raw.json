@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show currencyservice with p90 latency rising from 3.82ms to 921.97ms and inbound/outbound traffic dropping about 59-66%. Both frontend and checkoutservice are upstream callers of currencyservice and also exhibit severe latency. All pods are Running (2/2), nodes are Ready without pressure, kube-proxy on worker-01 is active, TCP connectivity to currencyservice:7000 succeeds, and currencyservice logs show successful conversions with no errors. This isolates the incident to currencyservice pod-level network delay rather than node runtime, scheduling, probe, image, or application-code failure.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/currencyservice\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/currencyservice\", \"root_cause\": \"code_artificial_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 15
+}

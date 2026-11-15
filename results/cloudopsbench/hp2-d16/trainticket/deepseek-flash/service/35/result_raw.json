@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"ts-train-service pod ts-train-service-84dbf9c989-nn5mp on worker-01 is in CrashLoopBackOff with exit code 1. Application logs show `Caused by: java.net.UnknownHostException: tsdb-mysql-leader: Temporary failure in name resolution`, causing Spring/MySQL startup failure. Its istio-proxy also shows repeated DNS lookup timeouts to istiod via resolver 10.255.12.254:53. The `tsdb-mysql-leader` Service exists with ClusterIP 10.68.188.173 and tsdb-mysql pods are Running, so the DB endpoint itself is present. Active alerts show 500 errors for Create ticket order (ts-preserve-service) and Process payment (ts-inside-payment-service), indicating service availability disruption, but the directly observed fault is ts-train-service failing to resolve DNS. Other worker-01 pods are Running, so a node-wide DNS/network fault is not confirmed.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-train-service\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_packet_loss\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 19
+}

@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"During the 2026-03-19 21:20:14-21:22:09 incident window, ts-cancel-service showed severe latency degradation (p50 81.78ms -> 2740.39ms; p90 240.83ms -> 7433.33ms), with ts-gateway-service and ts-ui-dashboard also latency-degraded. ts-cancel-service calls ts-order-service, and ts-order-service was directly flagged with RESOURCE_SATURATION [cpu_cfs], value 0.306s (Throttled). No application error logs were found for ts-cancel-service or ts-order-service, and ts-cancel-service logs show successful cancellation work, supporting CPU saturation on ts-order-service as the root cause rather than an application exception in cancel-service. The cancellation and gateway/UI latency are best explained as propagated impact from the saturated downstream order service.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 2, \"fault_object\": \"app/ts-cancel-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"code_busy_loop\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 19
+}

@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Only active alert: checkoutservice latency degradation from p50 ~18.66ms to 3750ms and p90 to 4750ms during 16:41:47-16:44:22. All boutique pods, including checkoutservice, were Running/Ready with 0 restarts. checkoutservice logs show PlaceOrder, payment, and email operations still succeeding rather than failing. GetErrorLogs returned no errors for checkoutservice, productcatalogservice, or currencyservice. The combination of severe latency with successful requests and no observed errors supports an injected application-side delay in checkoutservice.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 2, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 3, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 19
+}

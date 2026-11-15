@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Frontend alerts show CPU CFS throttling (1.204s throttled), CPU usage rising from 0.01 to 0.13 cores (+1506.3%), and p50 latency rising from 24.73ms to 2235.31ms (+8939.2%). Pods are Running with no restarts. Source inspection of frontend `handlers.go` found `chooseAd` containing a CPU-spinning busy-wait loop: `for { if time.Now().Sub(start) > 800*time.Millisecond { break } }`, adding ~800ms artificial latency per home/product request and consuming CPU. Frontend logs show 229 derived `failed to get ads: rpc error: code = DeadlineExceeded` warnings, while adservice pods are Running and serving ad requests normally.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 2, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 3, \"fault_object\": \"app/frontend\", \"root_cause\": \"pod_cpu_overload\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 20
+}

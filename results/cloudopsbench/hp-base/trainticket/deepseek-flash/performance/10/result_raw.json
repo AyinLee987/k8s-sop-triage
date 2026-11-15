@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Widespread service degradation in train-ticket during 16:51-16:53. The latency is concentrated at ts-route-service: p50 7.55ms -> 8026.32ms and p90 9.60ms -> 21000ms. Its upstream caller ts-basic-service rises even further (p50 38.29ms -> 18974.36ms; p90 48.92ms -> 27794.87ms), and higher-level services such as ts-travel-service, ts-preserve-service, ts-gateway-service and ts-ui-dashboard show propagated latency/throughput drops. All nodes are Ready without pressure conditions; all relevant pods are Running with no restart/crash evidence. ts-route-service and ts-basic-service logs show successful request processing and no error logs, supporting an application-level artificial delay rather than a crash, config, scheduling, or database-credential issue.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-route-service\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-basic-service\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-route-service\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 20
+}

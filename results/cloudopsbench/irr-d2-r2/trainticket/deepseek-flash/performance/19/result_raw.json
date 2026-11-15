@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show RESOURCE_SATURATION [cpu_cfs] on ts-order-service, with CFS throttling at 0.306s. ts-order-service pods are Running with no restarts, node worker-02 is Ready without pressure, and no error logs were found for ts-order-service. The largest latency degradation is ts-cancel-service, which depends on ts-order-service, so its slowdown is likely downstream impact. Multiple services on worker-02 also appear degraded, making a node-scoped network issue a secondary possibility.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 2, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 3, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 11
+}

@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Active alerts show widespread latency degradation, worst on ts-cancel-service (p50 81.78ms -> 2740.39ms, p90 240.83ms -> 7433.33ms), with related degradation in ts-gateway-service, ts-inside-payment-service, and ts-ui-dashboard. The direct resource anomaly is on ts-order-service: RESOURCE_SATURATION cpu_cfs at 0.306s (Throttled). Relevant pods are Running without meaningful restarts, and ts-order-service has a 500m CPU limit with 200m request. Its logs show heavy order-query and ticket-list processing. This is most consistent with excessive CPU load on the ts-order-service Pod, causing caller-facing latency rather than a node-wide failure.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 2, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 3, \"fault_object\": \"app/ts-cancel-service\", \"root_cause\": \"code_artificial_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 19
+}

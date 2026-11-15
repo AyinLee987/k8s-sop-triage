@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Only `ts-station-service` is unhealthy: its pod is in CrashLoopBackOff on worker-01. Application logs show `java.net.UnknownHostException: tsdb-mysql-leader: Temporary failure in name resolution`, causing Hikari/JPA initialization failure and container exit code 1. Its deployment sets `dnsPolicy: None` with nameserver `10.255.13.254`. The `tsdb-mysql-leader` Service exists and TCP 3306 is reachable from debug pods on worker-01/02/03, so the database service itself is not down. worker-01 is Ready with no pressure and kube-proxy running; other pods on the node are healthy. Thus the fault is app-scoped DNS resolution failure in ts-station-service.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-station-service\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 2, \"fault_object\": \"app/ts-station-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 15
+}

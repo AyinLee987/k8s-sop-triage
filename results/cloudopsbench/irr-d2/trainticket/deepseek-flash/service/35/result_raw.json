@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"`ts-train-service` is the only unavailable deployment (0/1). Its pod is in CrashLoopBackOff/Error, and application logs show `UnknownHostException: tsdb-mysql-leader` plus Istio DNS timeouts resolving `istiod`. The `tsdb-mysql-leader` Service exists and is reachable on port 3306 from all worker nodes, and all nodes are Ready with other pods healthy. The failing Deployment uses an app-specific `dnsPolicy: None` with a custom nameserver `10.255.12.254`, supporting an application-level DNS resolution failure.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-train-service\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_packet_loss\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 13
+}

@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"ts-station-service pod is CrashLoopBackOff with exit code 1; app logs show 'java.net.UnknownHostException: tsdb-mysql-leader: Temporary failure in name resolution', and istio-proxy in the same pod repeatedly times out resolving istiod on 10.255.13.254:53. The tsdb-mysql-leader Service exists and TCP:3306 is reachable from all three worker nodes (including worker-01) via debug pods, and other pods on worker-01 are healthy, excluding a DB/service outage or node-wide network fault. The root cause is the pod's DNS configuration: dnsPolicy 'None' with a hardcoded nameserver and no search domains, preventing resolution of cluster service short names.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-station-service\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 2, \"fault_object\": \"app/ts-station-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 13
+}

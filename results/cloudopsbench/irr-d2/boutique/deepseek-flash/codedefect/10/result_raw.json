@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alert showed checkoutservice p50 latency spiking from 18.66ms to 3750ms while all pods remained Running/Ready and downstream calls succeeded. Source code inspection of checkoutservice/main.go revealed a hardcoded `time.Sleep(time.Millisecond * 3000)` at the start of `PlaceOrder`, directly accounting for the ~3.75s latency.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 2, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 7
+}

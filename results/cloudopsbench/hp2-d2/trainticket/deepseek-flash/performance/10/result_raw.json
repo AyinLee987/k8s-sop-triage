@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Widespread latency and throughput drops are propagated from `ts-route-service`, which is a leaf service with no downstream service dependencies yet shows extreme self-latency: p50 7.55 ms -> 8026.32 ms, p90 9.60 ms -> 21000 ms (peak 25818 ms), and RPS -57.1%. Its callers `ts-basic-service`, `ts-travel-service`, and `ts-preserve-service` all show severe latency, consistent with waiting on `ts-route-service`. The `ts-route-service-688dc779fc-g5x8f` pod on `worker-03` is Running and Ready, with 0 restarts and no application error logs; `worker-03` is Ready with no MemoryPressure, DiskPressure, or PIDPressure. This localizes the fault to pod-scoped network delay on `ts-route-service` rather than a crashed pod, downstream dependency, node resource pressure, or node-wide network fault.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-route-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-route-service\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-03\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 18
+}

@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alert for frontend only: CPU core 0.07->0.16 (+138.1%), CPU CFS throttling 1.333s, p50 latency 15.87->45ms and p95 27.67->271.36ms during 16:19-16:21. All boutique pods are Running/Ready with 0 restarts; frontend has no error logs and post-window handler logs show normal 14-22ms responses. frontend deployment CPU limit is only 200m (request 100m), consistent with the observed throttling near the cap. CFS throttling + CPU-core rise (per exp-02) indicates CPU saturation on the frontend pod rather than a network delay or downstream dependency (a slow downstream would make frontend wait, not burn CPU). Source review of handlers.go, middleware.go, money/money.go, rpc.go showed no clear pathological busy loop, favoring an external CPU overload of the pod.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/frontend\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 2, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 3, \"fault_object\": \"app/frontend\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 19
+}

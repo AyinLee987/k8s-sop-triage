@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"GetAlerts flagged frontend with FILESYSTEM_WRITE_SURGE [fs_write_bytes] (Normal=0.00B/s -> Current=171371.76B/s, Peak=414371.37B/s) plus RESOURCE_SATURATION [cpu] (0.01->0.04 cores) and HTTP 503s on '/' and '/product/{id}'. Inspecting frontend/handlers.go shows chooseAd() (invoked by both homeHandler and productHandler) creates /tmp/tmp.csv and synchronously writes 30000 CSV rows on every ad selection before deleting it - directly matching the observed filesystem-write and CPU spikes. Frontend runtime logs show healthy 200 responses with ~20ms latency and no application error logs; productcatalogservice and adservice have no error logs, ruling out a downstream dependency failure. The fault resides in the frontend application code performing excessive file writes on each request, degrading service performance.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_excessive_file_writes\"}, {\"rank\": 2, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 3, \"fault_object\": \"app/frontend\", \"root_cause\": \"pod_cpu_overload\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 17
+}

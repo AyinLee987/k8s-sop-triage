@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Frontend logs show 68 occurrences of 'failed to get shipping quote: rpc error: code = Unavailable desc = connection error: transport: Error while dialing: dial tcp: lookup shippingservice on 169.254.20.10:53: no such host', plus 6 checkout failures propagating the same shipping DNS error. The Services and Endpoints listings in namespace boutique contain no shippingservice entry at all, and a direct lookup of the Service returns 'services \\\"shippingservice\\\" not found'. Meanwhile Deployment shippingservice is 1/1 Available and its pod shippingservice-7ff54bf6b6-hbbzk is Running 1/1 on worker-01 with healthy logs ('Shipping Service listening on port :50051'). Active TCP connectivity check to shippingservice:50051 fails. Thus the pod is healthy but the Service/DNS record for shippingservice does not exist, causing partial unreachability.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/shippingservice\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 2, \"fault_object\": \"app/shippingservice\", \"root_cause\": \"service_selector_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/shippingservice\", \"root_cause\": \"service_port_mapping_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 16
+}

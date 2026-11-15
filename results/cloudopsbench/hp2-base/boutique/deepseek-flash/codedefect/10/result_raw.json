@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Only one active anomaly was observed: checkoutservice showed severe latency degradation from a normal p50 of 18.66 ms to 3.75 s, with p90 rising to 4.75 s. The checkoutservice pod was Running with 0 restarts, and no error logs were found for checkoutservice, productcatalogservice, shippingservice, or currencyservice. Checkout logs showed orders progressing through payment and email without explicit errors, which points to latency introduced inside the checkoutservice request path rather than crashes, resource exhaustion, or downstream error responses.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 2, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/paymentservice\", \"root_cause\": \"code_artificial_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 20
+}

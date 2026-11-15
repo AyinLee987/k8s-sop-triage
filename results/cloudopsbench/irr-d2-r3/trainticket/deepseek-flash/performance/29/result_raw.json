@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"ts-order-service is the only entity with a RESOURCE_SATURATION alert (cpu_cfs throttled 0.589s). Its logs show repeated CPU-heavy work serializing very large result sets (6653 orders; thousands of sold tickets per getSoldTickets call). All pods are Running with no node alerts, and ts-seat-service's downstream dependency on ts-order-service explains the propagated latency/throughput anomalies observed in ts-seat-service, ts-preserve-service, and ts-travel-service.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 2, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 3, \"fault_object\": \"app/ts-seat-service\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 15
+}

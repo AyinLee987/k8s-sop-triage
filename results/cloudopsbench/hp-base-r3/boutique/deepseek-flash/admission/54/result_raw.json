@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"The shippingservice Deployment is healthy (1/1 ready, pod Running on worker-01, no application error logs), but the shippingservice Service object is absent: it is missing from the boutique Service list and `describe service shippingservice` returns NotFound. Correspondingly, there is no shippingservice Endpoint, active TCP connectivity to shippingservice:50051 fails, and frontend logs show 68 errors with `lookup shippingservice on 169.254.20.10:53: no such host`; checkoutservice failures wrap the same shipping-quote DNS error. This localizes the fault to shippingservice service discovery.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/shippingservice\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 2, \"fault_object\": \"app/shippingservice\", \"root_cause\": \"service_selector_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/shippingservice\", \"root_cause\": \"service_port_mapping_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 20
+}

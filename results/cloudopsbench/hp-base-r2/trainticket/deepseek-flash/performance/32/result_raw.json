@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Active alerts show severe latency degradation on ts-train-service (p50 7.38ms -> 2425ms; p90 9.48ms -> 4472.22ms) and matching downstream-impacted latency on ts-basic-service (p50 38.33ms -> 3750ms). Dependency data shows ts-basic-service calls ts-train-service, while ts-train-service is a leaf service with no downstream service calls. All relevant pods were Running, error-log checks found no application errors for ts-basic-service or ts-train-service, and ts-train-service has no CPU-saturation alert. This points to application-level artificial delay in ts-train-service rather than node/resource saturation.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-train-service\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-train-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-basic-service\", \"root_cause\": \"code_artificial_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 19
+}

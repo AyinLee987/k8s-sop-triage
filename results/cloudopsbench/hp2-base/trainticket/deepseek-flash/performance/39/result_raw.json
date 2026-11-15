@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All application pods were Running and nodes reported Ready, but alerts showed severe latency degradation across many train-ticket services. The strongest localization is worker-01: ts-gateway-service (p90 latency 46.5s), ts-travel-service (p50 18.46s, p90 27.69s), ts-preserve-service (p50 45s), and ts-security-service (p50 7s) all run on worker-01. Other latency-affected services such as ts-order-service, ts-seat-service, and ts-ui-dashboard run on worker-02/03 and can be downstream/caller-side victims of calls into worker-01. No crash, restart evidence, OOM, image-pull failure, or application error logs were found for representative affected services. This pattern is most consistent with excessive network latency on worker-01 rather than a single application fault.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_packet_loss\"}, {\"rank\": 3, \"fault_object\": \"app/ts-travel-service\", \"root_cause\": \"code_artificial_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 19
+}

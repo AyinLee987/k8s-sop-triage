@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"ts-station-service pod is in CrashLoopBackOff with exit code 1 due to java.net.UnknownHostException: tsdb-mysql-leader: Temporary failure in name resolution. The Deployment's pod template sets dnsPolicy: None with only nameserver 10.255.13.254 and no search domains, breaking short-name DNS resolution (also seen for istiod.istio-system.svc in istio-proxy logs). The target service tsdb-mysql-leader:3306 is reachable from all nodes, and other pods on worker-01 are healthy, ruling out node-level or cluster-wide DNS/network faults. The root cause is a pod-specific DNS resolution failure.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-station-service\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 2, \"fault_object\": \"app/ts-station-service\", \"root_cause\": \"service_env_var_address_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/ts-station-service\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 7
+}

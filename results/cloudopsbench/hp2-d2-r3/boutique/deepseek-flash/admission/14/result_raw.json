@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"checkoutservice Deployment is 0/1 available with ReplicaFailure=True/FailedCreate. Its ReplicaSet checkoutservice-7545f6f597 events show admission rejection: 'Error creating: pods ... is forbidden: exceeded quota: cpu-request-quota, requested: requests.cpu=2, used: requests.cpu=10, limited: requests.cpu=10'. ResourceQuota cpu-request-quota in boutique is saturated at requests.cpu 10/10. No checkoutservice pod exists, so the Service has no endpoints; frontend logs confirm downstream impact with 17 errors of 'failed to complete the order ... dial tcp 10.68.168.63:5050: connect: connection refused' on /cart/checkout. This matches exp-01 (missing replicas + FailedCreate forbidden + saturated quota).\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"namespace/boutique\", \"root_cause\": \"namespace_cpu_quota_exceeded\"}, {\"rank\": 2, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"cpu_capacity_mismatch\"}, {\"rank\": 3, \"fault_object\": \"namespace/boutique\", \"root_cause\": \"namespace_pod_quota_exceeded\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 13
+}

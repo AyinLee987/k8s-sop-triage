@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts during 2026-03-16 01:33:09–01:34:59 show severe latency and resource/traffic anomalies concentrated on services hosted on worker-01: ts-train-service p50 8.35ms→2500ms (peak 2970.69ms), ts-preserve-service p50 7500ms/p90 9700ms (peaks 13466ms/39690ms), ts-order-service CPU CFS throttling 0.712s with network surge, plus ts-station-service and ts-ui-dashboard traffic anomalies. ts-basic-service on worker-02 also degraded (p50 317.41ms→3709.68ms), consistent with propagating latency from its worker-01 downstream calls. All nodes are Ready with MemoryPressure=False, DiskPressure=False and PIDPressure=False; application pods are Running and no application error logs were found for ts-train-service or ts-basic-service. The fixed ~2500ms latency and cumulative multi-step delays point most strongly to node-level network delay on worker-01, rather than an application error.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-train-service\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"pod_cpu_overload\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 18
+}

@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show severe latency on ts-basic-service and ts-train-service, with ts-train p50 latency rising from ~7ms to ~2425ms and p90 to ~4472ms. All pods are Running, nodes are Ready, ts-train-service has no error logs, no CPU saturation alert, and is a leaf service with no downstream calls. This pattern supports application-level artificial delay in ts-train-service rather than infrastructure, scheduling, probe, or DB failure.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-train-service\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-train-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 10
+}

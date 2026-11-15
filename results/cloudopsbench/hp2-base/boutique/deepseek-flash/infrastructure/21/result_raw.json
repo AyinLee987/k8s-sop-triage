@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"The `checkoutservice-8445f8b6cb-58chn` pod is Pending with no assigned node and the `checkoutservice` Deployment is 0/1 available, making checkoutservice unreachable. Worker nodes `worker-01`, `worker-02`, and `worker-03` are Ready, untainted, and have ample CPU/memory, ruling out node capacity, taints, and affinity issues. The kube-scheduler service on `master` is inactive (dead) and stopped at 21:17:00, so pending pods cannot be scheduled. The scheduler outage is the strongest confirmed root cause of the partial service unreachability.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/master\", \"root_cause\": \"kube_scheduler_unavailable\"}, {\"rank\": 2, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"node_affinity_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"deployment_zero_replicas\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 18
+}

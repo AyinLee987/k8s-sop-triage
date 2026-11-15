@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Frontend error logs show 68 occurrences (~7.2% of requests) of 'failed to get shipping quote: rpc error: code = Unavailable desc = ... dial tcp: lookup shippingservice on 169.254.20.10:53: no such host' for /cart and /cart/checkout, i.e. a name-specific DNS NXDOMAIN for shippingservice. No Service object named 'shippingservice' exists (GetResources by name returned NotFound) and no Service with selector 'app=shippingservice' exists, while the shippingservice Deployment (1/1) and Pod (1/1 Running on worker-01) are healthy and other services resolve with populated endpoints. CheckServiceConnectivity to shippingservice:50051 from the cluster returned 'Connection Failed', confirming the reachability gap is at the Service/DNS layer, not the pod. Thus the shippingservice DNS name cannot resolve because its Kubernetes Service is missing, breaking all clients (frontend cart/checkout).\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/shippingservice\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 2, \"fault_object\": \"app/shippingservice\", \"root_cause\": \"service_selector_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/frontend\", \"root_cause\": \"service_dns_resolution_failure\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 18
+}

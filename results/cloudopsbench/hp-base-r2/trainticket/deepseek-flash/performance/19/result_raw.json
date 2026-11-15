@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts from 2026-03-19 21:20:14–21:22:09 show severe latency degradation in ts-cancel-service (p50 2740.39ms vs normal 81.78ms; p90 7433.33ms), plus elevated latency in ts-gateway-service, ts-inside-payment-service, and ts-ui-dashboard. ts-order-service is separately flagged with RESOURCE_SATURATION [cpu_cfs] = 0.306s (Throttled). Its deployment has a single replica with CPU request 200m/limit 500m, and incident-window logs show heavy order-service work such as queryOrders over 4,717 orders and large getSoldTickets result sets. All four nodes are Ready with no MemoryPressure/DiskPressure/PIDPressure and 8 allocatable CPUs, so node-level unavailability/capacity is not indicated. ts-cancel-service logs show individual cancel flows completing quickly internally, supporting downstream latency from ts-order-service rather than ts-cancel-service as the origin.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 2, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 3, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"cpu_capacity_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 19
+}

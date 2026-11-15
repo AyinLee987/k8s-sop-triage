@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"GetAlerts reports RESOURCE_SATURATION [cpu_cfs] on ts-order-service (Val: 0.589s Throttled) in 12:36-12:38 window, alongside LATENCY_DEGRADATION on ts-seat-service (p50 222.24ms -> 3409.09ms, +1434%), ts-preserve-service (peak 18709.68ms) and ts-travel-service (p90 2221.43ms -> 8972.22ms, +303.9%), plus TRAFFIC_ANOMALY/THROUGHPUT_DROP on ts-seat-service. All pods in train-ticket are Running with no restarts; ts-order-service Deployment sets CPU limit 500m / request 200m. ts-order-service logs (pod ts-order-service-dd54d5df9-6jbc8, worker-01) show heavy repeated work: getSoldTickets building LeftTicketInfo lists with hundreds/thousands of Ticket entries per call, and queryOrders scanning 6653 orders per account. ts-order-service has no error logs. The CFS throttling of the order pod is the primary fault; downstream seat/travel/preserve latency follows because those services synchronously call ts-order-service for sold-ticket data.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 2, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 3, \"fault_object\": \"app/ts-seat-service\", \"root_cause\": \"pod_cpu_overload\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 15
+}

@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"The `ts-food-delivery-service` pod `ts-food-delivery-service-5b898fdbbf-nwkxh` is Running 2/2 on worker-02, but the namespace service list contains no `ts-food-delivery-service` Service entry, unlike the other Train Ticket business services. This means callers cannot resolve the service DNS name and the food-delivery service is partially unreachable. Other observed signals, such as the dashboard's previous `host not found in upstream \\\"ts-gateway-service\\\"` error and preserve endpoint 499s, are separate or non-current issues.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-food-delivery-service\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 2, \"fault_object\": \"app/ts-gateway-service\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 3, \"fault_object\": \"app/ts-preserve-service\", \"root_cause\": \"code_artificial_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 19
+}

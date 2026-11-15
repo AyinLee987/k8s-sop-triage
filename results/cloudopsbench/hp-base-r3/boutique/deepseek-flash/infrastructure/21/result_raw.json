@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"checkoutservice deployment is 0/1 available; its pod checkoutservice-8445f8b6cb-58chn is Pending with NO scheduling events at all. The kube-scheduler on node master is 'inactive (dead)' since 21:17:00 (clean exit, 'Requested to terminate, exiting', 'Scheduling queue is closed'), and the checkoutservice pod (~82s old) was created after that, so it was never scheduled. All 4 nodes are Ready with no Memory/Disk/PID pressure, workers are untainted, and allocatable CPU/memory is ample — ruling out affinity/taint/capacity. All other services (adservice, cartservice, currencyservice, emailservice, frontend, paymentservice, productcatalogservice, recommendationservice, redis-cart, shippingservice) are Running/Ready, consistent with partial (checkoutservice-only) service unreachability caused by the dead scheduler.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/master\", \"root_cause\": \"kube_scheduler_unavailable\"}, {\"rank\": 2, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"node_selector_mismatch\"}, {\"rank\": 3, \"fault_object\": \"node/master\", \"root_cause\": \"kubelet_unavailable\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 16
+}

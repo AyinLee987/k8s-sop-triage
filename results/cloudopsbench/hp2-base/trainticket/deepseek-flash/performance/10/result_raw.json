@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"ts-route-service is a leaf service with no downstream calls, but its latency increased from p50 7.55 ms to 8,026 ms and p90 9.60 ms to 21,000 ms during the incident. Its recent logs show successful RouteController responses and no error logs, ruling out an obvious downstream failure and indicating delay inside the service. Upstream services including ts-basic-service, ts-travel-service, ts-preserve-service, and ts-gateway-service showed major latency degradation consistent with waiting on ts-route-service. All nodes were Ready without pressure conditions, and all pods were Running, so the strongest evidence favors an application-level artificial delay at ts-route-service rather than infrastructure unavailability.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-route-service\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-route-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-03\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 18
+}

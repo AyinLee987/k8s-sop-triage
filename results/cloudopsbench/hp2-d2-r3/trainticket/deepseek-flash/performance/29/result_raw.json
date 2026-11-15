@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"The only resource-saturation alert is on ts-order-service: CPU CFS throttling (0.589s throttled). ts-seat-service, which calls ts-order-service, has extreme latency (p50 222ms -> 3409ms, +1434%). ts-seat-service logs show successful calls to ts-order-service taking 431-957ms (x-envoy-upstream-service-time), indicating slow downstream response rather than outright failure. ts-order-service logs show heavy order/ticket query processing with very large result sets. Upstream services ts-travel-service and ts-preserve-service also show latency degradation, consistent with propagation from ts-order-service.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 2, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 3, \"fault_object\": \"app/ts-seat-service\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 19
+}

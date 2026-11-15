@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show ts-order-service with RESOURCE_SATURATION [cpu_cfs] at 0.589s throttled during 12:36:16-12:38:06; its Deployment limits CPU to 500m. The latency degradation in ts-seat-service (p50 222ms -> 3409ms) and ts-preserve-service (p50 5187ms -> 11111ms) is consistent with callers waiting on ts-order-service. ts-seat-service logs show downstream responses from ts-order-service with elevated x-envoy-upstream-service-time values (e.g., 957ms, 499ms, 431ms), while ts-order-service itself logs heavy order/ticket queries. This points to excessive CPU load/throttling on ts-order-service as the primary fault, with propagated latency to upstream services.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 2, \"fault_object\": \"app/ts-seat-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"code_busy_loop\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 18
+}

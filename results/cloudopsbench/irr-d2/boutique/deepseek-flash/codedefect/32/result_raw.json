@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Frontend produced 503s on product-detail and cart-related paths. All pods were Running/Ready, Services had correct selectors/ports, and direct TCP checks to productcatalogservice, cartservice, and currencyservice succeeded. Productcatalogservice source code contains `time.Sleep(extraLatency)` in GetProduct/ListProducts/SearchProducts, with `extraLatency` set from the `EXTRA_LATENCY` environment variable, indicating application-injected latency. Productcatalogservice is a shared downstream dependency for the failing paths.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 2, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_packet_loss\"}, {\"rank\": 3, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 20
+}

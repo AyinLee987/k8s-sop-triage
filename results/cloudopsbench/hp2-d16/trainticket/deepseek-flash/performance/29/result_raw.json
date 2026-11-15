@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All pods were Running/Ready with zero restarts. The strongest direct anomaly was an alert for ts-order-service: RESOURCE_SATURATION [cpu_cfs] with 0.589s throttled. Its deployment has a CPU limit of 500m. Latency alerts appeared on ts-preserve-service, ts-seat-service, and ts-travel-service; ts-seat-service logs showed calls to ts-order-service taking about 431-957ms (x-envoy-upstream-service-time), indicating downstream order-service slowness. ts-seat-service had the largest p50 latency jump (222ms to 3409ms) and RPS drop, but its logs showed successful responses and the latency was associated with order-service calls rather than its own errors. ts-order-service logs showed repeated getSoldTickets operations returning very large sold-ticket lists and no application error logs. This points to excessive CPU load on ts-order-service causing CFS throttling and propagated service latency.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 2, \"fault_object\": \"app/ts-seat-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"code_busy_loop\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 19
+}

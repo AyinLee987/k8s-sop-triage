@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Active alerts show widespread LATENCY_DEGRADATION: ts-cancel-service most severe (p50 81ms->2740ms, p90 240ms->7433ms), plus ts-gateway-service, ts-inside-payment-service, and ts-ui-dashboard. The only RESOURCE_SATURATION alert is ts-order-service CPU CFS throttling (cpu_cfs 0.306s). All pods are Running/Ready with 0 restarts (except ui-dashboard 3 restarts on startup 14m ago) and no error logs in ts-cancel-service. ts-cancel-service's own business logic completes in 14-70ms, so its 2.7s latency originates from downstream calls. ts-order-service is the shared downstream dependency of ts-cancel-service, ts-inside-payment-service, ts-seat-service, ts-preserve-service, ts-rebook-service, ts-execute-service, and ts-voucher-service, all of which are called through the gateway - explaining the propagated latency spike across gateway/ui-dashboard. Excessive CPU load/throttling on ts-order-service is the best-supported root cause.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 2, \"fault_object\": \"app/ts-cancel-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 19
+}

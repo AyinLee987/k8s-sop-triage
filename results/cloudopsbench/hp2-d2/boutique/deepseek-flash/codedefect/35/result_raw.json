@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show frontend CPU throttling (1.204s throttled), CPU rising from ~0.01 to 0.13 cores (+1506%), and p50 latency increasing from ~24.73ms to ~2235ms. Frontend logs show requests consistently taking ~1.4-3.4s, with downstream calls to ads, product catalog, and currency being canceled or timing out. All pods were Running, so this is not a scheduling or availability failure. The evidence most strongly indicates excessive CPU load in the frontend application unit causing service performance degradation.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/frontend\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 2, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 3, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_artificial_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 20
+}

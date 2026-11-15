@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Active alerts show severe latency degradation centered on ts-train-service (p50 7.38ms -> 2425ms, p90 9.48ms -> 4472ms) and its caller ts-basic-service (p50 38.33ms -> 3750ms). ts-basic-service depends on ts-train-service, while ts-train-service is a leaf with no downstream calls. Both pods are Running with no evidence of crashes, restarts, CPU/memory saturation, or node pressure; all workers are Ready. TCP connectivity to ts-train-service:14567 succeeds from worker-01, worker-02 and worker-03, so the service is reachable but responses are abnormally delayed. This points primarily to excessive pod network latency on ts-train-service, with application-level artificial delay as an alternative.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-train-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-train-service\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 19
+}

@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All boutique pods are Running except checkoutservice-8445f8b6cb-58chn, which is Pending with NO events at all (no FailedScheduling). The checkoutservice Deployment (v0.10.3) has no nodeSelector or affinity, no ResourceQuota exists in the boutique namespace, and worker-01/02/03 are Ready with ~8 CPU / ~15Gi allocatable and no taints (only master carries node.kubernetes.io/unschedulable). The kube-scheduler systemd unit on node master is 'inactive (dead)' (stopped at 21:17:00, status=0/SUCCESS). A non-running scheduler explains a Pending pod with no scheduling events. checkoutservice is therefore 0/1 available and a TCP connectivity check to checkoutservice:5050 returns 'Connection Failed', matching the 'Partial Service Unreachability' symptom (only checkoutservice impacted; all other services are 1/1 and reachable). Root cause: kube-scheduler unavailable on node master.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/master\", \"root_cause\": \"kube_scheduler_unavailable\"}, {\"rank\": 2, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"node_selector_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"taint_toleration_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 19
+}

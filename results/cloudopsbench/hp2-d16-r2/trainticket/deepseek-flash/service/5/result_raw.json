@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"20 POST requests to /api/v1/preserveservice/preserve failed with HTTP 404 Not Found. The ts-preserve-service pod is 2/2 Running, started successfully, registers with Nacos at 172.20.2.133:14568, listens on port 14568, and has no application error logs. Its Kubernetes Service also exposes port 14568 and selects app=ts-preserve-service. Because the backend is healthy and correctly mapped, the path-specific 404 most likely originates from incorrect gateway routing for the preserve endpoint.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-gateway-service\", \"root_cause\": \"gateway_misrouted\"}, {\"rank\": 2, \"fault_object\": \"app/ts-preserve-service\", \"root_cause\": \"code_wrong_return\"}, {\"rank\": 3, \"fault_object\": \"app/ts-preserve-service\", \"root_cause\": \"service_env_var_address_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 19
+}

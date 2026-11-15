@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All app pods are healthy/Running (spread over worker-01/02/03); nodes are Ready with no Memory/Disk/PID pressure; tsdb-mysql shows no error logs. Alerts show a 15:44-15:46 window of ~50-70% throughput drop across services, but LATENCY_DEGRADATION is concentrated in the booking flow, deepest at ts-order-service (p50 9.44ms->3881ms, p90 43.56ms->17600ms, peak 174s) and its callers (gateway, preserve, seat, security, travel, ui-dashboard). ts-order-service logs show every queryOrdersForRefresh processing an abnormally large per-account order set (Get Orders Number of Account size: 1756) and returning hundreds of soldTickets, executed continuously across 10 worker threads (io-12031-exec-1..10), i.e. CPU-heavy per-request processing that saturates the service and propagates latency upstream.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 2, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"code_wrong_return\"}, {\"rank\": 3, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"pod_cpu_overload\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 19
+}

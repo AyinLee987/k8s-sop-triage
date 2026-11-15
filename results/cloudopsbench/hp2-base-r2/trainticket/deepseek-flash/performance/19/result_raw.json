@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"GetAlerts reported RESOURCE_SATURATION [cpu_cfs] on ts-order-service with 0.306s throttled, alongside severe latency degradation on ts-cancel-service (p50 81.78ms -> 2740.39ms, p90 240.83ms -> 7433.33ms), ts-inside-payment-service (p90 +332.3%), ts-gateway-service (p90 +171.6%), and ts-ui-dashboard (p90 +195.2%). All service pods were Running, and there were no error logs for ts-order-service or ts-cancel-service. ts-order-service logs show heavy processing of large order/query payloads (e.g., queryOrders size 4717, large getSoldTickets results), consistent with CPU saturation. ts-cancel-service logs show its own order/refund logic completing in tens of milliseconds, with latency likely inherited from downstream calls such as ts-order-service.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 2, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 3, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 18
+}

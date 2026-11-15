@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Active alerts localize the primary anomaly to cartservice: CPU CFS throttling reached 0.811s, CPU usage rose from a normal 0.02 cores to 0.16 cores (+544.6%) against a 200m container limit, and cartservice p95 latency increased from 10.77ms to 83.83ms (+678.2%). The cartservice pod `cartservice-7c5f46fc47-5jrjd` was Running/Ready 2/2 with 0 restarts on worker-01, had no error logs, and its request logs showed normal GetCart/AddItem/EmptyCart activity. Redis-cart was ready and accepting connections. The active cartservice source paths (CartService.cs, RedisCartStore.cs, Startup.cs) contained no busy loop or artificial delay. checkoutservice and frontend also show latency degradation, but their anomalies are consistent with propagated downstream impact from cartservice rather than the originating fault.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/cartservice\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 2, \"fault_object\": \"app/cartservice\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 3, \"fault_object\": \"app/cartservice\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 18
+}

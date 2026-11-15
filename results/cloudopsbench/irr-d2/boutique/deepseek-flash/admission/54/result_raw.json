@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Frontend logs repeatedly show `lookup shippingservice on 169.254.20.10:53: no such host`. The `boutique` namespace has a running shippingservice pod, but no `shippingservice` Service object or endpoints. All other services have valid endpoints, and frontend Service connectivity succeeds. This isolates the partial unreachability to missing DNS/Service resolution for shippingservice.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/shippingservice\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 2, \"fault_object\": \"app/shippingservice\", \"root_cause\": \"service_selector_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/shippingservice\", \"root_cause\": \"service_port_mapping_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 9
+}

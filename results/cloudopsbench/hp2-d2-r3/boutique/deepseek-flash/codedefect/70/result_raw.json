@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"productcatalogservice pod productcatalogservice-8458b87d48-7r7l6 is in CrashLoopBackOff with container 'server' Last State Terminated Reason=OOMKilled (exit 137, Restart Count 4), killed ~1s after 'loading catalog from local products.json file...'. Source code catalog_loader.go's loadCatalogFromLocalFile contains a loop `for i := 0; i < 1024*1024*8; i++ { numbers = append(numbers, 1) }` allocating ~64 MiB of retained ints inside a container limited to memory: 128Mi (requests 64Mi) - a memory-retention fault in the app code. The 128Mi limit is the standard boutique default, so the code is the injected fault. Frontend logs show 1091 errors (500s) 'could not retrieve product/products: rpc error: code = Unavailable desc = no healthy upstream' on /product/{id} and /, confirming downstream impact of the crashing productcatalogservice.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"code_memory_leak\"}, {\"rank\": 2, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"container_memory_limit_too_low\"}, {\"rank\": 3, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"pod_cpu_overload\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 13
+}

@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"ts-train-service p50 latency rose from 8.35ms to 2500ms (peak 2970.69ms), p90 rose from 411.79ms to 4500ms. Its pod is Running/Ready with zero restarts, logs show normal request handling and no errors, and it is a leaf service with no downstream dependencies. Upstream callers ts-basic-service (p50 3709.68ms) and ts-preserve-service (p50 7500ms) exhibit propagated latency. All nodes are Ready without pressure, and connectivity to ts-train-service:14567 succeeds. This matches a pod-scoped network-delay fault rather than crash, app exception, or node-wide failure.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-train-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-train-service\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-preserve-service\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 19
+}

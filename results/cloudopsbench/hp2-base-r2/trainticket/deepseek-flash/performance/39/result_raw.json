@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All train-ticket application pods were Running, with no crashes or error logs found for ts-travel-service or ts-order-service. Alerts showed widespread throughput drops and latency degradation, but the most extreme abnormal latency was on ts-travel-service: p50 88.74ms -> 18,461.54ms (+20,703.7%) and p90 878.38ms -> 27,692.31ms. Upstream ts-preserve-service and ts-gateway-service also had severe latency, consistent with cascade from travel. ts-travel-service calls ts-basic-service, ts-route-service, ts-train-service and ts-seat-service; ts-seat-service was also slow and is the most plausible secondary bottleneck. The pattern is consistent with an application code delay injected into ts-travel-service rather than a pod crash, scheduling, node, image, or quota fault.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-travel-service\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-seat-service\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-preserve-service\", \"root_cause\": \"code_artificial_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 20
+}

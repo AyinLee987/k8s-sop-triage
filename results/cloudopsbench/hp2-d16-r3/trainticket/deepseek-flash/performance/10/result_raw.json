@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"ts-route-service has the most severe direct latency degradation: p50 7.55ms -> 8026.32ms and p90 9.60ms -> 21000ms, while it is a leaf service with no downstream calls. Its single pod ts-route-service-688dc779fc-g5x8f is Running 2/2 with 0 restarts; no error logs were found; resource requests/limits are normal (500m CPU, 512Mi memory). Callers ts-basic-service, ts-travel-service, ts-preserve-service, ts-gateway-service and ts-ui-dashboard show derived latency/throughput degradation. All nodes are Ready with no MemoryPressure, DiskPressure, or PIDPressure, and co-located services on worker-03 do not show the same direct latency signature, pointing to an application-local delay rather than node, DB, or general infrastructure failure.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-route-service\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-route-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-03\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 19
+}

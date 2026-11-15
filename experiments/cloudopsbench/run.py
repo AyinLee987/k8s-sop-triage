@@ -48,6 +48,7 @@ def main() -> int:
     ap.add_argument("--dose", type=int, default=0, help="use the first K notes; 0 = agent unchanged")
     ap.add_argument("--tt-source", default="", help="checkout of FudanSELab/train-ticket: adds source-code tools for TrainTicket cases")
     ap.add_argument("--order-seed", type=int, default=0, help="shuffle the accumulation order of the notes with this seed (0 = file order)")
+    ap.add_argument("--system-prompt", default="", help="file that replaces the agent's harness/system_prompt.md")
     ap.add_argument("--communities", default="", help="JSON file grouping the notes into communities (two-level catalog)")
     ap.add_argument("--case-timeout", type=int, default=420)
     args = ap.parse_args()
@@ -62,6 +63,8 @@ def main() -> int:
         if w.exists():
             shutil.rmtree(w)
         shutil.copytree(dataset / "agents" / args.agent, w)
+        if args.system_prompt:
+            shutil.copy(Path(args.system_prompt), w / "harness" / "system_prompt.md")
         # The only changes to the reference agent: optional extensions loaded at one point in its run.py.
         inject = ""
         if args.tt_source:

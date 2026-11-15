@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"ts-train-service shows extreme latency (p50 ~2.4s, p90 ~4.5s) with no CPU saturation, no errors, and a healthy Running/Ready pod. Node health is normal and TCP connectivity from all worker nodes succeeds. ts-basic-service latency is explained by its dependency on ts-train-service. This points to an application-level artificial delay in ts-train-service.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-train-service\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-train-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-basic-service\", \"root_cause\": \"code_artificial_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 12
+}

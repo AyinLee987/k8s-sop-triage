@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Only ts-food-service is in CrashLoopBackOff. Its logs repeatedly show `java.net.UnknownHostException: tsdb-mysql-leader` / `Temporary failure in name resolution`, causing Hikari/JPA initialization failure. The `tsdb-mysql-leader` Service exists and TCP/3306 connectivity succeeds from debug pods on all workers. The ts-food-service Deployment sets `dnsPolicy: None` with only nameserver `10.255.18.254`, omitting normal cluster DNS search configuration; its istio-proxy logs also show DNS lookup timeouts to that nameserver. This pod-specific DNS breakage explains the partial food-service unreachability.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-food-service\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 2, \"fault_object\": \"app/ts-food-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_packet_loss\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 9
+}

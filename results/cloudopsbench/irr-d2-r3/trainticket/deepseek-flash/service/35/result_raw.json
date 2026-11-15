@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"ts-train-service pod crash-loops; app logs show java.net.UnknownHostException: tsdb-mysql-leader: Temporary failure in name resolution, and istio-proxy logs show DNS lookups to 10.255.12.254:53 timing out. GetAppYAML reveals the deployment sets dnsPolicy: None with nameserver 10.255.12.254. Active connectivity checks to tsdb-mysql-leader:3306 succeed from debug pods on worker-01/02/03, and all nodes are Ready with no pressure. Thus the DNS failure is isolated to the pod's custom DNS configuration rather than the Service, MySQL, or node networking.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-train-service\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 2, \"fault_object\": \"app/ts-train-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 11
+}

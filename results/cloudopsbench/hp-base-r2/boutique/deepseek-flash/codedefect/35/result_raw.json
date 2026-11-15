@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Frontend alerts show severe CPU saturation and throttling (0.01→0.13 cores, 1.204s CFS throttled) with p50 latency rising from 24.73ms to 2235.31ms and p90 to 4364.88ms, plus 503s. Frontend error logs are dominated by 229 `failed to get ads: DeadlineExceeded`, but adservice itself logs normal request processing and has no error logs. Source inspection of `frontend/handlers.go` found `chooseAd()` executing an 800ms CPU-intensive busy loop (`for { if time.Now().Sub(start) > 800*time.Millisecond { break } }`) on home and product-page paths. This code directly explains frontend CPU pressure and latency; the deadline errors are likely downstream/client-side symptoms of the saturated frontend.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 2, \"fault_object\": \"app/frontend\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 3, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_artificial_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 17
+}

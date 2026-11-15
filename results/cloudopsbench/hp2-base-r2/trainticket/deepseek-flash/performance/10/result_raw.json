@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Widespread service degradation appears as severe latency and throughput drops, with `ts-route-service` showing p50 latency increasing from ~7.55ms to ~8026ms and p90 to ~21000ms. `ts-basic-service`, which directly calls `ts-route-service`, shows an even larger end-to-end latency increase (p50 ~19s), and upstream services such as `ts-travel-service`, `ts-preserve-service`, `ts-gateway-service`, and `ts-ui-dashboard` are also degraded. All application pods are Running, nodes report Ready without pressure, and no error logs were found for `ts-basic-service`; `ts-route-service` logs show requests being handled without explicit errors. This pattern is most consistent with an artificial delay in the leaf dependency `ts-route-service`. Pod/network-level delay on the same service or node is less strongly supported but remains plausible.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-route-service\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-route-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-03\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 19
+}

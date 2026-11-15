@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Latency degradation is concentrated in the dependency chain downstream of ts-route-service: ts-route-service p50 8026ms / p90 21000ms; ts-basic-service p50 18974ms / p90 27795ms; ts-travel-service p90 25556ms; ts-preserve-service p50 21875ms; gateway and UI also degraded. ts-route-service is a leaf service with no downstream calls, and its pod (ts-route-service-688dc779fc-g5x8f, IP 172.20.3.105 on worker-03) logs show rapid, successful request handling with no application errors. TCP connectivity to ts-route-service:11178 succeeds from debug pods on worker-01/02/03. Other worker-03-hosted services such as ts-auth-service, ts-food-service, and ts-price-service do not show the same latency degradation, arguing against a node-wide network issue. The evidence therefore points to a pod-scoped network delay affecting ts-route-service, propagating latency to its callers and the gateway/UI.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-route-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"node/worker-03\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-route-service\", \"root_cause\": \"code_artificial_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 18
+}

@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Service-wide latency/throughput alerts during 23:39-23:41, most severe along the dependency chain ts-order-service -> ts-seat-service -> ts-travel-service -> ts-gateway/ts-ui-dashboard. ts-order-service is the deepest affected service with no downstream calls, showing p50 latency 308.38ms -> 9843.75ms (+3092%) and p90 2060.99ms -> 25875ms. ts-seat-service rose to p50 11666.67ms and ts-travel-service to p50 18461.54ms, consistent with propagated caller latency. All pods are Running/Ready with zero restarts; nodes are Ready with no pressure/taints; nodes healthy. No error logs for ts-order-service; recent logs show normal successful order operations, supporting a pod-scoped network delay rather than an application exception or crash.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-travel-service\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 19
+}

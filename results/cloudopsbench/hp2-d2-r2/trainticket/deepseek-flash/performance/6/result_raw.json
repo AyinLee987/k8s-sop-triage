@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Broad service latency degradation began around 15:44:25. All app pods are Running/Ready with mostly zero restarts; nodes are Ready with no MemoryPressure/DiskPressure/PIDPressure. High-latency services ts-order-service, ts-preserve-service, ts-seat-service, ts-travel-service, and ts-ui-dashboard are concentrated on worker-01; ts-gateway-service on worker-03 and ts-security-service on worker-02 also degrade when interacting with services on worker-01. This correlates with a node-level network delay on worker-01 rather than pod crashes, application errors, or resource pressure.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_packet_loss\"}, {\"rank\": 3, \"fault_object\": \"app/ts-preserve-service\", \"root_cause\": \"code_artificial_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 19
+}

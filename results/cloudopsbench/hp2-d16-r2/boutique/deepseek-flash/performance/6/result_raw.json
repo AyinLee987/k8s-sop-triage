@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Only frontend is alerted: RESOURCE_SATURATION [cpu_cfs] shows 1.333s throttled, CPU usage rose from 0.07 to 0.16 cores (+138.1%), and p95 latency rose from 27.67ms to 271.36ms. Pod frontend-6778bd7b8b-dtd4f on worker-01 is Running/Ready with 0 restarts; its app container has a 200m CPU limit and 100m request. No frontend error logs were found. worker-01 is Ready with no MemoryPressure/DiskPressure/PIDPressure and 8 allocatable CPUs, and other boutique pods are Running, so node-level capacity/health does not explain the frontend-specific CPU throttling and latency.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/frontend\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 2, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 3, \"fault_object\": \"app/frontend\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 20
+}

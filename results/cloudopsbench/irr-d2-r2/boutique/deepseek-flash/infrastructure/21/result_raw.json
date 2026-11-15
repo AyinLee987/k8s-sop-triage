@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Only checkoutservice is unavailable: its pod is Pending with no node/IP while all other boutique pods are Running. Nodes are Ready with ample capacity, no pod node selectors/affinity are present, and no scheduler events exist for the Pending pod. The `master` node's kube-scheduler service is inactive/dead, matching the failure to assign the newly created checkoutservice pod. The earlier missing-ServiceAccount FailedCreate event is contradicted by the current ServiceAccount list showing `checkoutservice` exists.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/master\", \"root_cause\": \"kube_scheduler_unavailable\"}, {\"rank\": 2, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"missing_service_account\"}, {\"rank\": 3, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"service_env_var_address_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 11
+}

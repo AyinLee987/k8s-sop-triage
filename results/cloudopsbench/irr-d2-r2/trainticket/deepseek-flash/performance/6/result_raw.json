@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Widespread service alerts show severe latency and throughput/traffic drops without pod crashes or node pressure. The highest-latency core services are predominantly on worker-01 (ts-order-service, ts-preserve-service, ts-seat-service, ts-travel-service, ts-ui-dashboard), and upstream callers such as gateway/security also degrade. All relevant pods are Running/Ready, nodes are Ready with no Memory/Disk/PID pressure, and order/gateway logs show no application errors, making a worker-01 network fault the best-supported root cause.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_packet_loss\"}, {\"rank\": 3, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 19
+}

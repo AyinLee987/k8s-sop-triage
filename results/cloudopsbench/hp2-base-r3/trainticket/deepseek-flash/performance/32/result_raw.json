@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show severe latency degradation centered on ts-train-service: p50 rose from 7.38ms to 2425ms (~32,755%), with p90 4472ms. ts-train-service is a downstream leaf with no further service dependencies, so the delay originates within it rather than from a downstream call. ts-basic-service, which calls ts-train-service, shows correspondingly severe latency (p50 38.33ms -> 3750ms), consistent with cascading latency from ts-train-service. All nodes are Ready with no pressure conditions; no node-level fault was observed for worker-01 where ts-train-service runs. The absence of a CPU or memory saturation alert for ts-train-service supports an application-level artificial delay.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-train-service\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-basic-service\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"pod_cpu_overload\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 19
+}

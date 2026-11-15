@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All nodes are Ready and all train-ticket pods are Running. `ts-route-service` is a leaf downstream service with no downstream dependencies, yet shows extreme latency: p50 ~8.0s and p90 ~21s versus normal p50 ~7.55ms/p90 ~9.6ms, with peaks ~25.8s. Its logs show requests being handled with no application errors, and TCP connectivity to 10.68.104.11:11178 succeeds from worker-01/02/03. Upstream services such as `ts-basic-service`, `ts-gateway-service`, and `ts-travel-service` show latency consistent with waiting on this leaf. Co-located services on worker-03 do not show the same uniform latency, making a node-wide network fault less likely.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-route-service\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-route-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-03\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 14
+}

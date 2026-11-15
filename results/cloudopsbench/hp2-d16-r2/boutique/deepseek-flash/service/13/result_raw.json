@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Frontend error logs (180 errors, 24.9%) show repeated `rpc error: code = Unavailable ... dial tcp 10.68.1.75:3550: connect: connection refused` against productcatalogservice's ClusterIP. An active TCP check to productcatalogservice:3550 failed ('Connection Failed'). Yet the productcatalogservice pod is 1/1 Running, its logs state 'starting grpc server at :3550', and the Deployment declares containerPort 3550 with env PORT=3550. The Service definition, however, has ports: port 3550 -> targetPort 8081, so traffic is forwarded to a port nothing listens on. Root cause: incorrect Service port mapping (targetPort 8081 vs actual container port 3550) on productcatalogservice.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"service_port_mapping_mismatch\"}, {\"rank\": 2, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"service_protocol_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/frontend\", \"root_cause\": \"service_env_var_address_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 16
+}

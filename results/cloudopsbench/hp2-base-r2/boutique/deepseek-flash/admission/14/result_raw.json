@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Deployment checkoutservice in namespace boutique is 0/1 (0 up-to-date, 0 available) and no checkoutservice pod exists. Its ReplicaSet checkoutservice-7545f6f597 reports DESIRED=1, CURRENT=0, Condition ReplicaFailure=True/FailedCreate, with repeated events: 'pods \\\"checkoutservice-7545f6f597-*…\\\" is forbidden: exceeded quota: cpu-request-quota, requested: requests.cpu=2, used: requests.cpu=10, limited: requests.cpu=10'. ResourceQuota 'cpu-request-quota' in boutique shows requests.cpu Used=10 / Hard=10. The checkoutservice pod template requests 2 CPU, so admission is denied and the pod can never be created. All other boutique deployments (adservice, cartservice, currencyservice, emailservice, frontend, paymentservice, productcatalogservice, recommendationservice, redis-cart, shippingservice) are Running and 1/1 available.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"namespace/boutique\", \"root_cause\": \"namespace_cpu_quota_exceeded\"}, {\"rank\": 2, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"cpu_capacity_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"node_selector_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 17
+}

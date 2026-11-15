@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Active alerts show 20 HTTP 404 failures for POST /api/v1/preserveservice/preserve via ts-preserve-service, plus one HTTP 500 in ts-inside-payment-service. All application pods are Running; ts-preserve-service is 2/2 with no restarts, started cleanly, registered with Nacos, and its Service selector app=ts-preserve-service and port 14568 match the deployment/container. ts-gateway-service reports no error logs. Repeated 404s on an otherwise healthy preserve backend are most consistent with incorrect gateway routing; the absence of preserve application errors is evidence against a crash or resource fault. ts-ui-dashboard had 3 early restarts but remained Running, so it is a secondary concern rather than the dominant evidence.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-gateway-service\", \"root_cause\": \"gateway_misrouted\"}, {\"rank\": 2, \"fault_object\": \"app/ts-preserve-service\", \"root_cause\": \"code_wrong_return\"}, {\"rank\": 3, \"fault_object\": \"app/ts-ui-dashboard\", \"root_cause\": \"liveness_probe_incorrect_timing\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 19
+}

@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"`ts-station-service-6c9db8cccd-b622n` is 0/2 in CrashLoopBackOff with 4 restarts; the app container exits code 1. Its logs show `java.net.UnknownHostException: tsdb-mysql-leader: Temporary failure in name resolution`, causing HikariPool/JPA startup failure. Its istio-proxy logs show DNS queries to `10.255.13.254:53` timing out (`read udp ... i/o timeout`). The `tsdb-mysql-leader` Service exists in `train-ticket` and TCP connectivity to port 3306 succeeded from worker-01, worker-02, and worker-03. The Secret `ts-station-mysql` correctly sets `STATION_MYSQL_HOST=tsdb-mysql-leader` and `STATION_MYSQL_PORT=3306`, ruling out an address/port config error. Other workloads checked on worker-01 did not show DNS-resolution errors, so the evidence favors a pod/app-scoped DNS failure on `ts-station-service` rather than a node-wide fault.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-station-service\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 2, \"fault_object\": \"app/ts-station-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 18
+}

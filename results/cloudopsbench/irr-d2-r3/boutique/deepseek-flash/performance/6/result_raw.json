@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Active alert shows frontend-specific CPU CFS throttling (1.333s), CPU usage rising from 0.07 to 0.16 cores (+138%), and severe latency degradation (p50 15.87ms -> 45ms, p95 27.67ms -> 271ms). Frontend pod is Running and Ready on healthy worker-01; all nodes have normal capacity and no pressure. Request logs show successful fast responses with no downstream error pattern, while node-level and scheduling causes are ruled out by cluster configuration.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/frontend\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 2, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 3, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_artificial_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 18
+}

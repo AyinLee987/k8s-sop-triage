@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Widespread latency and RPS drops affected the train-ticket namespace during 15:44–15:46, but the anomaly is centered on ts-order-service: its p50 rose from 9.44ms to 3881.58ms, with p90 17.6s. Services calling ts-order-service show matching latency: ts-seat-service p50 ~3906ms and ts-security-service p50 ~3750ms, while ts-preserve-service reached a 30s p50. All application pods were Running/Ready, node conditions showed no CPU/memory/disk pressure, and no matching application error surge was found. This is most consistent with an artificial blocking delay in ts-order-service code rather than pod crashes, resource exhaustion, or node unavailability. Worker-01 hosts ts-order-service and several affected latency services, so a node-level network delay remains a plausible alternative but does not explain the order-service-centered matching latency as directly.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 19
+}

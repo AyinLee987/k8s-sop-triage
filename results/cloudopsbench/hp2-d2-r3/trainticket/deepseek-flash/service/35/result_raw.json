@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"`ts-train-service-84dbf9c989-nn5mp` is in CrashLoopBackOff with 4 restarts and its application logs show `java.net.UnknownHostException: tsdb-mysql-leader: Temporary failure in name resolution`, causing Hikari/JDBC initialization failure and exit code 1. The pod's istio-proxy logs also show DNS timeouts to `10.255.12.254:53` for `istiod.istio-system.svc`. However, the `tsdb-mysql-leader` Service exists at `10.68.188.173:3306` and connectivity succeeds from debug pods on worker-01, worker-02, and worker-03, so the backend is not down. `ts-basic-service` reports `Service Instance cannot be null`, and `ts-travel-service`/`ts-preserve-service` return 500s along the travel/trip-detail chain, consistent with `ts-train-service` being unavailable. Co-located services such as `ts-order-service` show no DNS errors, indicating a pod/service-scoped DNS failure rather than a cluster-wide DNS outage.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-train-service\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 2, \"fault_object\": \"app/ts-train-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 18
+}

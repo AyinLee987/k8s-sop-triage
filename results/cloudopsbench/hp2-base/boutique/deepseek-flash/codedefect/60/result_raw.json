@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alert evidence for `frontend` during 2026-05-18 17:43:52–17:46:27: `fs_write_bytes` rose from a normal 0.00B/s to 171371.76B/s current with a 414371.37B/s peak, plus CPU saturation from 0.01 to 0.04 cores (+266.7%). Frontend also recorded 17 `503 Service Unavailable` errors on `/product/{id}` and 12 on `/`. The frontend pod was Running but only 2m32s old, suggesting recent activity/restart; its logs around 17:46 showed normal requests, so the 503s are not consistently reproduced there. The dominant, localized anomaly is excessive filesystem writes in the frontend application.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_excessive_file_writes\"}, {\"rank\": 2, \"fault_object\": \"app/frontend\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 3, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_busy_loop\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 19
+}

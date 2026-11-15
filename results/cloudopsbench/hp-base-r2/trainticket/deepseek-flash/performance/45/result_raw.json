@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Node-level health is normal: all four nodes are Ready, with no MemoryPressure, DiskPressure, or PIDPressure, and worker nodes are untainted. All train-ticket application pods are Running. Active alerts show the most severe latency anomaly on ts-train-service: p50 latency rose from 8.35ms to 2500.00ms (+29,843.7%) and p90 from 411.79ms to 4500.00ms (+992.8%). ts-basic-service also shows elevated latency (p50 317.41ms -> 3709.68ms), while its logs show successful request processing in milliseconds; its dependency list includes ts-train-service. ts-preserve-service, upstream of ts-basic-service, shows p50 7500ms and p90 9700ms. ts-train-service produced no error logs, and its recent logs show normal successful retrieval requests without crash or exception evidence. This pattern points to an application-level injected or artificial delay in ts-train-service rather than node/resource unavailability or a crash.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-train-service\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-train-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-basic-service\", \"root_cause\": \"code_artificial_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 20
+}

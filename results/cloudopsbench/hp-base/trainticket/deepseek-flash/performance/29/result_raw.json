@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"The primary evidence is a RESOURCE_SATURATION alert on ts-order-service: CPU CFS throttling measured at 0.589s. ts-order-service has a single replica with a 500m CPU limit and its logs show repeated large getSoldTickets/queryOrders operations returning thousands of Ticket records (e.g. queryOrders size 6653), consistent with CPU-bound load. Downstream impact appears in ts-seat-service with p50 latency rising from 222.24ms to 3409.09ms (+1434%), and ts-preserve-service/ts-travel-service also show latency degradation. Node CPU is healthy: worker nodes have 8 allocatable CPUs and no pressure conditions, so this is not a node capacity fault.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 2, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 3, \"fault_object\": \"app/ts-seat-service\", \"root_cause\": \"pod_cpu_overload\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 17
+}

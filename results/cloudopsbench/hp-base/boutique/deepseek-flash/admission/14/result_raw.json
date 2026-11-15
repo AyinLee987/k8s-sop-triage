@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Deployment checkoutservice is 0/1 ready with condition ReplicaFailure=True/FailedCreate and 0 replicas created on ReplicaSet checkoutservice-7545f6f597. ReplicaSet events repeatedly show: 'Error creating: pods \\\"checkoutservice-7545f6f597-xxxxx\\\" is forbidden: exceeded quota: cpu-request-quota, requested: requests.cpu=2, used: requests.cpu=10, limited: requests.cpu=10'. ResourceQuota 'cpu-request-quota' in namespace boutique confirms requests.cpu 10/10 used. The pod template requests 2 CPU (limit 2400m), which cannot be admitted. All other 10 boutique services are Running 1/1 and collectively consume the namespace's 10 CPU request allowance, so checkoutservice — and any further scaling — is blocked. This produces the 'Service Availability Disruption' symptom: the checkout path of the shop has no running backend pod.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"namespace/boutique\", \"root_cause\": \"namespace_cpu_quota_exceeded\"}, {\"rank\": 2, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"cpu_capacity_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"pod_cpu_overload\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 19
+}

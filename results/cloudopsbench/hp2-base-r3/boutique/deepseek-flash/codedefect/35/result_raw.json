@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Frontend alerts show CPU saturation (0.01 → 0.13 cores, +1506%) with CPU CFS throttling (1.204s) and severe latency (p50 24.73ms → 2235.31ms, p90 215.69ms → 4364.88ms), plus 503 responses on GET / and GET /product/{id}. Source code of frontend handlers.go shows chooseAd() spin-waits in an unbroken loop: `for { if time.Now().Sub(start) > 800*time.Millisecond { break } }` — 800ms of pure CPU burn per home/product request. The frontend pod (2m26s old, on worker-01) uses a custom image wangyl2128/frontend-v2:latest, consistent with injected code. adservice is healthy: GetErrorLogs returned no error logs and recent adservice logs show normal ad request handling, so the `failed to get ads: DeadlineExceeded` warnings in frontend are downstream symptoms of frontend CPU starvation rather than an adservice fault. worker-01 node CPU only moved 4.22% → 6.43%, so node capacity is not the cause.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 2, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 3, \"fault_object\": \"app/frontend\", \"root_cause\": \"pod_cpu_overload\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 19
+}

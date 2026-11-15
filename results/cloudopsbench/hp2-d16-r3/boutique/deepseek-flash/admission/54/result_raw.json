@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Partial unreachability is caused by DNS resolution failure for `shippingservice`. Frontend logs contain 68 occurrences of `failed to get shipping quote: rpc error: code = Unavailable ... dial tcp: lookup shippingservice on 169.254.20.10:53: no such host`. The `shippingservice` Service is absent from the namespace Service list and endpoints list; `describe service shippingservice` returns `services \\\"shippingservice\\\" not found`. Meanwhile pod `shippingservice-7ff54bf6b6-hbbzk` is 1/1 Running on worker-01 (172.20.1.202), so the workload itself is healthy. The fault resides in the application-level `shippingservice` unit, whose Kubernetes Service/DNS entry is missing.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/shippingservice\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 2, \"fault_object\": \"app/shippingservice\", \"root_cause\": \"service_selector_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/shippingservice\", \"root_cause\": \"service_port_mapping_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 20
+}

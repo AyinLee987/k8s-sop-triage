@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show severe latency degradation in checkoutservice (p50 516.72ms, p90 948.48ms), emailservice (p90 895.90ms, +18581.6%), and frontend (p90 574.70ms). Dependency topology confirms frontend -> checkoutservice -> emailservice. checkoutservice and emailservice pods are Running 2/2 with 0 restarts, and neither service has error logs; checkoutservice logs show orders completing normally. This is consistent with a pod-scoped network delay on emailservice, propagating latency to its caller checkoutservice and then frontend.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/emailservice\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/emailservice\", \"root_cause\": \"code_artificial_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 19
+}

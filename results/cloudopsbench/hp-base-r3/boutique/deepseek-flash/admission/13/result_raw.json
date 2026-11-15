@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"cartservice Deployment is 0/1 ready; its ReplicaSet cartservice-8cbf5b9d4 shows ReplicaFailure=True (FailedCreate) with repeated errors 'exceeded quota: cpu-request-quota, requested: requests.cpu=1, used: requests.cpu=10, limited: requests.cpu=10'. ResourceQuota cpu-request-quota in namespace boutique shows requests.cpu Used=10, Hard=10 (fully exhausted). An earlier transient error 'serviceaccount cartservice not found' was resolved (ServiceAccount cartservice now exists), so the persistent blocker is the CPU request quota. cartservice Service has no endpoints and the active TCP connectivity check to cartservice:7070 failed, matching the reported Partial Service Unreachability. No active metric anomalies.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"namespace/boutique\", \"root_cause\": \"namespace_cpu_quota_exceeded\"}, {\"rank\": 2, \"fault_object\": \"app/cartservice\", \"root_cause\": \"missing_service_account\"}, {\"rank\": 3, \"fault_object\": \"namespace/boutique\", \"root_cause\": \"namespace_pod_quota_exceeded\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 18
+}

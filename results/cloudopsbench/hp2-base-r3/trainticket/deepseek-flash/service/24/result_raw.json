@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Only ts-food-service is unhealthy (CrashLoopBackOff, exit code 1), and its Deployment uniquely sets dnsPolicy: None with a single hardcoded nameserver 10.255.18.254 and no search domains. Its logs show java.net.UnknownHostException: tsdb-mysql-leader (CommunicationsException), and the co-located istio-proxy shows repeated DNS lookups to 10.255.18.254:53 timing out (even failing to resolve istiod.istio-system.svc). The tsdb-mysql-leader Service exists (10.68.188.173) and its 3306 port is reachable from worker-01/02/03, so the DB itself is fine — the pod cannot resolve names. Other pods on worker-01 are 2/2 healthy, indicating a pod-scoped DNS config fault, not a node outage. Downstream ts-preserve-service logs 'Service Instance cannot be null', consistent with ts-food-service having no ready endpoints.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-food-service\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-food-service\", \"root_cause\": \"db_connection_exhaustion\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 16
+}

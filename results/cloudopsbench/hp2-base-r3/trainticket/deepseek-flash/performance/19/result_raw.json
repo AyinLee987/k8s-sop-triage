@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Active alerts show a severe `ts-cancel-service` latency spike (p50 81.78ms -> 2740.39ms; p90 240.83ms -> 7433.33ms) and elevated latency in `ts-gateway-service`, `ts-inside-payment-service`, and `ts-ui-dashboard`. `ts-order-service` shows direct RESOURCE_SATURATION evidence: CPU CFS throttling (`cpu_cfs`: 0.306s). `ts-cancel-service` depends on `ts-order-service`, and no error logs were found for `ts-cancel-service`, supporting inherited latency rather than an explicit application error. All pods were Running, so this is not a pod availability or scheduling failure.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 2, \"fault_object\": \"app/ts-cancel-service\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-inside-payment-service\", \"root_cause\": \"pod_cpu_overload\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 20
+}

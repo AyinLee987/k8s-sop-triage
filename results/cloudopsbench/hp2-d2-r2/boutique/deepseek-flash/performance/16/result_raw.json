@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Active alerts show severe latency degradation originating at emailservice: emailservice p90 4.80ms -> 895.90ms (+18581.6%). checkoutservice p50 17.36ms -> 516.72ms and p90 28.40ms -> 948.48ms, while frontend p90 40.77ms -> 574.70ms, consistent with propagated caller latency. Dependency topology shows emailservice is a leaf service called only by checkoutservice, with no downstream service to blame. All boutique pods are Running with 0 restarts, and emailservice has no application error logs. This supports a pod-scoped network delay on emailservice as the primary root cause; application-code artificial delay and worker-02 node network delay remain alternatives.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/emailservice\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"app/emailservice\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 19
+}

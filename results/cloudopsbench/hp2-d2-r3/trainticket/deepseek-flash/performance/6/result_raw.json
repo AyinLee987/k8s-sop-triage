@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"During 15:44:25–15:46:15, ts-order-service had p50 latency 3881.58ms (normal 9.44ms) and p90 17600ms; ts-seat-service (3906ms p50) and ts-security-service (3750ms p50) both call ts-order-service and show matching latency. Upstream ts-travel-service (~11s), ts-preserve-service (30s p50), and ts-gateway-service (39s p90) show progressively amplified inherited latency. ts-order-service logs show normal, millisecond-fast processing and no application errors; previous-container logs were unavailable. Other pods on worker-01 do not show LATENCY_DEGRADATION, favoring pod-scoped rather than node-wide network delay.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"pod_cpu_overload\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 19
+}

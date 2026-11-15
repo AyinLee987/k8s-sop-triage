@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"checkoutservice-8445f8b6cb-58chn is Pending with no scheduling events; it has no node selector/affinity issue, the workers are Ready with free capacity, and no ResourceQuota exists. kube-scheduler.service on master is inactive (dead), so the pod was never scheduled. Frontend logs show POST /cart/checkout returning 500 with connection refused to checkoutservice ClusterIP 10.68.129.244:5050, consistent with checkoutservice having no available endpoint.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/master\", \"root_cause\": \"kube_scheduler_unavailable\"}, {\"rank\": 2, \"fault_object\": \"node/master\", \"root_cause\": \"kubelet_unavailable\"}, {\"rank\": 3, \"fault_object\": \"namespace/boutique\", \"root_cause\": \"namespace_pod_quota_exceeded\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 19
+}

@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show simultaneous latency degradation: emailservice p90 4.80ms→895.90ms (+18581.6%), checkoutservice p90 28.40ms→948.48ms (+3239.7%), and frontend p90 40.77ms→574.70ms (+1309.8%). The cascade localizes the fault to emailservice, the deepest downstream dependency. All boutique pods are Running/Ready with 0 restarts; worker nodes are Ready without MemoryPressure, DiskPressure, or PIDPressure. emailservice logs show normal request receipt with INFO severity and no errors, supporting a latency-specific pod fault rather than application crash or downstream DB failure.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/emailservice\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"app/emailservice\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 19
+}

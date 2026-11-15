@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Only alert is service-level latency degradation on checkoutservice: p50 18.66ms -> 3750ms (+19995%), p90 64.03ms -> 4750ms, window 16:41:47-16:44:22. No error logs for checkoutservice; traces on all downstream deps (payment/email) succeed. Reading checkoutservice main.go reveals a hard-coded `time.Sleep(time.Millisecond * 3000)` at the top of PlaceOrder, directly accounting for the ~3s added latency. The pod checkoutservice-57d5fbd5f5-c9s88 (created 16:41:52, 2m31s old vs siblings at 5m42s) runs the custom image wangyl2128/checkoutservice-v2:latest, confirming the modified code is deployed. Pod is Running/Ready, RESTARTS 0, no crash/OOM/eviction; all other boutique pods Running.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 2, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 14
+}

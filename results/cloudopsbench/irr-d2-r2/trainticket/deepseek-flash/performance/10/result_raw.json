@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show severe latency degradation centered on ts-route-service (p50 8026ms vs 7.55ms baseline; p90 21000ms vs 9.6ms), with cascading throughput drops in upstream services such as ts-basic-service, ts-travel-service, ts-preserve-service, and ts-gateway-service. All nodes are Ready, all pods are Running with IPs, and connectivity to ts-route-service:11178 succeeds from worker-01/02/03. ts-route-service is a leaf service with no downstream calls, and it has no error logs, ruling out dependency, DNS, service-port, crash, and obvious database failure causes. The fault is therefore most consistent with an application-level artificial delay inside ts-route-service.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-route-service\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-route-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-03\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 20
+}

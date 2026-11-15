@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Pods and Services are structurally healthy, nodes are Ready with no alerts. Frontend error logs (176 of 180 errors) show 'connection refused' dialing 10.68.1.75:3550, the productcatalogservice ClusterIP. productcatalogservice YAML declares containerPort 3550, PORT=3550, and gRPC readiness/liveness probes on 3550, yet its Service maps port 3550 to targetPort 8081. Since the pods report 1/1 Ready on port 3550, the Service is forwarding traffic to a port with no listener, producing connection refused and the availability disruption.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"service_port_mapping_mismatch\"}, {\"rank\": 2, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"service_selector_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"service_protocol_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 8
+}

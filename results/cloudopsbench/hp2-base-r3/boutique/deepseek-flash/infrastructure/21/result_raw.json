@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"`checkoutservice-8445f8b6cb-58chn` is Pending with no node, IP, or scheduling events; `checkoutservice` Deployment is 0/1 available, and its Service has no endpoints. All worker nodes are Ready with ample allocatable CPU and memory, while `master` is cordoned. Critically, the `kube-scheduler` service on `master` is inactive (dead): it shut down at 21:17:00 with exit status 0/SUCCESS and remained stopped. Frontend logs show checkout failures with `dial tcp 10.68.129.244:5050: connect: connection refused`, and an active connectivity check to checkoutservice:5050 also failed. This jointly confirms scheduler unavailability caused the checkoutservice pod to remain unscheduled, producing partial service unreachability.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/master\", \"root_cause\": \"kube_scheduler_unavailable\"}, {\"rank\": 2, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"node_cordon_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"service_selector_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 18
+}

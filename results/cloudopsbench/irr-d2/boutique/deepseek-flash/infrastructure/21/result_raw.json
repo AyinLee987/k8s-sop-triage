@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"The master node's kube-scheduler service is inactive (dead) since the incident window. A checkoutservice pod remains Pending with no scheduler events, while all worker nodes are Ready with ample resources and other application pods are running normally. This is consistent with a kube-scheduler outage causing new pods to be unschedulable.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/master\", \"root_cause\": \"kube_scheduler_unavailable\"}, {\"rank\": 2, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"deployment_zero_replicas\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"kubelet_unavailable\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 8
+}

@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"checkoutservice Deployment is 0/1 available (0 updated, 1 unavailable) with ReplicaFailure=True/FailedCreate. ReplicaSet checkoutservice-7545f6f597 events repeat: 'pods ... is forbidden: exceeded quota: cpu-request-quota, requested: requests.cpu=2, used: requests.cpu=10, limited: requests.cpu=10'. ResourceQuota cpu-request-quota in namespace boutique shows requests.cpu: 10/10 (saturated). The checkoutservice pod template requests cpu: 2, so admission is denied and no checkoutservice pod can be created. All other boutique services (adservice, cartservice, currencyservice, emailservice, frontend, paymentservice, productcatalogservice, recommendationservice, redis-cart, shippingservice) each have 1/1 pods Running, indicating the fault is isolated to admission of checkoutservice via the namespace CPU quota.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"namespace/boutique\", \"root_cause\": \"namespace_cpu_quota_exceeded\"}, {\"rank\": 2, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 3, \"fault_object\": \"namespace/boutique\", \"root_cause\": \"namespace_pod_quota_exceeded\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 13
+}

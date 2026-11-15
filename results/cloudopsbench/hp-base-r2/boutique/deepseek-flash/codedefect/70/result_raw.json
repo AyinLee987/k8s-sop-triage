@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"The only unhealthy workload in namespace boutique is productcatalogservice (pod productcatalogservice-8458b87d48-7r7l6, 1/2, CrashLoopBackOff, 4 restarts); all other services are 2/2 Running. The server container repeatedly terminated with Reason: OOMKilled, Exit Code 137, under a 128Mi memory limit, immediately after logging 'loading catalog from local products.json file...'. Source code catalog_loader.go in loadCatalogFromLocalFile contains an injected allocation loop appending 1024*1024*8 (8,388,608) ints (~64MB on 64-bit) into a slice, which together with base process memory and parsed catalog exceeds the 128Mi limit, causing OOMKill. This is an application code memory leak/retention issue.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"code_memory_leak\"}, {\"rank\": 2, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"container_memory_limit_too_low\"}, {\"rank\": 3, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"code_busy_loop\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 10
+}

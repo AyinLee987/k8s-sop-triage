@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"checkoutservice pod checkoutservice-8445f8b6cb-58chn is Pending with Node: <none> and zero scheduling Events, while all other boutique pods are Running. kube-scheduler on node master is 'inactive (dead)' since 21:17:00 (immediately before the pod's 82s age), exiting normally after being stopped (Deactivated successfully) — so no new pods can be bound to nodes. Ruled out: no ResourceQuota exists in boutique, all worker nodes Ready with MemoryPressure/DiskPressure/PIDPressure False, no taints on workers, ample allocatable CPU (8) and memory (~15Gi), deployment checkoutservice has 1 desired replica (not zero-replicas). Hence the Pending checkoutservice pod is the only workload impacted by the absent scheduler, giving partial service unreachability.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/master\", \"root_cause\": \"kube_scheduler_unavailable\"}, {\"rank\": 2, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"node_cordon_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"node_affinity_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 16
+}

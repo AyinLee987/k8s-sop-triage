@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show frontend CPU saturation: CFS throttling 1.204s, CPU 0.01->0.13 cores (+1506%), p50 latency 24.73ms->2235ms (+8939%), p90 4364ms, with 503 Service Unavailable on GET / and /product/{id}. Frontend pod frontend-7bd85c875b-cdkx4 (worker-01) is only 2m26s old using custom image wangyl2128/frontend-v2:latest, indicating a recent rollout. Source code handlers.go chooseAd() contains a busy-wait loop spinning until 800ms elapse on every home/product request, burning CPU in a tight loop. Frontend error logs are dominated by adservice calls timing out (DeadlineExceeded) but adservice has no error logs, consistent with frontend CPU starvation rather than adservice fault. The busy loop explains the CPU saturation, CFS throttling, and latency/503 degradation.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 2, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 3, \"fault_object\": \"app/frontend\", \"root_cause\": \"pod_cpu_overload\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 20
+}

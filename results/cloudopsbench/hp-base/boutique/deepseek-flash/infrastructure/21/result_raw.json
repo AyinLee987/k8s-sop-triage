@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"checkoutservice pod checkoutservice-8445f8b6cb-58chn is Pending with no node assigned and no events; deployment checkoutservice shows 0/1 available (MinimumReplicasUnavailable). All other boutique services are Running. Cluster has ample CPU/memory on worker-01/02/03 with no MemoryPressure/DiskPressure/PIDPressure, no resource quotas exist in boutique, and the pod template has no nodeSelector, affinity, tolerations, or PVC constraints. The decisive finding is that kube-scheduler.service on node master is inactive (dead) since 21:17:00 (systemd 'Stopped Kubernetes Scheduler'), so new pods cannot be bound to nodes — this makes the newly created checkoutservice replica unschedulable while already-running pods stay up, matching 'Partial Service Unreachability'.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/master\", \"root_cause\": \"kube_scheduler_unavailable\"}, {\"rank\": 2, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"node_affinity_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"cpu_capacity_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 19
+}

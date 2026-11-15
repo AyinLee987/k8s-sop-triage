@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All pods Running and all 4 nodes Ready without pressure exclude node/runtime/scheduling faults. Alerts show simultaneous cluster-wide throughput drop (~40% across many services) with latency degradation peaking on ts-inside-payment-service (p50 22.9ms->7166ms, p90 64ms->20333ms) and ts-cancel-service (p90 21666ms), propagating to gateway (8.6s) and UI dashboard (9.7s). ts-inside-payment-service logs return 'Pay Success' with no exceptions, and ts-cancel request handling is fast in recent logs, indicating the extreme latency originates in the app processing of ts-inside-payment-service rather than a node or infrastructure fault. Its 'order not found' messages are secondary symptoms of the delay/slow downstream ordering calls rather than a hard failure.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-inside-payment-service\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-inside-payment-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-cancel-service\", \"root_cause\": \"code_artificial_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 19
+}

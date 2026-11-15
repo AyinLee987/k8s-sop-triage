@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Active alert: 5 occurrences of HTTP 500 for `POST /api/v1/inside_pay_service/inside_payment` on `ts-inside-payment-service`. Its logs show the 500 is caused by a downstream HTTP 500 from `ts-payment-service` at `/api/v1/paymentservice/payment`. `ts-payment-service` logs repeatedly show `IncorrectResultSizeDataAccessException` caused by `javax.persistence.NonUniqueResultException: query did not return a unique result: 5` at the time of the alert. All relevant service pods are Running with 0 restarts, so the failure is not explained by pod crashes, scheduling, quota, or node availability. A separate alert for 404s on `ts-travel-service` is less severe and not tied to the payment failure. The evidence points to an application-code defect in `ts-payment-service` returning a 500 because a query expected a unique result but received 5 rows.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"code_wrong_return\"}, {\"rank\": 2, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"code_wrong_argument_order\"}, {\"rank\": 3, \"fault_object\": \"app/ts-inside-payment-service\", \"root_cause\": \"code_wrong_return\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 19
+}

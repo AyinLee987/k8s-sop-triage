@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Frontend was the only service with a saturation alert in the incident window: CPU rose from 0.01 to 0.13 cores (+1506.3%) with 1.204s of CFS throttling, while p50 latency rose from 24.73ms to 2235.31ms and p90 from 215.69ms to 4364.88ms. Frontend logs showed 240 errors, dominated by downstream call deadline/context cancellations, and alerts included 503 Service Unavailable responses for home and product-detail requests. All boutique pods were Running/Ready with zero restarts, and nodes were Ready without pressure, making scheduling, node, and pod-availability faults unlikely. adservice logged receiving ad requests with no adservice error logs, so the frontend DeadlineExceeded messages are more consistent with frontend CPU starvation/throttling than with an adservice application failure.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/frontend\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 2, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 3, \"fault_object\": \"app/adservice\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 19
+}

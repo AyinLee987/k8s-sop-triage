@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"productcatalogservice Service (ClusterIP 10.68.1.75) maps port 3550 to targetPort 8081, but the container listens on 3550 (PORT=3550, containerPort=3550; startup log: 'starting grpc server at :3550'). Frontend logs show 176 errors of 'connection refused' dialing 10.68.1.75:3550, and the active TCP connectivity check to productcatalogservice:3550 failed. The productcatalogservice pod is Running 1/1, so this is a Service targetPort mapping fault rather than a container crash.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"service_port_mapping_mismatch\"}, {\"rank\": 2, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"service_selector_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"service_protocol_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 19
+}

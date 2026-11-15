@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Frontend error logs contain 41 DNS lookup failures for `currencyservice` (`lookup currencyservice on 169.254.20.10:53: no such host`), 8 for `checkoutservice`, 21 i/o timeouts to `cartservice` at 10.68.106.186:7070, and adservice deadline-exceeded errors. Active TCP connectivity to `cartservice:7070` failed from a debug pod on `worker-01`, while the same connectivity test succeeded from `worker-02` and `worker-03`. All boutique pods were Running with zero restarts, and nodes were Ready without memory, disk, or PID pressure. These observations localize the disruption to network packet loss on `worker-01`, producing intermittent DNS failures, connection timeouts, and service availability degradation.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_packet_loss\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/frontend\", \"root_cause\": \"service_dns_resolution_failure\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 19
+}

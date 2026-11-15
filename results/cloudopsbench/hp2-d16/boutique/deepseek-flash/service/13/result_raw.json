@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"frontend error logs (180/724 errors, ~24.9%) repeatedly show 'could not retrieve products/products: rpc error: code = Unavailable ... transport: Error while dialing: dial tcp 10.68.1.75:3550: connect: connection refused' against the productcatalogservice ClusterIP. DescribeResource on Service productcatalogservice shows 'Port: grpc 3550/TCP, TargetPort: 8081/TCP, Endpoints: 172.20.1.16:8081'. However GetAppYAML for productcatalogservice shows the container only declares containerPort 3550, env PORT=3550, and readiness/liveness gRPC probes on port 3550 — nothing listens on 8081. The Service therefore forwards traffic to a closed port, causing connection refused. Other boutique pods/deployments are Running and 1/1 available.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"service_port_mapping_mismatch\"}, {\"rank\": 2, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"service_protocol_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"readiness_probe_incorrect_port\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 20
+}

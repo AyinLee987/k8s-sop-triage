@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All train-ticket pods are Running/Ready with zero restarts during the fault window, and all nodes are Ready with no pressure conditions. Alerts show widespread latency/RPS degradation, but the most severe anomaly is on ts-inside-payment-service: p50 latency rose from 22.93ms to 7166.67ms and p90 from 64.29ms to 20333.33ms. Its callers ts-cancel-service and ts-gateway-service/ts-ui-dashboard show propagated latency, while ts-gateway-service has no error logs. This pattern is consistent with pod-scoped network delay on ts-inside-payment-service rather than pod crashes, node pressure, or application error spikes.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-inside-payment-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-cancel-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-inside-payment-service\", \"root_cause\": \"code_artificial_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 19
+}
