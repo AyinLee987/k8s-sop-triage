@@ -21,6 +21,7 @@ param(
     [string]$Noise = '',        # batch/pilot: none | random | comma-separated ids from scenarios/noise.yaml
     [string]$Skills = '',       # batch/pilot: skill dirs relative to the repo, comma-separated; empty = no SOP
     [string]$Source = '',       # batch: handwritten (default) | generated | all
+    [int]$MaxSteps = 0,         # batch/pilot: HolmesGPT step limit; 0 = the scripts' default (25)
     [switch]$Rebuild
 )
 # Not 'Stop': in Windows PowerShell 5.1 any stderr line from a native command (docker progress, a failed
@@ -169,7 +170,7 @@ if ($Rebuild -or $nodeImages -notmatch 'tiktok-k8s-lab\s+v3\s' -or $nodeImages -
 $runArgs = @()
 switch ($Action) {
     'check'    { $runArgs = @('check') }
-    'pilot'    { $runArgs = @('pilot', $Scenario); if ($Noise) { $runArgs += @('--noise', $Noise) }; if ($Skills) { $runArgs += @('--skills', $Skills) } }
+    'pilot'    { $runArgs = @('pilot', $Scenario); if ($Noise) { $runArgs += @('--noise', $Noise) }; if ($Skills) { $runArgs += @('--skills', $Skills) }; if ($MaxSteps -gt 0) { $runArgs += @('--max-steps', "$MaxSteps") } }
     'noise'    { $runArgs = @('noise') }
     'validate' { $runArgs = @('validate'); if ($Scenarios) { $runArgs += ($Scenarios -split ',') } else { $runArgs += $Scenario } }
     'shell'    { $runArgs = @('shell') }
@@ -180,6 +181,7 @@ switch ($Action) {
         if ($Noise) { $runArgs += @('--noise', $Noise) }
         if ($Skills) { $runArgs += @('--skills', $Skills) }
         if ($Source) { $runArgs += @('--source', $Source) }
+        if ($MaxSteps -gt 0) { $runArgs += @('--max-steps', "$MaxSteps") }
     }
 }
 $tty = if ($Action -eq 'shell') { @('-it') } else { @() }

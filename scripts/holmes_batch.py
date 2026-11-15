@@ -60,7 +60,7 @@ def run_one(sc_id: str, out: Path, max_steps: int, noise_ids: list[str], skills:
     proc = subprocess.run([sys.executable, str(REPO / "scripts" / "holmes_pilot.py"), sc_id,
                            "--max-steps", str(max_steps), "--out", str(out), "--noise", ",".join(noise_ids),
                            "--skills", skills],
-                          capture_output=True, text=True, timeout=1500)
+                          capture_output=True, text=True, timeout=2400)
     rec = {"scenario": sc_id, "noise": noise_ids, "exit": proc.returncode, "wall_s": round(time.monotonic() - started),
            "answer_file": str(out.relative_to(REPO))}
     if proc.returncode or not out.exists():

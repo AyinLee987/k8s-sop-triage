@@ -17,7 +17,7 @@ scenarios:
     pattern: 'Service 的 targetPort 配错，后端 Pod 正常但流量到不了（Cloud-OpsBench: service_port_mapping_mismatch）。'
     sources:
     - Cloud-OpsBench Service
-    validated: false
+    validated: true   # 2026-11-15, laptop kind: confirmed, all pods stayed 1/1 Running, reset clean
     validate_note: 确认首页经 API server 代理访问返回 500；productcatalogservice 的 Pod 是 Ready 的；frontend 日志里有访问 productcatalogservice 失败的记录。
   inject:
   - kubectl: ['-n', '{ns}', patch, service, productcatalogservice, --type=json, -p, '[{"op":"replace","path":"/spec/ports/0/targetPort","value":3551}]']
@@ -54,7 +54,7 @@ scenarios:
     pattern: '调用方的下游地址环境变量配错（Cloud-OpsBench: service_env_var_address_mismatch）。shippingservice 本身正常，购物车页的运费估算由 frontend 直接调用也正常，只有 checkoutservice 调不到它。'
     sources:
     - Cloud-OpsBench Service
-    validated: false
+    validated: true   # 2026-11-15, laptop kind: confirmed, all pods stayed 1/1 Running, reset clean
     validate_note: 确认 frontend 日志出现 failed to complete the order；首页和购物车页仍然正常；shippingservice 的 Pod 和 Service 没有任何变化。
   inject:
   - kubectl: ['-n', '{ns}', set, env, deployment/checkoutservice, 'SHIPPING_SERVICE_ADDR=shippingservice:50052']
@@ -89,7 +89,7 @@ scenarios:
     pattern: 'Service 的 selector 配错导致没有后端（Cloud-OpsBench: service_selector_mismatch）。与 B01 症状相同，但根因隔了两层：frontend -> cartservice -> redis-cart。'
     sources:
     - Cloud-OpsBench Service
-    validated: false
+    validated: true   # 2026-11-15, laptop kind: confirmed, all pods stayed 1/1 Running, reset clean
     validate_note: 确认 Service redis-cart 没有就绪端点；首页返回 500；redis-cart 和 cartservice 的 Pod 都是 Running。留意 cartservice 是否因探针失败变成 NotReady（如果是，记到 validate 结果里）。
   inject:
   - kubectl: ['-n', '{ns}', patch, service, redis-cart, --type=merge, -p, '{"spec":{"selector":{"app":"redis-cart-v2"}}}']
@@ -126,7 +126,7 @@ scenarios:
     pattern: '下游 Pod 的网络延迟（Cloud-OpsBench: pod_network_delay）。集群对象上没有痕迹，只能从各服务的耗时对比看出来。'
     sources:
     - Cloud-OpsBench Performance
-    validated: false
+    validated: true   # 2026-11-15, laptop kind: confirmed, all pods stayed 1/1 Running, reset clean
     validate_note: 只能在笔记本的 kind 上验证。确认首页耗时比正常多 0.3 秒以上；所有 Pod 仍是 Ready、没有重启（延迟不能大到让探针超时）。
   inject:
   - kubectl: ['-n', infra-tools, delete, pod, net-injector, --ignore-not-found, --wait=true, --timeout=90s]
@@ -164,7 +164,7 @@ scenarios:
     pattern: '与 B04 症状相同，根因隔了两层：frontend -> cartservice -> redis-cart 的 Pod 网络延迟。'
     sources:
     - Cloud-OpsBench Performance
-    validated: false
+    validated: true   # 2026-11-15, laptop kind: confirmed, all pods stayed 1/1 Running, reset clean
     validate_note: 只能在笔记本的 kind 上验证。确认首页耗时比正常多 0.3 秒以上；redis-cart 和 cartservice 的 Pod 仍是 Ready、没有重启。
   inject:
   - kubectl: ['-n', infra-tools, delete, pod, net-injector, --ignore-not-found, --wait=true, --timeout=90s]

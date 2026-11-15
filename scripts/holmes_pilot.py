@@ -81,7 +81,7 @@ def main() -> int:
                "--max-steps", str(args.max_steps), "--no-interactive", "--no-echo", "--log-costs",
                "--json-output-file", str(json_out)]
         # stdin must be closed: with an open stdin HolmesGPT can wait for input forever
-        res = subprocess.run(cmd, env=env, capture_output=True, text=True, timeout=600, stdin=subprocess.DEVNULL)
+        res = subprocess.run(cmd, env=env, capture_output=True, text=True, timeout=1500, stdin=subprocess.DEVNULL)
         print(res.stdout[-6000:])
         if res.returncode:
             print("stderr:", res.stderr[-3000:])
