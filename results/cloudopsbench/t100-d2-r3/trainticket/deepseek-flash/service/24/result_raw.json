@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"ts-food-service is in CrashLoopBackOff with exit code 1. Application logs show UnknownHostException for `tsdb-mysql-leader: Temporary failure in name resolution`, causing Hikari/JPA startup failure. istio-proxy logs also show DNS timeouts to nameserver `10.255.18.254:53`. The deployment uses `dnsPolicy: None` with a custom nameserver `10.255.18.254`. Cluster connectivity checks show `tsdb-mysql-leader:3306` is reachable from debug pods on worker-01, worker-02, and worker-03, so the database Service itself is healthy and the failure is localized to DNS resolution for ts-food-service.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-food-service\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_packet_loss\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 7
+}

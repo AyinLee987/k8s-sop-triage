@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"ts-preserve-service returned 500s with 'Service Instance cannot be null' because downstream ts-food-service has no available instance. ts-food-service is in CrashLoopBackOff due to application startup failure: MySQL/JDBC initialization fails with UnknownHostException for tsdb-mysql-leader ('Temporary failure in name resolution'). Its istio-proxy logs also show DNS lookup timeouts to 10.255.18.254:53, while the tsdb-mysql-leader Service exists and most other services are available. This points to DNS resolution failure localized to ts-food-service, not a missing database Service.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-food-service\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_packet_loss\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 11
+}

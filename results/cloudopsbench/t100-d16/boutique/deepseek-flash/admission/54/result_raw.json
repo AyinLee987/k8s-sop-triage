@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Namespace boutique has a ResourceQuota service-quota with services used 11/11, exactly at the hard limit. The Service list contains 11 Services but is missing the required shippingservice Service, so its creation/admission is blocked. This directly explains partial service unreachability for shippingservice.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"namespace/boutique\", \"root_cause\": \"namespace_service_quota_exceeded\"}, {\"rank\": 2, \"fault_object\": \"app/shippingservice\", \"root_cause\": \"service_selector_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/shippingservice\", \"root_cause\": \"service_port_mapping_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 5
+}

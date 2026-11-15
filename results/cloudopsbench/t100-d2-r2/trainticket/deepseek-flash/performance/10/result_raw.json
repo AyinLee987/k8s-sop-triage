@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Widespread latency/traffic-drop alerts; ts-route-service (a leaf with no downstream service calls) shows extreme latency (p50 7.55ms->8026ms, p90->21000ms). Its pods are Running/Ready with 0 restarts, TCP connectivity to :11178 succeeds from worker-01/02/03, no application error logs, and all nodes are Ready with no memory/disk/PID pressure. Upstream callers (ts-basic, ts-travel, ts-travel2) and their callers (gateway, ui-dashboard) display propagated latency, while peer pods co-located on worker-03 (auth, food, price) show no latency degradation. This isolates the fault as a pod-scoped network delay on ts-route-service rather than node-wide or application-code issues.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-route-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"node/worker-03\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-route-service\", \"root_cause\": \"code_artificial_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 9
+}

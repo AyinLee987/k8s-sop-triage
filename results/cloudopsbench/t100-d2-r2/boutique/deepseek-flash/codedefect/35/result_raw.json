@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Frontend alerts show CPU saturation (+1506%), CFS throttling (1.204s), and massive latency. handlers.go chooseAd() contains a tight busy-wait loop spinning 800ms on every home/product request, consuming CPU and causing throttling/latency. Node worker-01 CPU is only 6.43%, ruling out node-wide pressure. Downstream context-deadline errors are propagated symptoms.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 2, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 3, \"fault_object\": \"app/frontend\", \"root_cause\": \"pod_cpu_overload\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 9
+}

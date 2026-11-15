@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show checkoutservice p90 latency rising from 28.40ms to 948.48ms, emailservice p90 from 4.80ms to 895.90ms, and frontend p90 from 40.77ms to 574.70ms. Emailservice has no error logs, its dummy server code returns immediately, its pod is Running/Ready with 0 restarts, and its Service port 5000 correctly targets pod port 8080. TCP connectivity to emailservice:5000 succeeds. This isolates the fault to abnormal delay at the emailservice pod/network layer rather than application code, service mapping, or node-wide failure.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/emailservice\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"app/emailservice\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 3, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 14
+}

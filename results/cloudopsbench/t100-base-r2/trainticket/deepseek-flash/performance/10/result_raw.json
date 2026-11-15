@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Widespread latency/throughput degradation concentrated in the search/booking chain, with all nodes Ready, all pods Running with 0 restarts, no application error logs, and no CPU/memory saturation alerts. ts-route-service is a leaf service (no HTTP downstream; only queries tsdb-mysql) whose own latency is catastrophically degraded (p50 7.55ms->8026ms, p90->21s), and its per-thread logs show multi-second blocking per request. Its slowness propagates: ts-basic-service (calls route) p50 ~19s, ts-travel/ts-preserve/ts-gateway/ts-ui-dashboard all degraded, while other worker-03 pods (price, auth) remain non-latency services, ruling out node/network-wide faults. The mismatch where route's own metric (~8s) is far below basic's (~19s) fits a pod-level network delay on route that inflates its DB round-trip and adds RTT on the basic->route path, rather than a fixed in-code sleep.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-route-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-route-service\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-route-service\", \"root_cause\": \"db_connection_exhaustion\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 14
+}

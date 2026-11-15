@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show severe latency and throughput degradation across gateway, ts-basic, ts-travel, ts-preserve, and most sharply ts-route-service (p50 ~8.0s, p90 ~21s). Dependency topology shows ts-route-service is the common downstream leaf called by the affected services, while its pod is Running/Ready, TCP connectivity succeeds from all workers, and no error logs are present. This localizes the primary fault to ts-route-service rather than node-wide failure or a downstream dependency.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-route-service\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-route-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-03\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 14
+}

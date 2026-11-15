@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Only checkoutservice is unhealthy: its pod is Pending. The ReplicaSet event shows `FailedCreate`: pods are forbidden because ServiceAccount `boutique/checkoutservice` is missing. Other boutique pods are Running, and worker nodes are Ready with available capacity, so the fault is localized to the checkoutservice application unit and its missing ServiceAccount.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"missing_service_account\"}, {\"rank\": 2, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"taint_toleration_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"node_affinity_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 6
+}

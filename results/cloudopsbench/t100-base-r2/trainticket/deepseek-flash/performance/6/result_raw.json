@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show widespread latency and throughput degradation across 22 services. The most severe latency is on ts-gateway-service (p90 ~39s), ts-preserve-service (p50 ~30s), ts-order-service (p50 ~3.9s, p90 ~17.6s), ts-seat-service, ts-security-service, ts-travel-service, and ts-ui-dashboard. All pods are Running, all nodes are Ready with no pressure, and TCP connectivity to ts-order-service:12031 succeeds from worker-01/02/03. Recent application logs for order, travel, seat, security, and preserve show normal fast internal processing and no relevant errors. The affected services correlate with pods hosted on worker-01 and their upstream callers, indicating a node-level network delay rather than application crash, DNS failure, or scheduling fault.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_packet_loss\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 15
+}

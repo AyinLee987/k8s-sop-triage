@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alert: ts-inside-payment-service returns HTTP 500 'Service Instance cannot be null' because downstream ts-payment-service deployment is 0/1 available (pod CrashLoopBackOff, exit code 1). Payment pod logs show MySQL ConnectivityException caused by java.net.UnknownHostException: tsdb-mysql-leader. Yet Service tsdb-mysql-leader exists (10.68.188.173:3306) and TCP connectivity to it succeeded from worker-01/02/03. The fault is localized: ts-payment-service deployment uses dnsPolicy: None with nameserver 10.255.17.254, and its istio-proxy also shows DNS timeouts to that nameserver, while a healthy peer pod (ts-cancel-service) on the same node uses default cluster DNS. Hence pod-specific DNS resolution failure.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 2, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 12
+}

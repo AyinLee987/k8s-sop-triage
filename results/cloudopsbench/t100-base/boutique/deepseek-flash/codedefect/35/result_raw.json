@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Frontend shows severe anomalies: CPU CFS throttling (1.204s), CPU usage normal 0.01 -> current 0.13 cores (+1506%), p50 latency 24.73ms -> 2235ms, p90 215ms -> 4364ms, and 503 errors. All 11 pods Running/Healthy, so not infra/scheduling. frontend handlers.go chooseAd() contains a busy-wait spin loop `for { if time.Now().Sub(start) > 800*time.Millisecond { break } }` executed on every home and product request, burning CPU for 800ms per request. This directly causes the CPU saturation, CFS throttling, and multi-second latencies, and cascades into downstream RPC context cancellations and 503 responses.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 2, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 3, \"fault_object\": \"app/frontend\", \"root_cause\": \"pod_cpu_overload\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 7
+}

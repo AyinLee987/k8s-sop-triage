@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"ts-seat-service shows the primary anomaly: p50 latency rose to 3409 ms and p90 to 4727 ms, with inbound/outbound packet-rate surge (~+90-99%) and throughput drop (~-69%). Its pod is Running/Ready with no restart, error logs show no application exception, and downstream ts-order-service logs show successful request handling. Node health is normal with no pressure, and ts-seat-service itself has no CPU-saturation alert. This matches the team note for pod-scoped network delay rather than application failure or node-wide resource pressure.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-seat-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 3, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 12
+}

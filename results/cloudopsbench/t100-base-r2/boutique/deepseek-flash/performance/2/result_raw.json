@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show cartservice as the originating anomaly: p95 latency rose from 10.77ms to 83.83ms (+678.2%), CPU usage rose from 0.02 to 0.16 cores (+544.6%), and CPU CFS throttling reached 0.811s. The cartservice pod is Running/Ready on worker-01, the node is Ready with 8 CPUs and no pressure/taints, and the deployment has a 200m CPU limit. Checkoutservice/frontend latency increases appear propagated from cartservice rather than primary. Inspected cartservice business/store/startup code showed no busy loop or artificial delay, favoring pod-level CPU overload.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/cartservice\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 2, \"fault_object\": \"app/cartservice\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 3, \"fault_object\": \"app/cartservice\", \"root_cause\": \"code_artificial_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 13
+}

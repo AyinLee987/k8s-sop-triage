@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"ts-station-service has 0/1 available replicas and its pod is in CrashLoopBackOff. Its application logs show `java.net.UnknownHostException: tsdb-mysql-leader: Temporary failure in name resolution`, causing Hikari/JPA startup failure. The `tsdb-mysql-leader` Service exists, its Secret-configured host/port are correct, and active connectivity to `tsdb-mysql-leader:3306` succeeds from worker-01, worker-02, and worker-03. The station-service outage propagates as `Service Instance cannot be null` in ts-basic-service and cascading 500s through ts-travel-service and ts-preserve-service.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-station-service\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 2, \"fault_object\": \"app/ts-station-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 17
+}

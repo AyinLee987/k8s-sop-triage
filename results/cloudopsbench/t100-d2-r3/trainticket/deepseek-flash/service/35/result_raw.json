@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"`ts-train-service` is in CrashLoopBackOff with app container exits and `UnknownHostException: tsdb-mysql-leader: Temporary failure in name resolution`, plus Istiod DNS timeouts. The `tsdb-mysql-leader` Service exists and its port is reachable from all nodes, so the backend is available. The deployment uses `dnsPolicy: None` with a custom nameserver, pointing to DNS resolution failure within the affected app.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-train-service\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_packet_loss\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 8
+}

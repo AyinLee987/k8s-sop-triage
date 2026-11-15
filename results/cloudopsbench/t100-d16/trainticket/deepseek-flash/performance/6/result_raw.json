@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Widespread latency/throughput degradation with healthy Running/Ready pods and no node pressure. The strongest latency hotspot is ts-order-service: p50 rose from 9.44ms to 3881.58ms and p90 from 43.56ms to 17600ms. Order-service internal logs show requests and DB operations completing in milliseconds with no error logs, indicating application processing is healthy. Upstream callers such as ts-preserve-service, ts-seat-service, ts-security-service, ts-gateway-service, and ts-ui-dashboard show propagated latency consistent with waiting on order-service. Connectivity to ts-order-service:12031 succeeds from all worker nodes, ruling out port/DNS/unreachability. The delay appears localized to the ts-order-service pod rather than all worker-01 pods, supporting pod_network_delay.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"code_artificial_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 17
+}

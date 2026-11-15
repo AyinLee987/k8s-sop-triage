@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"`ts-train-service` shows extreme service-local latency degradation (p50 7.38ms -> 2425ms, p90 9.48ms -> 4472ms) while its pod is Running with zero restarts, nodes are Ready without pressure, and TCP connectivity to port 14567 succeeds from worker-01/02/03. It is a leaf service with no downstream service calls, and no error logs or CPU saturation explain the delay. The upstream/caller `ts-basic-service` also shows derived latency but no errors, consistent with the delay originating in `ts-train-service` request handling.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-train-service\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-train-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 13
+}

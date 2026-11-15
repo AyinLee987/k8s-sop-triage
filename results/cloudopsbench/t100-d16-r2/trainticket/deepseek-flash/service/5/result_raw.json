@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"POST /api/v1/preserveservice/preserve returns HTTP 404 (20 occurrences) even though ts-preserve-service pods are Running and registered to Nacos, its Service selector (app: ts-preserve-service) and port mapping (14568->14568) are correct, and no application errors appear in preserve or gateway logs. Inspecting ts-gateway-service's ConfigMap shows the `preserve` route URI is set to `lb://${FOOD_SERVICE_HOST:ts-food-service}` instead of ts-preserve-service, so preserve-path requests are misrouted to the food service and return 404. This is a gateway route misconfiguration, not a backend failure.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-gateway-service\", \"root_cause\": \"gateway_misrouted\"}, {\"rank\": 2, \"fault_object\": \"app/ts-preserve-service\", \"root_cause\": \"service_selector_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/ts-preserve-service\", \"root_cause\": \"service_dns_resolution_failure\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 10
+}

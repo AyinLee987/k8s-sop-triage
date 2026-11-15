@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All pods are Running. The actionable server-side failure is a 500 in ts-inside-payment-service while calling ts-payment-service. ts-payment-service logs show IncorrectResultSizeDataAccessException / NonUniqueResultException: query did not return a unique result: 5 on /api/v1/paymentservice/payment, indicating a payment query is missing a required filter/parameter and returning multiple records. The ts-travel-service 404 alert is not supported by its recent logs, which show normal successful ticket-search processing.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"code_missing_parameter\"}, {\"rank\": 2, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"code_wrong_argument_order\"}, {\"rank\": 3, \"fault_object\": \"app/ts-inside-payment-service\", \"root_cause\": \"code_missing_parameter\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 8
+}

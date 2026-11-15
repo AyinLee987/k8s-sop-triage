@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Frontend shows CPU saturation (+1506%), CFS throttling (1.204s), and latency degradation (p50 24.73ms -> 2235ms) with 503s, while all pods are Running and adservice responds normally. The frontend handlers.go chooseAd function contains a deliberate CPU-intensive busy-wait loop (`for { if time.Now().Sub(start) > 800*time.Millisecond { break } }`) executed on every page request, directly causing CPU burn and added latency.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 2, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 3, \"fault_object\": \"app/frontend\", \"root_cause\": \"pod_cpu_overload\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 8
+}

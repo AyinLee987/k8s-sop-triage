@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show direct CPU CFS throttling on ts-order-service (0.306s), while ts-cancel-service, ts-gateway-service, ts-inside-payment-service, and ts-ui-dashboard show propagated latency degradation. The ts-order-service deployment has a 500m CPU limit and only one replica. Error logs are absent, and recent logs show normal request processing under heavy order/ticket query volume, supporting CPU saturation rather than crashes, probe failures, or configuration errors.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 2, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 3, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"cpu_capacity_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 6
+}

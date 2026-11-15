@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All application pods are Running, including ts-preserve-service. Its Service selector and port 14568 are correct. The active alert reports repeated HTTP 404 on POST /api/v1/preserveservice/preserve. Inspecting ts-gateway-service configuration shows the route `preserve` for Path=/api/v1/preserveservice/** has uri `lb://${FOOD_SERVICE_HOST:ts-food-service}`, so preserve requests are sent to ts-food-service instead of ts-preserve-service. This directly causes the path-specific 404 while backend pods remain healthy.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-gateway-service\", \"root_cause\": \"gateway_misrouted\"}, {\"rank\": 2, \"fault_object\": \"app/ts-food-service\", \"root_cause\": \"gateway_misrouted\"}, {\"rank\": 3, \"fault_object\": \"app/ts-preserve-service\", \"root_cause\": \"service_port_mapping_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 9
+}

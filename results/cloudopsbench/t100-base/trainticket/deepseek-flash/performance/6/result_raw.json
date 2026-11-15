@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Widespread ~50% throughput drops and multi-second latency across gateway, order, seat, security, preserve, travel and ui-dashboard. The latency chain converges on ts-order-service: seat/security/preserve/travel call it directly or transitively. Order-service internal handler logs complete in milliseconds and it returns no application errors; TCP connectivity to order-service:12031 succeeds from all nodes; tsdb-mysql shows no errors. Other pods on worker-01 (cancel, train) show only traffic drops, not latency, excluding node-level network impairment. The fixed ~3.9s additive delay with fast app execution indicates a pod-level network delay on ts-order-service.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"code_artificial_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 20
+}

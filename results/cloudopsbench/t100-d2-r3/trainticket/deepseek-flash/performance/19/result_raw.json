@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show extreme latency degradation centered on ts-cancel-service (p50 81.78ms -> 2740.39ms; p90 240.83ms -> 7433.33ms), with propagated gateway/UI latency. ts-cancel-service pod is Running/Ready with 0 restarts and no error logs. Recent logs show normal internal cancel operations completing in tens of milliseconds, so the large external service latency is not explained by application processing, supporting pod-scoped network delay. ts-order-service shows CFS CPU throttling and is downstream of ts-cancel-service, making it a plausible alternative contributor.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-cancel-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 3, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 7
+}

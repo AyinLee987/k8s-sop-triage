@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alert showed checkoutservice latency degradation (p50 18.66ms -> 3750ms, p90 64ms -> 4750ms) with no error logs and successful downstream payment/email completions. Source code of checkoutservice/main.go reveals `time.Sleep(time.Millisecond * 3000)` injected at the beginning of PlaceOrder, matching the observed ~3.75s latency. Downstream calls succeed quickly, confirming the delay is application-side rather than a dependency or infrastructure fault.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 2, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 3, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 8
+}

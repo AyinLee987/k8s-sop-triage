@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"ts-station-service pod is in CrashLoopBackOff. Application logs show java.net.UnknownHostException: tsdb-mysql-leader: Temporary failure in name resolution, causing Hibernate initialization failure. The Service tsdb-mysql-leader exists, and other services (e.g., ts-train-service) using the same host are running. The ts-station-service deployment uniquely has dnsPolicy: None with nameserver 10.255.13.254, which times out on DNS queries, confirming a service-specific DNS resolution failure.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-station-service\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 2, \"fault_object\": \"app/ts-station-service\", \"root_cause\": \"service_env_var_address_mismatch\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 11
+}

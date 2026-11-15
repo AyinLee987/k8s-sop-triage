@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"ts-inside-payment-service has severe latency degradation (p50 7.17s, p90 20.33s) and its callers ts-cancel-service/gateway inherit the delay. Pods are Running with zero restarts, the service is reachable on port 18673, and application logs show payment operations completing quickly without application errors. Other services on worker-03 do not show the same latency pattern, supporting a pod-scoped network delay rather than a node-wide or application-code fault.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-inside-payment-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-inside-payment-service\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-03\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 17
+}

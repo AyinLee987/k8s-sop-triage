@@ -48,6 +48,8 @@ def main() -> int:
     ap.add_argument("--dose", type=int, default=0, help="use the first K notes; 0 = agent unchanged")
     ap.add_argument("--tt-source", default="", help="checkout of FudanSELab/train-ticket: adds source-code tools for TrainTicket cases")
     ap.add_argument("--order-seed", type=int, default=0, help="shuffle the accumulation order of the notes with this seed (0 = file order)")
+    ap.add_argument("--max-tokens", type=int, default=0, help="output token limit per model call (0 = the agent's default, 4096); reasoning tokens count against it")
+    ap.add_argument("--llm-timeout", type=int, default=0, help="seconds per model call (0 = the agent's default, 60)")
     ap.add_argument("--system-prompt", default="", help="file that replaces the agent's harness/system_prompt.md")
     ap.add_argument("--communities", default="", help="JSON file grouping the notes into communities (two-level catalog)")
     ap.add_argument("--case-timeout", type=int, default=420)
@@ -104,6 +106,10 @@ def main() -> int:
             cfg = yaml.safe_load(cfg_path.read_text(encoding="utf-8"))
             cfg["model"].update(model=model, api_base=env.get("LLM_BASE_URL", "https://api.deepseek.com").rstrip("/") + "/v1",
                                 api_key=env["LLM_API_KEY"])
+            if args.max_tokens:
+                cfg["model"]["max_tokens"] = args.max_tokens
+            if args.llm_timeout:
+                cfg["model"]["timeout"] = args.llm_timeout
             cfg["diagnosis"].update(system=c["system"], fault_category=c["category"], case_name=c["case"],
                                     dataset_root=str(dataset), save_root=str(out), max_iterations=args.max_iterations)
             cfg_path.write_text(yaml.safe_dump(cfg), encoding="utf-8")

@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show frontend CPU rising from 0.01 to 0.13 cores, CPU CFS throttling, and p50 latency rising from 24.73ms to 2235.31ms. The frontend deployment has a 200m CPU limit, and frontend `handlers.go` contains an unconditional busy loop in `chooseAd` that spins for up to 800ms before returning. Downstream RPC deadline/canceled errors are consistent with frontend request latency and CPU saturation rather than being the primary fault.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 2, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 3, \"fault_object\": \"app/frontend\", \"root_cause\": \"pod_cpu_overload\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 6
+}

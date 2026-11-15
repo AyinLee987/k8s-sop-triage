@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Widespread latency and throughput drops occur across the gateway/UI and booking chain, but pods are Running/Ready with no significant restarts. Dependency mapping shows ts-order-service is a deepest leaf with no confirmed downstream calls; its p50 latency rose to ~9.8s, while recent logs show successful sub-second order processing. This pattern is consistent with pod-scoped network delay on ts-order-service, causing propagated latency in ts-seat-service, ts-travel-service, ts-preserve-service, security, gateway, and UI.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-seat-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-03\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 18
+}

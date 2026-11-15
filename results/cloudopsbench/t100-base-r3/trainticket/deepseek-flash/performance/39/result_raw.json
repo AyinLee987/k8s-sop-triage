@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show severe latency centered on ts-order-service (p50 ~9.8s), with progressively worse latency in its callers: ts-seat-service, ts-travel-service, ts-preserve-service, and ts-gateway-service. Dependency checks show order-service is a shared downstream of seat/security, explaining cascade. All pods are Running, nodes are Ready, and there are no application error logs. ts-order-service logs show fast internal processing and no confirmed downstream calls, while TCP connectivity is open, isolating the fault to network delay at the order-service pod rather than code, DB, resources, or node outage.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"node/worker-03\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"code_artificial_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 18
+}

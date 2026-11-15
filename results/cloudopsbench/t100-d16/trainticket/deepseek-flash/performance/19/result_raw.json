@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"ts-cancel-service exhibits by far the worst latency degradation (p50 81ms->2740ms, +3250%; p90 240ms->7433ms) while every pod is Running/Ready with zero restarts and ts-cancel has no error logs. Its own processing logs complete within tens of milliseconds per request, so the multi-second service latency is network-transit delay rather than app-code or downstream processing. Downstream services called by cancel (order, inside-payment, user) respond quickly in cancel's logs, and cluster nodes are all Ready with no pressure or taints. This matches the pod-scoped network delay pattern: isolated latency inflation on one pod with healthy pods/peers and no error surge. Caller latency in gateway/ui/inside-payment is derived. Alternative hypotheses: node-wide network delay on worker-02 (several worker-02 services anomalous) or order-service CPU overload reflected by CFS throttling.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-cancel-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"pod_cpu_overload\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 11
+}

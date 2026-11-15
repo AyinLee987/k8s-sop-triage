@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show concentrated latency degradation: ts-cancel-service p90 21.7s, ts-inside-payment-service p50 7s/p90 20s, with propagated frontend latency on ts-gateway-service (8.6s) and ts-ui-dashboard (9.75s), while downstream ts-order-service processes requests in milliseconds and order/payment show no latency alerts. Inside-payment's own logs complete pay/drawback operations in ~20ms, and TCP connectivity to it is open from all nodes; yet its measured latency is 7-20s, indicating network round-trip delay on its pod path rather than application logic. Peer pods on worker-03 (auth, avatar, food, news, order-other) show no latency degradation, ruling out a node-wide network fault and pointing to a pod-scoped network delay on ts-inside-payment-service, with ts-cancel-service (and gateway/ui) as propagation victims.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-inside-payment-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"node/worker-03\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-cancel-service\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 19
+}

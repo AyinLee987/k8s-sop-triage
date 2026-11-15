@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Widespread latency/throughput degradation cascaded from leaf service ts-route-service, which showed the most extreme latency spike (p50 ~8s, p90 ~21s, +200000%). Its logs show normal request handling but requests are processed with multi-second spacing, with no errors. Node health normal (no pressure/taints), pods Running, TCP connectivity to port 11178 succeeds from all workers, deployment resources/probes correct, and no CPU saturation or MySQL error alerts. This isolates the fault to application-level blocking/delay inside ts-route-service.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-route-service\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-route-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-route-service\", \"root_cause\": \"code_busy_loop\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 13
+}

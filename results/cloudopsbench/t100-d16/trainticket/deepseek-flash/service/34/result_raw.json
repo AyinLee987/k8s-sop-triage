@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Cascading 500s propagate preserve-service -> travel-service -> basic-service. ts-basic-service logs 'Service Instance cannot be null' because ts-station-service (its downstream) has 0/1 ready replicas. ts-station-service pod is CrashLoopBackOff; its Java app fails HikariPool init with 'java.net.UnknownHostException: tsdb-mysql-leader: Temporary failure in name resolution', and its istio-proxy concurrently times out DNS lookups to 10.255.13.254:53 for istiod.istio-system.svc. The tsdb-mysql-leader Service exists and is TCP-reachable (10.68.188.173:3306) from debug pods on all three nodes including worker-01. Other istio-injected pods on the same worker-01 (e.g., ts-basic-service) are healthy and resolving dependencies, proving the DNS failure is scoped to the ts-station-service pod rather than the node or DB.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-station-service\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 2, \"fault_object\": \"app/ts-station-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_packet_loss\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 13
+}

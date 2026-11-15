@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show frontend-only CPU saturation with CFS throttling (1.333s throttled, CPU 0.07->0.16 cores) and latency degradation (p95 27.67ms->271.36ms). The frontend pod is Running with 0 restarts; inspected source shows no explicit busy loop or artificial delay. This localizes the fault to the frontend app as excessive Pod CPU load causing latency.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/frontend\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 2, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 3, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_artificial_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 17
+}

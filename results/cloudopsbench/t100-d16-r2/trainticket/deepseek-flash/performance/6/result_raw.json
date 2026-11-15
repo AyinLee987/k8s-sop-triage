@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All pods are Running/Ready with zero restarts and no application errors; ts-order-service logs show fast (ms) internal processing yet it is a top latency outlier. Latency degradation is confined to services that call or sit on the order-service path: gateway, preserve, seat, security, travel, and ui-dashboard (all show p90 latency spikes), whereas services not touching order (station, train, route, price, config, user, auth) show only uniform ~50-60% RPS/throughput drop with no latency rise. Sibling pods on worker-01 (train, cancel, notification, wait-order) remain healthy without latency, ruling out node-wide network delay. This precisely matches a pod-scoped network delay localized to the ts-order-service pod, whose slowness propagates to all its callers and reduces closed-loop system throughput.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-gateway-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 11
+}

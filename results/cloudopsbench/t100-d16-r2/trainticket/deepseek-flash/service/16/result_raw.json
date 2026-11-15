@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"19 of 21 active alerts are 404s for POST /api/v1/travelservice/trips/left. The ts-gateway-service config defines the 'travel' route with Path=/api/v1/travelservice/** but URI lb://${ORDER_SERVICE_HOST:ts-order-service}, so travel requests are routed to order-service instead of ts-travel-service. ts-travel-service pods are 2/2 Running, its Service selector/port mapping is correct, and recent logs show normal request handling rather than backend errors. A smaller separate payment 500 path shows ts-payment-service NonUniqueResultException.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-gateway-service\", \"root_cause\": \"gateway_misrouted\"}, {\"rank\": 2, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"code_wrong_return\"}, {\"rank\": 3, \"fault_object\": \"app/ts-travel-service\", \"root_cause\": \"gateway_misrouted\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 19
+}

@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"`ts-train-service` shows extreme latency (p50 from 7.38ms to 2425ms, p90 to 4472ms) while CPU is not saturated, the pod/node are healthy, TCP port 14567 is reachable from all workers, and the service is a leaf with no downstream calls. `ts-basic-service` has similarly severe latency and directly calls `ts-train-service`, so its degradation is consistent with downstream propagation. Other alerts show traffic/load secondary effects, including CPU CFS throttling on `ts-order-service`.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-train-service\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-train-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"pod_cpu_overload\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 14
+}

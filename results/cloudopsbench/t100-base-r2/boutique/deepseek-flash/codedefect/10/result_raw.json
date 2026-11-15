@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Active alert showed checkoutservice latency degradation with p50 rising from ~18.66ms to 3750ms. Pods were healthy and application logs showed successful downstream payment/email calls without errors. Inspection of checkoutservice main.go revealed an explicit `time.Sleep(time.Millisecond * time.Duration(3000))` in the PlaceOrder workflow, directly accounting for the observed latency increase.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 2, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 8
+}

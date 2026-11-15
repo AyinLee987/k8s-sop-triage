@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All pods are Running/Ready and Service selectors match pod labels. TCP connectivity to ts-preserve-service:14568 succeeds from all workers, and ts-order-service:12031 is also reachable. UI logs show HTTP 200 for normal endpoints but repeated HTTP 499 only for POST /api/v1/preserveservice/preserve. ts-preserve-service logs show requests advancing through Steps 4-7 (order, assurance, food, consign) and then stalling without completion/errors. Downstream ts-order-service, ts-seat-service, and ts-food-service logs show successful processing, so the timeout is localized to ts-preserve-service application behavior rather than service discovery, routing, or downstream availability.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-preserve-service\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-preserve-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-preserve-service\", \"root_cause\": \"code_busy_loop\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 22
+}

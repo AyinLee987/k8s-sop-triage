@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All application pods are Running, so this is not scheduling or crash-loop related. Inspecting the gateway configuration revealed that route id `order`, which matches `/api/v1/orderservice/**`, uses `uri: lb://${ROUTE_SERVICE_HOST:ts-route-service}` instead of targeting `ts-order-service`. This misroutes order-service API traffic to the route service, causing partial service unreachability. A secondary anomaly is that `ts-food-delivery-service` has a running Deployment/Pod but no corresponding Service object, despite a gateway route expecting it.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-gateway-service\", \"root_cause\": \"gateway_misrouted\"}, {\"rank\": 2, \"fault_object\": \"app/ts-food-delivery-service\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 3, \"fault_object\": \"app/ts-gateway-service\", \"root_cause\": \"service_env_var_address_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 12
+}

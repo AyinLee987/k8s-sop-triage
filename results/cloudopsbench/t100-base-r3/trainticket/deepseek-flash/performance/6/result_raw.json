@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Widespread service latency and traffic drops affect the train-ticket namespace. Several severely latency-affected services (ts-order-service, ts-preserve-service, ts-seat-service, ts-travel-service, ts-ui-dashboard) are co-located on worker-01, while callers such as ts-gateway-service on worker-03 show downstream latency. All pods are Running, node conditions are Ready without pressure, application logs show successful/fast internal processing, and TCP connectivity to ts-order-service succeeds from all workers. This pattern supports node-level network delay on worker-01 rather than an application error or pod scheduling failure.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_packet_loss\"}, {\"rank\": 3, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 13
+}

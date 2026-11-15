@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Only alert is for frontend during 2025-12-25 16:19:42–16:21:37: CPU CFS throttling at 1.333s, CPU usage rising from 0.07 to 0.16 cores (+138.1%), and p95 latency degrading from 27.67ms to 271.36ms. The frontend pod is 2/2 Running with 0 restarts on worker-01, and there are no frontend application error logs. Deployment CPU limit is 200m, so CPU throttling directly explains the latency spike. Reviewed frontend source paths did not reveal an obvious injected busy loop, making pod_cpu_overload the best evidence-backed root cause.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/frontend\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 2, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 3, \"fault_object\": \"app/frontend\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 17
+}

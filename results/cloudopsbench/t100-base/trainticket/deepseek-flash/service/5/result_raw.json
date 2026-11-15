@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All pods are Running/Ready except ts-ui-dashboard with minor restarts. GetAlerts shows 20 consecutive '404 Not Found' errors on POST /api/v1/preserveservice/preserve attributed to ts-preserve-service. ts-preserve-service logs show a clean startup and successful Nacos registration on port 14568; its Deployment exposes containerPort 14568 with a matching Service port/selector, and its pod is 2/2 Running. Checking ts-gateway-service YAML directly exposes the misconfiguration: the route `id: preserve` with predicate `Path=/api/v1/preserveservice/**` has `uri: lb://${FOOD_SERVICE_HOST:ts-food-service}`, routing preserve requests to ts-food-service, which has no /preserveservice endpoint and therefore returns 404. This is the root cause of the availability disruption on the preserve/order-creation flow.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-gateway-service\", \"root_cause\": \"gateway_misrouted\"}, {\"rank\": 2, \"fault_object\": \"app/ts-preserve-service\", \"root_cause\": \"service_selector_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/ts-inside-payment-service\", \"root_cause\": \"code_wrong_return\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 9
+}

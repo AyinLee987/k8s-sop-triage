@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"ts-order-service shows the only concrete resource-saturation alert: CPU CFS throttling (0.306s Throttled). All pods are Running/Ready with no crash loops, and cluster nodes show no pressure. Dependency topology shows the most degraded services (ts-cancel-service, ts-inside-payment-service) both call ts-order-service, making it the common downstream bottleneck; ts-gateway-service and ts-ui-dashboard latency are derived upstream effects. Logs show heavy repeated synchronous order/ticket processing with successful operations and no exception surge.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 2, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 3, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 11
+}

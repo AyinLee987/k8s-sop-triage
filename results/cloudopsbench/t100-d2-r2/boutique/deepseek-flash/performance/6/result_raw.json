@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts isolate the incident to frontend: CPU CFS throttling (1.333s throttled), CPU core usage rising from 0.07 to 0.16 cores (+138.1%), and p50/p95 latency degradation. The frontend pod is Running and Ready with 0 restarts, logs show successful requests, and inspected code does not show an obvious injected busy loop. This points to excessive frontend Pod CPU load exceeding its 200m limit, causing throttling and latency.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/frontend\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 2, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 3, \"fault_object\": \"app/frontend\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 13
+}

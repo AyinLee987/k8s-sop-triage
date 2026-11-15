@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"checkoutservice-8445f8b6cb-58chn is Pending with no Events, while all worker nodes are Ready with 8 CPU / ~15Gi allocatable, no taints, and the pod has no nodeSelector/affinity. The master node's kube-scheduler.service is inactive (dead, exited 0 SUCCESS) since 21:17:00, ~110s ago, matching the ~82s-old Pending pod. Without a running scheduler, new pods cannot be placed and emit no FailedScheduling events, leaving checkoutservice without a ready replica and causing partial service unreachability.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/master\", \"root_cause\": \"kube_scheduler_unavailable\"}, {\"rank\": 2, \"fault_object\": \"node/master\", \"root_cause\": \"kubelet_unavailable\"}, {\"rank\": 3, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"node_selector_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 7
+}

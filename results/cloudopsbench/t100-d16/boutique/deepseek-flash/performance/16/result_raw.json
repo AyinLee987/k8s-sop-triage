@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"emailservice showed extreme service-local latency (p90 4.8ms -> 895.9ms) with derived latency in checkoutservice and frontend. Emailservice pods were Running with zero restarts, source inspection found no artificial sleep/delay, connectivity succeeded, and other services co-located on worker-02 did not show latency anomalies. This isolates the fault to emailservice pod networking rather than application code, service configuration, or node-wide networking.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/emailservice\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/emailservice\", \"root_cause\": \"code_artificial_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 12
+}

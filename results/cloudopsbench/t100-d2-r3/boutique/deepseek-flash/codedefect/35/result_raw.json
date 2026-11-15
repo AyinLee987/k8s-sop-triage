@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Frontend shows severe CPU CFS throttling (1.204s), CPU usage spike (+1506%), and extreme latency (p50 24.73ms -> 2235.31ms) while pods remain Running/Ready and worker-01 node CPU is only 6.43%. Source inspection of frontend handlers.go reveals a busy loop in chooseAd() that spins for 800ms on every ad selection call, matching the CPU saturation and latency symptom.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 2, \"fault_object\": \"app/frontend\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 3, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_artificial_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 7
+}

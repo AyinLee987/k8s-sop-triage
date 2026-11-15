@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"ts-route-service exhibits extreme ingress latency (p50 7.55ms->8026ms, p90 9.6ms->21000ms) while being a leaf microservice with no downstream service dependency. Pod is Running/Ready with 0 restarts, logs show normal request processing without application errors, and L4 connectivity to its port succeeds from all worker nodes. Peer pods on the same node worker-03 (ts-auth-service, ts-price-service, ts-inside-payment-service) show only traffic/throughput anomalies, not latency degradation, ruling out node-wide network fault. All upstream callers (ts-basic-service, ts-travel-service, ts-gateway-service, ts-ui-dashboard) show exactly the propagated latency and throughput drop expected when a shared downstream leaf is delayed—matching exp-02's pod_network_delay signature.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-route-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"node/worker-03\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-route-service\", \"root_cause\": \"code_artificial_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 12
+}

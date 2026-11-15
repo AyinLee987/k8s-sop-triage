@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Widespread latency/throughput drops with all pods Running/Ready, zero restarts, nodes Ready without memory/disk/PID pressure, and healthy DB (no tsdb-mysql errors). Following the dependency graph, latency converges on leaf service ts-route-service: p50 7.55ms→8026ms (~1000x, the largest multiplier) while its callers (ts-basic-service, ts-travel-service, ts-preserve-service, ts-gateway-service, ts-ui-dashboard) inherit the delay. ts-route-service has no downstream service calls and produces no error logs. TCP connectivity to ts-route-service:11178 succeeded quickly from worker-01/02/03, indicating the pod network path is reachable/fast (a multi-second netem delay would slow the SYN-ACK). The extreme, error-free, CPU/latency-only slowdown localized to the leaf handler is most consistent with an application-level artificial delay (code_artificial_delay) in ts-route-service.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-route-service\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-route-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-03\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 19
+}

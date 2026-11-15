@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"GetAlerts shows a single Service-level anomaly on frontend: RESOURCE_SATURATION cpu_cfs throttled 1.333s, CPU cores 0.07->0.16 (+138%), and latency degradation (p50 +183.6%, p95 +880.8%). GetResources shows all pods Running/Ready with 0 restarts; frontend on worker-01. GetErrorLogs shows no application errors. Frontend Deployment has CPU limit 200m, consistent with 0.16 near limit causing throttling. Only frontend affected, ruling out node-wide or downstream-wide causes. This points to excessive Pod CPU load on frontend as the direct cause of latency.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/frontend\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 2, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 3, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_artificial_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 14
+}

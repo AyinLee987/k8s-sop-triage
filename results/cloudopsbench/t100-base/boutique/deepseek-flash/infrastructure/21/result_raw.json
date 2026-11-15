@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Only checkoutservice pod is Pending (0/1) with no node assignment and NO scheduling events, while all 4 nodes are Ready with 8 CPU/16GB allocatable and no taints (ruling out capacity/taint/affinity). Direct inspection of master shows kube-scheduler.service is inactive (dead) since 21:17, with logs 'Requested to terminate, exiting' and 'Scheduling queue is closed'. A stopped scheduler explains the absence of FailedScheduling events and the persistent Pending state, causing checkoutservice/frontend unavailability and the 'Partial Service Unreachability' symptom.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/master\", \"root_cause\": \"kube_scheduler_unavailable\"}, {\"rank\": 2, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"deployment_zero_replicas\"}, {\"rank\": 3, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"node_affinity_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 5
+}

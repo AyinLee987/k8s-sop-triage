@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Frontend logs show deterministic connection refused to productcatalogservice at 10.68.1.75:3550. Direct TCP check to productcatalogservice:3550 fails. The Service defines port 3550 -> targetPort 8081, while the Deployment's container listens on 3550 (containerPort 3550, PORT=3550, gRPC probes on 3550). Endpoint exists and pod is Ready, so this is an incorrect Service targetPort mapping.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"service_port_mapping_mismatch\"}, {\"rank\": 2, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"service_protocol_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_wrong_return\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 10
+}

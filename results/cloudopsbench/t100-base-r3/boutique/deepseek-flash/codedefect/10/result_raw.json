@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Only active alert is severe latency on checkoutservice (p50 3750ms vs normal 18.66ms). Checkoutservice logs show orders completing successfully, ruling out downstream failure. Source code for checkoutservice main.go explicitly contains `time.Sleep(time.Millisecond * time.Duration(3000))` in the PlaceOrder handler, introducing a 3-second artificial delay that matches the observed latency degradation.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 2, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 3, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 7
+}

@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show RESOURCE_SATURATION [cpu_cfs] on ts-order-service (0.589s throttled) as the only resource-saturation anomaly. All pods are Running/Ready with 0 restarts and all four nodes are Ready with no CPU/memory/disk/PID pressure, ruling out node-level and scheduling faults. GetServiceDependencies confirms ts-seat-service (called by ts-preserve-service and ts-travel-service) invokes ts-order-service downstream; the latency spikes on ts-seat-service (+1434%), ts-travel-service (+303.9%), and ts-preserve-service (+114.2%) propagate from the throttled order service. ts-order-service logs show heavy processing of very large datasets (queryOrders fetching 6653 orders and filtering, plus getSoldTickets returning thousands of tickets), consistent with excessive CPU consumption on the pod (500m limit). Root cause is CPU overload/saturation on ts-order-service.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 2, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 3, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"code_artificial_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 12
+}

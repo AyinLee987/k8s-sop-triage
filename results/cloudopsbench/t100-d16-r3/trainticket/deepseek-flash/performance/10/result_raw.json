@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Widespread ~50% RPS drops with extreme latency spikes (peaks 20-28s) across the travel-booking chain, yet all pods are Running/Ready with 0 restarts and no error logs. ts-route-service (a leaf in the HTTP graph) has the highest latency multiplier (p50 7.55ms->8026ms, p90->21s+). Its HTTP sibling dependencies station/train/price are NOT latency-degraded, ruling out DB/downstream slowness. route-service logs show fast handler thread turnover (same exec thread reused within ~2.6s) despite ~8s measured latency, indicating the delay is network-layer, not a handler sleep. Affected callers span worker-01/02/03, excluding a single-node fault. This isolates pod-scoped network delay on ts-route-service.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-route-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-route-service\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-03\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 13
+}

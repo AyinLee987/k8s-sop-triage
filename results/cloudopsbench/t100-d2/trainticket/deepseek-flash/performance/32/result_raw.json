@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"ts-train-service shows severe p50/p90 latency degradation (p50 7.38ms -> 2425ms, p90 9.48ms -> 4472ms) while pods are Running/Ready with zero restarts and no CPU saturation. It is a leaf service with no downstream dependencies, its application logs are normal, and TCP connectivity to ts-train-service:14567 succeeds from all workers. The latency is isolated to ts-train-service, while other services on worker-01 are not latency-anomalous, supporting pod-scoped network delay over node-wide network fault or downstream propagation.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-train-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-train-service\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 13
+}

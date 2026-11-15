@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Active alerts show severe latency centered on ts-order-service (p50 ~308ms -> ~9843ms, p90 ~2s -> ~25.8s) with cascading latency in its upstream callers such as ts-preserve-service, ts-seat-service, ts-security-service, ts-travel-service, and ts-gateway-service. All pods are Running/Ready with zero or minimal restarts; nodes are Ready with no CPU/memory/disk pressure. ts-order-service has no error logs, and recent logs show normal fast request processing, making application/database slowness unlikely. This pattern matches pod-scoped network delay, with other services mostly showing throughput drops due to upstream blockage.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"node/worker-03\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-travel-service\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 11
+}

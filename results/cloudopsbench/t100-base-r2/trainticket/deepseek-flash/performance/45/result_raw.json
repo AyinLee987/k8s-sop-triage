@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"ts-train-service p50 latency jumped from ~8ms to exactly ~2500ms (peak ~2970ms) with p90 ~4500ms, while its logs show normal successful request handling with no errors/exceptions, the pod is Running 0 restarts on worker-01, and its Deployment config (CPU/mem requests-limits, readiness probe, env) is normal. The precise round-number ~2500ms plateau plus healthy logs/pod indicate injected application-level artificial delay as the origin; downstream services (ts-basic-service, ts-preserve-service) show propagated latency consistent with being callers, not causes.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-train-service\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-train-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 5
+}

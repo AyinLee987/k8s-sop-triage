@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"flagd-config contains exactly one ENABLED fault flag: fault-22-sql-column-name-mismatch-error, identifying an injected SQL/code defect. Telemetry localizes the primary quality degradation to ts-inside-payment-service: it is the deepest service with extreme own latency (p50 22ms->7166ms, p90 64ms->20333ms) and largest RPS drop (-74%), while its downstream (ts-order-service, ts-payment-service) respond fast (getOrderById successes in ms) and all pods are Running/Ready with 0 restarts. TCP connectivity to the service succeeds from worker-01/02/03, ruling out an outage/service-port issue. ts-inside-payment-service logs show repeated 'Pay Failed, order not found' errors consistent with a SQL query using a mismatched column returning wrong/empty results plus retry-induced latency. Callers (gateway, cancel, ui-dashboard, rebook) exhibit only propagated latency.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-inside-payment-service\", \"root_cause\": \"code_wrong_return\"}, {\"rank\": 2, \"fault_object\": \"app/ts-inside-payment-service\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-inside-payment-service\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 25
+}

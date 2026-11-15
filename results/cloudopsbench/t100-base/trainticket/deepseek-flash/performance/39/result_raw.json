@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All pods Running/Ready (no restarts except ts-ui-dashboard), node conditions healthy, TCP connectivity to ts-order-service:12031 succeeds from all nodes. Alerts show an accumulation latency chain: ts-order-service p50~9.8s -> ts-seat-service ~11.6s -> ts-travel-service ~18.4s -> ts-preserve-service ~45s -> ts-gateway p90 ~46s; services that do not call ts-order only show throughput drops. Server-side logs show fast processing (ms) and small envoy upstream times (e.g., 9ms), so the multi-second caller-observed latency is network transit delay. Only ts-order-service is latency-degraded among worker-03 pods, indicating a pod-scoped network delay rather than node-wide failure.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"node/worker-03\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-seat-service\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 15
+}

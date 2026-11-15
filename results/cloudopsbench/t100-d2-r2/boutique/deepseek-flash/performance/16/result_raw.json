@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show emailservice p90 latency increased from 4.80ms to 895.90ms (+18581.6%), with propagated latency in checkoutservice and frontend. All boutique pods, including emailservice on worker-02, are Running/Ready with zero restarts; emailservice has no application error logs and only normal request INFO logs. Service connectivity to emailservice:5000 succeeds, and configuration is normal. Other services sharing worker-02 are not independently showing the same severe latency, supporting a pod-scoped network delay on emailservice rather than a node-wide or application-exception cause.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/emailservice\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"app/emailservice\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 10
+}

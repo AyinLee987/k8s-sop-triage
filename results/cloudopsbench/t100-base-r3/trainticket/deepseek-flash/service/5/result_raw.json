@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show 20 occurrences of HTTP 404 for POST /api/v1/preserveservice/preserve from ts-preserve-service. The ts-gateway-service ConfigMap contains a misconfigured route: `id: preserve` uses `uri: lb://${FOOD_SERVICE_HOST:ts-food-service}` instead of pointing to `ts-preserve-service`. All application pods are Running, and ts-preserve-service logs show normal startup with no internal errors. Therefore, requests to the preserve endpoint are being routed to ts-food-service, which returns 404 because the endpoint does not exist there.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-gateway-service\", \"root_cause\": \"gateway_misrouted\"}, {\"rank\": 2, \"fault_object\": \"app/ts-gateway-service\", \"root_cause\": \"service_env_var_address_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/ts-preserve-service\", \"root_cause\": \"code_wrong_return\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 13
+}

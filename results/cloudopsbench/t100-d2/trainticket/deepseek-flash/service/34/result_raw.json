@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts report 500s from preserve and inside-payment. Pod status shows only ts-station-service in CrashLoopBackOff with exit code 1. Its error logs show Hibernate/JDBC startup failure caused by java.net.UnknownHostException: tsdb-mysql-leader: Temporary failure in name resolution; istio-proxy logs also show DNS timeouts resolving istiod.istio-system.svc. The tsdb-mysql-leader Service exists, and most other pods are Running, pointing to pod-local DNS resolution failure in ts-station-service rather than a missing Service or node-wide outage.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-station-service\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 2, \"fault_object\": \"app/ts-station-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 8
+}

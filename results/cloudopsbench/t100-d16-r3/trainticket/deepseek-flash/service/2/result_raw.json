@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All application pods are Running, including ts-food-delivery-service. However, the Service list and Endpoints list contain no ts-food-delivery-service entry, and GetResources for that Service reports it is not recorded. Direct TCP connectivity to ts-food-delivery-service:18957 fails, while the deployment exposes containerPort 18957 and has matching pod labels. No ResourceQuota exists, so quota admission is ruled out. The missing Service registration makes the service DNS name unreachable to callers.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-food-delivery-service\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 2, \"fault_object\": \"app/ts-food-delivery-service\", \"root_cause\": \"service_selector_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/ts-food-delivery-service\", \"root_cause\": \"service_port_mapping_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 13
+}

@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"productcatalogservice pod is in CrashLoopBackOff with Last State Terminated Reason=OOMKilled (Exit Code 137) under a 128Mi memory limit. Source code in catalog_loader.go's loadCatalogFromLocalFile contains an anomalous allocation loop appending 8,388,608 ints (~67MB) plus the parsed product catalog, overflowing the container memory limit and repeatedly killing the process. All other pods are Running, so the fault is localized to productcatalogservice.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"code_memory_leak\"}, {\"rank\": 2, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"container_memory_limit_too_low\"}, {\"rank\": 3, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"code_busy_loop\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 6
+}

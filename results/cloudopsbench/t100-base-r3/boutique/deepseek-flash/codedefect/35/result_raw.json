@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Frontend alerts showed severe CPU saturation (+1506.3%), CPU CFS throttling (1.204s), and p50 latency rising from 24.73ms to 2235.31ms alongside 503 responses. Inspection of frontend `handlers.go` revealed an intentional CPU-intensive busy-wait loop in `chooseAd`: after fetching ads it spins for up to 800ms using `for { if time.Now().Sub(start) > 800*time.Millisecond { break } }`. This explains the frontend CPU overload and latency degradation. Adservice logs show it receives requests normally; frontend adservice deadline-exceeded errors are consistent downstream effects of frontend CPU starvation/throttling rather than the primary fault.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 2, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 3, \"fault_object\": \"app/frontend\", \"root_cause\": \"pod_cpu_overload\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 11
+}

@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All pods are Running/Ready, and the 11 existing Services have correct endpoint ports. However, shippingservice has a Running/Ready pod (shippingservice-7ff54bf6b6-hbbzk on worker-01) but is completely absent from both the Services and Endpoints lists. The namespace ResourceQuota 'service-quota' is saturated at its hard cap (services: 11/11). Because the quota allows no additional Service objects, the shippingservice Service creation is rejected at admission, so shippingservice has no virtual IP / endpoints and cannot be reached — producing partial service unreachability. This aligns with the quota-admission note (exp-16).\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"namespace/boutique\", \"root_cause\": \"namespace_service_quota_exceeded\"}, {\"rank\": 2, \"fault_object\": \"app/shippingservice\", \"root_cause\": \"service_selector_mismatch\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_packet_loss\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 8
+}

@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Widespread latency/throughput degradation with all pods Running/Ready (zero restarts) and healthy nodes (no Memory/Disk/PID pressure, all Ready). Latency forms a chain ui-dashboard→gateway→cancel→inside-payment; ts-inside-payment-service shows the most severe latency (p50 7166ms, p90 20333ms) while its downstream (ts-payment-service, order) and unrelated services show only throughput drops, no latency. inside-payment logs show fast internal processing (~20ms pays), indicating the delay is in pod network RTT, not app logic. This matches the pod-scoped network delay runbook (exp-02).\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-inside-payment-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-cancel-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-gateway-service\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 13
+}

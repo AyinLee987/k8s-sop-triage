@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All pods Running/Ready with zero restarts; internal processing in ts-travel-service and ts-seat-service is fast (seat->order ~9ms, travel->seat ~20ms) and no application errors. The severe LATENCY_DEGRADATION + THROUGHPUT_DROP is confined to the north-south booking path funneled through ts-gateway-service: gateway p90 ~46.5s and ui-dashboard p90 ~48s are nearly identical (ui-dashboard waiting on gateway), while every downstream service gateway calls directly (order p50 9.8s, travel p50 18.5s, seat p50 11.7s, preserve p50 45s, security p50 7s) shows inflated latency but fast local processing. Services on worker-01 outside the gateway fan-out (basic/config/cancel/payment/price) show only traffic drops, ruling out node-wide delay. Cluster/nodes Ready, no taints/quota/scheduling faults. Consistent with pod-scoped network delay on the gateway pod.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-gateway-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-ui-dashboard\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 11
+}

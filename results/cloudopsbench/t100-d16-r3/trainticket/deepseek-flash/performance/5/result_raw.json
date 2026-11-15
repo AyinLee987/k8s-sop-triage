@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All pods Running/Ready with zero restarts and nodes Ready/no pressure rule out scheduling, crash, and capacity faults. TCP connectivity to gateway succeeds and gateway has no error logs. Latency is deepest and most extreme at ts-inside-payment-service: p50 22ms→7166ms, p90 64ms→20333ms, throughput -74%, while its downstream dependencies (payment/order/order-other) show normal latency and no errors and its node worker-03 is healthy (other worker-03 pods show only throughput drop, no latency). Upstream latency spikes (gateway 219ms→8655ms, ui-dashboard 221ms→9750ms, cancel 150ms→21666ms) are derived callers. During the window, inside-payment logs repeated 'order not found' errors ~1.8s apart (consistent with delayed/timed-out outbound calls), while post-window logs show fast ~24ms local processing, indicating the pod's network path—not its code—is delayed.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-inside-payment-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-inside-payment-service\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-03\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 19
+}

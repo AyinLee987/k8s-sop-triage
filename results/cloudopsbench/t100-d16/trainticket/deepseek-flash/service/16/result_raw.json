@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All application pods are Running/Ready with no restarts, ruling out scheduling, admission, and infra faults. Active alerts show a payment 500 and a travel 404. Tracing the 500: ts-inside-payment-service logs show an HttpServerErrorException cascading from ts-payment-service's /api/v1/paymentservice/payment endpoint, where ts-payment-service throws 'IncorrectResultSizeDataAccessException: query did not return a unique result: 5' (NonUniqueResultException) — an internally generated bad status/logic on valid input. Service port (19001->19001) and selector configs are correct, DB credentials/host/port are valid, and gateway logs are clean. The travel 404 (/trips/left) is path-specific with no corresponding server error, healthy backend logs, and clean gateway — a weaker secondary anomaly.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"code_wrong_return\"}, {\"rank\": 2, \"fault_object\": \"app/ts-travel-service\", \"root_cause\": \"code_wrong_return\"}, {\"rank\": 3, \"fault_object\": \"app/ts-travel-service\", \"root_cause\": \"gateway_misrouted\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 14
+}

@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"ts-train-service pod is in Error state (0/2, 4 restarts) with logs showing UnknownHostException: tsdb-mysql-leader: Temporary failure in name resolution, and istio-proxy DNS i/o timeouts to 10.255.12.254:53. Its Deployment uses dnsPolicy: None with nameserver 10.255.12.254. This DNS failure prevents ts-train-service from starting and registering, cascading 500 errors through ts-basic-service (Service Instance cannot be null), ts-travel-service, and ts-preserve-service. Other pods on worker-01 are healthy, ruling out node-wide network issues.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-train-service\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 2, \"fault_object\": \"app/ts-train-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 12
+}

@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"ts-train-service pod on worker-01 is in CrashLoopBackOff (Exit code 1). Application logs show com.mysql.cj.jdbc.exceptions.CommunicationsException caused by java.net.UnknownHostException: tsdb-mysql-leader (Temporary failure in name resolution). The pod's istio-proxy also shows DNS timeouts resolving istiod.istio-system.svc via 10.255.12.254:53 (i/o timeout). However, the tsdb-mysql-leader Service exists with correct ClusterIP (10.68.188.173:3306), and an active TCP connectivity test from debug pods on worker-01, worker-02, and worker-03 all succeed. All other pods on worker-01 (ts-basic-service, ts-gateway-service, ts-order-service, ts-ui-dashboard, ts-user-service, etc.) are 2/2 Running and Ready with working istio-proxies. This isolates the DNS resolution failure to the ts-train-service pod/application rather than a node-wide network fault or Service misconfiguration.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-train-service\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_packet_loss\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 13
+}

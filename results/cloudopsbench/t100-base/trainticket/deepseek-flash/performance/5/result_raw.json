@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Widespread latency/throughput degradation, but the two worst p90 latencies are ts-inside-payment-service (+31529%, worker-03) and ts-cancel-service (+14270%, worker-03); their own logs show fast local processing (downstream calls ~6-24ms), so delay is not in application code. Gateway(worker-01)/UI(worker-02) latency is downstream propagation. All pods Running, nodes Ready without pressure/taints, kube-proxy active, and TCP connectivity to ts-cancel-service succeeds from all nodes — indicating a transport-level delay attributable to worker-03 ingress rather than scheduling/crash/DNS.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/worker-03\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 2, \"fault_object\": \"node/worker-03\", \"root_cause\": \"node_network_packet_loss\"}, {\"rank\": 3, \"fault_object\": \"app/ts-inside-payment-service\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 17
+}

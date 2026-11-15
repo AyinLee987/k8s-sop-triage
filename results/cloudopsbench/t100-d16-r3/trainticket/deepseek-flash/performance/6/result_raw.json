@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All pods are Running/Ready with no relevant restarts, yet many services show latency and throughput degradation. The latency converges on ts-order-service: its p50 latency rose to ~3881ms, and callers such as ts-seat-service (~3906ms), ts-security-service (~3750ms), and ts-preserve-service show corresponding delay, while ts-order-service internal logs show operations completing in ~3-16ms. This indicates delay on the order-service network path rather than application processing. Other pods on worker-01 (e.g., cancel, notification, route-plan, wait-order) do not show the same latency, arguing against a node-wide fault and favoring a pod-scoped delay on ts-order-service. Gateway and downstream caller latencies are consistent with propagation through the affected order-service path.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 15
+}

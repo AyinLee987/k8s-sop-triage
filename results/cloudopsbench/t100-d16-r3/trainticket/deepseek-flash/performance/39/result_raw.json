@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Broad latency + throughput drop with all pods Running/Ready and no errors. ts-order-service is a leaf (no downstream calls) but has p50 9.8s while its logs show ms-fast internal processing (order create ~360ms, queries ~100-200ms), so the slowness is at its network layer, not code/DB. Latency accumulates along the call graph from order-service outward: order(9.8s) -> seat(11.6s, calls order) -> travel(18.5s, calls seat) -> preserve(45s, calls order+seat+travel) -> gateway/ui(~46-48s). Services not calling order (basic, route, train, auth, config, price, station) show only throughput drop, not latency. All nodes Ready, no pressure/taints; sibling pods on worker-03 unaffected, ruling out node-level faults. Consistent with pod-scoped network delay on the order-service pod.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-seat-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-03\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 12
+}

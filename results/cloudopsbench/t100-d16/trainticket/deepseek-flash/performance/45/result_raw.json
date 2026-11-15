@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Widespread latency with all pods Running/Ready and zero/rare restarts. Dependency tracing shows ts-train-service is a leaf (no downstream calls) with the most extreme own-latency spike (p50 8.35ms->2500ms, ~+29844%), while CPU/resource alerts do not implicate it and logs show only normal INFO handling with no errors. TCP connectivity to ts-train-service:14567 succeeds quickly from worker-01/02/03, ruling out network/pod network delay. The caller services (ts-basic, ts-preserve) show only derived latency cascading from this leaf, consistent with an application-code artificial delay localized to ts-train-service.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-train-service\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-train-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 12
+}

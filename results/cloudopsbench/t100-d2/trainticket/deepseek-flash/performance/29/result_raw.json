@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alert data shows explicit CPU CFS throttling on ts-order-service (0.589s throttled). Dependency data shows ts-seat-service calls ts-order-service, and alert latency anomalies appear in ts-seat-service plus its upstream callers ts-preserve-service and ts-travel-service, consistent with a downstream CPU-saturation cascade. All pods are Running/Ready with no restarts, ts-order-service has no error logs, and its logs show heavy but successful request processing, supporting pod CPU overload rather than crashes, probe failures, or service misconfiguration.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 2, \"fault_object\": \"app/ts-seat-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"code_busy_loop\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 8
+}

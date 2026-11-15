@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Widespread latency/throughput drop across services, but all pods are Running/Ready with zero restarts (except an already-stabilized dashboard) and all nodes are Ready with no Memory/Disk/PID pressure, ruling out admission/scheduling/crash faults. The user-facing failure is ts-ui-dashboard nginx timing out specifically on the /api/v1/preserveservice/preserve path. ts-preserve-service exhibits the most extreme latency (p50 45s vs 3.6s baseline, peak 105s) yet its application logs show normal sub-second processing per request and no application errors, while direct TCP connectivity to ts-preserve-service:14568 succeeds from all nodes. The large gap between high observed latency and fast internal processing indicates the delay is on the pod network path, with gateway/dashboard and dependent callers showing propagated latency.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-preserve-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-travel-service\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 17
+}

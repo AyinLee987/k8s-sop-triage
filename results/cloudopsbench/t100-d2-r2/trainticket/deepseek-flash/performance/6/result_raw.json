@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show a global traffic drop, but native latency concentrates on ts-order-service (p50 9.44ms -> 3881ms, p90 43ms -> 17600ms) with propagated latency along its caller chain (preserve, seat, security, travel, gateway, ui-dashboard). ts-order-service pods are Running/Ready, 0 restarts, no error logs, and recent logs show requests processed in milliseconds, ruling out application exceptions or code-level delay. Cluster nodes are all Ready with no Memory/Disk/PID pressure, and worker-01 pods outside the order flow (cancel, train, wait-order, route-plan) do not show native latency, ruling out node-wide network delay. This isolates the fault to pod-scoped network delay on ts-order-service.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"code_artificial_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 9
+}

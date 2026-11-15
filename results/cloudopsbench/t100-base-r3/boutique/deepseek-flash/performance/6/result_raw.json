@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Only frontend is flagged abnormal: RESOURCE_SATURATION cpu_cfs throttled 1.333s, CPU usage rose from 0.07 to 0.16 cores (+138.1%), and frontend p95 latency increased from 27.67ms to 271.36ms (+880.8%). The frontend pod is Running on worker-01 with normal 200m CPU/128Mi limits, and all other boutique pods are Running, so the issue is localized to the frontend application rather than node availability or cluster-wide resource exhaustion.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/frontend\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 2, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 3, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_artificial_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 15
+}

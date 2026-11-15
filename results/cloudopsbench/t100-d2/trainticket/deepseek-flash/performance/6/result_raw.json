@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show severe latency and throughput degradation centered on ts-order-service and its upstream callers, with p50/p90 latency spikes and traffic drops. All pods are Running/Ready with no relevant restarts, ts-order-service has no error logs, and its recent logs show fast successful request processing. Active TCP connectivity to ts-order-service:12031 succeeds from worker-01, worker-02, and worker-03. This supports a pod-scoped network delay affecting ts-order-service rather than an application exception, service port/DNS failure, or node pressure.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"code_artificial_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 11
+}

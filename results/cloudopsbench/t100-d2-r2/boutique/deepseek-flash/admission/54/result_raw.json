@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Frontend logs repeatedly show 'lookup shippingservice on 169.254.20.10:53: no such host' for shipping quote and checkout calls. The live Services list and Endpoints list omit shippingservice, and describing service shippingservice returns NotFound, despite the static YAML defining it. Other services have healthy endpoints, so the fault is isolated to shippingservice DNS/service presence.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/shippingservice\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 2, \"fault_object\": \"app/frontend\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 3, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"service_dns_resolution_failure\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 12
+}

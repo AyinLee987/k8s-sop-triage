@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"cartservice Deployment is 0/1 with no pod and ReplicaFailure=FailedCreate. The cartservice ReplicaSet shows repeated pod creation failures: 'exceeded quota: cpu-request-quota, requested: requests.cpu=1, used: requests.cpu=10, limited: requests.cpu=10'. Namespace ResourceQuota cpu-request-quota is saturated at 10/10, while all other application pods are Running. This admission rejection explains the partial service unreachability. A missing cartservice ServiceAccount is also present in the earliest event but the dominant repeated admission failure is CPU quota exhaustion.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"namespace/boutique\", \"root_cause\": \"namespace_cpu_quota_exceeded\"}, {\"rank\": 2, \"fault_object\": \"app/cartservice\", \"root_cause\": \"missing_service_account\"}, {\"rank\": 3, \"fault_object\": \"app/cartservice\", \"root_cause\": \"cpu_capacity_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 8
+}

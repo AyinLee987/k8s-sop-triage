@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"No ResourceQuota is present, all application pods are Running/Ready, and Services have populated Endpoints including both ts-order-service and ts-route-service. However, the ts-gateway-service ConfigMap defines the route for Path=/api/v1/orderservice/** with uri lb://${ROUTE_SERVICE_HOST:ts-route-service}, so order requests are routed to ts-route-service instead of ts-order-service. This misroute explains partial service unreachability while backend pods and endpoints remain healthy.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-gateway-service\", \"root_cause\": \"gateway_misrouted\"}, {\"rank\": 2, \"fault_object\": \"app/ts-gateway-service\", \"root_cause\": \"service_env_var_address_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"service_port_mapping_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 13
+}

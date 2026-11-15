@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show severe latency originating at ts-train-service (p50 2500ms, p90 4500ms), with dependent services ts-basic-service and ts-preserve-service exhibiting cascading latency. Node health and allocation are normal. ts-train-service is a leaf service with valid Deployment/Service configuration and MySQL env configuration. Recent logs show normal requests and no errors, and no error logs were found. This supports an internal application delay rather than resource saturation, connectivity failure, or misconfiguration.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-train-service\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-train-service\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 3, \"fault_object\": \"app/ts-train-service\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 10
+}

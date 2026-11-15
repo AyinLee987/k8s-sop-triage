@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show severe latency on checkoutservice, emailservice, and frontend. Dependency tracing identifies emailservice as the deepest affected leaf; checkoutservice and frontend are callers. Emailservice pods are Running/Ready with zero restarts, nodes are Ready without pressure, no error logs are present, service port 5000 is reachable, and emailservice source processes requests immediately with no artificial delay. This pattern matches pod-scoped network delay on emailservice rather than a node-wide or code-level fault.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/emailservice\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 3, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 20
+}

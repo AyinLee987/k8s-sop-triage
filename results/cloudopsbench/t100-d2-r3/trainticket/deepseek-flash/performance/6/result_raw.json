@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Widespread latency alerts are centered on ts-order-service, which is called by gateway, preserve, seat, security, cancel, rebook, execute, voucher, and inside-payment services. ts-order-service itself has no confirmed downstream calls, no error logs, and normal application log processing, but service latency is severely elevated (p50 ~3.9s, p90 ~17.6s, peaks up to ~174s). All pods are Running/Ready with no restarts for ts-order-service, matching the pod-scoped network delay pattern rather than crashes or downstream database/application failures.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"pod_cpu_overload\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 7
+}

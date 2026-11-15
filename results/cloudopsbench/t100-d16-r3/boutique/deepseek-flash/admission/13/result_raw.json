@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"ResourceQuota cpu-request-quota is saturated at 10/10 in namespace boutique. The cartservice ReplicaSet fails to create pods with repeated events: 'exceeded quota: cpu-request-quota, requested: requests.cpu=1, used: requests.cpu=10, limited: requests.cpu=10'. cartservice deployment is 0/1 available, while other deployments are healthy. One early event also noted a missing serviceaccount, but subsequent denials consistently cite the CPU quota.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"namespace/boutique\", \"root_cause\": \"namespace_cpu_quota_exceeded\"}, {\"rank\": 2, \"fault_object\": \"app/cartservice\", \"root_cause\": \"missing_service_account\"}, {\"rank\": 3, \"fault_object\": \"app/cartservice\", \"root_cause\": \"service_selector_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 7
+}

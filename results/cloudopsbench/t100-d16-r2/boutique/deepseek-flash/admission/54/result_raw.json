@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All workload pods are Running and Ready, but the `shippingservice` Service object is missing from the namespace. The `service-quota` ResourceQuota shows services usage at 11/11, the hard cap. This aligns with an admission rejection preventing creation of the shippingservice Service, causing partial service unreachability.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"namespace/boutique\", \"root_cause\": \"namespace_service_quota_exceeded\"}, {\"rank\": 2, \"fault_object\": \"app/shippingservice\", \"root_cause\": \"service_selector_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/shippingservice\", \"root_cause\": \"service_port_mapping_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 6
+}

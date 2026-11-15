@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Only ts-train-service is unhealthy: pod ts-train-service-84dbf9c989-nn5mp is 0/2, CrashLoopBackOff, with 4 restarts. Application logs show HikariPool initialization failure caused by java.net.UnknownHostException: tsdb-mysql-leader: Temporary failure in name resolution. The tsdb-mysql-leader Service exists, and TCP connectivity to port 3306 succeeds from worker-01, worker-02, and worker-03 via debug pods. The same pod's istio-proxy logs also show DNS lookup timeouts to istiod. This points to a DNS resolution failure localized to ts-train-service rather than a missing Service, bad DB port, or general service outage.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-train-service\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_packet_loss\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 9
+}

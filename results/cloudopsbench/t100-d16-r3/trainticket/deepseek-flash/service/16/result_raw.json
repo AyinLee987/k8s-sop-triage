@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show 19 occurrences of 404 on POST /api/v1/travelservice/trips/left. All pods are Running/Ready; ts-travel-service logs show normal trip/seat processing and no runtime errors. Gateway error logs are empty. Inspection of ts-gateway-service ConfigMap reveals the 'travel' route points to lb://${ORDER_SERVICE_HOST:ts-order-service} instead of ${TRAVEL_SERVICE_HOST:ts-travel-service}. This exactly matches exp-06: a route-specific 404 with healthy target pods and normal backend processing indicates gateway/ingress misrouting. The second alert (500 on ts-inside-payment-service) has fewer occurrences and is not the dominant symptom.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-gateway-service\", \"root_cause\": \"gateway_misrouted\"}, {\"rank\": 2, \"fault_object\": \"app/ts-inside-payment-service\", \"root_cause\": \"code_wrong_return\"}, {\"rank\": 3, \"fault_object\": \"app/ts-travel-service\", \"root_cause\": \"service_port_mapping_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 12
+}

@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"emailservice is a leaf service with no downstream dependencies and zero restarts; its own p90 latency rose from 4.8ms to 895.9ms (+18581%), while checkoutservice (p50 17→516ms, p90 28→948ms) and frontend (p90 40→574ms) are upstream callers inheriting the delay. Emailservice source code (DummyEmailService.SendOrderConfirmation) has no sleep/blocking in the request path, ruling out code_artificial_delay. Other pods colocated on worker-02 (adservice, paymentservice, recommendationservice, shippingservice) show no latency alerts, and downstream dependencies are normal, ruling out node-wide network delay and downstream/DB causes. The latency is therefore isolated to the emailservice pod's network path.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/emailservice\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/emailservice\", \"root_cause\": \"code_artificial_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 15
+}

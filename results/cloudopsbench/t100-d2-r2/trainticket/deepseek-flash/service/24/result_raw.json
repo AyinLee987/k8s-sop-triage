@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"ts-food-service is CrashLoopBackOff (exit 1) with logs showing java.net.UnknownHostException: tsdb-mysql-leader caused by DNS lookups to 10.255.18.254 timing out (read udp ...:53: i/o timeout). The ts-food-service Deployment uses dnsPolicy: None with nameservers [10.255.18.254], overriding cluster DNS. The tsdb-mysql-leader Service exists (ClusterIP 10.68.188.173:3306) and active connectivity tests from worker-01/02/03 all succeed, ruling out a Service/port fault or node-wide network failure. This pod-local DNS misconfiguration makes ts-food-service unreachable, cascading to reported 500 errors in ts-preserve-service and ts-inside-payment-service.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-food-service\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_packet_loss\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 8
+}

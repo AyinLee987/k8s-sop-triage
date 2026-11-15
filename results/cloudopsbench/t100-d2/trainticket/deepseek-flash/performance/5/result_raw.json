@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All pods are Running/Ready with zero restarts. Latency alerts are severe for ts-inside-payment-service (p50 ~7.2s, p90 ~20.3s) and its upstream caller ts-cancel-service (p90 ~21.7s), while downstream services such as ts-order-service and ts-payment-service show throughput drops but no latency degradation. Peer services on worker-03 do not show comparable latency, making a node-wide network fault less likely. This pattern matches pod-scoped network delay at ts-inside-payment-service, with upstream latency propagating to ts-cancel-service and the gateway/UI.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-inside-payment-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-cancel-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-03\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 10
+}

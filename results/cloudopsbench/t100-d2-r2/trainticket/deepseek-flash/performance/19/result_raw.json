@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Only concrete resource anomaly is RESOURCE_SATURATION cpu_cfs throttling on ts-order-service. All other degraded services (ts-cancel-service, ts-inside-payment-service, ts-gateway-service, ts-ui-dashboard) are upstream callers of ts-order-service, so its CPU-bound latency propagates. ts-order-service logs show heavy concurrent processing (queryOrders size 4717, massive ticket lists, ~11 threads) and its container CPU limit is 500m. All pods Running/Ready; all nodes Ready with no pressure; no errors in ts-order-service -> rules out scheduling, node, probe, and dependency faults. exp-02 note: CPU throttling presence rules out pure pod_network_delay.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 2, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 3, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 11
+}

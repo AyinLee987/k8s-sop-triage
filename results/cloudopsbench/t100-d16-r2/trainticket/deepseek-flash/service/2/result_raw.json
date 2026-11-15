@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All pods/deployments are Running and Ready and every existing Service has populated Endpoints; direct TCP to ts-order-service:12031 succeeds from all three nodes. However, the gateway ConfigMap ts-gateway-service-config contains an incorrect route: the `order` route with Path=/api/v1/orderservice/** points to lb://${ROUTE_SERVICE_HOST:ts-route-service} instead of ts-order-service (the separate `route` route also correctly uses ts-route-service). Thus all /api/v1/orderservice/** requests are misrouted to ts-route-service, causing partial unreachability of the order path while other paths work. No ResourceQuota exists in the namespace.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-gateway-service\", \"root_cause\": \"gateway_misrouted\"}, {\"rank\": 2, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"gateway_misrouted\"}, {\"rank\": 3, \"fault_object\": \"app/ts-food-delivery-service\", \"root_cause\": \"service_dns_resolution_failure\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 26
+}

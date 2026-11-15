@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show 20 occurrences of 404 on POST /api/v1/preserveservice/preserve at entry_service ts-preserve-service. Direct inspection confirmed ts-preserve-service Deployment (ready 1/1), Service (port 14568 -> targetPort 14568, selector app=ts-preserve-service), and Endpoints (172.20.2.133:14568) are all healthy and correctly configured, and the app started/registered successfully. The gateway ConfigMap shows the 'preserve' route has predicate Path=/api/v1/preserveservice/** but uri lb://${FOOD_SERVICE_HOST:ts-food-service}, i.e. it routes preserve traffic to ts-food-service, which has no such path and returns 404. Thus the misrouting in ts-gateway-service causes the service availability disruption.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-gateway-service\", \"root_cause\": \"gateway_misrouted\"}, {\"rank\": 2, \"fault_object\": \"app/ts-preserve-service\", \"root_cause\": \"service_selector_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/ts-preserve-service\", \"root_cause\": \"service_port_mapping_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 9
+}

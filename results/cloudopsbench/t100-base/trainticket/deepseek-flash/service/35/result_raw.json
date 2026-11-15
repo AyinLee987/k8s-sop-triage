@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Only ts-train-service is unhealthy (0/2 Error, 4 restarts), failing at startup because it cannot resolve tsdb-mysql-leader: 'java.net.UnknownHostException: tsdb-mysql-leader'. Its Deployment uniquely sets dnsPolicy: None with dnsConfig nameservers [10.255.12.254], and sidecar logs show DNS timeouts to that nameserver ('lookup istiod.istio-system.svc ... read udp ...->10.255.12.254:53: i/o timeout'). Other pods on worker-01 using default ClusterFirst (ts-order-service) show no DNS/network errors, so this is pod/app-level DNS configuration failure rather than node networking.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-train-service\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-train-service\", \"root_cause\": \"service_env_var_address_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 11
+}
