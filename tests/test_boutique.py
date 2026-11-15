@@ -52,3 +52,23 @@ def test_inject_and_reset_only_touch_boutique_and_the_injector_namespace():
             if "-n" in args:
                 assert args[args.index("-n") + 1] in ("{ns}", "infra-tools"), (s["id"], args)
             assert "delete" not in args or args[args.index("delete") + 1] == "pod", (s["id"], args)
+
+
+def test_inject_starts_from_fresh_pods_and_leaves_no_restart_annotation():
+    import json
+    dep = {"items": [{"metadata": {"name": "redis-cart"}, "status": {"readyReplicas": 1},
+                      "spec": {"template": {"metadata": {"annotations": {"kubectl.kubernetes.io/restartedAt": "x"}}}}}]}
+
+    def handler(args):
+        if args[-2:] == ["-o", "json"] and "deployments" in args:
+            return KubeResult(True, json.dumps(dep))
+        return KubeResult(True, "{}")
+    k = FakeRunner(handler)
+    lc = BoutiqueLifecycle(k, "/lab/k8s")
+    lc.health_problems = lambda: []
+    lc.inject(B["B03"], StepLog())
+    flat = [" ".join(c) for c in k.calls]
+    wipe = next(i for i, c in enumerate(flat) if "delete pods --all" in c)
+    fault = next(i for i, c in enumerate(flat) if "redis-cart-v2" in c)
+    assert wipe < fault and any("restartedAt" in c and "remove" in c for c in flat[:wipe])
+    assert not any("rollout restart" in c for c in flat)

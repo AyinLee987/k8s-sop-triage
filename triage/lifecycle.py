@@ -358,6 +358,36 @@ class BoutiqueLifecycle(Lifecycle):
         log.add("reset", not errors, "; ".join(errors) or "reset steps applied", time.monotonic() - started)
         self.verify_healthy(log, phase="verify_recovered")
 
+    def inject(self, scenario: dict, log: StepLog, noises: list[dict] | None = None) -> str:
+        self.clean_slate(log)
+        return super().inject(scenario, log, noises)
+
+    def clean_slate(self, log: StepLog) -> None:
+        """Remove what earlier runs left behind, so the agent only sees this run's fault (ISSUES E-021).
+        Pods keep their logs until they are replaced, and HolmesGPT reads an hour of them: errors from the
+        previous scenario were being reported as the cause of the next one. Also removed: the restartedAt
+        annotation of earlier `rollout restart`s and the managedFields entries that timestamp earlier patches."""
+        started = time.monotonic()
+        notes = []
+        deps = (self._json(["-n", self.ns, "get", "deployments"]) or {}).get("items", [])
+        for d in deps:
+            ann = ((d.get("spec") or {}).get("template", {}).get("metadata", {}) or {}).get("annotations") or {}
+            if "kubectl.kubernetes.io/restartedAt" in ann:
+                res = self._run(["-n", self.ns, "patch", "deployment", d["metadata"]["name"], "--type=json", "-p",
+                                 '[{"op":"remove","path":"/spec/template/metadata/annotations/kubectl.kubernetes.io~1restartedAt"}]'], 30)
+                notes.append(f"restartedAt removed from {d['metadata']['name']}" if res.ok else f"restartedAt {d['metadata']['name']}: {res.stderr.strip()[:80]}")
+        # an empty entry is the documented way to reset managedFields
+        for target in [f"deployment/{n}" for n in BOUTIQUE_DEPLOYMENTS] + ["service/productcatalogservice", "service/redis-cart"]:
+            self._run(["-n", self.ns, "patch", target, "--type=merge", "-p", '{"metadata":{"managedFields":[{}]}}'], 30)
+        res = self._run(["-n", self.ns, "delete", "pods", "--all", "--wait=true", "--timeout=120s"], 150)
+        if not res.ok:
+            notes.append(f"delete pods: {res.stderr.strip()[:120]}")
+        for name in BOUTIQUE_DEPLOYMENTS:
+            self._run(["-n", self.ns, "rollout", "status", f"deployment/{name}", f"--timeout={self.rollout_timeout}s"],
+                      self.rollout_timeout + 10)
+        log.add("clean_slate", True, "; ".join(notes) or "fresh pods", time.monotonic() - started)
+        self.verify_healthy(log, phase="verify_fresh")
+
     def health_problems(self) -> list[str]:
         problems = []
         data = self._json(["-n", self.ns, "get", "deployments,pods"])

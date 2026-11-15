@@ -9,6 +9,12 @@
 
 ---
 
+## E-021 Online Boutique 上前一个场景的痕迹成了后一个场景的"证据"
+- 现象：`boutique-base` 这批（B01–B05 各 3 次）里，B04 有 2 次把上一个场景留下的 Redis 连接报错或推荐服务报错当成了变慢的原因；几乎每个回答都列出了之前几次注入留下的重启和改配置记录。关键词自动评分给了 15/15，人工读是 11/15。
+- 原因：这套环境复位时不重建 Pod，Pod 日志一直保留；HolmesGPT 默认读最近 30 分钟到 1 小时的日志。另外 `rollout restart` 会在 Deployment 上留下 restartedAt 注解，改 Service 会在 managedFields 里留下时间戳。原来的小应用复位时会重建 Pod，所以没有这个问题。
+- 处理：`BoutiqueLifecycle.inject` 在注入前先清场（去掉 restartedAt 注解、重置 managedFields、删除全部 Pod 让日志从头开始），再确认健康；注入步骤里的 `rollout restart` 改成直接删 Pod。
+- 状态：已改，待在笔记本上重跑确认。`boutique-base` 这批结果不能用于结论。
+
 ## E-020 环境里一条真实的旧告警成了 L05 的干扰项；按"原因名"去重会删掉同一原因的不同表现
 - 现象一：笔记本上的 Redis 在 2026-11-12 04:52 打过一条 `Asynchronous AOF fsync is taking too long (disk is busy?)`，只出现过一次。此后 L05（Redis 的 Pod 网络延迟）答错的运行大多把它当成主因。注入的延迟让每次 Redis 往返固定多出约 200 毫秒，这条告警解释不了。
 - 处理：标准答案不改；评分分两档（定位到 Redis 这一层 / 原因是网络延迟）；这一轮不清掉它，以保持和已有结果可比，换集群或本轮结束后补一组干净的对照。和 R07 的 Redis 残留是同一类问题：长期运行的环境会自己积累"真实但无关"的线索。
