@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All TrainTicket pods were Running and Ready with no recent restarts. Alerts showed dominant LATENCY_DEGRADATION on ts-food-service (p50 18.41ms -> 6829.27ms; p90 28.75ms -> 9365.85ms), with downstream latency alerts on gateway, preserve, and UI. ts-food-service had no application error logs, consistent with externally observed latency rather than application failures. ts-order-service showed a secondary CPU CFS throttling alert. These findings best support pod network delay on ts-food-service, with alternatives including CPU overload on ts-order-service or application-level artificial delay in ts-food-service.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-food-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 3, \"fault_object\": \"app/ts-food-service\", \"root_cause\": \"code_artificial_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 7
+}

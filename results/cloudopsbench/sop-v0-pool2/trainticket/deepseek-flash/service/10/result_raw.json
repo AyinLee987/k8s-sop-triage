@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All TrainTicket pods are Running; only ts-ui-dashboard has restarts. The active alert reports HTTP 500 for 'Process payment' at ts-inside-payment-service. Its logs show it receives HTTP 500 from ts-payment-service. ts-payment-service logs show repeated `IncorrectResultSizeDataAccessException: query did not return a unique result: 5` / `NonUniqueResultException`, causing the payment API to fail with HTTP 500. This points to an application-level defect in ts-payment-service, not infrastructure, networking, DNS, or pod health.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"code_wrong_return\"}, {\"rank\": 2, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"code_wrong_argument_order\"}, {\"rank\": 3, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"code_missing_parameter\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 7
+}

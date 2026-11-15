@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Only ts-contacts-service pod is abnormal (0/2, Error, CrashLoopBackOff, restart count 4, exit code 1). Application logs show java.net.UnknownHostException: tsdb-mysql-leader: Temporary failure in name resolution, and istio-proxy logs show i/o timeouts resolving names via nameserver 10.255.3.254:53. The tsdb-mysql-leader Service exists (ClusterIP 10.68.188.173), so this is not a missing Service. GetAppYAML shows the deployment uses dnsPolicy: None with a custom nameserver 10.255.3.254 that is unreachable, causing DNS resolution failure and container startup crash.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-contacts-service\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-contacts-service\", \"root_cause\": \"service_env_var_address_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 8
+}

@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show LATENCY_DEGRADATION across ts-basic-service (p50 38.97ms→6833ms, +17434%, the largest delta), ts-gateway-service, ts-preserve-service, ts-travel-service, and ts-ui-dashboard. Pod listing shows all pods Running with no crash/restart pattern. GetErrorLogs for ts-basic-service returned no error logs, excluding application-error-driven latency. GetServiceDependencies confirms ts-gateway-service, ts-preserve-service, ts-travel-service call ts-basic-service, matching the cascade; ts-basic-service calls route/station/train/price. ts-order-service cpu_cfs throttling is on a separate branch not in basic-service's dependency path. With healthy pods and no app errors, the external-only latency on the dominant service is attributed to pod_network_delay (exclusion-based, no durable artifact expected).\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-basic-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 3, \"fault_object\": \"app/ts-basic-service\", \"root_cause\": \"code_artificial_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 8
+}

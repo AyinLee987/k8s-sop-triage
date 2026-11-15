@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Multiple services hosted on worker-02 (adservice, checkoutservice, recommendationservice, shippingservice) show severe latency degradation, with cascading latency in frontend on worker-01. All pods are Running and Ready with no restarts. productcatalogservice source contains `time.Sleep(extraLatency)`, but the running pod has no `EXTRA_LATENCY` environment variable and the YAML defines none, so the delay is inactive. worker-02 is Ready without pressure/taints, kube-proxy and containerd are healthy, and there is no retransmission/packet-loss evidence, supporting node-level network delay rather than packet loss or component unavailability.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 2, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 23
+}

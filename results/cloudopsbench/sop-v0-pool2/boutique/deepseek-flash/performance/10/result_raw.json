@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"redis-cart shows direct CPU saturation and CFS throttling (0.679s throttled; CPU core usage rose from 0.00 to 0.15 cores). cartservice latency is elevated and depends on redis-cart as its database backend; checkoutservice and frontend latency are consistent with downstream propagation. All affected pods are Running, and cartservice logs show no application errors or obvious code-level latency defect.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/redis-cart\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 2, \"fault_object\": \"app/cartservice\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 12
+}

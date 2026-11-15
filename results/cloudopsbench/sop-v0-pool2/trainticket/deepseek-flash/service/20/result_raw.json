@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"`ts-assurance-service` is the only abnormal app pod, in CrashLoopBackOff with exit code 1. Application logs show `java.net.UnknownHostException: tsdb-mysql-leader: Temporary failure in name resolution` and Hikari/JDBC connection failures. The `tsdb-mysql-leader` Service exists with port 3306, so the target is not missing. The affected Deployment uses `dnsPolicy: None` and nameserver `10.255.5.254`; Istio sidecar logs also show DNS timeouts to that resolver. This supports a pod-level/service DNS resolution misconfiguration for `ts-assurance-service`.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-assurance-service\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 2, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-assurance-service\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 7
+}

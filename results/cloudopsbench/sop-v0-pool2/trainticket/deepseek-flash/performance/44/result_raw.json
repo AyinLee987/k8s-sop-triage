@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show LATENCY_DEGRADATION on ts-station-service (p50 +35691%, p90 +16694%), ts-basic-service (p50 +6149%), and ts-preserve-service (p50 +894%). All pod listings show Running/Ready with no recent restarts, excluding crashes. GetErrorLogs for ts-station-service returned empty, and GetRecentLogs showed normal INFO-level StationController query processing without errors, consistent with externally-injected pod network delay. ts-station-service is the leaf dependency causing the cascading latency in ts-basic-service and ts-preserve-service.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-station-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 3, \"fault_object\": \"app/ts-basic-service\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 6
+}

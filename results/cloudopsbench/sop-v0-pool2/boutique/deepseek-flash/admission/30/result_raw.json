@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"recommendationservice Deployment is 0/1 ready because its ReplicaSet cannot create pods. ReplicaSet events report FailedCreate: exceeded quota memory-request-quota, requesting 1Gi while namespace usage is 3000Mi against a 3Gi limit. All other boutique pods are Running/Ready, and the recommendationservice ServiceAccount exists, ruling out missing SA.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"namespace/boutique\", \"root_cause\": \"namespace_memory_quota_exceeded\"}, {\"rank\": 2, \"fault_object\": \"namespace/boutique\", \"root_cause\": \"namespace_pod_quota_exceeded\"}, {\"rank\": 3, \"fault_object\": \"app/recommendationservice\", \"root_cause\": \"memory_capacity_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 10
+}

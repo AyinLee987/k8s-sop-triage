@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Latency alerts show widespread degradation, with ts-price-service exhibiting the most extreme increase (p50 5.95ms -> 2436.17ms, p90 9.19ms -> 4476.74ms). Pods are Running/Ready with no crash or restart surface. ts-price-service has no error logs, and recent logs show immediate internal controller/service processing, indicating the latency is external to application execution and consistent with pod network delay.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-price-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-basic-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 7
+}

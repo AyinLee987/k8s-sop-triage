@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"ts-travel-service exhibits severe LATENCY_DEGRADATION (p90 9.45ms -> 2121.88ms, +22357%, peak 2181ms), a clean ~2s addition characteristic of chaosblade netem delay, while all pods are Running/Ready with no restarts and no ERROR-level application logs. Recent logs show continuous INFO-level '[query][Travel Query Fail][Something null]', consistent with downstream calls (ts-basic/ts-route/ts-train/ts-seat) timing out because of the ~2s egress network delay rather than CPU saturation (ts-travel-service shows no cpu_cfs throttling). Only ts-travel-service carries the latency alert among its downstream dependencies, and no downstream service (which would otherwise be affected if the delay were on its pod) is flagged, localizing the delay to the ts-travel-service pod network.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-travel-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-travel-service\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-travel-service\", \"root_cause\": \"code_wrong_return\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 10
+}

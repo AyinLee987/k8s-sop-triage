@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"recommendationservice shows RESOURCE_SATURATION with cpu_cfs throttling (0.923s), CPU usage rising from 0.03 to 0.15 cores, and p95 latency increasing from 4.81ms to 84.41ms. Its pod is Running with 2/2 ready, no restarts, and no error logs. Source review of recommendation_server.py found normal recommendation logic without an active busy loop or artificial delay. The frontend latency alert is consistent with downstream propagation from recommendationservice.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/recommendationservice\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 2, \"fault_object\": \"app/recommendationservice\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 3, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_artificial_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 10
+}

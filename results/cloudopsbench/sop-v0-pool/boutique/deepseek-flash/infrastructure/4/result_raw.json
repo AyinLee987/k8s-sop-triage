@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Multiple pods (checkoutservice, currencyservice, paymentservice, productcatalogservice, recommendationservice, shippingservice) on worker-02 are stuck in Init:0/1 while all worker-01 pods are Running. Describing checkoutservice pod shows event 'FailedCreatePodSandBox ... dial unix /run/containerd/containerd.sock: connect: no such file or directory'. CheckNodeServiceStatus confirms containerd.service on worker-02 is 'inactive (dead)'. Thus pods cannot create sandboxes and services backed by worker-02 pods become unreachable.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/worker-02\", \"root_cause\": \"containerd_unavailable\"}, {\"rank\": 2, \"fault_object\": \"node/worker-02\", \"root_cause\": \"kubelet_unavailable\"}, {\"rank\": 3, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 6
+}

@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"checkoutservice showed CPU CFS throttling, a ~1985% CPU-core increase, and p95 latency degradation from ~28.8ms to ~93.2ms while its pod remained Running/Ready with no error logs. The service has a 200m CPU limit, and source inspection found `money.MultiplySlow`, which repeatedly sums values in a loop and is invoked for order item totals. This code-level CPU-intensive loop explains the observed saturation and latency.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 2, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 3, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"code_artificial_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 11
+}

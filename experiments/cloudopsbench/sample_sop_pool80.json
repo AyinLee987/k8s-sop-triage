@@ -1,0 +1,1058 @@
+{
+ "dataset": "LLM4Ops/Cloud-OpsBench",
+ "dataset_commit": "ec1d4f38b952a4dcb057af094290b4d35128c100",
+ "seed": 20261116,
+ "quota": {
+  "boutique/admission": 10,
+  "boutique/service": 14,
+  "boutique/infrastructure": 8,
+  "boutique/performance": 10,
+  "boutique/codedefect": 16,
+  "trainticket/service": 10,
+  "trainticket/performance": 12
+ },
+ "n": 80,
+ "note": "second candidate pool for bad cases (the first 40 gave too few failures under the v0 SOPs); disjoint from every earlier sample",
+ "cases": [
+  {
+   "id": "boutique/admission/5",
+   "system": "boutique",
+   "category": "admission",
+   "case": "5",
+   "difficulty": "medium",
+   "query": "Service Availability Disruption.",
+   "truth": {
+    "fault_taxonomy": "Admission_Fault",
+    "fault_object": "app/emailservice",
+    "root_cause": "missing_service_account"
+   }
+  },
+  {
+   "id": "boutique/admission/27",
+   "system": "boutique",
+   "category": "admission",
+   "case": "27",
+   "difficulty": "medium",
+   "query": "Partial Service Unreachability.",
+   "truth": {
+    "fault_taxonomy": "Admission_Fault",
+    "fault_object": "namespace/boutique",
+    "root_cause": "namespace_memory_quota_exceeded"
+   }
+  },
+  {
+   "id": "boutique/admission/24",
+   "system": "boutique",
+   "category": "admission",
+   "case": "24",
+   "difficulty": "medium",
+   "query": "Service Availability Disruption.",
+   "truth": {
+    "fault_taxonomy": "Admission_Fault",
+    "fault_object": "namespace/boutique",
+    "root_cause": "namespace_memory_quota_exceeded"
+   }
+  },
+  {
+   "id": "boutique/admission/48",
+   "system": "boutique",
+   "category": "admission",
+   "case": "48",
+   "difficulty": "medium",
+   "query": "Partial Service Unreachability.",
+   "truth": {
+    "fault_taxonomy": "Admission_Fault",
+    "fault_object": "namespace/boutique",
+    "root_cause": "namespace_service_quota_exceeded"
+   }
+  },
+  {
+   "id": "boutique/admission/6",
+   "system": "boutique",
+   "category": "admission",
+   "case": "6",
+   "difficulty": "medium",
+   "query": "Partial Service Unreachability.",
+   "truth": {
+    "fault_taxonomy": "Admission_Fault",
+    "fault_object": "app/frontend",
+    "root_cause": "missing_service_account"
+   }
+  },
+  {
+   "id": "boutique/admission/26",
+   "system": "boutique",
+   "category": "admission",
+   "case": "26",
+   "difficulty": "medium",
+   "query": "Service Availability Disruption.",
+   "truth": {
+    "fault_taxonomy": "Admission_Fault",
+    "fault_object": "namespace/boutique",
+    "root_cause": "namespace_memory_quota_exceeded"
+   }
+  },
+  {
+   "id": "boutique/admission/3",
+   "system": "boutique",
+   "category": "admission",
+   "case": "3",
+   "difficulty": "medium",
+   "query": "Service Availability Disruption.",
+   "truth": {
+    "fault_taxonomy": "Admission_Fault",
+    "fault_object": "app/checkoutservice",
+    "root_cause": "missing_service_account"
+   }
+  },
+  {
+   "id": "boutique/admission/42",
+   "system": "boutique",
+   "category": "admission",
+   "case": "42",
+   "difficulty": "medium",
+   "query": "Partial Service Unreachability.",
+   "truth": {
+    "fault_taxonomy": "Admission_Fault",
+    "fault_object": "namespace/boutique",
+    "root_cause": "namespace_pod_quota_exceeded"
+   }
+  },
+  {
+   "id": "boutique/admission/7",
+   "system": "boutique",
+   "category": "admission",
+   "case": "7",
+   "difficulty": "medium",
+   "query": "Partial Service Unreachability.",
+   "truth": {
+    "fault_taxonomy": "Admission_Fault",
+    "fault_object": "app/paymentservice",
+    "root_cause": "missing_service_account"
+   }
+  },
+  {
+   "id": "boutique/admission/30",
+   "system": "boutique",
+   "category": "admission",
+   "case": "30",
+   "difficulty": "medium",
+   "query": "Partial Service Unreachability.",
+   "truth": {
+    "fault_taxonomy": "Admission_Fault",
+    "fault_object": "namespace/boutique",
+    "root_cause": "namespace_memory_quota_exceeded"
+   }
+  },
+  {
+   "id": "boutique/service/32",
+   "system": "boutique",
+   "category": "service",
+   "case": "32",
+   "difficulty": "medium",
+   "query": "Service Availability Disruption.",
+   "truth": {
+    "fault_taxonomy": "Service_Routing_Fault",
+    "fault_object": "app/cartservice",
+    "root_cause": "service_selector_mismatch"
+   }
+  },
+  {
+   "id": "boutique/service/35",
+   "system": "boutique",
+   "category": "service",
+   "case": "35",
+   "difficulty": "medium",
+   "query": "Partial Service Unreachability.",
+   "truth": {
+    "fault_taxonomy": "Service_Routing_Fault",
+    "fault_object": "app/frontend",
+    "root_cause": "service_selector_mismatch"
+   }
+  },
+  {
+   "id": "boutique/service/21",
+   "system": "boutique",
+   "category": "service",
+   "case": "21",
+   "difficulty": "medium",
+   "query": "Partial Service Unreachability.",
+   "truth": {
+    "fault_taxonomy": "Service_Routing_Fault",
+    "fault_object": "app/recommendationservice",
+    "root_cause": "service_port_mapping_mismatch"
+   }
+  },
+  {
+   "id": "boutique/service/47",
+   "system": "boutique",
+   "category": "service",
+   "case": "47",
+   "difficulty": "medium",
+   "query": "Partial Service Unreachability.",
+   "truth": {
+    "fault_taxonomy": "Service_Routing_Fault",
+    "fault_object": "app/shippingservice",
+    "root_cause": "service_selector_mismatch"
+   }
+  },
+  {
+   "id": "boutique/service/8",
+   "system": "boutique",
+   "category": "service",
+   "case": "8",
+   "difficulty": "medium",
+   "query": "Partial Service Unreachability.",
+   "truth": {
+    "fault_taxonomy": "Service_Routing_Fault",
+    "fault_object": "app/recommendationservice",
+    "root_cause": "service_env_var_address_mismatch"
+   }
+  },
+  {
+   "id": "boutique/service/2",
+   "system": "boutique",
+   "category": "service",
+   "case": "2",
+   "difficulty": "medium",
+   "query": "Partial Service Unreachability.",
+   "truth": {
+    "fault_taxonomy": "Service_Routing_Fault",
+    "fault_object": "app/checkoutservice",
+    "root_cause": "service_env_var_address_mismatch"
+   }
+  },
+  {
+   "id": "boutique/service/40",
+   "system": "boutique",
+   "category": "service",
+   "case": "40",
+   "difficulty": "medium",
+   "query": "Service Availability Disruption.",
+   "truth": {
+    "fault_taxonomy": "Service_Routing_Fault",
+    "fault_object": "app/cartservice",
+    "root_cause": "service_selector_mismatch"
+   }
+  },
+  {
+   "id": "boutique/service/36",
+   "system": "boutique",
+   "category": "service",
+   "case": "36",
+   "difficulty": "medium",
+   "query": "Service Availability Disruption.",
+   "truth": {
+    "fault_taxonomy": "Service_Routing_Fault",
+    "fault_object": "app/productcatalogservice",
+    "root_cause": "service_selector_mismatch"
+   }
+  },
+  {
+   "id": "boutique/service/42",
+   "system": "boutique",
+   "category": "service",
+   "case": "42",
+   "difficulty": "medium",
+   "query": "Service Availability Disruption.",
+   "truth": {
+    "fault_taxonomy": "Service_Routing_Fault",
+    "fault_object": "app/currencyservice",
+    "root_cause": "service_selector_mismatch"
+   }
+  },
+  {
+   "id": "boutique/service/24",
+   "system": "boutique",
+   "category": "service",
+   "case": "24",
+   "difficulty": "medium",
+   "query": "Partial Service Unreachability.",
+   "truth": {
+    "fault_taxonomy": "Service_Routing_Fault",
+    "fault_object": "app/cartservice",
+    "root_cause": "service_protocol_mismatch"
+   }
+  },
+  {
+   "id": "boutique/service/19",
+   "system": "boutique",
+   "category": "service",
+   "case": "19",
+   "difficulty": "medium",
+   "query": "Service Availability Disruption.",
+   "truth": {
+    "fault_taxonomy": "Service_Routing_Fault",
+    "fault_object": "app/paymentservice",
+    "root_cause": "service_port_mapping_mismatch"
+   }
+  },
+  {
+   "id": "boutique/service/53",
+   "system": "boutique",
+   "category": "service",
+   "case": "53",
+   "difficulty": "medium",
+   "query": "Service Availability Disruption.",
+   "truth": {
+    "fault_taxonomy": "Service_Routing_Fault",
+    "fault_object": "app/redis-cart",
+    "root_cause": "service_selector_mismatch"
+   }
+  },
+  {
+   "id": "boutique/service/6",
+   "system": "boutique",
+   "category": "service",
+   "case": "6",
+   "difficulty": "medium",
+   "query": "Service Availability Disruption.",
+   "truth": {
+    "fault_taxonomy": "Service_Routing_Fault",
+    "fault_object": "app/checkoutservice",
+    "root_cause": "service_env_var_address_mismatch"
+   }
+  },
+  {
+   "id": "boutique/service/5",
+   "system": "boutique",
+   "category": "service",
+   "case": "5",
+   "difficulty": "medium",
+   "query": "Service Availability Disruption.",
+   "truth": {
+    "fault_taxonomy": "Service_Routing_Fault",
+    "fault_object": "app/cartservice",
+    "root_cause": "service_env_var_address_mismatch"
+   }
+  },
+  {
+   "id": "boutique/infrastructure/30",
+   "system": "boutique",
+   "category": "infrastructure",
+   "case": "30",
+   "difficulty": "medium",
+   "query": "Partial Service Unreachability.",
+   "truth": {
+    "fault_taxonomy": "Infrastructure_Fault",
+    "fault_object": "node/worker-01",
+    "root_cause": "kubelet_unavailable"
+   }
+  },
+  {
+   "id": "boutique/infrastructure/28",
+   "system": "boutique",
+   "category": "infrastructure",
+   "case": "28",
+   "difficulty": "medium",
+   "query": "Partial Service Unreachability.",
+   "truth": {
+    "fault_taxonomy": "Infrastructure_Fault",
+    "fault_object": "node/master",
+    "root_cause": "kube_scheduler_unavailable"
+   }
+  },
+  {
+   "id": "boutique/infrastructure/37",
+   "system": "boutique",
+   "category": "infrastructure",
+   "case": "37",
+   "difficulty": "medium",
+   "query": "Partial Service Unreachability.",
+   "truth": {
+    "fault_taxonomy": "Infrastructure_Fault",
+    "fault_object": "node/worker-01",
+    "root_cause": "kubelet_unavailable"
+   }
+  },
+  {
+   "id": "boutique/infrastructure/23",
+   "system": "boutique",
+   "category": "infrastructure",
+   "case": "23",
+   "difficulty": "medium",
+   "query": "Partial Service Unreachability.",
+   "truth": {
+    "fault_taxonomy": "Infrastructure_Fault",
+    "fault_object": "node/master",
+    "root_cause": "kube_scheduler_unavailable"
+   }
+  },
+  {
+   "id": "boutique/infrastructure/8",
+   "system": "boutique",
+   "category": "infrastructure",
+   "case": "8",
+   "difficulty": "medium",
+   "query": "Partial Service Unreachability.",
+   "truth": {
+    "fault_taxonomy": "Infrastructure_Fault",
+    "fault_object": "node/worker-02",
+    "root_cause": "containerd_unavailable"
+   }
+  },
+  {
+   "id": "boutique/infrastructure/32",
+   "system": "boutique",
+   "category": "infrastructure",
+   "case": "32",
+   "difficulty": "medium",
+   "query": "Service Availability Disruption.",
+   "truth": {
+    "fault_taxonomy": "Infrastructure_Fault",
+    "fault_object": "node/worker-01",
+    "root_cause": "kubelet_unavailable"
+   }
+  },
+  {
+   "id": "boutique/infrastructure/19",
+   "system": "boutique",
+   "category": "infrastructure",
+   "case": "19",
+   "difficulty": "medium",
+   "query": "Service Availability Disruption.",
+   "truth": {
+    "fault_taxonomy": "Infrastructure_Fault",
+    "fault_object": "node/master",
+    "root_cause": "kube_scheduler_unavailable"
+   }
+  },
+  {
+   "id": "boutique/infrastructure/40",
+   "system": "boutique",
+   "category": "infrastructure",
+   "case": "40",
+   "difficulty": "medium",
+   "query": "Partial Service Unreachability.",
+   "truth": {
+    "fault_taxonomy": "Infrastructure_Fault",
+    "fault_object": "node/worker-01",
+    "root_cause": "kubelet_unavailable"
+   }
+  },
+  {
+   "id": "boutique/performance/5",
+   "system": "boutique",
+   "category": "performance",
+   "case": "5",
+   "difficulty": "hard",
+   "query": "Service latency increased significantly",
+   "truth": {
+    "fault_taxonomy": "Performance_Fault",
+    "fault_object": "app/emailservice",
+    "root_cause": "pod_cpu_overload"
+   }
+  },
+  {
+   "id": "boutique/performance/3",
+   "system": "boutique",
+   "category": "performance",
+   "case": "3",
+   "difficulty": "hard",
+   "query": "Service quality degradation.",
+   "truth": {
+    "fault_taxonomy": "Performance_Fault",
+    "fault_object": "app/checkoutservice",
+    "root_cause": "pod_cpu_overload"
+   }
+  },
+  {
+   "id": "boutique/performance/12",
+   "system": "boutique",
+   "category": "performance",
+   "case": "12",
+   "difficulty": "hard",
+   "query": "Service quality degradation.",
+   "truth": {
+    "fault_taxonomy": "Performance_Fault",
+    "fault_object": "app/adservice",
+    "root_cause": "pod_network_delay"
+   }
+  },
+  {
+   "id": "boutique/performance/18",
+   "system": "boutique",
+   "category": "performance",
+   "case": "18",
+   "difficulty": "hard",
+   "query": "Service quality degradation.",
+   "truth": {
+    "fault_taxonomy": "Performance_Fault",
+    "fault_object": "app/paymentservice",
+    "root_cause": "pod_network_delay"
+   }
+  },
+  {
+   "id": "boutique/performance/22",
+   "system": "boutique",
+   "category": "performance",
+   "case": "22",
+   "difficulty": "hard",
+   "query": "Service latency increased significantly",
+   "truth": {
+    "fault_taxonomy": "Performance_Fault",
+    "fault_object": "node/worker-02",
+    "root_cause": "node_network_delay"
+   }
+  },
+  {
+   "id": "boutique/performance/10",
+   "system": "boutique",
+   "category": "performance",
+   "case": "10",
+   "difficulty": "hard",
+   "query": "Service latency increased significantly",
+   "truth": {
+    "fault_taxonomy": "Performance_Fault",
+    "fault_object": "app/redis-cart",
+    "root_cause": "pod_cpu_overload"
+   }
+  },
+  {
+   "id": "boutique/performance/7",
+   "system": "boutique",
+   "category": "performance",
+   "case": "7",
+   "difficulty": "hard",
+   "query": "Service quality degradation.",
+   "truth": {
+    "fault_taxonomy": "Performance_Fault",
+    "fault_object": "app/paymentservice",
+    "root_cause": "pod_cpu_overload"
+   }
+  },
+  {
+   "id": "boutique/performance/11",
+   "system": "boutique",
+   "category": "performance",
+   "case": "11",
+   "difficulty": "hard",
+   "query": "Service latency increased significantly",
+   "truth": {
+    "fault_taxonomy": "Performance_Fault",
+    "fault_object": "app/shippingservice",
+    "root_cause": "pod_cpu_overload"
+   }
+  },
+  {
+   "id": "boutique/performance/9",
+   "system": "boutique",
+   "category": "performance",
+   "case": "9",
+   "difficulty": "hard",
+   "query": "Service latency increased significantly",
+   "truth": {
+    "fault_taxonomy": "Performance_Fault",
+    "fault_object": "app/recommendationservice",
+    "root_cause": "pod_cpu_overload"
+   }
+  },
+  {
+   "id": "boutique/performance/4",
+   "system": "boutique",
+   "category": "performance",
+   "case": "4",
+   "difficulty": "hard",
+   "query": "Service latency increased significantly",
+   "truth": {
+    "fault_taxonomy": "Performance_Fault",
+    "fault_object": "app/currencyservice",
+    "root_cause": "pod_cpu_overload"
+   }
+  },
+  {
+   "id": "boutique/codedefect/16",
+   "system": "boutique",
+   "category": "codedefect",
+   "case": "16",
+   "difficulty": "hard",
+   "query": "Service Availability Disruption.",
+   "truth": {
+    "fault_taxonomy": "Application_Code_Defect",
+    "fault_object": "app/checkoutservice",
+    "root_cause": "code_missing_parameter"
+   }
+  },
+  {
+   "id": "boutique/codedefect/95",
+   "system": "boutique",
+   "category": "codedefect",
+   "case": "95",
+   "difficulty": "hard",
+   "query": "Service Performance Degradation.",
+   "truth": {
+    "fault_taxonomy": "Application_Code_Defect",
+    "fault_object": "app/shippingservice",
+    "root_cause": "code_excessive_file_writes"
+   }
+  },
+  {
+   "id": "boutique/codedefect/86",
+   "system": "boutique",
+   "category": "codedefect",
+   "case": "86",
+   "difficulty": "hard",
+   "query": "Service Performance Degradation.",
+   "truth": {
+    "fault_taxonomy": "Application_Code_Defect",
+    "fault_object": "app/shippingservice",
+    "root_cause": "code_busy_loop"
+   }
+  },
+  {
+   "id": "boutique/codedefect/12",
+   "system": "boutique",
+   "category": "codedefect",
+   "case": "12",
+   "difficulty": "hard",
+   "query": "Service Availability Disruption.",
+   "truth": {
+    "fault_taxonomy": "Application_Code_Defect",
+    "fault_object": "app/checkoutservice",
+    "root_cause": "code_missing_parameter"
+   }
+  },
+  {
+   "id": "boutique/codedefect/37",
+   "system": "boutique",
+   "category": "codedefect",
+   "case": "37",
+   "difficulty": "hard",
+   "query": "Service Performance Degradation.",
+   "truth": {
+    "fault_taxonomy": "Application_Code_Defect",
+    "fault_object": "app/frontend",
+    "root_cause": "code_busy_loop"
+   }
+  },
+  {
+   "id": "boutique/codedefect/43",
+   "system": "boutique",
+   "category": "codedefect",
+   "case": "43",
+   "difficulty": "hard",
+   "query": "Service Availability Disruption.",
+   "truth": {
+    "fault_taxonomy": "Application_Code_Defect",
+    "fault_object": "app/frontend",
+    "root_cause": "code_missing_parameter"
+   }
+  },
+  {
+   "id": "boutique/codedefect/67",
+   "system": "boutique",
+   "category": "codedefect",
+   "case": "67",
+   "difficulty": "hard",
+   "query": "Service Performance Degradation.",
+   "truth": {
+    "fault_taxonomy": "Application_Code_Defect",
+    "fault_object": "app/productcatalogservice",
+    "root_cause": "code_busy_loop"
+   }
+  },
+  {
+   "id": "boutique/codedefect/7",
+   "system": "boutique",
+   "category": "codedefect",
+   "case": "7",
+   "difficulty": "hard",
+   "query": "Service Performance Degradation.",
+   "truth": {
+    "fault_taxonomy": "Application_Code_Defect",
+    "fault_object": "app/checkoutservice",
+    "root_cause": "code_busy_loop"
+   }
+  },
+  {
+   "id": "boutique/codedefect/15",
+   "system": "boutique",
+   "category": "codedefect",
+   "case": "15",
+   "difficulty": "hard",
+   "query": "Service Availability Disruption.",
+   "truth": {
+    "fault_taxonomy": "Application_Code_Defect",
+    "fault_object": "app/checkoutservice",
+    "root_cause": "code_missing_parameter"
+   }
+  },
+  {
+   "id": "boutique/codedefect/59",
+   "system": "boutique",
+   "category": "codedefect",
+   "case": "59",
+   "difficulty": "hard",
+   "query": "Service Availability Disruption.",
+   "truth": {
+    "fault_taxonomy": "Application_Code_Defect",
+    "fault_object": "app/frontend",
+    "root_cause": "code_wrong_return"
+   }
+  },
+  {
+   "id": "boutique/codedefect/91",
+   "system": "boutique",
+   "category": "codedefect",
+   "case": "91",
+   "difficulty": "hard",
+   "query": "Service Performance Degradation.",
+   "truth": {
+    "fault_taxonomy": "Application_Code_Defect",
+    "fault_object": "app/shippingservice",
+    "root_cause": "code_excessive_file_reads"
+   }
+  },
+  {
+   "id": "boutique/codedefect/55",
+   "system": "boutique",
+   "category": "codedefect",
+   "case": "55",
+   "difficulty": "hard",
+   "query": "Service Availability Disruption.",
+   "truth": {
+    "fault_taxonomy": "Application_Code_Defect",
+    "fault_object": "app/frontend",
+    "root_cause": "code_wrong_return"
+   }
+  },
+  {
+   "id": "boutique/codedefect/83",
+   "system": "boutique",
+   "category": "codedefect",
+   "case": "83",
+   "difficulty": "hard",
+   "query": "Service Performance Degradation.",
+   "truth": {
+    "fault_taxonomy": "Application_Code_Defect",
+    "fault_object": "app/productcatalogservice",
+    "root_cause": "code_excessive_file_writes"
+   }
+  },
+  {
+   "id": "boutique/codedefect/87",
+   "system": "boutique",
+   "category": "codedefect",
+   "case": "87",
+   "difficulty": "hard",
+   "query": "Service Performance Degradation.",
+   "truth": {
+    "fault_taxonomy": "Application_Code_Defect",
+    "fault_object": "app/shippingservice",
+    "root_cause": "code_busy_loop"
+   }
+  },
+  {
+   "id": "boutique/codedefect/17",
+   "system": "boutique",
+   "category": "codedefect",
+   "case": "17",
+   "difficulty": "hard",
+   "query": "Service Availability Disruption.",
+   "truth": {
+    "fault_taxonomy": "Application_Code_Defect",
+    "fault_object": "app/checkoutservice",
+    "root_cause": "code_missing_parameter"
+   }
+  },
+  {
+   "id": "boutique/codedefect/36",
+   "system": "boutique",
+   "category": "codedefect",
+   "case": "36",
+   "difficulty": "hard",
+   "query": "Service Performance Degradation.",
+   "truth": {
+    "fault_taxonomy": "Application_Code_Defect",
+    "fault_object": "app/frontend",
+    "root_cause": "code_busy_loop"
+   }
+  },
+  {
+   "id": "trainticket/service/11",
+   "system": "trainticket",
+   "category": "service",
+   "case": "11",
+   "difficulty": "medium",
+   "query": "Partial Service Unreachability.",
+   "truth": {
+    "fault_taxonomy": "Service_Routing_Fault",
+    "fault_object": "app/ts-gateway-service",
+    "root_cause": "gateway_misrouted"
+   }
+  },
+  {
+   "id": "trainticket/service/23",
+   "system": "trainticket",
+   "category": "service",
+   "case": "23",
+   "difficulty": "medium",
+   "query": "Partial Service Unreachability.",
+   "truth": {
+    "fault_taxonomy": "Service_Routing_Fault",
+    "fault_object": "app/ts-contacts-service",
+    "root_cause": "service_dns_resolution_failure"
+   }
+  },
+  {
+   "id": "trainticket/service/32",
+   "system": "trainticket",
+   "category": "service",
+   "case": "32",
+   "difficulty": "medium",
+   "query": "Service Availability Disruption.",
+   "truth": {
+    "fault_taxonomy": "Service_Routing_Fault",
+    "fault_object": "app/ts-seat-service",
+    "root_cause": "service_dns_resolution_failure"
+   }
+  },
+  {
+   "id": "trainticket/service/26",
+   "system": "trainticket",
+   "category": "service",
+   "case": "26",
+   "difficulty": "medium",
+   "query": "Service Availability Disruption.",
+   "truth": {
+    "fault_taxonomy": "Service_Routing_Fault",
+    "fault_object": "app/ts-inside-payment-service",
+    "root_cause": "service_dns_resolution_failure"
+   }
+  },
+  {
+   "id": "trainticket/service/36",
+   "system": "trainticket",
+   "category": "service",
+   "case": "36",
+   "difficulty": "medium",
+   "query": "Partial Service Unreachability.",
+   "truth": {
+    "fault_taxonomy": "Service_Routing_Fault",
+    "fault_object": "app/ts-travel-service",
+    "root_cause": "service_dns_resolution_failure"
+   }
+  },
+  {
+   "id": "trainticket/service/22",
+   "system": "trainticket",
+   "category": "service",
+   "case": "22",
+   "difficulty": "medium",
+   "query": "Partial Service Unreachability.",
+   "truth": {
+    "fault_taxonomy": "Service_Routing_Fault",
+    "fault_object": "app/ts-cancel-service",
+    "root_cause": "service_dns_resolution_failure"
+   }
+  },
+  {
+   "id": "trainticket/service/18",
+   "system": "trainticket",
+   "category": "service",
+   "case": "18",
+   "difficulty": "medium",
+   "query": "Service Availability Disruption.",
+   "truth": {
+    "fault_taxonomy": "Service_Routing_Fault",
+    "fault_object": "app/ts-gateway-service",
+    "root_cause": "gateway_misrouted"
+   }
+  },
+  {
+   "id": "trainticket/service/10",
+   "system": "trainticket",
+   "category": "service",
+   "case": "10",
+   "difficulty": "medium",
+   "query": "Partial Service Unreachability.",
+   "truth": {
+    "fault_taxonomy": "Service_Routing_Fault",
+    "fault_object": "app/ts-gateway-service",
+    "root_cause": "gateway_misrouted"
+   }
+  },
+  {
+   "id": "trainticket/service/20",
+   "system": "trainticket",
+   "category": "service",
+   "case": "20",
+   "difficulty": "medium",
+   "query": "Partial Service Unreachability.",
+   "truth": {
+    "fault_taxonomy": "Service_Routing_Fault",
+    "fault_object": "app/ts-assurance-service",
+    "root_cause": "service_dns_resolution_failure"
+   }
+  },
+  {
+   "id": "trainticket/service/27",
+   "system": "trainticket",
+   "category": "service",
+   "case": "27",
+   "difficulty": "medium",
+   "query": "Service Availability Disruption.",
+   "truth": {
+    "fault_taxonomy": "Service_Routing_Fault",
+    "fault_object": "app/ts-order-service",
+    "root_cause": "service_dns_resolution_failure"
+   }
+  },
+  {
+   "id": "trainticket/performance/40",
+   "system": "trainticket",
+   "category": "performance",
+   "case": "40",
+   "difficulty": "hard",
+   "query": "Service quality degradation.",
+   "truth": {
+    "fault_taxonomy": "Performance_Fault",
+    "fault_object": "app/ts-payment-service",
+    "root_cause": "pod_network_delay"
+   }
+  },
+  {
+   "id": "trainticket/performance/22",
+   "system": "trainticket",
+   "category": "performance",
+   "case": "22",
+   "difficulty": "hard",
+   "query": "Service quality degradation.",
+   "truth": {
+    "fault_taxonomy": "Performance_Fault",
+    "fault_object": "app/ts-gateway-service",
+    "root_cause": "pod_network_delay"
+   }
+  },
+  {
+   "id": "trainticket/performance/41",
+   "system": "trainticket",
+   "category": "performance",
+   "case": "41",
+   "difficulty": "hard",
+   "query": "Service quality degradation.",
+   "truth": {
+    "fault_taxonomy": "Performance_Fault",
+    "fault_object": "app/ts-preserve-service",
+    "root_cause": "pod_network_delay"
+   }
+  },
+  {
+   "id": "trainticket/performance/43",
+   "system": "trainticket",
+   "category": "performance",
+   "case": "43",
+   "difficulty": "hard",
+   "query": "Service quality degradation.",
+   "truth": {
+    "fault_taxonomy": "Performance_Fault",
+    "fault_object": "app/ts-seat-service",
+    "root_cause": "pod_network_delay"
+   }
+  },
+  {
+   "id": "trainticket/performance/27",
+   "system": "trainticket",
+   "category": "performance",
+   "case": "27",
+   "difficulty": "hard",
+   "query": "Service quality degradation.",
+   "truth": {
+    "fault_taxonomy": "Performance_Fault",
+    "fault_object": "app/ts-price-service",
+    "root_cause": "pod_network_delay"
+   }
+  },
+  {
+   "id": "trainticket/performance/35",
+   "system": "trainticket",
+   "category": "performance",
+   "case": "35",
+   "difficulty": "hard",
+   "query": "Service quality degradation.",
+   "truth": {
+    "fault_taxonomy": "Performance_Fault",
+    "fault_object": "app/ts-basic-service",
+    "root_cause": "pod_network_delay"
+   }
+  },
+  {
+   "id": "trainticket/performance/28",
+   "system": "trainticket",
+   "category": "performance",
+   "case": "28",
+   "difficulty": "hard",
+   "query": "Service quality degradation.",
+   "truth": {
+    "fault_taxonomy": "Performance_Fault",
+    "fault_object": "app/ts-route-service",
+    "root_cause": "pod_network_delay"
+   }
+  },
+  {
+   "id": "trainticket/performance/12",
+   "system": "trainticket",
+   "category": "performance",
+   "case": "12",
+   "difficulty": "hard",
+   "query": "Service quality degradation.",
+   "truth": {
+    "fault_taxonomy": "Performance_Fault",
+    "fault_object": "app/ts-security-service",
+    "root_cause": "pod_network_delay"
+   }
+  },
+  {
+   "id": "trainticket/performance/14",
+   "system": "trainticket",
+   "category": "performance",
+   "case": "14",
+   "difficulty": "hard",
+   "query": "Service quality degradation.",
+   "truth": {
+    "fault_taxonomy": "Performance_Fault",
+    "fault_object": "app/ts-train-service",
+    "root_cause": "pod_network_delay"
+   }
+  },
+  {
+   "id": "trainticket/performance/13",
+   "system": "trainticket",
+   "category": "performance",
+   "case": "13",
+   "difficulty": "hard",
+   "query": "Service quality degradation.",
+   "truth": {
+    "fault_taxonomy": "Performance_Fault",
+    "fault_object": "app/ts-station-service",
+    "root_cause": "pod_network_delay"
+   }
+  },
+  {
+   "id": "trainticket/performance/44",
+   "system": "trainticket",
+   "category": "performance",
+   "case": "44",
+   "difficulty": "hard",
+   "query": "Service quality degradation.",
+   "truth": {
+    "fault_taxonomy": "Performance_Fault",
+    "fault_object": "app/ts-station-service",
+    "root_cause": "pod_network_delay"
+   }
+  },
+  {
+   "id": "trainticket/performance/9",
+   "system": "trainticket",
+   "category": "performance",
+   "case": "9",
+   "difficulty": "hard",
+   "query": "Service quality degradation.",
+   "truth": {
+    "fault_taxonomy": "Performance_Fault",
+    "fault_object": "app/ts-price-service",
+    "root_cause": "pod_network_delay"
+   }
+  }
+ ]
+}

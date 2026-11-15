@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Active alerts show widespread latency and throughput degradation. Worker-02 uniquely has a new TCP retransmission spike (0.00->0.92). Most affected services (cartservice, currencyservice, emailservice, productcatalogservice, recommendationservice, shippingservice) are hosted on worker-02. Node conditions are normal and kube-proxy/containerd are healthy. Frontend and checkoutservice on worker-01 show high latency likely due to downstream calls to worker-02 services.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_packet_loss\"}, {\"rank\": 2, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/cartservice\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 11
+}

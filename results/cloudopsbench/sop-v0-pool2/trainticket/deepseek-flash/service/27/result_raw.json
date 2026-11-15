@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Only ts-order-service pod is CrashLoopBackOff (exit code 1, 4 restarts). Its application logs show java.net.UnknownHostException: tsdb-mysql-leader: Temporary failure in name resolution. The target Service tsdb-mysql-leader exists and is correctly defined. The deployment for ts-order-service sets dnsPolicy: \\\"None\\\" with a custom nameserver 10.255.7.254, which is not reachable (Istio proxy logs also show DNS timeouts to 10.255.7.254:53). This confirms pod-local DNS misconfiguration causing the availability disruption.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_packet_loss\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 7
+}

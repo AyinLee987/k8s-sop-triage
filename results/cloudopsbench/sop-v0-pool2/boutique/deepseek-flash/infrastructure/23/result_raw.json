@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Only emailservice-c86b9b8f6-92zg7 is Pending; all other service pods are Running. The pod has no node assignment, no nodeSelector/affinity, no PVC, and ample CPU/memory exists on all worker nodes. Cluster nodes are Ready and worker nodes have no taints. kube-scheduler on master is inactive (dead) since 21:23:01, so new pods cannot be scheduled, leading to emailservice unavailability and partial service unreachability.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/master\", \"root_cause\": \"kube_scheduler_unavailable\"}, {\"rank\": 2, \"fault_object\": \"app/emailservice\", \"root_cause\": \"taint_toleration_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/emailservice\", \"root_cause\": \"node_affinity_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 16
+}

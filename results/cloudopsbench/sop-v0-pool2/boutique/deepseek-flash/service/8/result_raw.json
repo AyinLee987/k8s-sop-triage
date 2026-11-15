@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All boutique pods are Running/Ready. Frontend logs show downstream failures, including connection refused to productcatalogservice at 10.68.14.88:3551. recommendationservice is configured with PRODUCT_CATALOG_SERVICE_ADDR=productcatalogservice:3551, but productcatalogservice's Service and container both use port 3550. frontend correctly uses productcatalogservice:3550, making the recommendationservice address mismatch the strongest root cause for partial service unreachability.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/recommendationservice\", \"root_cause\": \"service_env_var_address_mismatch\"}, {\"rank\": 2, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"service_port_mapping_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"service_dns_resolution_failure\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 9
+}

@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show widespread throughput drops with the most severe latency anomaly on ts-contacts-service: p50 rose to 7500 ms and p90 to 10000 ms with peak latencies far above baseline. Pods are Running/Ready without relevant restarts, and GetErrorLogs found no application errors for ts-contacts-service. Topology shows ts-contacts-service is a leaf called by ts-gateway-service and preserve services, so its extreme latency explains the propagated latency in gateway and ts-ui-dashboard.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-contacts-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-contacts-service\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-03\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 8
+}

@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show severe adservice latency degradation (p50 2.96ms→59.89ms, p90 6.43ms→213.44ms) with throughput drop and outbound traffic surge, plus secondary frontend latency. Adservice pods are Running/Ready with no restarts; error and recent logs show normal ad request handling with no errors or downstream timeouts. Source code review found no active artificial delay, busy loop, or excessive file I/O. Service dependency topology shows adservice is a leaf service with no downstream calls. These findings exclude application code and dependency failures, pointing to pod-level network delay on adservice.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/adservice\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/adservice\", \"root_cause\": \"pod_cpu_overload\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 10
+}

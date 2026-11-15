@@ -1,0 +1,138 @@
+[
+ {
+  "round": 1,
+  "case": "boutique/performance/14",
+  "truth": "pod_network_delay",
+  "sop": "boutique/service_latency_or_io_degradation",
+  "summary": "Strengthened the service latency SOP so an active money-multiplication loop is not confirmed as code_busy_loop without independent CPU evidence, and pod_network_delay is explicitly considered when latency is service-wide with healthy pods and successful downstream calls.",
+  "before": {
+   "chars": 4839,
+   "lines": 68,
+   "steps": 7
+  },
+  "after": {
+   "chars": 7038,
+   "lines": 76,
+   "steps": 7
+  }
+ },
+ {
+  "round": 2,
+  "case": "boutique/performance/23",
+  "truth": "node_network_delay",
+  "sop": "boutique/node_network_degradation",
+  "summary": "Revised node_network_degradation so a TCP retransmission increase alone is treated as non-specific and does not select node_network_packet_loss, requiring direct packet-loss evidence while allowing node-correlated latency with retransmissions to confirm node_network_delay.",
+  "before": {
+   "chars": 4120,
+   "lines": 63,
+   "steps": 6
+  },
+  "after": {
+   "chars": 6455,
+   "lines": 73,
+   "steps": 7
+  }
+ },
+ {
+  "round": 3,
+  "case": "trainticket/service/13",
+  "truth": "gateway_misrouted",
+  "sop": "trainticket/http_request_failure",
+  "summary": "Revised http_request_failure to add mandatory gateway route and gateway log inspection for HTTP 5xx business-action failures before attributing downstream application/SQL exceptions to code.",
+  "before": {
+   "chars": 7132,
+   "lines": 97,
+   "steps": 11
+  },
+  "after": {
+   "chars": 9262,
+   "lines": 107,
+   "steps": 12
+  }
+ },
+ {
+  "round": 4,
+  "case": "boutique/admission/48",
+  "truth": "namespace_service_quota_exceeded",
+  "sop": "boutique/kubernetes_object_creation_failure",
+  "summary": "Revised kubernetes_object_creation_failure to recognize a missing Service with healthy backing pods as an admission/quota symptom and require namespace service-count ResourceQuota confirmation before DNS or env-var conclusions.",
+  "before": {
+   "chars": 4421,
+   "lines": 65,
+   "steps": 6
+  },
+  "after": {
+   "chars": 6023,
+   "lines": 69,
+   "steps": 6
+  }
+ },
+ {
+  "round": 5,
+  "case": "boutique/service/2",
+  "truth": "service_env_var_address_mismatch",
+  "sop": "boutique/service_connectivity_or_routing_failure",
+  "summary": "Strengthened service_connectivity_or_routing_failure to treat caller DNS no-such-host for an existing reachable Service as an env-var address mismatch candidate and to inspect the target service's downstream address environment variables rather than concluding DNS resolution failure.",
+  "before": {
+   "chars": 3786,
+   "lines": 61,
+   "steps": 6
+  },
+  "after": {
+   "chars": 5971,
+   "lines": 69,
+   "steps": 6
+  }
+ },
+ {
+  "round": 6,
+  "case": "boutique/performance/3",
+  "truth": "pod_cpu_overload",
+  "sop": "boutique/service_cpu_or_resource_saturation",
+  "summary": "Tightened the CPU saturation SOP so a source-code loop or CPU-heavy helper alone cannot override service-level CPU CFS throttling and core increase, and pod_cpu_overload is confirmed when no measured code-level attribution exists.",
+  "before": {
+   "chars": 3610,
+   "lines": 51,
+   "steps": 5
+  },
+  "after": {
+   "chars": 5885,
+   "lines": 56,
+   "steps": 5
+  }
+ },
+ {
+  "round": 7,
+  "case": "boutique/codedefect/59",
+  "truth": "code_wrong_return",
+  "sop": "boutique/application_request_or_response_failure",
+  "summary": "Clarified application_request_or_response_failure to distinguish genuinely absent parameters from defective error-return or status selection, so valid /product/{id} requests returning 400 with an 'id not specified' message are classified as code_wrong_return rather than code_missing_parameter.",
+  "before": {
+   "chars": 4120,
+   "lines": 54,
+   "steps": 5
+  },
+  "after": {
+   "chars": 6548,
+   "lines": 60,
+   "steps": 5
+  }
+ },
+ {
+  "round": 8,
+  "case": "trainticket/service/11",
+  "truth": "gateway_misrouted",
+  "sop": "trainticket/http_request_failure",
+  "summary": "Made gateway route comparison a mandatory early step for HTTP 4xx/5xx business failures and explicitly demoted downstream NonUniqueResultException/IncorrectResultSizeDataAccessException to secondary evidence until gateway route mismatch is excluded.",
+  "before": {
+   "chars": 9263,
+   "lines": 108,
+   "steps": 12
+  },
+  "after": {
+   "chars": 9880,
+   "lines": 98,
+   "steps": 11
+  }
+ }
+]

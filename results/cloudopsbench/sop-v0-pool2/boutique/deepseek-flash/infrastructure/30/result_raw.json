@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Frontend logs show repeated connection refused to adservice at 10.68.200.162:9555. The adservice Service has no endpoints, and its only pod is stuck in ContainerCreating on worker-01. Node inspection shows worker-01 kubelet is inactive/dead; containerd remains active. Kubelet stopped exactly when it attempted to start the adservice pod sandbox, and CNI setup then failed, leaving adservice unavailable and causing partial service unreachability.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/worker-01\", \"root_cause\": \"kubelet_unavailable\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"containerd_unavailable\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_packet_loss\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 9
+}

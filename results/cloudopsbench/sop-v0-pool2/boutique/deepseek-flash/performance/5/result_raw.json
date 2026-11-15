@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show emailservice with severe p95 latency increase (+1532.7%), CPU CFS throttling (0.618s), and elevated CPU core usage (0.15 cores, +4182.4%). The emailservice pod is Running and Ready on worker-02 with 0 restarts, no error logs, normal request-processing logs, and no code-level busy loop or artificial delay found in email_server.py. Checkoutservice latency is likely downstream propagation from emailservice.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/emailservice\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 2, \"fault_object\": \"app/emailservice\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 12
+}

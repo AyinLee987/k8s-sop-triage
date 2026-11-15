@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"currencyservice shows CPU CFS throttling (1.081s) and CPU core usage rising from 0.04 to 0.17 cores (+318%), with p95 latency increasing +1891% (3.69ms to 73.49ms). checkoutservice and frontend show secondary latency increases as upstream callers. Source review of currencyservice (`server.js`) and checkoutservice (`main.go`) found no busy-loop or artificial-delay code, and currencyservice is a leaf service with no downstream dependencies. Thus the latency is driven by CPU saturation on currencyservice itself.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/currencyservice\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 2, \"fault_object\": \"app/currencyservice\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 16
+}

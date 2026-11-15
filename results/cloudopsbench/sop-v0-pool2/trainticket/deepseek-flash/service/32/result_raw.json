@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Only ts-seat-service pod is abnormal (0/2 Ready, 4 restarts) while other TrainTicket pods are Ready. The application container exits with code 1 and logs Nacos registration failure: 'Client not connected, current status:STARTING'. Istio proxy logs repeatedly show DNS lookup i/o timeouts to 10.255.14.254:53 resolving istiod.istio-system.svc. The ts-seat-service Deployment uniquely sets dnsPolicy: None with nameserver 10.255.14.254. Nacos and nacos-headless Services exist, and Nacos pods are Running, so the evidence points to pod-local DNS misconfiguration in ts-seat-service rather than a missing upstream service.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-seat-service\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-seat-service\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 7
+}

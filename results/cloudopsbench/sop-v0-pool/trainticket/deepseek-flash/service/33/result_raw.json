@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Only ts-security-service pod is abnormal (0/2 Error, repeated restarts, exit code 1). Application logs show `java.net.UnknownHostException: tsdb-mysql-leader: Temporary failure in name resolution`, and istio-proxy logs show DNS lookup timeouts to 10.255.16.254. The target Service `tsdb-mysql-leader` exists, so this is not a missing target. Deployment YAML shows `dnsPolicy: None` with custom nameserver 10.255.16.254, confirming pod-local DNS misconfiguration causing startup failure.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-security-service\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-security-service\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 8
+}

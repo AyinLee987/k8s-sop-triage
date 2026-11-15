@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Pods, Services, and Endpoints are broadly healthy. Active alerts report a 404 (19 occurrences) on POST /api/v1/travelservice/trips/left ('Search ticket') and a 500 (5 occurrences) on /api/v1/inside_pay_service/inside_payment. Inspecting ts-gateway-service config reveals the route 'travel' matching Path=/api/v1/travelservice/** is misconfigured to uri lb://${PRESERVE_SERVICE_HOST:ts-preserve-service} rather than the ts-travel-service backend. This route-target mismatch explains the frequent 404s since ts-preserve-service does not serve the travelservice endpoints. ts-travel-service logs show only benign 'Trip already exists' seed errors and no 404s, and its pod/endpoints are healthy, excluding backend failure. The 500 chain traces to ts-payment-service throwing NonUniqueResultException (query did not return a unique result: 5) - a separate application/data defect.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-gateway-service\", \"root_cause\": \"gateway_misrouted\"}, {\"rank\": 2, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"code_wrong_return\"}, {\"rank\": 3, \"fault_object\": \"app/ts-travel-service\", \"root_cause\": \"code_wrong_return\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 13
+}

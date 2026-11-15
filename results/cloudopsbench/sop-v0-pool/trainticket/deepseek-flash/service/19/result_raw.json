@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All TrainTicket pods are Running/Ready; ts-travel-service has a healthy Service and a ready endpoint at 172.20.1.243:12346. Alerts report HTTP 503 for POST /api/v1/travelservice/trips/left via ts-travel-service. Gateway configuration shows the travel route targets lb://ts-nonexistent-travel-backend instead of the real ts-travel-service, causing gateway routing failure.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-gateway-service\", \"root_cause\": \"gateway_misrouted\"}, {\"rank\": 2, \"fault_object\": \"app/ts-travel-service\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 3, \"fault_object\": \"app/ts-travel-service\", \"root_cause\": \"service_port_mapping_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 10
+}

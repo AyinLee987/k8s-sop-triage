@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"shippingservice pod is in CrashLoopBackOff with OOMKilled, exit code 137, restart count 3, under a 128Mi limit (ordinary, not a few-MiB misconfiguration). quote.go's CreateQuoteFromCount opens /src/log.csv and calls r.ReadAll() 10 times per GetQuote call without bounding memory, causing memory exhaustion under request burst. This produced shippingservice latency degradation (p90 ~2871ms) and frontend/cart 500 errors.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/shippingservice\", \"root_cause\": \"code_excessive_file_reads\"}, {\"rank\": 2, \"fault_object\": \"app/shippingservice\", \"root_cause\": \"container_memory_limit_too_low\"}, {\"rank\": 3, \"fault_object\": \"app/shippingservice\", \"root_cause\": \"code_memory_leak\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 12
+}

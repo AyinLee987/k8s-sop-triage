@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show severe latency degradation, dominated by ts-security-service (p50 +6927%, p90 +2113%). Pods are all Running/Ready with no crash/restart pattern. Application error logs are empty for ts-security-service, and recent logs show fast internal request processing (~80ms from controller entry through service calls) despite multi-second external latency. This exclusion-based pattern supports pod network delay on ts-security-service. ts-order-service has a CPU CFS throttling alert, but security logs show its downstream calls completing quickly, making that a weaker alternative.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-security-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 3, \"fault_object\": \"app/ts-preserve-service\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 8
+}

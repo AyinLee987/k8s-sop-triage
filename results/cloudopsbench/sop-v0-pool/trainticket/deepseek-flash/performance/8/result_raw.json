@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Active alerts show severe latency degradation: ts-preserve-service p50 rose from 376.71ms to 7500ms and p90 from 562.50ms to 9750ms, with ts-gateway-service and ts-ui-dashboard also affected. All pods were Running and Ready with no recent restarts. ts-preserve-service had no error logs, and recent logs showed normal processing steps and short internal timings, inconsistent with application errors or crashes. The widespread downstream latency alerts plus healthy pods and error-free application logs support pod-level network delay on the dominant latency service, ts-preserve-service.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-preserve-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-preserve-service\", \"root_cause\": \"code_artificial_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 7
+}

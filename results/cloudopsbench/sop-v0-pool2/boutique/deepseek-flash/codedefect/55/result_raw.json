@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Frontend checkout requests return HTTP 500 with 'Place order error' (196 occurrences). Checkoutservice logs show the same orders completing successfully, including payment and confirmation email. Source inspection of frontend handlers.go shows the PlaceOrder RPC succeeds, then the code unconditionally sets `err = fmt.Errorf(\\\"Place order error.\\\")` and renders an HTTP 500 before returning. This is an incorrect return/error path in frontend code.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_wrong_return\"}, {\"rank\": 2, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"code_wrong_return\"}, {\"rank\": 3, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_missing_parameter\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 13
+}

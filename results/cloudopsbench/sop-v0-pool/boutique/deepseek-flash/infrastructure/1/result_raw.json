@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"worker-01 is NotReady; all pods scheduled there are stuck in Init:0/1 while worker-02 pods run normally. kubelet logs show repeated failures connecting to /run/containerd/containerd.sock: no such file or directory. CheckNodeServiceStatus confirms containerd.service is inactive (dead) on worker-01.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/worker-01\", \"root_cause\": \"containerd_unavailable\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"kubelet_unavailable\"}, {\"rank\": 3, \"fault_object\": \"app/frontend\", \"root_cause\": \"service_connectivity_or_routing_failure\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 6
+}

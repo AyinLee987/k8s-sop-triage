@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"shippingservice has 0/1 ready replicas and no endpoints. Its ReplicaSet failed to create any pod with: pods \\\"shippingservice-6b8786b6db-\\\" is forbidden: error looking up service account boutique/shippingservices: serviceaccount \\\"shippingservices\\\" not found. All other boutique pods and services are healthy, matching partial service unreachability.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/shippingservice\", \"root_cause\": \"missing_service_account\"}, {\"rank\": 2, \"fault_object\": \"app/shippingservice\", \"root_cause\": \"missing_secret_binding\"}, {\"rank\": 3, \"fault_object\": \"app/shippingservice\", \"root_cause\": \"service_selector_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 7
+}

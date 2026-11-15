@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Frontend error logs repeatedly show `dial tcp: lookup checkoutservice on 169.254.20.10:53: no such host` (82 occurrences). The checkoutservice Service exists, has a healthy endpoint 172.20.3.231:5050, and active TCP connectivity to checkoutservice:5050 succeeds. checkoutservice has no error logs; all pods are Running/Ready; nodes are Ready with no pressure/taint issues; no active alerts exist; frontend's CHECKOUT_SERVICE_ADDR is correctly set to checkoutservice:5050. This isolates the fault to DNS resolution failure for checkoutservice rather than selector, port, protocol, or node-level routing failure.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 2, \"fault_object\": \"app/frontend\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 3, \"fault_object\": \"app/frontend\", \"root_cause\": \"service_env_var_address_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 12
+}

@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All pods Running/Ready, all Services and Endpoints present including ts-preserve-service. Alerts show 404 on POST /api/v1/preserveservice/preserve (20 occurrences). ts-preserve-service has no error logs. Gateway config shows the 'preserve' route's uri set to ts-route-service (ROUTE_SERVICE_HOST) instead of ts-preserve-service, so preserve requests are routed to the wrong backend and return 404.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-gateway-service\", \"root_cause\": \"gateway_misrouted\"}, {\"rank\": 2, \"fault_object\": \"app/ts-preserve-service\", \"root_cause\": \"service_env_var_address_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/ts-inside-payment-service\", \"root_cause\": \"code_wrong_return\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 8
+}

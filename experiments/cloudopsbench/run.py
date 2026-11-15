@@ -51,6 +51,7 @@ def main() -> int:
     ap.add_argument("--max-tokens", type=int, default=0, help="output token limit per model call (0 = the agent's default, 4096); reasoning tokens count against it")
     ap.add_argument("--llm-timeout", type=int, default=0, help="seconds per model call (0 = the agent's default, 60)")
     ap.add_argument("--system-prompt", default="", help="file that replaces the agent's harness/system_prompt.md")
+    ap.add_argument("--sop", default="", help="one version of the document-form SOP library, e.g. sops/v0")
     ap.add_argument("--communities", default="", help="JSON file grouping the notes into communities (two-level catalog)")
     ap.add_argument("--case-timeout", type=int, default=420)
     args = ap.parse_args()
@@ -72,6 +73,9 @@ def main() -> int:
         if args.tt_source:
             shutil.copy(Path(__file__).with_name("source_ext.py"), w / "source_ext.py")
             inject += "    import source_ext\n    source_ext.install(registry, context, system)\n"
+        if args.sop:
+            shutil.copy(Path(__file__).with_name("sop_ext.py"), w / "sop_ext.py")
+            inject += "    import sop_ext\n    sop_ext.install(registry, context, system)\n"
         if args.dose:
             shutil.copy(Path(__file__).with_name("experience_ext.py"), w / "experience_ext.py")
             inject += "    import experience_ext\n    experience_ext.install(registry, context)\n"
@@ -84,6 +88,8 @@ def main() -> int:
     child_env = dict(__import__("os").environ)
     if args.tt_source:
         child_env["TT_SOURCE_DIR"] = str(Path(args.tt_source).resolve())
+    if args.sop:
+        child_env["SOP_DIR"] = str(Path(args.sop).resolve())
     if args.dose:
         child_env.update(EXPERIENCE_DIR=str(Path(args.experience).resolve()), EXPERIENCE_DOSE=str(args.dose))
         if args.communities:

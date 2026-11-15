@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"redis-cart pod is Pending; scheduler event: persistentvolumeclaim \\\"redis-cart-pvc\\\" not found. No PVCs exist in boutique namespace. GetAppYAML shows redis-cart PVC requests 10Gi (RWO, storageClassName \\\"\\\"). Namespace ResourceQuota 'storage-quota' has hard limit requests.storage=1Gi (0/1Gi used). Since the PVC requests 10Gi > 1Gi quota, PVC creation is denied, leaving redis-cart's volume dependency unsatisfied and the pod unschedulable. Other pods are Running; the earlier cartservice serviceaccount FailedCreate left a Running pod, so it is not the active fault.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"namespace/boutique\", \"root_cause\": \"namespace_storage_quota_exceeded\"}, {\"rank\": 2, \"fault_object\": \"app/redis-cart\", \"root_cause\": \"pvc_capacity_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/redis-cart\", \"root_cause\": \"pvc_storage_class_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 10
+}

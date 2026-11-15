@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Widespread LATENCY_DEGRADATION alerts across ts-train-service, ts-basic-service, ts-travel-service, ts-gateway-service, ts-preserve-service, ts-ui-dashboard. All pods Running/Ready with no abnormal restarts (pod crashes excluded). ts-train-service has the most extreme delta (p50 6.71ms->2453ms +36478%, p90 9.67ms->4483ms +46258%). No error logs for ts-train-service, and its recent logs show normal internal processing with no errors — external latency without internal cause. Widespread degradation with a downstream service (ts-train-service) driving upstream latency matches an exclusion-based pod_network_delay attribution per SOP.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-train-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-basic-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"pod_cpu_overload\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 6
+}

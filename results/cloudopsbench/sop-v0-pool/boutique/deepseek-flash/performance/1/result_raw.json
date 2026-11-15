@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show adservice CPU throttling (0.824s throttled), CPU usage rising to 0.16 cores, and p95 latency increasing from 4.85ms to 70.04ms. The adservice pod is Running 2/2 with 0 restarts, has no error logs, and its YAML shows normal CPU/memory requests and limits. Source inspection of AdService.java found no busy-loop, artificial delay, or excessive I/O code pattern, supporting service pod CPU overload rather than a code-level defect.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/adservice\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 2, \"fault_object\": \"app/adservice\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 3, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 8
+}

@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Latency degradation alerts hit ts-basic (p90 49ms->1145ms), ts-food (p90 23ms->1750ms) and ts-preserve (p90 10.5s->23.6s). Pods are all Running/Ready with 0 restarts (pod surface healthy). No application error logs for ts-preserve. Preserve recent logs show normal internal processing (steps completing, orders created) but with multi-second gaps between downstream calls. ts-preserve is the common upstream caller of both ts-basic and ts-food, so a single egress network delay on ts-preserve parsimoniously explains all three degraded services while unrelated services stay healthy. Node-wide fault is unlikely since many other worker-01 pods remain healthy.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-preserve-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-food-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 8
+}

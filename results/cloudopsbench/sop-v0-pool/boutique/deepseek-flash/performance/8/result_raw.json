@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show productcatalogservice CPU throttling (1.095s throttled, CPU usage 0.03 -> 0.16 cores) and p95 latency rising from 0.57ms to 47.93ms, with frontend, checkoutservice, and recommendationservice showing downstream latency degradation. The productcatalogservice pod is Running and Ready with 0 restarts and no error logs. Its CPU limit is 200m, and the live pod has no EXTRA_LATENCY env var, so the time.Sleep(extraLatency) code path is inactive. Source inspection found no busy loop or other code-level CPU defect. Cluster nodes are Ready with ample allocatable CPU and no pressure.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 2, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 3, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"code_busy_loop\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 14
+}

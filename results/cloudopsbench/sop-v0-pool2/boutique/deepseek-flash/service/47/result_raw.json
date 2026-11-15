@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Frontend logs show dominant failures calling shippingservice at 10.68.91.181:50051 with connection refused. shippingservice has no endpoints. Its Service selector is application=shippingservice, while the running shippingservice pod has label app=shippingservice, so no pod is selected. This directly explains the partial service unreachability. Secondary frontend logs also show intermittent DNS failures resolving productcatalogservice.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/shippingservice\", \"root_cause\": \"service_selector_mismatch\"}, {\"rank\": 2, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 3, \"fault_object\": \"app/shippingservice\", \"root_cause\": \"service_port_mapping_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 8
+}

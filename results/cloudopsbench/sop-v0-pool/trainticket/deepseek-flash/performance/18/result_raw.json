@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show severe latency/throughput degradation dominated by ts-basic-service (p50 +17377%, throughput -54.1%) with propagation to ts-preserve-service and ts-travel-service. All pods are Running/Ready with no restarts. ts-basic-service error logs contain only Istio metric-scrape broken-pipe noise, excluding application errors. Recent ts-basic-service logs show normal, quick internal processing (requests completing in milliseconds) despite externally observed multi-second latency, matching the SOP exclusion-based pattern for pod network delay.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-basic-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-preserve-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"pod_cpu_overload\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 8
+}
