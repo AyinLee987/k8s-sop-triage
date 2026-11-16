@@ -1,0 +1,28 @@
+{
+ "note": "BH01-BH15, HolmesGPT + deepseek-flash, no SOP, one run each, max 100 steps (tag hard-nosop, 2026-11-16). Graded by reading every answer. strict = every root cause named with the right object and the right mechanism, and no decoy blamed. The keyword auto-grade said 15/15.",
+ "totals": {"strict_correct": 3, "all_objects_right_but_mechanism_wrong_or_undecided": 5, "wrong": 7, "auto_grade": 15,
+            "tokens": 16880741, "cached_prompt_tokens": 15320064, "agent_minutes": 86},
+ "runs": {
+  "BH01": {"strict": false, "found": "checkoutservice PAYMENT_SERVICE_ADDR", "missed": "currencyservice delay: saw product pages at ~400 ms, put it down to adservice/recommendationservice with 'no evidence of a fault'"},
+  "BH02": {"strict": false, "found": "paymentservice selector", "missed": "said the +400 ms is network-level but did not localise it; listed cartservice as healthy"},
+  "BH03": {"strict": false, "found": "checkoutservice CURRENCY_SERVICE_ADDR", "missed": "recommendationservice delay: explained 'slow' by the checkout timeout"},
+  "BH04": {"strict": false, "found": "productcatalogservice is slow", "missed": "mechanism (said CPU throttling under load); blamed cartservice and called redis-cart healthy"},
+  "BH05": {"strict": false, "found": "currencyservice is slow", "missed": "mechanism (CPU starvation first, network as alternative); shippingservice delay not seen"},
+  "BH06": {"strict": false, "found": "currencyservice is slow; adservice at 0 replicas correctly called unrelated", "missed": "mechanism (CPU starvation 'most likely')"},
+  "BH07": {"strict": true},
+  "BH08": {"strict": false, "found": "a ~300 ms network delay exists", "missed": "localised it to cartservice / the node, not redis-cart; did not blame the cartservice release"},
+  "BH09": {"strict": true, "found": "inbound network delay on shippingservice; emailservice selector correctly called a separate defect"},
+  "BH10": {"strict": true, "found": "cartservice targetPort; adservice selector correctly called secondary"},
+  "BH11": {"strict": false, "found": "productcatalogservice stalls ~200 ms on about 1 call in 10", "missed": "mechanism left open between CPU throttling and packet loss"},
+  "BH12": {"strict": false, "found": "currencyservice stalls ~200 ms", "missed": "mechanism (CPU limit)"},
+  "BH13": {"strict": false, "found": "redis-cart stalls, probe timeouts", "missed": "mechanism (CPU limit 125m)"},
+  "BH14": {"strict": false, "found": "the cart call stalls; recommendationservice at 0 replicas correctly called unrelated", "missed": "mechanism (CPU throttling as a hypothesis)"},
+  "BH15": {"strict": false, "found": "checkoutservice CART_SERVICE_ADDR; productcatalogservice stalls", "missed": "mechanism of the stalls (CPU limit); adservice at 0 replicas listed as 'root cause 2'"}
+ },
+ "patterns": [
+  "Double faults 0/5: after finding one cause the agent explains the other symptom with it or leaves it as a low-confidence remark.",
+  "Latency and loss: the service is located in 9 of 11 latency causes it looked at, but the mechanism is given as CPU throttling in 8 runs. Only BH09 (and partly BH02, BH08) says network. The earlier sweep showed CPU limits down to 1m do not slow these services.",
+  "Decoys did not mislead: in 5 of 6 runs the unrelated anomaly was reported as a separate, non-causal finding.",
+  "Config faults are easy partly because the patch leaves traces: managedFields (manager=kubectl-patch with a timestamp), the previous ReplicaSet's env, last-applied-configuration."
+ ]
+}
