@@ -1,0 +1,18 @@
+{
+ "note": "Final experiment on the generated pool (scenarios/boutique_gen.yaml) after the laptop validation of 2026-11-16: 37 of 43 injections took effect, all pods stayed ready, every reset was clean. SOPs continue from svc-sop-v4.",
+ "dropped": {
+  "BG09": "recommendationservice unreachable: frontend renders the page without recommendations, no user-visible error",
+  "BG20": "same (recommendationservice scaled to zero)",
+  "BG28": "same (recommendationservice Service selector)",
+  "BG42": "same (recommendationservice Service port)",
+  "BG15": "delay on checkoutservice only slows checkout requests: 6 slow requests of 189, below the confirm threshold",
+  "BG17": "delay on paymentservice: same, 6 of 190"
+ },
+ "moved": "BG16 and BG19 (netem) moved from mine to regress: both generated netem regress scenarios were dropped, and the regression set needs the latency class",
+ "mine_batches": [
+  ["BG01", "BG14", "BG22", "BG30", "BG36", "BG03", "BG32", "BG38"],
+  ["BG05", "BG18", "BG24", "BG33", "BG40", "BG06", "BG25", "BG41"],
+  ["BG08", "BG10", "BG11", "BG13", "BG27", "BG35", "BG43"]
+ ],
+ "regress": ["BG02", "BG04", "BG07", "BG12", "BG16", "BG19", "BG21", "BG23", "BG26", "BG29", "BG31", "BG34", "BG37", "BG39"]
+}
