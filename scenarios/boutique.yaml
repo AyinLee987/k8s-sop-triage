@@ -230,3 +230,41 @@ scenarios:
     explanation: productcatalogservice 的 Deployment 被加了环境变量 EXTRA_LATENCY=300ms，服务在处理每个请求时主动等待 300 毫秒；调用它的 frontend、recommendationservice、checkoutservice 都跟着变慢。网络和资源都没有问题。
     key_evidence: [EXTRA_LATENCY]
     accept_cause_keywords: [extra_latency, 环境变量, env]
+
+- id: B08
+  app: boutique
+  split: dev
+  kind: cross_service
+  mechanism: pod_network_delay
+  hops: 1
+  symptom: 商城页面明显变慢了，但没有报错；Pod 看起来都是正常的。
+  realism:
+    pattern: 'B04 的反面：这次延迟真的在 recommendationservice 自己的 Pod 网络上，它的下游 productcatalogservice 是好的。B04 的错例里 agent 把商品目录的延迟算到了推荐服务头上，改写后的 SOP 提醒“推荐服务慢可能是商品目录慢”；这个场景检验这条提醒会不会被用过头。区分办法：首页和下单直接调用商品目录，是快的；只有带推荐位的页面慢。'
+    sources:
+    - Cloud-OpsBench Performance
+    validated: false
+    validate_note: 只能在笔记本的 kind 上验证。确认商品页（带推荐位）耗时明显变长而首页基本不变；recommendationservice 的 Pod 仍是 Ready、没有重启（它的探针本来就偏慢，留意 Liveness probe failed 事件）。
+  inject:
+  - kubectl: ['-n', infra-tools, delete, pod, net-injector, --ignore-not-found, --wait=true, --timeout=90s]
+  - kubectl: [apply, -f, '{repo}/scenarios/netem/injector-boutique-recommendationservice.yaml']
+  - kubectl: ['-n', infra-tools, wait, --for=condition=Ready, pod/net-injector, --timeout=180s]
+  confirm:
+    timeout_s: 60
+    checks:
+    - type: http_probe
+      path: /product/OLJCESPC7Z
+      min_seconds: 0.2
+      repeat: 5
+    debug_on_fail:
+    - ['-n', infra-tools, logs, net-injector, --tail=20]
+    - ['-n', '{ns}', get, pods, -l, app=recommendationservice, -o, wide]
+  reset:
+  - kubectl: ['-n', infra-tools, delete, pod, net-injector, --ignore-not-found, --wait=true, --timeout=90s]
+  answer:
+    status: root_cause_found
+    object: {kind: Pod, name: recommendationservice}
+    accept_objects: [recommendationservice]
+    cause_category: other
+    explanation: recommendationservice 的 Pod 网络被加了约 200 毫秒延迟；带推荐位的页面（商品页、购物车页）变慢，而直接调用 productcatalogservice 的首页和下单是正常的，所以不是商品目录的问题。
+    key_evidence: [recommendationservice]
+    accept_cause_keywords: [网络, network, 延迟, latency, delay]

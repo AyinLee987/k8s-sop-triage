@@ -6,7 +6,7 @@ B = {s["id"]: s for s in load_boutique()}
 
 
 def test_boutique_specs_are_complete():
-    assert set(B) == {"B01", "B02", "B03", "B04", "B05", "B06"}
+    assert set(B) == {"B01", "B02", "B03", "B04", "B05", "B06", "B08"}
     for s in B.values():
         assert s["app"] == "boutique" and s["split"] == "dev" and s["hops"] in (1, 2)
         for key in ("symptom", "inject", "confirm", "reset", "answer", "realism"):
