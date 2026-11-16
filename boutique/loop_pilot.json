@@ -1,0 +1,17 @@
+{
+ "note": "Fix-and-verify loop, first trial (tag loop-pilot, 2026-11-16, deepseek-flash, no SOP, one run each, up to 3 rounds). Both runs ended with the agent requesting no further action and naming the network path as the remaining cause, which is the correct end state for a fault its actions cannot remove. The injector log shows the netem re-applied to every replacement pod; the namespace was restored and reset cleanly.",
+ "BH01": {"tokens": 1897543, "rounds": 2, "one_shot_result": "found the checkout address, missed the currencyservice delay",
+  "round1": {"diagnosis": "checkoutservice PAYMENT_SERVICE_ADDR (right) + currencyservice CPU limit 200m throttling (wrong mechanism)",
+             "actions": ["set_env checkoutservice PAYMENT_SERVICE_ADDR=paymentservice:50051", "set_cpu_limit currencyservice 1"],
+             "after": "checkout 8/8 ok, 0 HTTP 500; 74% of requests still >= 180 ms, median 419 ms unchanged"},
+  "round2": {"diagnosis": "a fixed ~200 ms delay on currencyservice's packet path, not CPU (unchanged after 200m -> 1 core and a new pod); tc/netem or loss on the node side; not removable with the available actions", "actions": []}},
+ "BH06": {"tokens": 2491493, "rounds": 3, "one_shot_result": "found currencyservice slow, said CPU starvation; treated adservice at 0 replicas as unrelated",
+  "round1": {"diagnosis": "adservice scaled to 0 is the only root cause (the decoy)", "actions": ["scale adservice 1"], "after": "77% of requests still >= 180 ms, median 416 ms"},
+  "round2": {"diagnosis": "currencyservice Convert +205 ms per call: runtime stall or CPU throttling", "actions": ["restart currencyservice", "set_cpu_limit currencyservice 500m"], "after": "77% still slow, median 415 ms"},
+  "round3": {"diagnosis": "~200 ms added on the network path to currencyservice, outside the pod (node/CNI-side shaping or loss); CPU and in-process stall explicitly ruled out by the two failed fixes", "actions": []}},
+ "observations": [
+  "Each wrong theory was dropped only after the fix it implied was applied and the numbers did not move.",
+  "In both runs the first diagnosis was one that an available action could fix (CPU limit, replicas). With n=2 this is an observation, not a finding.",
+  "BH06 round 1 blamed the decoy, which the one-shot run had not done: single runs vary, and round 1 here also carries a monitoring summary the one-shot prompt did not have."
+ ]
+}
