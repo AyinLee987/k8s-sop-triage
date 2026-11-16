@@ -6,7 +6,7 @@ B = {s["id"]: s for s in load_boutique()}
 
 
 def test_boutique_specs_are_complete():
-    assert set(B) == {"B01", "B02", "B03", "B04", "B05", "B06", "B07"}
+    assert set(B) == {"B01", "B02", "B03", "B04", "B05", "B06"}
     for s in B.values():
         assert s["app"] == "boutique" and s["split"] == "dev" and s["hops"] in (1, 2)
         for key in ("symptom", "inject", "confirm", "reset", "answer", "realism"):
@@ -21,7 +21,7 @@ def test_boutique_specs_are_complete():
     # same symptom, different depth: the pairs the per-service SOP experiment is about
     assert B["B01"]["symptom"] == B["B03"]["symptom"] and B["B04"]["symptom"] == B["B05"]["symptom"]
     # same symptom on the same service, other mechanism: what a rule learned from B04/B05 can get wrong
-    assert B["B06"]["symptom"] == B["B04"]["symptom"] and B["B07"]["symptom"] == B["B05"]["symptom"]
+    assert B["B06"]["symptom"] == B["B04"]["symptom"]
     assert B["B06"]["answer"]["object"]["name"] == B["B04"]["answer"]["object"]["name"]
 
 
@@ -42,6 +42,7 @@ def test_http_probe_expectations():
     assert ok._check({"type": "http_probe", "contains": "Online Boutique"})[0]
     assert not ok._check({"type": "http_probe", "expect": "fail"})[0]
     assert not ok._check({"type": "http_probe", "min_seconds": 5})[0]          # fast answer is not a latency fault
+    assert ok._check({"type": "http_probe", "repeat": 2})[0] and "median" in ok._check({"type": "http_probe"})[1]
     assert ok.k.calls[0] == ["get", "--raw", "/api/v1/namespaces/boutique/services/frontend:80/proxy/"]
     down = BoutiqueLifecycle(FakeRunner(lambda a: KubeResult(False, "", "Error from server (InternalError)", 1)), "/lab/k8s")
     assert down._check({"type": "http_probe", "expect": "fail"})[0]

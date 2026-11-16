@@ -244,13 +244,22 @@ class Lifecycle:
             # GET through the API server's service proxy (no port-forward needed). expect: ok | fail;
             # min_seconds: the request must also take at least this long (latency faults).
             path = f"/api/v1/namespaces/{ns}/services/{check.get('service', 'frontend')}:{check.get('port', 80)}/proxy{check.get('path', '/')}"
-            started = time.monotonic()
-            res = self._run(["get", "--raw", path], 40)
-            took = time.monotonic() - started
+            # repeat: take the median of several requests, so one slow request right after a restart does not count
+            times, last = [], None
+            for i in range(int(check.get("repeat", 1))):
+                if i:
+                    time.sleep(1.5)
+                started = time.monotonic()
+                last = self._run(["get", "--raw", path], 40)
+                times.append(time.monotonic() - started)
+                if not last.ok:
+                    break
+            res, took = last, sorted(times)[len(times) // 2]
             if check.get("expect", "ok") == "fail":
                 return (not res.ok) and not res.timed_out, f"GET {check.get('path', '/')} ok={res.ok} {res.stderr.strip()[:120]}"
             ok = res.ok and check.get("contains", "") in res.stdout and took >= float(check.get("min_seconds", 0))
-            return ok, f"GET {check.get('path', '/')} ok={res.ok} took={took:.2f}s (need >= {check.get('min_seconds', 0)}s)"
+            return ok, (f"GET {check.get('path', '/')} ok={res.ok} median={took:.2f}s of {[round(x, 2) for x in times]} "
+                        f"(need >= {check.get('min_seconds', 0)}s)")
         if kind == "slow_requests":
             # api request-log lines (image v3+) whose elapsed_ms is at least min_ms; needs at least `count` of them
             res = self._run(["-n", ns, "logs", "-l", check.get("selector", "app=api"), "--tail=600", "--max-log-requests=10"], 30)
@@ -428,6 +437,10 @@ class BoutiqueLifecycle(Lifecycle):
                    for c in (d.get("spec") or {}).get("template", {}).get("spec", {}).get("containers", [])]
             if got != [want]:
                 problems.append(f"{name} cpu limit {got} differs from baseline ({want})")
+        pc = self._json(["-n", self.ns, "get", "deployment", "productcatalogservice"]) or {}
+        if any(e.get("name") == "EXTRA_LATENCY" for c in (pc.get("spec") or {}).get("template", {}).get("spec", {}).get("containers", [])
+               for e in c.get("env", []) or []):
+            problems.append("productcatalogservice still has EXTRA_LATENCY set")
         if self._run(["-n", "infra-tools", "get", "pod", "net-injector"], 20).ok:
             problems.append("pod infra-tools/net-injector still exists (network delay may still be applied)")
         if not problems:
