@@ -184,7 +184,7 @@ def test_json_patch_ops_follow_rfc6902():
                 "remove": {"path"}, "move": {"from", "path"}, "copy": {"from", "path"}}
     for s in load_scenarios(split="all", source="all"):
         for step in (s.get("inject") or []) + (s.get("reset") or []):
-            args = step["kubectl"]
+            args = step.get("kubectl") or []   # a step can also be a pause ({"sleep": seconds})
             if "--type=json" not in args:
                 continue
             ops = json.loads(args[args.index("-p") + 1])

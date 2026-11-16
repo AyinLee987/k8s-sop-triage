@@ -19,8 +19,10 @@ SCENARIO_FILE = REPO / "scenarios" / "scenarios.yaml"
 BOUTIQUE_FILE = REPO / "scenarios" / "boutique.yaml"  # Online Boutique scenarios (app: boutique); never part of "handwritten"
 
 
-def load_boutique() -> list[dict]:
-    return yaml.safe_load(BOUTIQUE_FILE.read_text(encoding="utf-8"))["scenarios"] if BOUTIQUE_FILE.exists() else []
+def load_boutique(generated: bool = False) -> list[dict]:
+    """Hand-written Online Boutique scenarios (B..), or the generated pool (BG.., boutique/make_scenarios.py)."""
+    path = BOUTIQUE_FILE.with_name("boutique_gen.yaml") if generated else BOUTIQUE_FILE
+    return yaml.safe_load(path.read_text(encoding="utf-8"))["scenarios"] if path.exists() else []
 
 
 def load_noises(ids: list[str] | None = None, path: Path | None = None) -> list[dict]:
@@ -44,7 +46,7 @@ def load_scenarios(path: Path = SCENARIO_FILE, split: str | None = None, ids: li
         from triage.generator import expand
         items += expand(max_per_template=max_per_template)
     if source == "all":
-        items += load_boutique()
+        items += load_boutique() + load_boutique(generated=True)
     if ids:
         source_ids = {s["id"] for s in items}
         missing = set(ids) - source_ids
@@ -269,9 +271,10 @@ class Lifecycle:
                     rec = json.loads(line)
                 except json.JSONDecodeError:
                     continue
-                if rec.get("phase") == "request":
+                # default: the lab api's request log; `match` + `field` adapt it to another log format
+                if all(rec.get(k) == v for k, v in (check.get("match") or {"phase": "request"}).items()):
                     total += 1
-                    slow += float(rec.get("elapsed_ms") or 0) >= float(check["min_ms"])
+                    slow += float(rec.get(check.get("field", "elapsed_ms")) or 0) >= float(check["min_ms"])
             return slow >= int(check.get("count", 5)), f"{slow}/{total} requests >= {check['min_ms']} ms"
         if kind == "logs_contain":
             res = self._run(["-n", ns, "logs", "-l", check["selector"], "--tail=200", "--all-containers",
@@ -303,6 +306,9 @@ class Lifecycle:
         return value
 
     def _kubectl_step(self, step: dict, log: StepLog, phase: str) -> None:
+        if "sleep" in step:
+            time.sleep(float(step["sleep"]))
+            return
         args = [self._render(a) for a in step["kubectl"]]
         started = time.monotonic()
         res = self._run(args, 150)
@@ -397,6 +403,22 @@ class BoutiqueLifecycle(Lifecycle):
         log.add("clean_slate", True, "; ".join(notes) or "fresh pods", time.monotonic() - started)
         self.verify_healthy(log, phase="verify_fresh")
 
+    @staticmethod
+    def _shape(obj: dict) -> dict:
+        spec = obj.get("spec") or {}
+        if obj.get("kind") == "Service":
+            return {"selector": spec.get("selector"), "targetPorts": [p.get("targetPort", p.get("port")) for p in spec.get("ports", []) or []]}
+        c = ((spec.get("template") or {}).get("spec", {}).get("containers") or [{}])[0]
+        return {"replicas": spec.get("replicas", 1), "env": {e.get("name"): e.get("value") or "" for e in c.get("env", []) or []},   # the API drops empty values
+                "cpu_limit": ((c.get("resources") or {}).get("limits") or {}).get("cpu")}
+
+    def _baseline(self) -> dict:
+        if not hasattr(self, "_baseline_cache"):
+            docs = [d for d in yaml.safe_load_all((REPO / "boutique" / "kubernetes-manifests-v0.10.3.yaml").read_text(encoding="utf-8")) if d]
+            self._baseline_cache = {(d["kind"], d["metadata"]["name"]): self._shape(d) for d in docs
+                                    if d["kind"] in ("Service", "Deployment") and d["metadata"]["name"] != "frontend-external"}
+        return self._baseline_cache
+
     def health_problems(self) -> list[str]:
         problems = []
         data = self._json(["-n", self.ns, "get", "deployments,pods"])
@@ -419,28 +441,14 @@ class BoutiqueLifecycle(Lifecycle):
         for name in BOUTIQUE_DEPLOYMENTS:
             if ready.get(name, 0) < 1:
                 problems.append(f"Deployment/{name} ready {ready.get(name, 0)}/1")
-        # the objects the scenarios change must be back at the release manifest's values
-        pc = (self._json(["-n", self.ns, "get", "service", "productcatalogservice"]) or {}).get("spec") or {}
-        if [p.get("targetPort") for p in pc.get("ports", [])] != [3550]:
-            problems.append("service productcatalogservice targetPort differs from baseline (3550)")
-        rc = (self._json(["-n", self.ns, "get", "service", "redis-cart"]) or {}).get("spec") or {}
-        if rc.get("selector") != {"app": "redis-cart"}:
-            problems.append("service redis-cart selector differs from baseline")
-        co = self._json(["-n", self.ns, "get", "deployment", "checkoutservice"]) or {}
-        env = {e.get("name"): e.get("value") for c in (co.get("spec") or {}).get("template", {}).get("spec", {}).get("containers", [])
-               for e in c.get("env", []) or []}
-        if env.get("SHIPPING_SERVICE_ADDR") != "shippingservice:50051":
-            problems.append("checkoutservice SHIPPING_SERVICE_ADDR differs from baseline")
-        for name, want in (("productcatalogservice", "200m"), ("redis-cart", "125m")):
-            d = self._json(["-n", self.ns, "get", "deployment", name]) or {}
-            got = [((c.get("resources") or {}).get("limits") or {}).get("cpu")
-                   for c in (d.get("spec") or {}).get("template", {}).get("spec", {}).get("containers", [])]
-            if got != [want]:
-                problems.append(f"{name} cpu limit {got} differs from baseline ({want})")
-        pc = self._json(["-n", self.ns, "get", "deployment", "productcatalogservice"]) or {}
-        if any(e.get("name") == "EXTRA_LATENCY" for c in (pc.get("spec") or {}).get("template", {}).get("spec", {}).get("containers", [])
-               for e in c.get("env", []) or []):
-            problems.append("productcatalogservice still has EXTRA_LATENCY set")
+        # every Service and Deployment must be back at the release manifest's values (selector, targetPort,
+        # replicas, environment, CPU limit): this is what the scenarios and their harmless side changes touch
+        live = {(i["kind"], i["metadata"]["name"]): i for i in (self._json(["-n", self.ns, "get", "services,deployments"]) or {}).get("items", [])}
+        for (kind, name), want in self._baseline().items():
+            got = self._shape(live.get((kind, name)) or {"kind": kind})
+            for key, value in want.items():
+                if got.get(key) != value:
+                    problems.append(f"{kind}/{name} {key} differs from the manifest: {got.get(key)!r}")
         if self._run(["-n", "infra-tools", "get", "pod", "net-injector"], 20).ok:
             problems.append("pod infra-tools/net-injector still exists (network delay may still be applied)")
         if not problems:

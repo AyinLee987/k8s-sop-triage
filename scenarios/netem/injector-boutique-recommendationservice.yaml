@@ -1,6 +1,6 @@
-# Online Boutique 的故障注入器：给 recommendationservice 的 Pod 网卡加约 200 毫秒网络延迟（tc netem）。
+# Online Boutique 的故障注入器：给 recommendationservice 的 Pod 网卡加约 300 毫秒网络延迟（tc netem）。
 # 做法同 injector.yaml：只适用于 kind 节点；放在排障 agent 看不到的命名空间里，集群对象上没有任何痕迹。
-# 延迟取 200 毫秒（recommendationservice 是 Python，探针本身就偏慢）：kubelet 的探针默认 1 秒超时，延迟过大会让 Pod 变成 NotReady，就不再是“看起来正常”。
+# 延迟取 300 毫秒而不是更大：kubelet 的探针默认 1 秒超时，延迟过大会让 Pod 变成 NotReady，就不再是“看起来正常”。
 apiVersion: v1
 kind: Namespace
 metadata:

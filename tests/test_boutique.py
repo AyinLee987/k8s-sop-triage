@@ -76,3 +76,46 @@ def test_inject_starts_from_fresh_pods_and_leaves_no_restart_annotation():
     fault = next(i for i, c in enumerate(flat) if "redis-cart-v2" in c)
     assert wipe < fault and any("restartedAt" in c and "remove" in c for c in flat[:wipe])
     assert not any("rollout restart" in c for c in flat)
+
+
+# ---------------- generated pool ----------------
+G = {s["id"]: s for s in load_boutique(generated=True)}
+
+
+def test_generated_pool_is_complete_and_split():
+    assert len(G) >= 40 and {s["pool"] for s in G.values()} == {"mine", "regress"}
+    assert {s["template"] for s in G.values()} == {"svc_port", "selector", "env_addr", "netem", "replicas0"}
+    for s in G.values():
+        assert s["app"] == "boutique" and s["decoy"] != s["target"] and s["decoy"] not in ("frontend", "redis-cart")
+        for kw in s["answer"]["key_evidence"]:
+            assert kw.lower() not in s["symptom"].lower()
+        steps = [st for st in s["inject"] + s["reset"] if "kubectl" in st]
+        assert any("RELEASE_TAG-" in st["kubectl"] for st in s["reset"] if "kubectl" in st), "the harmless side change must be undone"
+        for st in steps:
+            args = st["kubectl"]
+            if "-n" in args:
+                assert args[args.index("-n") + 1] in ("{ns}", "infra-tools"), (s["id"], args)
+            assert "delete" not in args or args[args.index("delete") + 1] == "pod", (s["id"], args)
+            for arg in args:
+                if "{repo}/" in arg:
+                    assert (REPO / arg.split("{repo}/")[1]).exists(), arg
+    # every template appears in both pools, so a rule learned on one service is tested on another
+    for tpl in {s["template"] for s in G.values()}:
+        assert {s["pool"] for s in G.values() if s["template"] == tpl} == {"mine", "regress"}
+
+
+def test_baseline_is_read_from_the_manifest():
+    lc = BoutiqueLifecycle(FakeRunner(lambda a: KubeResult(True, "{}")), "/lab/k8s")
+    base = lc._baseline()
+    assert base[("Service", "productcatalogservice")] == {"selector": {"app": "productcatalogservice"}, "targetPorts": [3550]}
+    assert base[("Deployment", "checkoutservice")]["env"]["SHIPPING_SERVICE_ADDR"] == "shippingservice:50051"
+    assert base[("Deployment", "redis-cart")]["cpu_limit"] == "125m" and ("Service", "frontend-external") not in base
+    assert len([k for k in base if k[0] == "Deployment"]) == 12
+
+
+def test_slow_requests_reads_the_frontend_log_format():
+    import json
+    lines = "\n".join(json.dumps({"message": "request complete", "http.resp.took_ms": ms}) for ms in (5, 300, 420, 9))
+    lc = BoutiqueLifecycle(FakeRunner(lambda a: KubeResult(True, lines)), "/lab/k8s")
+    check = {"type": "slow_requests", "selector": "app=frontend", "field": "http.resp.took_ms", "match": {"message": "request complete"}, "min_ms": 180}
+    assert lc._check({**check, "count": 2})[0] and not lc._check({**check, "count": 3})[0]

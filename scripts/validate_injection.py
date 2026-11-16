@@ -63,7 +63,9 @@ def main() -> int:
     OUT.mkdir(parents=True, exist_ok=True)
     scenarios = {s["id"]: s for s in load_scenarios(split="all", source="all")}
     status = 0
-    for sid in args.ids:
+    # "BG*" = every scenario whose id starts with BG
+    ids = [i for a in args.ids for i in ([k for k in scenarios if k.startswith(a[:-1])] if a.endswith("*") else [a])]
+    for sid in ids:
         sc = scenarios[sid]
         lc = make_lifecycle(sc, admin, ns, cfg("LAB_K8S_DIR"))
         boutique = sc.get("app") == "boutique"
@@ -97,6 +99,10 @@ def main() -> int:
                 except EnvironmentError_ as exc:
                     record["reset_error"] = str(exc)
                     status = 2
+            if boutique and "snapshot" in record:
+                import re
+                rows = record["snapshot"]["pods"].splitlines()[1:]
+                record["pods_not_ready_or_restarted"] = [r.split()[0] for r in rows if not re.search(r"\s1/1\s+Running\s+0\s", r)]
             record["steps"] = log.entries
             path = OUT / f"{sid}.json"
             path.write_text(json.dumps(record, ensure_ascii=False, indent=1), encoding="utf-8")
