@@ -13,7 +13,7 @@
 # no WSL shutdown; no PVC, namespace or cluster deletion.
 [CmdletBinding()]
 param(
-    [ValidateSet('check', 'pilot', 'batch', 'validate', 'noise', 'shell')][string]$Action = 'check',
+    [ValidateSet('check', 'pilot', 'batch', 'validate', 'noise', 'shell', 'sweep')][string]$Action = 'check',
     [string]$Scenario = 'R06',
     [string]$Scenarios = '',
     [int]$Repeats = 3,
@@ -174,6 +174,7 @@ switch ($Action) {
     'noise'    { $runArgs = @('noise') }
     'validate' { $runArgs = @('validate'); if ($Scenarios) { $runArgs += ($Scenarios -split ',') } else { $runArgs += $Scenario } }
     'shell'    { $runArgs = @('shell') }
+    'sweep'    { $runArgs = @('sweep') }
     'batch'    {
         $runArgs = @('batch', '--repeats', "$Repeats")
         if ($Scenarios) { $runArgs += @('--scenarios', $Scenarios) }

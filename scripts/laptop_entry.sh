@@ -32,6 +32,7 @@ case "$cmd" in
   batch)    mint_diag; python scripts/holmes_batch.py "$@" ;;
   validate) python scripts/validate_injection.py "$@" ;;
   noise)    python scripts/validate_noise.py "$@" ;;
+  sweep)    python scripts/sweep_cpu_limit.py "$@" ;;
   shell)    exec bash ;;
-  *) echo "unknown command: $cmd (check | pilot | batch | validate | noise | shell)" >&2; exit 2 ;;
+  *) echo "unknown command: $cmd (check | pilot | batch | validate | noise | sweep | shell)" >&2; exit 2 ;;
 esac
