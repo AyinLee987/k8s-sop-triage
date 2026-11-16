@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Multiple services show sharp latency degradation while pods are Running/Ready with no restarts and no application error logs; nodes are Ready with no resource pressure and healthy kube-proxy. The dominant downstream latency source is ts-food-service (p50 18ms->6829ms, ~370x), with its callers ts-gateway-service and ts-preserve-service also degraded, and ts-ui-dashboard (worker-02) showing inherited latency via gateway. Critically, the dominant downstream candidate (ts-food-service) and its immediate callers (ts-gateway-service, ts-preserve-service) plus ts-order-service (RESOURCE_SATURATION) are all co-located on worker-01. Per the SOP this co-location of a delayed service and its callers on a single node points to node-level network delay rather than a single pod-local fault. Application error logs are empty and pods are healthy, excluding crash/code-error causes.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-food-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"pod_cpu_overload\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 12
+}

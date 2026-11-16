@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alert shows paymentservice CPU saturation with 0.614s CFS throttling, CPU usage rising to 0.16 cores, and p95 latency increasing from 4.81ms to 60.66ms. The paymentservice pod is Running 2/2 with 0 restarts on worker-02, and no application error logs were found. Its CPU limit is 200m. Source inspection of charge.js and server.js found no busy loop, excessive file reads, or artificial delay. Worker-02 CPU utilization is only 5.12%, so the fault is localized to the pod rather than the node.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/paymentservice\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 2, \"fault_object\": \"app/paymentservice\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 3, \"fault_object\": \"app/paymentservice\", \"root_cause\": \"code_excessive_file_reads\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 10
+}

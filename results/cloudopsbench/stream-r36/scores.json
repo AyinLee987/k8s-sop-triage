@@ -1,0 +1,52 @@
+{
+ "summary": {
+  "all": {
+   "n": 1,
+   "ran": 1,
+   "top1": 1,
+   "object": 1,
+   "cause": 1,
+   "top3": 1
+  },
+  "hard": {
+   "n": 1,
+   "ran": 1,
+   "top1": 1,
+   "object": 1,
+   "cause": 1,
+   "top3": 1
+  },
+  "trainticket/performance": {
+   "n": 1,
+   "ran": 1,
+   "top1": 1,
+   "object": 1,
+   "cause": 1,
+   "top3": 1
+  }
+ },
+ "rows": [
+  {
+   "id": "trainticket/performance/2",
+   "difficulty": "hard",
+   "truth": {
+    "fault_taxonomy": "Performance_Fault",
+    "fault_object": "app/ts-contacts-service",
+    "root_cause": "pod_network_delay"
+   },
+   "ran": true,
+   "top1": true,
+   "object": true,
+   "cause": true,
+   "top3": true,
+   "pred": {
+    "fault_object": "app/ts-contacts-service",
+    "root_cause": "pod_network_delay"
+   },
+   "steps": 12,
+   "finished": true,
+   "in_tok": 172679,
+   "out_tok": 22910
+  }
+ ]
+}

@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Widespread latency degradation alerts across 8 services form a single call chain rooted at the leaf ts-station-service (p50 3.31ms->2477ms, p90 4492ms ~=1.8x p50, network-delay-compatible). ts-station-service is a leaf with no downstream, pods are 2/2 Running with no restarts, no application errors (GetErrorLogs empty), and no CPU CFS-throttle alerts. ts-basic-service p50 of 7500ms ~= 3x the station's ~2500ms per-call delay, and ts-travel/ts-preserve/ts-gateway/ts-ui latency compound up the same chain, confirming station as the propagation source. Anomalous services are spread across worker-01/02/03 (gateway/preserve/station/ui on w1; basic/inside-payment on w2; travel/order on w3), so this is a service-local (pod) network fault rather than a node-wide fault. Post-incident station entry logs are fast with no internal busy-loop/resource evidence, keeping an in-process artificial-delay alternative open.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-station-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-station-service\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 12
+}

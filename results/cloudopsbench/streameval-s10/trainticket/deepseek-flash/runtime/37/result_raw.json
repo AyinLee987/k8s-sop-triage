@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Pod ts-delivery-service-787cbf858d-lt9ss is in CrashLoopBackOff with exit code 1. Application logs show repeated 'java.sql.SQLException: Access denied for user 'ts'@'172.20.3.207' (using password: YES)'. The deployment references secret ts-delivery-mysql, which contains DELIVERY_MYSQL_PASSWORD base64 WGlxemdoeW1vMzQ3 (Xiqzghymo347), while a healthy service ts-order-mysql uses Ts_123456. This indicates the delivery service is using an incorrect MySQL password.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-delivery-service\", \"root_cause\": \"mysql_invalid_credentials\"}, {\"rank\": 2, \"fault_object\": \"app/ts-delivery-service\", \"root_cause\": \"missing_secret_binding\"}, {\"rank\": 3, \"fault_object\": \"app/ts-delivery-service\", \"root_cause\": \"db_connection_exhaustion\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 9
+}

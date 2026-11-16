@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Frontend logs show the API server cannot connect to worker-01:10250 (connection refused). The frontend pod is Running/Ready on worker-01, kubelet.service on worker-01 is inactive (dead), and worker-01 is reported Unknown with unreachable taints. The Pending productcatalogservice pod is a downstream scheduling consequence because it requires worker-01, which is unreachable.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/worker-01\", \"root_cause\": \"kubelet_unavailable\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_packet_loss\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 7
+}

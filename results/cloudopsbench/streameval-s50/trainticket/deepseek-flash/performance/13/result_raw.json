@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Latency alerts form a propagation chain rooted at leaf service ts-station-service: p50 rose from 3.31ms to 2477.27ms and p90 from 6.64ms to 4492.19ms. ts-basic-service p50 rose to ~7500ms, consistent with multiple ~2.5s calls to station; ts-travel-service, ts-preserve-service, ts-gateway-service, and ts-ui-dashboard also degraded upstream. All pods are Running/Ready with no relevant restarts, and there are no CPU CFS throttle or traffic-surge alerts. Station logs show frequent handler-entry lines and same-thread reuse faster than the ~2.5s alert latency, indicating delay outside the application handler. Co-located affected services on worker-01 form one call chain, so node-wide network delay is less preferred than pod-level network delay on ts-station-service.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-station-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-station-service\", \"root_cause\": \"code_artificial_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 13
+}

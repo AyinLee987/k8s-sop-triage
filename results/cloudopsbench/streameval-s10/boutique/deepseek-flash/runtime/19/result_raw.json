@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"emailservice pod is in CrashLoopBackOff with exit code 137. Kubelet events show repeated liveness probe failures ('timeout: failed to connect service 172.20.1.163:8080 within 1s') followed by 'Container server failed liveness probe, will be restarted'. Logs show the service starts successfully and listens on port 8080 ~2 seconds after startup. The Deployment liveness probe uses initialDelaySeconds=1, periodSeconds=1, timeoutSeconds=1, failureThreshold=1, which is too aggressive and kills the container before it can become healthy. The probe port 8080 matches the container port, ruling out port mismatch.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/emailservice\", \"root_cause\": \"liveness_probe_incorrect_timing\"}, {\"rank\": 2, \"fault_object\": \"app/emailservice\", \"root_cause\": \"container_memory_limit_too_low\"}, {\"rank\": 3, \"fault_object\": \"app/emailservice\", \"root_cause\": \"liveness_probe_incorrect_port\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 7
+}

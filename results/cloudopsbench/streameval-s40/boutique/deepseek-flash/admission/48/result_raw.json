@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Checkoutservice logs repeatedly show DNS lookup failure for emailservice (`lookup emailservice on 169.254.20.10:53: no such host`). The emailservice pod is Running and Ready, but the Kubernetes Service inventory has no emailservice entry, and directly querying the emailservice Service returns NotFound. All other backend Services have populated endpoints and pods are healthy, so partial unreachability is isolated to emailservice.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/emailservice\", \"root_cause\": \"kubernetes_object_creation_failure\"}, {\"rank\": 2, \"fault_object\": \"app/emailservice\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 3, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"service_env_var_address_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 13
+}

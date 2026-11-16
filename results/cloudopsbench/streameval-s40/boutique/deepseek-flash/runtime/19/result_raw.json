@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Only emailservice is in CrashLoopBackOff. Pod events show repeated kubelet liveness probe failures to 172.20.1.163:8080 with context deadline exceeded, followed by container killing and restart. The deployment uses an aggressive liveness configuration: initialDelaySeconds=1, periodSeconds=1, timeoutSeconds=1, failureThreshold=1. Logs show the service starts normally and listens on port 8080, supporting a probe timing misconfiguration rather than an application crash or image issue.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/emailservice\", \"root_cause\": \"liveness_probe_incorrect_timing\"}, {\"rank\": 2, \"fault_object\": \"app/emailservice\", \"root_cause\": \"container_memory_limit_too_low\"}, {\"rank\": 3, \"fault_object\": \"app/emailservice\", \"root_cause\": \"liveness_probe_incorrect_protocol\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 6
+}

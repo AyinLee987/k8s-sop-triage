@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"redis-cart Pod is Pending; scheduler reports unbound immediate PersistentVolumeClaims. PVC redis-cart-pvc references StorageClass fast-sdd, and events show storageclass.storage.k8s.io \\\"fast-sdd\\\" not found. cartservice logs show Redis connection failures to redis-cart:6379, explaining partial unreachability.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/redis-cart\", \"root_cause\": \"pvc_storage_class_mismatch\"}, {\"rank\": 2, \"fault_object\": \"app/redis-cart\", \"root_cause\": \"pvc_selector_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/redis-cart\", \"root_cause\": \"pvc_capacity_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 8
+}

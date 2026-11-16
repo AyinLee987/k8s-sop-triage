@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Latency alerts affect ts-gateway-service, ts-preserve-service, and ts-ui-dashboard. ts-preserve-service has the largest degradation (p50 7.5s, p90 9.75s), while its pod is Running/Ready on worker-02 with no restarts, no error logs, no CPU CFS/throttle alerts, and handler logs showing individual preserve steps completing quickly. The dependency map shows gateway and wait-order upstream of preserve, so gateway/UI alerts are propagation. No independent co-located non-call-chain workload is degraded, making node-wide network delay unsupported. The observed multi-second latency with fast server-side handling is most consistent with pod_network_delay on ts-preserve-service.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-preserve-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-preserve-service\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 13
+}

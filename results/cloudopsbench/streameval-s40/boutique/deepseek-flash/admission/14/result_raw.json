@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Frontend checkout requests fail with connection refused to checkoutservice at 10.68.168.63:5050. checkoutservice deployment is 0/1 available and ReplicaSet checkoutservice-7545f6f597 reports FailedCreate events: pods are forbidden because namespace quota 'cpu-request-quota' is exceeded (requested requests.cpu=2, used=10, limited=10). Therefore checkoutservice cannot create a pod, leaving its Service without an endpoint and causing checkout availability disruption.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"namespace/boutique\", \"root_cause\": \"namespace_cpu_quota_exceeded\"}, {\"rank\": 2, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"cpu_capacity_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"deployment_zero_replicas\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 10
+}

@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"redis-cart pod is Pending and unschedulable. Its pod spec requires Node-Selector `disktype=ssd`, but worker nodes have label `disk-type=ssd` and the only other node (master) is SchedulingDisabled. Scheduler events explicitly report 0/4 nodes available due to node affinity/selector mismatch.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/redis-cart\", \"root_cause\": \"node_selector_mismatch\"}, {\"rank\": 2, \"fault_object\": \"app/redis-cart\", \"root_cause\": \"node_affinity_mismatch\"}, {\"rank\": 3, \"fault_object\": \"node/master\", \"root_cause\": \"node_cordon_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 5
+}

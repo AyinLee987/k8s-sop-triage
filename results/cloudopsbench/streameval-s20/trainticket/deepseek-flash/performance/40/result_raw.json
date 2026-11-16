@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Latency degradation alerts on ts-inside-payment-service (p50 300ms->6048ms) and ts-payment-service (p50 16.7ms->4464ms), both upstream of / co-located in the same call chain as ts-order-service, which is the only call-path dependency with RESOURCE_SATURATION cpu_cfs throttle (0.560s). All pods Running/Ready with no restarts, excluding crash/missing-backend/node-wide causes. ts-order-service logs show repeated heavy business work under throttling: queryOrders returning size 5634 repeatedly and getSoldTickets returning huge soldTickets lists (thousands of tickets) within milliseconds, indicating excessive application-level CPU work rather than external CPU stress. ts-inside-payment-service log timings show slow pay/order-status interactions consistent with the throttled dependency.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 2, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 3, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"pod_cpu_overload\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 7
+}

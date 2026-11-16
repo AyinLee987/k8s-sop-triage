@@ -1,0 +1,52 @@
+{
+ "summary": {
+  "all": {
+   "n": 1,
+   "ran": 1,
+   "top1": 1,
+   "object": 1,
+   "cause": 1,
+   "top3": 1
+  },
+  "hard": {
+   "n": 1,
+   "ran": 1,
+   "top1": 1,
+   "object": 1,
+   "cause": 1,
+   "top3": 1
+  },
+  "boutique/codedefect": {
+   "n": 1,
+   "ran": 1,
+   "top1": 1,
+   "object": 1,
+   "cause": 1,
+   "top3": 1
+  }
+ },
+ "rows": [
+  {
+   "id": "boutique/codedefect/16",
+   "difficulty": "hard",
+   "truth": {
+    "fault_taxonomy": "Application_Code_Defect",
+    "fault_object": "app/checkoutservice",
+    "root_cause": "code_missing_parameter"
+   },
+   "ran": true,
+   "top1": true,
+   "object": true,
+   "cause": true,
+   "top3": true,
+   "pred": {
+    "fault_object": "app/checkoutservice",
+    "root_cause": "code_missing_parameter"
+   },
+   "steps": 22,
+   "finished": true,
+   "in_tok": 298342,
+   "out_tok": 66876
+  }
+ ]
+}

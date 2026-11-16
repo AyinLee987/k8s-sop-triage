@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alert: ts-inside-payment-service LATENCY_DEGRADATION (p50 363ms→8333ms, p90→22000ms) with +139% inbound SURGE. All pods Running/Ready with no crash/restart. ts-inside-payment-service server-side pay handler durations are short (~30–800ms) despite multi-second caller-observed latency; downstream ts-payment-service and ts-order-service handlers also respond fast (<100ms). Application errors are business-logic 'order not found', not latency causes. Only ts-inside-payment-service (worker-02) alerts; other worker-02 co-located services are healthy, excluding node-wide delay. A secondary/mild RESOURCE_SATURATION cpu_cfs throttle exists on ts-order-service (worker-01) but its own logs show fast responses, making it a weaker root candidate. Caller-high/server-short latency with fast dependencies and healthy pods supports pod-level network delay on ts-inside-payment-service.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-inside-payment-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 3, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 10
+}

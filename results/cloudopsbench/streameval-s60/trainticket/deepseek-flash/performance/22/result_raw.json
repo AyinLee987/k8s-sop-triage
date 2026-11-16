@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"ts-payment-service is a leaf service with a healthy, non-restarting pod and valid ClusterIP/endpoint (172.20.2.178:19001), yet it carries the only latency-specific alert ('LATENCY_MISSING [p90latency] | Metrics dropped to zero/NaN after injection') and shows a complete 22:10:23-22:12:25 processing-log gap exactly overlapping the 22:10:28-22:12:18 alert window. Its caller ts-inside-payment-service logged a 500 Internal Server Error from /api/v1/paymentservice/payment, and ts-payment-service itself logged an IncorrectResultSizeDataAccessException. All other services show only reduced throughput/traffic (50-65% network drop) consistent with callers blocking on the stalled payment service. Pods are Ready because readiness is only a tcpSocket check; no CPU/CFS-throttle alerts, no payment restarts, and no independent node-wide co-located anomaly. This supports a blocking delay inside the payment request path.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"code_wrong_return\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 22
+}

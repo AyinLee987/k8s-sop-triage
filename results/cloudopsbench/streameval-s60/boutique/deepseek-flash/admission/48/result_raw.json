@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All boutique pods are Running and Ready, including emailservice (1/1). Service inventory lists 10 Services but no `emailservice` Service; DescribeResource on service `emailservice` returns 'Error from server (NotFound): services \\\"emailservice\\\" not found'. Checkoutservice error logs repeatedly show 'rpc error: code = Unavailable desc = connection error: ... dial tcp: lookup emailservice on 169.254.20.10:53: no such host' (7 errors/28% of logs). Checkoutservice's EMAIL_SERVICE_ADDR=emailservice:5000 is correct, and healthy pods/no alerts exclude pod crash, resource saturation, or node component faults. The absent downstream Service object causes caller DNS resolution failure despite healthy backend pod.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/emailservice\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 2, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"service_env_var_address_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/emailservice\", \"root_cause\": \"service_selector_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 13
+}

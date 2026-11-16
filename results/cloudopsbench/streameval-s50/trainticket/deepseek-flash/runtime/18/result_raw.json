@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show ts-contacts-service returning HTTP 503 for contact actions. The ts-contacts-service Service exists with selector app=ts-contacts-service and port 12347, but has empty Endpoints. No ts-contacts-service pod is present, while all listed pods are otherwise Running/Ready. The ts-contacts-service Deployment is explicitly configured with replicas: 0, confirming the missing backend and 503 failures.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-contacts-service\", \"root_cause\": \"deployment_zero_replicas\"}, {\"rank\": 2, \"fault_object\": \"app/ts-contacts-service\", \"root_cause\": \"service_selector_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/ts-contacts-service\", \"root_cause\": \"service_port_mapping_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 8
+}

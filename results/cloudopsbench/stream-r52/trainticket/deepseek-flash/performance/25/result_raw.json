@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"ts-order-service shows a RESOURCE_SATURATION CPU CFS throttle alert and is a downstream dependency of the latency-anomalous ts-inside-payment-service. Its logs show repeated queryOrders/queryOrdersForRefresh processing a very large result set (size: 6032) every 100-500ms, indicating large-result-set busy application work under CPU throttling. Caller-side (ts-inside-payment-service) order-status checks show intermittently elevated gaps (~464-572ms vs normal ms), consistent with CFS scheduling/queueing delay. ts-payment-service is a parallel leaf under ts-inside-payment-service with a large latency/error spike but fast server-side pay handlers and 'Order not found/PaymentId null' errors, consistent with retry amplification from the degraded payment flow rather than an independent root. This confirms code_busy_loop on ts-order-service as the single primary fault.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 2, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 3, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 8
+}

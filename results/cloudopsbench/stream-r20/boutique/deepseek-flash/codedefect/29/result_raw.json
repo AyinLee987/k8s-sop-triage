@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"checkoutservice is Running/Ready with no application error logs and normal CPU limits. Active alert shows CPU saturation and a filesystem-write surge. Source inspection of checkoutservice main.go shows PlaceOrder creates /tmp/tmp.csv and writes 60,000 CSV records per request before removing it, directly explaining the fs_write_bytes spike and associated CPU load.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"code_excessive_file_writes\"}, {\"rank\": 2, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 3, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"code_busy_loop\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 8
+}

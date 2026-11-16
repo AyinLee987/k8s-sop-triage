@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"RESOURCE_SATURATION [cpu_cfs] 0.560s throttled on ts-order-service (the only CPU saturation alert). ts-order-service is a direct downstream dependency of the top-degraded service ts-inside-payment-service (ERROR_SPIKE success 100%->67.6%, p50 300ms->6048ms) and of ts-payment-service (p50 16.7ms->4464ms). ts-order-service logs show heavy concurrent getSoldTickets/queryOrders processing returning thousands of tickets, a CPU-bound workload consistent with pod CPU overload causing scheduling/queue delay to callers. Pods remain Running with no crash evidence.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 2, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 3, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"pod_cpu_overload\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 9
+}

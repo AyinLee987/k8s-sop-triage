@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"redis-cart pod is Pending with FailedScheduling: 'pod has unbound immediate PersistentVolumeClaims'. The PVC redis-cart-pvc is Pending because its StorageClass 'fast-sdd' is not found (StorageClass fast-sdd not found). This blocks redis-cart from running, causing cartservice Redis connection timeouts to redis-cart:6379 and frontend partial service unreachability.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/redis-cart\", \"root_cause\": \"pvc_storage_class_mismatch\"}, {\"rank\": 2, \"fault_object\": \"app/redis-cart\", \"root_cause\": \"pvc_selector_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/redis-cart\", \"root_cause\": \"pvc_capacity_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 7
+}

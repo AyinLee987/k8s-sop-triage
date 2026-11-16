@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"ts-config-service pod ts-config-service-5cc47cd465-5v4d6 is in CreateContainerConfigError; kubelet events report `Error: secret \\\"ts-config-mysql1\\\" not found`; direct Secret lookup confirms `ts-config-mysql1` does not exist in namespace train-ticket. This blocks container startup and makes ts-config-service unavailable.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-config-service\", \"root_cause\": \"missing_secret_binding\"}, {\"rank\": 2, \"fault_object\": \"app/ts-config-service\", \"root_cause\": \"service_env_var_address_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/ts-config-service\", \"root_cause\": \"service_selector_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 5
+}

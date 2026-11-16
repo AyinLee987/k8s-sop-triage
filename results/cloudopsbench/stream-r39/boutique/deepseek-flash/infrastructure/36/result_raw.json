@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"paymentservice-5668cc5547-fzd74 is Pending because scheduler cannot place it: nodeSelector requires worker-01, but worker-01 is Unknown and tainted unreachable. CheckNodeServiceStatus shows kubelet.service on worker-01 is inactive (dead), while other nodes are Ready. This caused scheduling failure and service availability disruption.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/worker-01\", \"root_cause\": \"kubelet_unavailable\"}, {\"rank\": 2, \"fault_object\": \"app/paymentservice\", \"root_cause\": \"taint_toleration_mismatch\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_packet_loss\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 5
+}

@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Frontend errors show adservice at 10.68.139.87:9555 returning connection refused. No adservice pod exists; deployment reports 0 available replicas. ReplicaSet adservice-b7d6498c7 is in FailedCreate, repeatedly blocked by ResourceQuota cpu-quota: requested requests.cpu=1, used requests.cpu=10, limited requests.cpu=1. A transient early serviceaccount lookup error is superseded by persistent CPU quota failures, and serviceaccounts now list adservice successfully.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"namespace/boutique\", \"root_cause\": \"namespace_cpu_quota_exceeded\"}, {\"rank\": 2, \"fault_object\": \"app/adservice\", \"root_cause\": \"missing_service_account\"}, {\"rank\": 3, \"fault_object\": \"app/adservice\", \"root_cause\": \"cpu_capacity_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 11
+}

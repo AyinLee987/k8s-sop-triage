@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All TrainTicket pods are Running/Ready and Services/endpoints exist, ruling out crashloop/scaling/service-discovery faults. Alert shows POST 'Process payment' at ts-inside-payment-service (/api/v1/inside_pay_service/inside_payment) returning HTTP 500. Its error logs show the failure is a downstream call to /api/v1/paymentservice/payment returning 500. ts-payment-service logs show the actual root exception: org.springframework.dao.IncorrectResultSizeDataAccessException / javax.persistence.NonUniqueResultException 'query did not return a unique result: 5', i.e. a single-result query matched 5 rows. tsdb-mysql logs show only benign 'Aborted connection' notes, no read-only or write-rejection errors, excluding db_readonly_mode. Pod restart counts are 0 for ts-payment-service, excluding crash/restart causes. The fault is therefore an application code/query defect in ts-payment-service.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"code_wrong_argument_order\"}, {\"rank\": 2, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"code_missing_parameter\"}, {\"rank\": 3, \"fault_object\": \"app/ts-inside-payment-service\", \"root_cause\": \"code_missing_parameter\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 11
+}

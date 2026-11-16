@@ -1,0 +1,52 @@
+{
+ "summary": {
+  "all": {
+   "n": 1,
+   "ran": 1,
+   "top1": 1,
+   "object": 1,
+   "cause": 1,
+   "top3": 1
+  },
+  "hard": {
+   "n": 1,
+   "ran": 1,
+   "top1": 1,
+   "object": 1,
+   "cause": 1,
+   "top3": 1
+  },
+  "boutique/codedefect": {
+   "n": 1,
+   "ran": 1,
+   "top1": 1,
+   "object": 1,
+   "cause": 1,
+   "top3": 1
+  }
+ },
+ "rows": [
+  {
+   "id": "boutique/codedefect/69",
+   "difficulty": "hard",
+   "truth": {
+    "fault_taxonomy": "Application_Code_Defect",
+    "fault_object": "app/productcatalogservice",
+    "root_cause": "code_artificial_delay"
+   },
+   "ran": true,
+   "top1": true,
+   "object": true,
+   "cause": true,
+   "top3": true,
+   "pred": {
+    "fault_object": "app/productcatalogservice",
+    "root_cause": "code_artificial_delay"
+   },
+   "steps": 8,
+   "finished": true,
+   "in_tok": 65050,
+   "out_tok": 3506
+  }
+ ]
+}

@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show ts-basic-service with severe latency (p50 7.3s, p90 9.5s) and throughput drop; ts-travel-service and ts-preserve-service are upstream callers with propagated latency. Pods are healthy (Running/Ready, no recent restarts) and no CPU saturation alerts exist. ts-basic-service logs show fast handler completion, indicating the delay is not application processing. The dependency chain ts-preserve -> ts-travel/basic and the observed propagation make ts-basic-service the deepest anomalous service. No independent non-call-chain workload on worker-01 shows latency, weakening the node-wide network delay hypothesis.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-basic-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-basic-service\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 10
+}

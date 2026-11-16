@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Frontend logs show connection refused to shippingservice at 10.68.91.181:50051. The shippingservice Service has selector `application=shippingservice`, but its Running pod has label `app=shippingservice`. The Service reports no endpoints. Other services have matching selectors and healthy backends. This selector mismatch makes shippingservice unreachable while other services remain reachable, matching the partial service unreachability symptom.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/shippingservice\", \"root_cause\": \"service_selector_mismatch\"}, {\"rank\": 2, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 3, \"fault_object\": \"app/shippingservice\", \"root_cause\": \"service_port_mapping_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 8
+}

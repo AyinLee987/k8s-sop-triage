@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All application pods are Running/Ready with no crashloop, and cluster nodes report no pressure or taints affecting the workload. Alerts show a system-wide throughput/network drop, but the only latency-specific anomaly is ts-payment-service: LATENCY_MISSING with p90 latency dropping to zero/NaN during the alert window. ts-payment-service is a leaf dependency, and its recent logs show a ~2-minute gap from 22:10:23 to 22:12:25, matching the alert window, while the pod remains healthy. This is most consistent with pod-level network delay causing requests/metrics to fail to reach the pod, with code_artificial_delay as the next best alternative. A single older NonUniqueResultException at 22:09:50 is noted but is not sustained during the incident window.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 16
+}

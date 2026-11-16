@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show shippingservice RESOURCE_SATURATION with cpu_cfs throttled 0.594s, CPU core rising from 0.00 to 0.15 cores (+3744%), and p95 latency degrading 4.27ms->18.99ms (+345%); checkoutservice p95 latency degraded 24.23ms->62.82ms (+159%) as downstream propagation. shippingservice pod is 2/2 Running, 0 restarts, no error logs; full source (quote.go, main.go, tracker.go) is clean (no busy-loop, no excessive file reads/writes) and its 200m CPU limit is standard. checkoutservice PlaceOrder/main.go/money.go show no log.csv reads and orders complete successfully in ~10ms. Worker-02 node CPU is only 3-5%, not saturated. Evidence points to excessive CPU load on the shippingservice pod, propagating latency to checkoutservice.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/shippingservice\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 2, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 3, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 17
+}

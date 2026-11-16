@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Latency alerts on ts-gateway-service (p90 5.5s), ts-preserve-service (p50 7.5s/p90 9.75s) and ts-ui-dashboard (p90 5.5s) all lie in the UI->gateway->preserve call chain, with ts-preserve-service the deepest anomalous service. All pods are Running/Ready with zero restarts across worker-01/02/03 and no error logs for preserve. ts-preserve-service handler logs show every internal step and downstream call (security, contacts, travel, order, food) completing in ~200-300ms, i.e. fast in-process work despite 7.5s observed latency - a network-boundary signature. No CPU CFS throttle or resource-saturation alerts exist. Co-located anomalous services (preserve+ui on worker-02) are only within the same call chain, so node_network_delay is excluded. UI logs show repeated anomalously large ~955KB order/refresh responses, a secondary downstream anomaly.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-preserve-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 3, \"fault_object\": \"app/ts-preserve-service\", \"root_cause\": \"pod_cpu_overload\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 15
+}

@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show severe LATENCY_DEGRADATION on ts-preserve-service (p50 857ms->20000ms) and ts-basic-service (p50 38.9ms->6806ms), plus a RESOURCE_SATURATION cpu_cfs throttle on ts-order-service. ts-order-service is a direct downstream of the dominant caller ts-preserve-service. ts-order logs show repeated getSoldTickets returning massive ticket lists and queryOrders processing 4492-record result sets, i.e. application-level excessive/looped work under CPU throttling, which points to code_busy_loop rather than external CPU stress. All pods are Running with no restarts, excluding crash/node causes; alerts span multiple nodes (worker-01/02/03), excluding a single-node network fault.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 2, \"fault_object\": \"app/ts-basic-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"pod_cpu_overload\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 11
+}

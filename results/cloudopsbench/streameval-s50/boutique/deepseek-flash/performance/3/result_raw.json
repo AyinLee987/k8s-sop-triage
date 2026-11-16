@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alert localizes CPU CFS throttling (0.703s) and CPU rise (0.01 to 0.15 cores, +1985%) with p95 latency degradation (28.83ms to 93.18ms) to checkoutservice. checkoutservice pod is 2/2 Running with zero restarts on worker-02, has a normal 200m CPU limit, and produces no error logs / normal fast PlaceOrder logs. Source inspection (main.go and money/money.go) shows PlaceOrder calls money.MultiplySlow per order item, implemented as a CPU-intensive repeated-addition loop (for n>1 { out = Sum(out,m); n-- }) on the request path with no file I/O or elapsed-time spin. This code-level busy loop drives the CPU saturation and latency, matching code_busy_loop on checkoutservice.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 2, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 3, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"code_artificial_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 13
+}

@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"checkoutservice pod is Running but READY 0/1 with 0 restarts. Describe shows repeated readiness probe failures connecting to 172.20.2.125:5051. The Deployment YAML shows containerPort 5050 and PORT=5050, liveness probe on 5050, but readiness probe grpc port 5051. The Service targets port 5050 correctly. Thus readiness never succeeds due to an incorrect readiness probe port.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"readiness_probe_incorrect_port\"}, {\"rank\": 2, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"liveness_probe_incorrect_port\"}, {\"rank\": 3, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"service_port_mapping_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 4
+}

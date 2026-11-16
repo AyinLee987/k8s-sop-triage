@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show checkoutservice CPU CFS throttling (0.703s) and CPU core usage spike from 0.01 to 0.15 cores (+1985.6%) with p95 latency increase to 93.18ms. Pods are Running/Ready with no restarts, no error logs, and CPU limit is normal (200m). Source inspection of checkoutservice reveals money.MultiplySlow uses an active CPU-consuming loop (repeated addition n-1 times) on the PlaceOrder request path, matching the observed CPU saturation and throttling.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 2, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 3, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 9
+}

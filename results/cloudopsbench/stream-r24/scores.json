@@ -1,0 +1,52 @@
+{
+ "summary": {
+  "all": {
+   "n": 1,
+   "ran": 1,
+   "top1": 0,
+   "object": 1,
+   "cause": 0,
+   "top3": 0
+  },
+  "hard": {
+   "n": 1,
+   "ran": 1,
+   "top1": 0,
+   "object": 1,
+   "cause": 0,
+   "top3": 0
+  },
+  "boutique/codedefect": {
+   "n": 1,
+   "ran": 1,
+   "top1": 0,
+   "object": 1,
+   "cause": 0,
+   "top3": 0
+  }
+ },
+ "rows": [
+  {
+   "id": "boutique/codedefect/92",
+   "difficulty": "hard",
+   "truth": {
+    "fault_taxonomy": "Application_Code_Defect",
+    "fault_object": "app/shippingservice",
+    "root_cause": "code_excessive_file_reads"
+   },
+   "ran": true,
+   "top1": false,
+   "object": true,
+   "cause": false,
+   "top3": false,
+   "pred": {
+    "fault_object": "app/shippingservice",
+    "root_cause": "container_memory_limit_too_low"
+   },
+   "steps": 7,
+   "finished": true,
+   "in_tok": 63465,
+   "out_tok": 2249
+  }
+ ]
+}

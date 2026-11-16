@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show RESOURCE_SATURATION cpu_cfs throttling on ts-order-service, while ts-preserve-service and upstream gateway/UI show propagated latency. The dependency map confirms ts-order-service is downstream of ts-preserve-service. All affected pods are Running/Ready, and ts-order-service logs show heavy order-query processing with very large sold-ticket sets. ts-contacts-service has an extreme latency spike but its server-side handler logs complete quickly, making pod/network delay an alternative rather than the primary finding.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 2, \"fault_object\": \"app/ts-contacts-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 10
+}

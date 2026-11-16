@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show severe LATENCY_DEGRADATION and throughput drop (RPS -81%, p50 +15445%) for ts-seat-service. Its upstream callers ts-preserve-service, ts-travel-service, ts-gateway-service, and ts-ui-dashboard also alert, consistent with propagation from a downstream callee. All pods are Running/Ready with no shared-node pattern; ts-seat-service is on worker-01 while upstream affected services are on worker-02/worker-03. GetErrorLogs found no application errors for ts-seat-service, and recent logs show fast successful internal processing with order-service responses in ~5-27ms, supporting external pod network delay rather than application/internal delay or node-wide network fault.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-seat-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-seat-service\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 7
+}

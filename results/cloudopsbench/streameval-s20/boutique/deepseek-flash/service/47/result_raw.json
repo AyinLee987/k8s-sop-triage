@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"shippingservice Service uses selector 'application=shippingservice' while all backend pods carry label 'app=shippingservice'. DescribeResource shows the Service has empty Endpoints, so traffic to shippingservice cannot reach its healthy, Running pod (shippingservice-7cbfcb6d68-47wzk 1/1 Running). All other services use matching app= selectors and their pods are healthy, explaining partial service unreachability isolated to shippingservice.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/shippingservice\", \"root_cause\": \"service_selector_mismatch\"}, {\"rank\": 2, \"fault_object\": \"app/shippingservice\", \"root_cause\": \"service_port_mapping_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/shippingservice\", \"root_cause\": \"service_env_var_address_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 6
+}

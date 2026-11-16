@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Frontend errors repeatedly show cartservice unable to connect to redis-cart:6379. The redis-cart pod is Pending and unschedulable because its PVC redis-cart-pvc is unbound. PVC events show storageclass.storage.k8s.io \\\"fast-sdd\\\" not found, confirming a storage class mismatch for redis-cart.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/redis-cart\", \"root_cause\": \"pvc_storage_class_mismatch\"}, {\"rank\": 2, \"fault_object\": \"app/redis-cart\", \"root_cause\": \"pvc_capacity_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/redis-cart\", \"root_cause\": \"pvc_access_mode_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 9
+}

@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All non-frontend pods were Running and Ready, but the frontend Deployment had 0/1 available replicas and no frontend pod existed. The frontend ReplicaSet reported `FailedCreate` repeatedly with: `pods ... is forbidden: exceeded quota: pod-count-quota, requested: pods=1, used: pods=10, limited: pods=10`. This prevented frontend pod creation and caused the frontend Service to be unreachable while other services remained healthy.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"namespace/boutique\", \"root_cause\": \"namespace_pod_quota_exceeded\"}, {\"rank\": 2, \"fault_object\": \"namespace/boutique\", \"root_cause\": \"namespace_cpu_quota_exceeded\"}, {\"rank\": 3, \"fault_object\": \"namespace/boutique\", \"root_cause\": \"namespace_memory_quota_exceeded\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 10
+}

@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Frontend logs show 82 checkout errors caused by DNS lookup failure: `lookup checkoutservice on 169.254.20.10:53: no such host`. The `checkoutservice` Service exists with the correct selector, endpoint 172.20.3.231:5050, and TCP connectivity to checkoutservice:5050 succeeds. Its pod is Running and Ready, and checkoutservice logs show successful order processing after the errors. Frontend's CHECKOUT_SERVICE_ADDR is correctly set to checkoutservice:5050, ruling out an address/port/selector misconfiguration and isolating the issue to DNS resolution of checkoutservice.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 2, \"fault_object\": \"app/frontend\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 3, \"fault_object\": \"app/frontend\", \"root_cause\": \"service_env_var_address_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 12
+}

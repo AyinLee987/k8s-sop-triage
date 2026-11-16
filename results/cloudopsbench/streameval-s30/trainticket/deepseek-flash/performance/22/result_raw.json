@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All pods are Running/Ready. ts-payment-service is the only service with LATENCY_MISSING and has a clean ~2-minute application-log gap (22:10:23 to 22:12:25) matching the alert window (22:10:28 to 22:12:18). Upstream services show traffic/throughput drops but no crashes, and tsdb-mysql has no error logs. No CPU CFS throttle or resource-saturation alerts are present. This indicates requests were not reaching the ts-payment-service application container during the incident, consistent with pod-level network delay; global throughput degradation is downstream propagation.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 15
+}

@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show shippingservice CPU CFS throttling, a large CPU-core increase, and elevated p95 latency; checkoutservice p95 latency also rises downstream. All pods are Running and Ready with zero restarts. The complete shippingservice request-path source (main.go, quote.go, tracker.go) contains no busy loop, blocking sleep, repeated file read, or per-request file write, and its CPU limit is an ordinary 200m. Node worker-02 CPU is only mildly elevated, so the primary anomaly is excessive CPU demand localized to the shippingservice pod.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/shippingservice\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 2, \"fault_object\": \"app/shippingservice\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 3, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 12
+}

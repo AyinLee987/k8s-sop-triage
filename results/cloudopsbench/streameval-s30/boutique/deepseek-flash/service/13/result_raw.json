@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Frontend logs show repeated RPC Unavailable / connection refused to productcatalogservice at 10.68.1.75:3550. The productcatalogservice Service maps port 3550/TCP to targetPort 8081/TCP with endpoint 172.20.1.16:8081, but the container only declares containerPort 3550 and listens on PORT=3550 with gRPC probes on 3550. Nothing listens on 8081, so traffic is refused. All pods are Running/Ready, confirming a Service port mapping fault.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"service_port_mapping_mismatch\"}, {\"rank\": 2, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"service_protocol_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/frontend\", \"root_cause\": \"service_env_var_address_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 8
+}

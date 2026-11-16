@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show LATENCY_DEGRADATION on ts-preserve-service (p90 8983ms->22000ms) and ts-ui-dashboard, plus RESOURCE_SATURATION cpu_cfs throttle on ts-order-service. Dependency tracing confirms ts-preserve-service directly calls ts-order-service. ts-order-service logs show repeated getSoldTickets invocations returning enormous ticket lists and queryOrders with size 5841, i.e. large result-set processing/tight repeated business work under CPU throttling — the SOP signature of code_busy_loop rather than external pod CPU stress. Caller-observed Do Order/createOrder latency is elevated, consistent with slow outbound calls to the throttled dependency. ts-preserve/ts-ui latency is upstream propagation.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 2, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 3, \"fault_object\": \"app/ts-preserve-service\", \"root_cause\": \"code_artificial_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 6
+}

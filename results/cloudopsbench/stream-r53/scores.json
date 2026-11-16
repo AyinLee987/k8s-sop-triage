@@ -1,0 +1,52 @@
+{
+ "summary": {
+  "all": {
+   "n": 1,
+   "ran": 1,
+   "top1": 1,
+   "object": 1,
+   "cause": 1,
+   "top3": 1
+  },
+  "medium": {
+   "n": 1,
+   "ran": 1,
+   "top1": 1,
+   "object": 1,
+   "cause": 1,
+   "top3": 1
+  },
+  "boutique/infrastructure": {
+   "n": 1,
+   "ran": 1,
+   "top1": 1,
+   "object": 1,
+   "cause": 1,
+   "top3": 1
+  }
+ },
+ "rows": [
+  {
+   "id": "boutique/infrastructure/1",
+   "difficulty": "medium",
+   "truth": {
+    "fault_taxonomy": "Infrastructure_Fault",
+    "fault_object": "node/worker-01",
+    "root_cause": "containerd_unavailable"
+   },
+   "ran": true,
+   "top1": true,
+   "object": true,
+   "cause": true,
+   "top3": true,
+   "pred": {
+    "fault_object": "node/worker-01",
+    "root_cause": "containerd_unavailable"
+   },
+   "steps": 5,
+   "finished": true,
+   "in_tok": 35660,
+   "out_tok": 1312
+  }
+ ]
+}

@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Widespread latency and throughput degradation affected multiple boutique services. Pod placement shows many affected services on worker-02. Alerts uniquely report a TCP retransmission spike on worker-02, while kube-proxy and containerd are active/running and the node is Ready with no memory, disk, PID, or network-unavailable conditions. cartservice logs show normal request processing without application errors, supporting a node-network packet-loss cause rather than an app code fault.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_packet_loss\"}, {\"rank\": 2, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/cartservice\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 12
+}

@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"paymentservice pod restarted twice with last termination exit code 137 after kubelet reported repeated liveness probe failures: HTTP GET on port 50051 returned a malformed HTTP response because port 50051 serves gRPC, not HTTP. Deployment YAML confirms readinessProbe uses grpc:50051 but livenessProbe incorrectly uses httpGet path / on port 50051. All other pods were Running with no restarts.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/paymentservice\", \"root_cause\": \"liveness_probe_incorrect_protocol\"}, {\"rank\": 2, \"fault_object\": \"app/paymentservice\", \"root_cause\": \"container_memory_limit_too_low\"}, {\"rank\": 3, \"fault_object\": \"app/paymentservice\", \"root_cause\": \"liveness_probe_incorrect_port\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 5
+}

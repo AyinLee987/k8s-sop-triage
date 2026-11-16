@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show shippingservice p95 latency rising from 4.27ms to 18.99ms with CPU CFS throttling (0.594s) and CPU usage rising to 0.15 cores. All shippingservice pods are 2/2 Running with 0 restarts; recent logs show GetQuote/ShipOrder received and completed within microseconds and no error logs. Source review of main.go, quote.go, and tracker.go found no busy loop, blocking delay, excessive file reads, or per-request file writes. Shippingservice is a leaf service called by checkoutservice/frontend, and checkoutservice latency is likely secondary to the throttled shipping backend.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/shippingservice\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 2, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 3, \"fault_object\": \"app/shippingservice\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 16
+}

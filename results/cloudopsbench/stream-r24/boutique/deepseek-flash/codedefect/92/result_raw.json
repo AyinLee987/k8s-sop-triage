@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"shippingservice pod is in CrashLoopBackOff with last termination reason OOMKilled and exit code 137. Its server container has memory limit 128Mi, which is low for the service. Frontend logs show failures to get shipping quotes with 'no healthy upstream', and alerts show shippingservice latency degradation, consistent with the OOM-restarting pod.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/shippingservice\", \"root_cause\": \"container_memory_limit_too_low\"}, {\"rank\": 2, \"fault_object\": \"app/shippingservice\", \"root_cause\": \"code_memory_leak\"}, {\"rank\": 3, \"fault_object\": \"app/shippingservice\", \"root_cause\": \"memory_capacity_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 7
+}

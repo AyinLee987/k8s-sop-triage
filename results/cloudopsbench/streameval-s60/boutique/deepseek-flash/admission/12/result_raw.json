@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Frontend logs show repeated connection refused to adservice at 10.68.139.87:9555. The adservice Service has no endpoints; the adservice Deployment is 0/1 with no pods; and ReplicaSet events repeatedly report FailedCreate: exceeded quota cpu-quota, requested requests.cpu=1, used=10, limited=1. This explains partial service unreachability: adservice cannot create a backend pod because the namespace CPU quota is exhausted, so the Service has no endpoints.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"namespace/boutique\", \"root_cause\": \"namespace_cpu_quota_exceeded\"}, {\"rank\": 2, \"fault_object\": \"app/adservice\", \"root_cause\": \"missing_service_account\"}, {\"rank\": 3, \"fault_object\": \"namespace/boutique\", \"root_cause\": \"namespace_pod_quota_exceeded\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 11
+}

@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alert reports HTTP 503 on POST /api/v1/travelservice/trips/left (Search ticket) via entry service ts-travel-service. All TrainTicket pods are Running, and ts-travel-service plus its downstream dependencies have valid endpoints. ts-travel-service application logs show normal request processing, and its downstream services show no relevant errors. The gateway ConfigMap shows the route for Path=/api/v1/travelservice/** configured with uri lb://ts-nonexistent-travel-backend instead of the expected backend ts-travel-service, confirming a gateway route-to-backend mismatch.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-gateway-service\", \"root_cause\": \"gateway_misrouted\"}, {\"rank\": 2, \"fault_object\": \"app/ts-travel-service\", \"root_cause\": \"gateway_misrouted\"}, {\"rank\": 3, \"fault_object\": \"app/ts-gateway-service\", \"root_cause\": \"service_dns_resolution_failure\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 16
+}

@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Cluster-wide latency and throughput degradation correlates with a unique HIGH TCP retransmission spike on node worker-02. Multiple affected backend services (cartservice, currencyservice, productcatalogservice, recommendationservice, shippingservice, emailservice) are colocated on worker-02, while kube-proxy and containerd are healthy. Upstream frontend/checkout latency is consistent with propagation from degraded worker-02 backends.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_packet_loss\"}, {\"rank\": 2, \"fault_object\": \"app/cartservice\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/cartservice\", \"root_cause\": \"code_artificial_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 8
+}

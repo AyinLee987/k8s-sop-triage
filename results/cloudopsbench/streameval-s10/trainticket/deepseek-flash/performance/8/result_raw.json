@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show LATENCY_DEGRADATION on ts-preserve-service (p50 7500ms, p90 9750ms, worst), with ts-gateway-service and ts-ui-dashboard degraded as upstream callers. ts-preserve-service is the deepest alerted service; none of its downstream dependencies (basic, security, contacts, user, travel, seat, assurance, food, consign, order) alert. All pods are Running/Ready with no restarts, no error logs for preserve, and its handler logs show fast internal processing (~200ms) and fast outbound calls. No CPU CFS throttle or traffic-surge alerts exist, and only call-chain services (gateway, preserve, UI) are degraded while other worker-02 co-located services remain normal, excluding node-wide network delay. The mismatch between fast server-side handling and high caller-observed latency with healthy pods and no app errors indicates pod-level network delay on ts-preserve-service.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-preserve-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-preserve-service\", \"root_cause\": \"code_artificial_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 10
+}

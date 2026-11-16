@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Widespread LATENCY_DEGRADATION alerts affect multiple TrainTicket services, with ts-price-service showing the most extreme relative increase (p50 5.95ms -> 2436.17ms, p90 9.19ms -> 4476.74ms). All pods are Running/Ready with no crash pattern; ts-price-service has no application error logs, and recent logs show normal controller/service execution pairs without internal errors, supporting network delay on ts-price-service rather than application failure.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-price-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-price-service\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-03\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 8
+}

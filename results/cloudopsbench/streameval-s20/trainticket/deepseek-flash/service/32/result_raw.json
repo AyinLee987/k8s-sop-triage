@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Only ts-seat-service is abnormal: pod ts-seat-service-594847b77f-rsbbh is 0/2 Ready with 4 restarts. The app exits with code 1 because it cannot connect to Nacos at startup; istio-proxy logs repeatedly show DNS timeouts resolving istiod.istio-system.svc via the custom nameserver 10.255.14.254:53. The ts-seat-service Deployment uses dnsPolicy None with dnsConfig nameserver 10.255.14.254, directly causing pod-local DNS resolution failure.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-seat-service\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 2, \"fault_object\": \"app/ts-seat-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 6
+}

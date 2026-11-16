@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show severe latency increases for adservice, checkoutservice, and recommendationservice, all scheduled on worker-02. worker-02 has a high-magnitude new TCP retransmission spike (6.67 vs normal 0), while node conditions are healthy and kube-proxy/containerd are running. worker-01 has a smaller retransmission increase, but the latency-affected services are colocated on worker-02.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_packet_loss\"}, {\"rank\": 2, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_packet_loss\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 8
+}

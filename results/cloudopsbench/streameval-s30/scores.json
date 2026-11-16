@@ -1,0 +1,1146 @@
+{
+ "summary": {
+  "all": {
+   "n": 46,
+   "ran": 46,
+   "top1": 34,
+   "object": 39,
+   "cause": 35,
+   "top3": 38
+  },
+  "medium": {
+   "n": 17,
+   "ran": 17,
+   "top1": 12,
+   "object": 13,
+   "cause": 12,
+   "top3": 12
+  },
+  "boutique/admission": {
+   "n": 5,
+   "ran": 5,
+   "top1": 4,
+   "object": 4,
+   "cause": 4,
+   "top3": 4
+  },
+  "boutique/service": {
+   "n": 4,
+   "ran": 4,
+   "top1": 3,
+   "object": 4,
+   "cause": 3,
+   "top3": 3
+  },
+  "boutique/infrastructure": {
+   "n": 3,
+   "ran": 3,
+   "top1": 3,
+   "object": 3,
+   "cause": 3,
+   "top3": 3
+  },
+  "hard": {
+   "n": 16,
+   "ran": 16,
+   "top1": 10,
+   "object": 13,
+   "cause": 11,
+   "top3": 13
+  },
+  "boutique/performance": {
+   "n": 6,
+   "ran": 6,
+   "top1": 4,
+   "object": 6,
+   "cause": 4,
+   "top3": 6
+  },
+  "boutique/codedefect": {
+   "n": 5,
+   "ran": 5,
+   "top1": 4,
+   "object": 5,
+   "cause": 4,
+   "top3": 5
+  },
+  "easy": {
+   "n": 13,
+   "ran": 13,
+   "top1": 12,
+   "object": 13,
+   "cause": 12,
+   "top3": 13
+  },
+  "boutique/runtime": {
+   "n": 3,
+   "ran": 3,
+   "top1": 3,
+   "object": 3,
+   "cause": 3,
+   "top3": 3
+  },
+  "boutique/scheduling": {
+   "n": 3,
+   "ran": 3,
+   "top1": 3,
+   "object": 3,
+   "cause": 3,
+   "top3": 3
+  },
+  "boutique/startup": {
+   "n": 3,
+   "ran": 3,
+   "top1": 2,
+   "object": 3,
+   "cause": 2,
+   "top3": 3
+  },
+  "trainticket/runtime": {
+   "n": 3,
+   "ran": 3,
+   "top1": 3,
+   "object": 3,
+   "cause": 3,
+   "top3": 3
+  },
+  "trainticket/startup": {
+   "n": 1,
+   "ran": 1,
+   "top1": 1,
+   "object": 1,
+   "cause": 1,
+   "top3": 1
+  },
+  "trainticket/service": {
+   "n": 5,
+   "ran": 5,
+   "top1": 2,
+   "object": 2,
+   "cause": 2,
+   "top3": 2
+  },
+  "trainticket/performance": {
+   "n": 5,
+   "ran": 5,
+   "top1": 2,
+   "object": 2,
+   "cause": 3,
+   "top3": 2
+  }
+ },
+ "rows": [
+  {
+   "id": "boutique/admission/14",
+   "difficulty": "medium",
+   "truth": {
+    "fault_taxonomy": "Admission_Fault",
+    "fault_object": "namespace/boutique",
+    "root_cause": "namespace_cpu_quota_exceeded"
+   },
+   "ran": true,
+   "top1": true,
+   "object": true,
+   "cause": true,
+   "top3": true,
+   "pred": {
+    "fault_object": "namespace/boutique",
+    "root_cause": "namespace_cpu_quota_exceeded"
+   },
+   "steps": 6,
+   "finished": true,
+   "in_tok": 38494,
+   "out_tok": 1277
+  },
+  {
+   "id": "boutique/service/13",
+   "difficulty": "medium",
+   "truth": {
+    "fault_taxonomy": "Service_Routing_Fault",
+    "fault_object": "app/productcatalogservice",
+    "root_cause": "service_port_mapping_mismatch"
+   },
+   "ran": true,
+   "top1": true,
+   "object": true,
+   "cause": true,
+   "top3": true,
+   "pred": {
+    "fault_object": "app/productcatalogservice",
+    "root_cause": "service_port_mapping_mismatch"
+   },
+   "steps": 8,
+   "finished": true,
+   "in_tok": 59208,
+   "out_tok": 2084
+  },
+  {
+   "id": "boutique/infrastructure/13",
+   "difficulty": "medium",
+   "truth": {
+    "fault_taxonomy": "Infrastructure_Fault",
+    "fault_object": "node/worker-01",
+    "root_cause": "kube_proxy_unavailable"
+   },
+   "ran": true,
+   "top1": true,
+   "object": true,
+   "cause": true,
+   "top3": true,
+   "pred": {
+    "fault_object": "node/worker-01",
+    "root_cause": "kube_proxy_unavailable"
+   },
+   "steps": 15,
+   "finished": true,
+   "in_tok": 194003,
+   "out_tok": 11331
+  },
+  {
+   "id": "boutique/performance/2",
+   "difficulty": "hard",
+   "truth": {
+    "fault_taxonomy": "Performance_Fault",
+    "fault_object": "app/cartservice",
+    "root_cause": "pod_cpu_overload"
+   },
+   "ran": true,
+   "top1": true,
+   "object": true,
+   "cause": true,
+   "top3": true,
+   "pred": {
+    "fault_object": "app/cartservice",
+    "root_cause": "pod_cpu_overload"
+   },
+   "steps": 15,
+   "finished": true,
+   "in_tok": 178778,
+   "out_tok": 29316
+  },
+  {
+   "id": "boutique/codedefect/10",
+   "difficulty": "hard",
+   "truth": {
+    "fault_taxonomy": "Application_Code_Defect",
+    "fault_object": "app/checkoutservice",
+    "root_cause": "code_artificial_delay"
+   },
+   "ran": true,
+   "top1": true,
+   "object": true,
+   "cause": true,
+   "top3": true,
+   "pred": {
+    "fault_object": "app/checkoutservice",
+    "root_cause": "code_artificial_delay"
+   },
+   "steps": 8,
+   "finished": true,
+   "in_tok": 87332,
+   "out_tok": 1587
+  },
+  {
+   "id": "boutique/runtime/19",
+   "difficulty": "easy",
+   "truth": {
+    "fault_taxonomy": "Runtime_Fault",
+    "fault_object": "app/emailservice",
+    "root_cause": "liveness_probe_incorrect_timing"
+   },
+   "ran": true,
+   "top1": true,
+   "object": true,
+   "cause": true,
+   "top3": true,
+   "pred": {
+    "fault_object": "app/emailservice",
+    "root_cause": "liveness_probe_incorrect_timing"
+   },
+   "steps": 7,
+   "finished": true,
+   "in_tok": 51312,
+   "out_tok": 2912
+  },
+  {
+   "id": "boutique/runtime/5",
+   "difficulty": "easy",
+   "truth": {
+    "fault_taxonomy": "Runtime_Fault",
+    "fault_object": "app/paymentservice",
+    "root_cause": "liveness_probe_incorrect_protocol"
+   },
+   "ran": true,
+   "top1": true,
+   "object": true,
+   "cause": true,
+   "top3": true,
+   "pred": {
+    "fault_object": "app/paymentservice",
+    "root_cause": "liveness_probe_incorrect_protocol"
+   },
+   "steps": 5,
+   "finished": true,
+   "in_tok": 31564,
+   "out_tok": 1147
+  },
+  {
+   "id": "boutique/runtime/40",
+   "difficulty": "easy",
+   "truth": {
+    "fault_taxonomy": "Runtime_Fault",
+    "fault_object": "app/checkoutservice",
+    "root_cause": "readiness_probe_incorrect_port"
+   },
+   "ran": true,
+   "top1": true,
+   "object": true,
+   "cause": true,
+   "top3": true,
+   "pred": {
+    "fault_object": "app/checkoutservice",
+    "root_cause": "readiness_probe_incorrect_port"
+   },
+   "steps": 5,
+   "finished": true,
+   "in_tok": 33477,
+   "out_tok": 2220
+  },
+  {
+   "id": "boutique/scheduling/110",
+   "difficulty": "easy",
+   "truth": {
+    "fault_taxonomy": "Scheduling_Fault",
+    "fault_object": "app/redis-cart",
+    "root_cause": "node_selector_mismatch"
+   },
+   "ran": true,
+   "top1": true,
+   "object": true,
+   "cause": true,
+   "top3": true,
+   "pred": {
+    "fault_object": "app/redis-cart",
+    "root_cause": "node_selector_mismatch"
+   },
+   "steps": 7,
+   "finished": true,
+   "in_tok": 49296,
+   "out_tok": 2055
+  },
+  {
+   "id": "boutique/scheduling/40",
+   "difficulty": "easy",
+   "truth": {
+    "fault_taxonomy": "Scheduling_Fault",
+    "fault_object": "app/productcatalogservice",
+    "root_cause": "memory_capacity_mismatch"
+   },
+   "ran": true,
+   "top1": true,
+   "object": true,
+   "cause": true,
+   "top3": true,
+   "pred": {
+    "fault_object": "app/productcatalogservice",
+    "root_cause": "memory_capacity_mismatch"
+   },
+   "steps": 8,
+   "finished": true,
+   "in_tok": 63206,
+   "out_tok": 3520
+  },
+  {
+   "id": "boutique/scheduling/134",
+   "difficulty": "easy",
+   "truth": {
+    "fault_taxonomy": "Scheduling_Fault",
+    "fault_object": "app/redis-cart",
+    "root_cause": "pvc_storage_class_mismatch"
+   },
+   "ran": true,
+   "top1": true,
+   "object": true,
+   "cause": true,
+   "top3": true,
+   "pred": {
+    "fault_object": "app/redis-cart",
+    "root_cause": "pvc_storage_class_mismatch"
+   },
+   "steps": 9,
+   "finished": true,
+   "in_tok": 90259,
+   "out_tok": 2249
+  },
+  {
+   "id": "boutique/startup/33",
+   "difficulty": "easy",
+   "truth": {
+    "fault_taxonomy": "Startup_Fault",
+    "fault_object": "app/recommendationservice",
+    "root_cause": "incorrect_image_reference"
+   },
+   "ran": true,
+   "top1": true,
+   "object": true,
+   "cause": true,
+   "top3": true,
+   "pred": {
+    "fault_object": "app/recommendationservice",
+    "root_cause": "incorrect_image_reference"
+   },
+   "steps": 8,
+   "finished": true,
+   "in_tok": 62341,
+   "out_tok": 2267
+  },
+  {
+   "id": "boutique/startup/4",
+   "difficulty": "easy",
+   "truth": {
+    "fault_taxonomy": "Startup_Fault",
+    "fault_object": "app/frontend",
+    "root_cause": "image_registry_dns_failure"
+   },
+   "ran": true,
+   "top1": false,
+   "object": true,
+   "cause": false,
+   "top3": true,
+   "pred": {
+    "fault_object": "app/frontend",
+    "root_cause": "incorrect_image_reference"
+   },
+   "steps": 7,
+   "finished": true,
+   "in_tok": 51639,
+   "out_tok": 5681
+  },
+  {
+   "id": "boutique/startup/62",
+   "difficulty": "easy",
+   "truth": {
+    "fault_taxonomy": "Startup_Fault",
+    "fault_object": "app/redis-cart",
+    "root_cause": "volume_mount_permission_denied"
+   },
+   "ran": true,
+   "top1": true,
+   "object": true,
+   "cause": true,
+   "top3": true,
+   "pred": {
+    "fault_object": "app/redis-cart",
+    "root_cause": "volume_mount_permission_denied"
+   },
+   "steps": 8,
+   "finished": true,
+   "in_tok": 81187,
+   "out_tok": 2884
+  },
+  {
+   "id": "trainticket/runtime/37",
+   "difficulty": "easy",
+   "truth": {
+    "fault_taxonomy": "Runtime_Fault",
+    "fault_object": "app/ts-delivery-service",
+    "root_cause": "mysql_invalid_credentials"
+   },
+   "ran": true,
+   "top1": true,
+   "object": true,
+   "cause": true,
+   "top3": true,
+   "pred": {
+    "fault_object": "app/ts-delivery-service",
+    "root_cause": "mysql_invalid_credentials"
+   },
+   "steps": 7,
+   "finished": true,
+   "in_tok": 79879,
+   "out_tok": 4621
+  },
+  {
+   "id": "trainticket/runtime/1",
+   "difficulty": "easy",
+   "truth": {
+    "fault_taxonomy": "Runtime_Fault",
+    "fault_object": "app/tsdb-mysql",
+    "root_cause": "db_connection_exhaustion"
+   },
+   "ran": true,
+   "top1": true,
+   "object": true,
+   "cause": true,
+   "top3": true,
+   "pred": {
+    "fault_object": "app/tsdb-mysql",
+    "root_cause": "db_connection_exhaustion"
+   },
+   "steps": 7,
+   "finished": true,
+   "in_tok": 64959,
+   "out_tok": 28659
+  },
+  {
+   "id": "trainticket/runtime/18",
+   "difficulty": "easy",
+   "truth": {
+    "fault_taxonomy": "Runtime_Fault",
+    "fault_object": "app/ts-contacts-service",
+    "root_cause": "deployment_zero_replicas"
+   },
+   "ran": true,
+   "top1": true,
+   "object": true,
+   "cause": true,
+   "top3": true,
+   "pred": {
+    "fault_object": "app/ts-contacts-service",
+    "root_cause": "deployment_zero_replicas"
+   },
+   "steps": 5,
+   "finished": true,
+   "in_tok": 44735,
+   "out_tok": 1486
+  },
+  {
+   "id": "trainticket/startup/3",
+   "difficulty": "easy",
+   "truth": {
+    "fault_taxonomy": "Startup_Fault",
+    "fault_object": "app/ts-config-service",
+    "root_cause": "missing_secret_binding"
+   },
+   "ran": true,
+   "top1": true,
+   "object": true,
+   "cause": true,
+   "top3": true,
+   "pred": {
+    "fault_object": "app/ts-config-service",
+    "root_cause": "missing_secret_binding"
+   },
+   "steps": 6,
+   "finished": true,
+   "in_tok": 52408,
+   "out_tok": 2662
+  },
+  {
+   "id": "boutique/performance/14",
+   "difficulty": "hard",
+   "truth": {
+    "fault_taxonomy": "Performance_Fault",
+    "fault_object": "app/checkoutservice",
+    "root_cause": "pod_network_delay"
+   },
+   "ran": true,
+   "top1": true,
+   "object": true,
+   "cause": true,
+   "top3": true,
+   "pred": {
+    "fault_object": "app/checkoutservice",
+    "root_cause": "pod_network_delay"
+   },
+   "steps": 17,
+   "finished": true,
+   "in_tok": 294467,
+   "out_tok": 59845
+  },
+  {
+   "id": "boutique/performance/23",
+   "difficulty": "hard",
+   "truth": {
+    "fault_taxonomy": "Performance_Fault",
+    "fault_object": "node/worker-02",
+    "root_cause": "node_network_delay"
+   },
+   "ran": true,
+   "top1": false,
+   "object": true,
+   "cause": false,
+   "top3": true,
+   "pred": {
+    "fault_object": "node/worker-02",
+    "root_cause": "node_network_packet_loss"
+   },
+   "steps": 9,
+   "finished": true,
+   "in_tok": 106618,
+   "out_tok": 6635
+  },
+  {
+   "id": "trainticket/service/13",
+   "difficulty": "medium",
+   "truth": {
+    "fault_taxonomy": "Service_Routing_Fault",
+    "fault_object": "app/ts-gateway-service",
+    "root_cause": "gateway_misrouted"
+   },
+   "ran": true,
+   "top1": false,
+   "object": false,
+   "cause": false,
+   "top3": false,
+   "pred": {
+    "fault_object": "app/ts-payment-service",
+    "root_cause": "code_wrong_argument_order"
+   },
+   "steps": 9,
+   "finished": true,
+   "in_tok": 110482,
+   "out_tok": 15800
+  },
+  {
+   "id": "boutique/admission/48",
+   "difficulty": "medium",
+   "truth": {
+    "fault_taxonomy": "Admission_Fault",
+    "fault_object": "namespace/boutique",
+    "root_cause": "namespace_service_quota_exceeded"
+   },
+   "ran": true,
+   "top1": false,
+   "object": false,
+   "cause": false,
+   "top3": false,
+   "pred": {
+    "fault_object": "app/emailservice",
+    "root_cause": "service_dns_resolution_failure"
+   },
+   "steps": 10,
+   "finished": true,
+   "in_tok": 81910,
+   "out_tok": 7679
+  },
+  {
+   "id": "boutique/service/2",
+   "difficulty": "medium",
+   "truth": {
+    "fault_taxonomy": "Service_Routing_Fault",
+    "fault_object": "app/checkoutservice",
+    "root_cause": "service_env_var_address_mismatch"
+   },
+   "ran": true,
+   "top1": false,
+   "object": true,
+   "cause": false,
+   "top3": false,
+   "pred": {
+    "fault_object": "app/checkoutservice",
+    "root_cause": "service_dns_resolution_failure"
+   },
+   "steps": 11,
+   "finished": true,
+   "in_tok": 100566,
+   "out_tok": 9819
+  },
+  {
+   "id": "boutique/performance/3",
+   "difficulty": "hard",
+   "truth": {
+    "fault_taxonomy": "Performance_Fault",
+    "fault_object": "app/checkoutservice",
+    "root_cause": "pod_cpu_overload"
+   },
+   "ran": true,
+   "top1": false,
+   "object": true,
+   "cause": false,
+   "top3": true,
+   "pred": {
+    "fault_object": "app/checkoutservice",
+    "root_cause": "code_busy_loop"
+   },
+   "steps": 9,
+   "finished": true,
+   "in_tok": 89558,
+   "out_tok": 5960
+  },
+  {
+   "id": "boutique/codedefect/59",
+   "difficulty": "hard",
+   "truth": {
+    "fault_taxonomy": "Application_Code_Defect",
+    "fault_object": "app/frontend",
+    "root_cause": "code_wrong_return"
+   },
+   "ran": true,
+   "top1": false,
+   "object": true,
+   "cause": false,
+   "top3": true,
+   "pred": {
+    "fault_object": "app/frontend",
+    "root_cause": "code_missing_parameter"
+   },
+   "steps": 7,
+   "finished": true,
+   "in_tok": 56119,
+   "out_tok": 1953
+  },
+  {
+   "id": "trainticket/service/11",
+   "difficulty": "medium",
+   "truth": {
+    "fault_taxonomy": "Service_Routing_Fault",
+    "fault_object": "app/ts-gateway-service",
+    "root_cause": "gateway_misrouted"
+   },
+   "ran": true,
+   "top1": false,
+   "object": false,
+   "cause": false,
+   "top3": false,
+   "pred": {
+    "fault_object": "app/ts-food-delivery-service",
+    "root_cause": "service_dns_resolution_failure"
+   },
+   "steps": 10,
+   "finished": true,
+   "in_tok": 105619,
+   "out_tok": 6619
+  },
+  {
+   "id": "trainticket/service/10",
+   "difficulty": "medium",
+   "truth": {
+    "fault_taxonomy": "Service_Routing_Fault",
+    "fault_object": "app/ts-gateway-service",
+    "root_cause": "gateway_misrouted"
+   },
+   "ran": true,
+   "top1": false,
+   "object": false,
+   "cause": false,
+   "top3": false,
+   "pred": {
+    "fault_object": "app/ts-payment-service",
+    "root_cause": "code_missing_parameter"
+   },
+   "steps": 7,
+   "finished": true,
+   "in_tok": 78233,
+   "out_tok": 12422
+  },
+  {
+   "id": "trainticket/performance/40",
+   "difficulty": "hard",
+   "truth": {
+    "fault_taxonomy": "Performance_Fault",
+    "fault_object": "app/ts-payment-service",
+    "root_cause": "pod_network_delay"
+   },
+   "ran": true,
+   "top1": false,
+   "object": false,
+   "cause": false,
+   "top3": false,
+   "pred": {
+    "fault_object": "app/ts-order-service",
+    "root_cause": "code_busy_loop"
+   },
+   "steps": 6,
+   "finished": true,
+   "in_tok": 271117,
+   "out_tok": 4066
+  },
+  {
+   "id": "trainticket/performance/22",
+   "difficulty": "hard",
+   "truth": {
+    "fault_taxonomy": "Performance_Fault",
+    "fault_object": "app/ts-gateway-service",
+    "root_cause": "pod_network_delay"
+   },
+   "ran": true,
+   "top1": false,
+   "object": false,
+   "cause": true,
+   "top3": false,
+   "pred": {
+    "fault_object": "app/ts-payment-service",
+    "root_cause": "pod_network_delay"
+   },
+   "steps": 15,
+   "finished": true,
+   "in_tok": 310829,
+   "out_tok": 79663
+  },
+  {
+   "id": "trainticket/performance/41",
+   "difficulty": "hard",
+   "truth": {
+    "fault_taxonomy": "Performance_Fault",
+    "fault_object": "app/ts-preserve-service",
+    "root_cause": "pod_network_delay"
+   },
+   "ran": true,
+   "top1": false,
+   "object": false,
+   "cause": false,
+   "top3": false,
+   "pred": {
+    "fault_object": "app/ts-order-service",
+    "root_cause": "code_busy_loop"
+   },
+   "steps": 7,
+   "finished": true,
+   "in_tok": 152132,
+   "out_tok": 2711
+  },
+  {
+   "id": "boutique/admission/38",
+   "difficulty": "medium",
+   "truth": {
+    "fault_taxonomy": "Admission_Fault",
+    "fault_object": "namespace/boutique",
+    "root_cause": "namespace_pod_quota_exceeded"
+   },
+   "ran": true,
+   "top1": true,
+   "object": true,
+   "cause": true,
+   "top3": true,
+   "pred": {
+    "fault_object": "namespace/boutique",
+    "root_cause": "namespace_pod_quota_exceeded"
+   },
+   "steps": 9,
+   "finished": true,
+   "in_tok": 72724,
+   "out_tok": 2855
+  },
+  {
+   "id": "boutique/codedefect/12",
+   "difficulty": "hard",
+   "truth": {
+    "fault_taxonomy": "Application_Code_Defect",
+    "fault_object": "app/checkoutservice",
+    "root_cause": "code_missing_parameter"
+   },
+   "ran": true,
+   "top1": true,
+   "object": true,
+   "cause": true,
+   "top3": true,
+   "pred": {
+    "fault_object": "app/checkoutservice",
+    "root_cause": "code_missing_parameter"
+   },
+   "steps": 13,
+   "finished": true,
+   "in_tok": 129032,
+   "out_tok": 3233
+  },
+  {
+   "id": "boutique/infrastructure/5",
+   "difficulty": "medium",
+   "truth": {
+    "fault_taxonomy": "Infrastructure_Fault",
+    "fault_object": "node/worker-01",
+    "root_cause": "containerd_unavailable"
+   },
+   "ran": true,
+   "top1": true,
+   "object": true,
+   "cause": true,
+   "top3": true,
+   "pred": {
+    "fault_object": "node/worker-01",
+    "root_cause": "containerd_unavailable"
+   },
+   "steps": 10,
+   "finished": true,
+   "in_tok": 83749,
+   "out_tok": 4260
+  },
+  {
+   "id": "boutique/performance/11",
+   "difficulty": "hard",
+   "truth": {
+    "fault_taxonomy": "Performance_Fault",
+    "fault_object": "app/shippingservice",
+    "root_cause": "pod_cpu_overload"
+   },
+   "ran": true,
+   "top1": true,
+   "object": true,
+   "cause": true,
+   "top3": true,
+   "pred": {
+    "fault_object": "app/shippingservice",
+    "root_cause": "pod_cpu_overload"
+   },
+   "steps": 16,
+   "finished": true,
+   "in_tok": 235858,
+   "out_tok": 19557
+  },
+  {
+   "id": "boutique/service/28",
+   "difficulty": "medium",
+   "truth": {
+    "fault_taxonomy": "Service_Routing_Fault",
+    "fault_object": "app/productcatalogservice",
+    "root_cause": "service_protocol_mismatch"
+   },
+   "ran": true,
+   "top1": true,
+   "object": true,
+   "cause": true,
+   "top3": true,
+   "pred": {
+    "fault_object": "app/productcatalogservice",
+    "root_cause": "service_protocol_mismatch"
+   },
+   "steps": 5,
+   "finished": true,
+   "in_tok": 29195,
+   "out_tok": 1744
+  },
+  {
+   "id": "trainticket/performance/8",
+   "difficulty": "hard",
+   "truth": {
+    "fault_taxonomy": "Performance_Fault",
+    "fault_object": "app/ts-preserve-service",
+    "root_cause": "pod_network_delay"
+   },
+   "ran": true,
+   "top1": true,
+   "object": true,
+   "cause": true,
+   "top3": true,
+   "pred": {
+    "fault_object": "app/ts-preserve-service",
+    "root_cause": "pod_network_delay"
+   },
+   "steps": 9,
+   "finished": true,
+   "in_tok": 132764,
+   "out_tok": 10677
+  },
+  {
+   "id": "trainticket/service/19",
+   "difficulty": "medium",
+   "truth": {
+    "fault_taxonomy": "Service_Routing_Fault",
+    "fault_object": "app/ts-gateway-service",
+    "root_cause": "gateway_misrouted"
+   },
+   "ran": true,
+   "top1": true,
+   "object": true,
+   "cause": true,
+   "top3": true,
+   "pred": {
+    "fault_object": "app/ts-gateway-service",
+    "root_cause": "gateway_misrouted"
+   },
+   "steps": 16,
+   "finished": true,
+   "in_tok": 251943,
+   "out_tok": 60152
+  },
+  {
+   "id": "boutique/admission/12",
+   "difficulty": "medium",
+   "truth": {
+    "fault_taxonomy": "Admission_Fault",
+    "fault_object": "namespace/boutique",
+    "root_cause": "namespace_cpu_quota_exceeded"
+   },
+   "ran": true,
+   "top1": true,
+   "object": true,
+   "cause": true,
+   "top3": true,
+   "pred": {
+    "fault_object": "namespace/boutique",
+    "root_cause": "namespace_cpu_quota_exceeded"
+   },
+   "steps": 10,
+   "finished": true,
+   "in_tok": 87183,
+   "out_tok": 2962
+  },
+  {
+   "id": "boutique/codedefect/87",
+   "difficulty": "hard",
+   "truth": {
+    "fault_taxonomy": "Application_Code_Defect",
+    "fault_object": "app/shippingservice",
+    "root_cause": "code_busy_loop"
+   },
+   "ran": true,
+   "top1": true,
+   "object": true,
+   "cause": true,
+   "top3": true,
+   "pred": {
+    "fault_object": "app/shippingservice",
+    "root_cause": "code_busy_loop"
+   },
+   "steps": 8,
+   "finished": true,
+   "in_tok": 71811,
+   "out_tok": 1915
+  },
+  {
+   "id": "boutique/infrastructure/37",
+   "difficulty": "medium",
+   "truth": {
+    "fault_taxonomy": "Infrastructure_Fault",
+    "fault_object": "node/worker-01",
+    "root_cause": "kubelet_unavailable"
+   },
+   "ran": true,
+   "top1": true,
+   "object": true,
+   "cause": true,
+   "top3": true,
+   "pred": {
+    "fault_object": "node/worker-01",
+    "root_cause": "kubelet_unavailable"
+   },
+   "steps": 6,
+   "finished": true,
+   "in_tok": 44899,
+   "out_tok": 1459
+  },
+  {
+   "id": "boutique/performance/7",
+   "difficulty": "hard",
+   "truth": {
+    "fault_taxonomy": "Performance_Fault",
+    "fault_object": "app/paymentservice",
+    "root_cause": "pod_cpu_overload"
+   },
+   "ran": true,
+   "top1": true,
+   "object": true,
+   "cause": true,
+   "top3": true,
+   "pred": {
+    "fault_object": "app/paymentservice",
+    "root_cause": "pod_cpu_overload"
+   },
+   "steps": 10,
+   "finished": true,
+   "in_tok": 91755,
+   "out_tok": 4337
+  },
+  {
+   "id": "boutique/service/47",
+   "difficulty": "medium",
+   "truth": {
+    "fault_taxonomy": "Service_Routing_Fault",
+    "fault_object": "app/shippingservice",
+    "root_cause": "service_selector_mismatch"
+   },
+   "ran": true,
+   "top1": true,
+   "object": true,
+   "cause": true,
+   "top3": true,
+   "pred": {
+    "fault_object": "app/shippingservice",
+    "root_cause": "service_selector_mismatch"
+   },
+   "steps": 8,
+   "finished": true,
+   "in_tok": 70382,
+   "out_tok": 3140
+  },
+  {
+   "id": "trainticket/performance/13",
+   "difficulty": "hard",
+   "truth": {
+    "fault_taxonomy": "Performance_Fault",
+    "fault_object": "app/ts-station-service",
+    "root_cause": "pod_network_delay"
+   },
+   "ran": true,
+   "top1": true,
+   "object": true,
+   "cause": true,
+   "top3": true,
+   "pred": {
+    "fault_object": "app/ts-station-service",
+    "root_cause": "pod_network_delay"
+   },
+   "steps": 10,
+   "finished": true,
+   "in_tok": 152339,
+   "out_tok": 15778
+  },
+  {
+   "id": "trainticket/service/32",
+   "difficulty": "medium",
+   "truth": {
+    "fault_taxonomy": "Service_Routing_Fault",
+    "fault_object": "app/ts-seat-service",
+    "root_cause": "service_dns_resolution_failure"
+   },
+   "ran": true,
+   "top1": true,
+   "object": true,
+   "cause": true,
+   "top3": true,
+   "pred": {
+    "fault_object": "app/ts-seat-service",
+    "root_cause": "service_dns_resolution_failure"
+   },
+   "steps": 7,
+   "finished": true,
+   "in_tok": 87916,
+   "out_tok": 2285
+  },
+  {
+   "id": "boutique/admission/6",
+   "difficulty": "medium",
+   "truth": {
+    "fault_taxonomy": "Admission_Fault",
+    "fault_object": "app/frontend",
+    "root_cause": "missing_service_account"
+   },
+   "ran": true,
+   "top1": true,
+   "object": true,
+   "cause": true,
+   "top3": true,
+   "pred": {
+    "fault_object": "app/frontend",
+    "root_cause": "missing_service_account"
+   },
+   "steps": 12,
+   "finished": true,
+   "in_tok": 102777,
+   "out_tok": 3264
+  },
+  {
+   "id": "boutique/codedefect/36",
+   "difficulty": "hard",
+   "truth": {
+    "fault_taxonomy": "Application_Code_Defect",
+    "fault_object": "app/frontend",
+    "root_cause": "code_busy_loop"
+   },
+   "ran": true,
+   "top1": true,
+   "object": true,
+   "cause": true,
+   "top3": true,
+   "pred": {
+    "fault_object": "app/frontend",
+    "root_cause": "code_busy_loop"
+   },
+   "steps": 9,
+   "finished": true,
+   "in_tok": 88307,
+   "out_tok": 2333
+  }
+ ]
+}

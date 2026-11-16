@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alert shows productcatalogservice CPU saturation (+857.6%) and a new fs_write_bytes spike (peak 365KB/s). All productcatalogservice pods are 2/2 Running with zero restarts. Source for ListProducts shows it creates /tmp/tmp.csv and writes 30,000 CSV rows on every request, directly explaining both the CPU and filesystem-write surge.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"code_excessive_file_writes\"}, {\"rank\": 2, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 3, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"code_excessive_file_reads\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 5
+}

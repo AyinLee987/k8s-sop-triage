@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Only ts-config-service pod is abnormal with CreateContainerConfigError. Describe shows envFrom references non-optional Secret ts-config-mysql1; kubelet event reports 'secret \\\"ts-config-mysql1\\\" not found', and direct Secret lookup confirms NotFound. This blocks container startup and causes partial service unreachability.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-config-service\", \"root_cause\": \"missing_secret_binding\"}, {\"rank\": 2, \"fault_object\": \"app/ts-config-service\", \"root_cause\": \"service_env_var_address_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/ts-config-service\", \"root_cause\": \"service_selector_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 5
+}

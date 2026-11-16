@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alert reports POST /api/v1/travelservice/trips/left returning HTTP 503 10 times. ts-travel-service pods are Running/Ready, its Service selector matches app=ts-travel-service, an endpoint exists at 172.20.1.243:12346, and port/targetPort both use 12346. The ts-gateway-service ConfigMap route `travel` for Path=/api/v1/travelservice/** incorrectly targets `lb://ts-nonexistent-travel-backend` instead of `lb://ts-travel-service`, so traffic fails before reaching the healthy backend.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-gateway-service\", \"root_cause\": \"gateway_misrouted\"}, {\"rank\": 2, \"fault_object\": \"app/ts-travel-service\", \"root_cause\": \"gateway_misrouted\"}, {\"rank\": 3, \"fault_object\": \"app/ts-gateway-service\", \"root_cause\": \"service_dns_resolution_failure\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 11
+}

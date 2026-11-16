@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"checkoutservice pod is Running but READY 0/1 with no restarts; kubelet events show repeated 'Readiness probe failed: timeout: failed to connect service 172.20.2.125:5051'. The Deployment YAML confirms the container serves gRPC on port 5050 (containerPort 5050, PORT=5050, liveness probe grpc 5050 succeeds), but the readiness probe is configured for grpc port 5051. Thus the readiness probe targets a port the app does not serve, so the pod never becomes Ready and the checkoutservice endpoints stay unready.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"readiness_probe_incorrect_port\"}, {\"rank\": 2, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"readiness_probe_incorrect_protocol\"}, {\"rank\": 3, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"readiness_probe_incorrect_timing\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 4
+}

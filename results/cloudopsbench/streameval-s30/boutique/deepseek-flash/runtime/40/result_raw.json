@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"checkoutservice-757c84f65-48bhl is Running with READY 0/1 and zero restarts. The pod events show repeated readiness probe failures against 172.20.2.125:5051, while the container port and PORT env var are 5050. The Deployment YAML confirms readinessProbe.grpc.port=5051 but containerPort=5050, so the readiness probe targets the wrong port and prevents the pod from becoming Ready.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"readiness_probe_incorrect_port\"}, {\"rank\": 2, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"readiness_probe_incorrect_protocol\"}, {\"rank\": 3, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"liveness_probe_incorrect_protocol\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 5
+}

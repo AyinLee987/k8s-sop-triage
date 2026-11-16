@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"8 latency/throughput alerts with propagation up the call chain. ts-station-service is a downstream leaf (called by ts-basic-service and ts-gateway-service) exhibiting the most extreme relative latency degradation (p50 3.31ms→2477ms,+74810%; p90 6.64ms→4492ms), which explains the slower callers (basic, gateway, preserve, ui). All pods are Running/Ready with no crash/restart, no application error logs, and no CPU CFS throttle alerts. Station logs show fast handler entries in bursts separated by multi-second gaps, characteristic of network delay rather than CPU/code delay. Co-located worker-01 services outside the station call chain do not alert, ruling out a node-wide network fault and pointing to pod-level network delay on ts-station-service.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-station-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-station-service\", \"root_cause\": \"code_artificial_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 10
+}

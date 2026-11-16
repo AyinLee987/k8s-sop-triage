@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"frontend Deployment is 0/1 available with ReplicaFailure=FailedCreate; its ReplicaSet has 0 pods, and repeated FailedCreate events state: pods \\\"frontend-...\\\" is forbidden: exceeded quota: pod-count-quota, requested: pods=1, used: pods=10, limited: pods=10. This prevents creation of the frontend pod, leaving frontend and frontend-external Services without endpoints and causing partial service unreachability.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"namespace/boutique\", \"root_cause\": \"namespace_pod_quota_exceeded\"}, {\"rank\": 2, \"fault_object\": \"app/frontend\", \"root_cause\": \"deployment_zero_replicas\"}, {\"rank\": 3, \"fault_object\": \"namespace/boutique\", \"root_cause\": \"namespace_cpu_quota_exceeded\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 15
+}

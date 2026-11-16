@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"productcatalogservice pod is Pending with FailedScheduling: 0/4 nodes available, 1 unschedulable and 3 Insufficient memory. The Deployment requests 22Gi memory, while all eligible worker nodes have only ~15.6Gi allocatable memory. Service inventory and other pods are healthy, so the fault is the productcatalogservice memory capacity request mismatch.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"memory_capacity_mismatch\"}, {\"rank\": 2, \"fault_object\": \"namespace/boutique\", \"root_cause\": \"namespace_memory_quota_exceeded\"}, {\"rank\": 3, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"node_affinity_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 10
+}

@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show LATENCY_DEGRADATION on ts-preserve-service (p50: 3571ms -> 8454ms, p90: 10500ms -> 23628ms) and on downstream services ts-basic-service and ts-food-service. RESOURCE_SATURATION with CPU CFS throttle (0.519s Throttled) is present on ts-order-service, which is a direct downstream dependency of ts-preserve-service according to service dependencies. All pods are Running with 0 restarts, and ts-order-service logs show intensive getSoldTickets processing with large result sets, consistent with CPU scheduling delay from throttling. ts-preserve-service logs show multi-second gaps around order-related steps. No application errors are present, and no node-wide co-located impact is observed. This confirms pod-level CPU overload on ts-order-service propagating latency upstream.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 2, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 3, \"fault_object\": \"app/ts-preserve-service\", \"root_cause\": \"code_artificial_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 7
+}

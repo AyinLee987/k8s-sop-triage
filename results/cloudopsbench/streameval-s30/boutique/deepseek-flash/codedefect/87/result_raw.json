@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"shippingservice pods are Running/Ready with no meaningful error logs. Alerts show severe CPU CFS throttling (1.082s throttled), CPU rise, and p50/p90 latency degradation. The source file quote.go contains an active request-path busy-wait loop in CreateQuoteFromFloat that spins until 500ms have elapsed, explaining the CPU saturation and latency.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/shippingservice\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 2, \"fault_object\": \"app/shippingservice\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 3, \"fault_object\": \"app/shippingservice\", \"root_cause\": \"code_artificial_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 8
+}

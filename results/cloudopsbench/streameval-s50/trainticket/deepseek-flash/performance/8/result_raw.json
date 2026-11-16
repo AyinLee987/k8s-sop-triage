@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Latency alerts show ts-preserve-service as the deepest and most severe affected service (p50 7500 ms, p90 9750 ms), with ts-gateway-service and ts-ui-dashboard likely upstream propagation. All pods are Running/Ready with no restarts, application error logs are absent, and ts-preserve-service handler steps complete in roughly 200 ms. Downstream ts-cancel-service processing is also fast, while preserve logs stop at an outbound getAccount call without completion, consistent with delay on preserve's pod network path rather than application CPU/code work. No CPU CFS throttle alerts or independent co-located node-wide anomalies were found.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-preserve-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-preserve-service\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 14
+}

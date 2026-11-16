@@ -1,0 +1,88 @@
+# SOP: service_latency_or_io_degradation
+
+Symptom: An application service shows sustained response latency, throughput degradation, or abnormal filesystem-I/O activity.
+
+Signals:
+- application service has severe latency or slow response
+- service latency degradation is reported
+- downstream timeout appears in service logs
+- FILESYSTEM_WRITE_SURGE or abnormal fs_write_bytes is reported
+- filesystem-write surge co-occurs with CPU elevation or HTTP 503s
+- request-path code creates or writes a file per request
+- healthy pods with severe fixed-duration latency and no application error logs
+- shared downstream service and its callers show latency matching a fixed request-path delay
+- Node.js or JavaScript service logs show business logic completing quickly while the RPC response is delayed
+- a gRPC or HTTP handler defers its response with setTimeout, Promise-wrapped setTimeout, or a delayed callback after the business logic
+- a leaf service's handlers log received/completed within microseconds while its p90 latency is seconds and its upstream callers are slow
+- shippingservice GetQuote p90 latency rises to seconds while ShipOrder and GetQuote business logs complete instantly
+- checkoutservice PlaceOrder latency rises to seconds while checkoutservice logs show successful payment and email and no application error logs
+- a retrieved shippingservice quote.go excerpt ends at the Quote struct before CreateQuoteFromCount or CreateQuoteFromFloat bodies
+- an agent claims a checkoutservice getUserCart time.Sleep without that call appearing in the retrieved checkoutservice source
+- the only helper source retrieved is a truncated excerpt that ends before the request-path helper functions
+
+Start at: locate_service_latency_io_scope
+
+## Steps
+
+### Step: locate_service_latency_io_scope
+Goal: Identify the service and pods affected by observable latency degradation or filesystem-I/O anomaly without assigning network or code ownership.
+Actions:
+- GetAlerts(namespace=<namespace>)
+- GetResources(resource_type=pods, namespace=<namespace>, output_wide=True)
+Evidence to collect: performance_alert_summary, affected_services, anomalous_service, pod_health_summary, pod_node_mapping, latency_degradation_evidence, filesystem_io_evidence
+Next: inspect_latency_io_service_context
+
+### Step: inspect_latency_io_service_context
+Goal: Inspect the latency- or I/O-affected service's pod health, logs, dependency context, and relevant configuration once to distinguish pod-network delay, artificial delay, file I/O code patterns, and ordinary application failure. When a filesystem-write surge co-occurs with CPU saturation or HTTP 503s, keep request-path file writing as a leading candidate even if pods are healthy and some request logs still show successful responses. When healthy pods show severe fixed-duration latency and a shared downstream service plus its callers are affected, keep a request-path fixed sleep or delay as a leading code candidate. When a Node.js service logs successful fast business processing but the observed RPC latency is seconds, keep an asynchronous response-path timer such as setTimeout in the server handler as a leading candidate; fast business logs do not prove network delay. When a leaf service's handlers log received/completed within microseconds but its p90 latency is seconds, keep request-path CPU or file work, including a per-request temp-file write in a quote/pricing helper, as a leading candidate and do not treat no downstream as evidence of a network fault. When checkoutservice PlaceOrder shows severe latency with healthy pods, successful payment and email logs, and no error logs, keep shippingservice GetQuote per-request file-write work as a leading candidate. A checkoutservice getUserCart time.Sleep is not established unless the retrieved checkoutservice source visibly contains it; do not accept a summary claim when the source excerpt ends at imports.
+Actions:
+- GetResources(resource_type=pods, namespace=<namespace>, label_selector=app=<service_name>, output_wide=True)
+- GetErrorLogs(namespace=<namespace>, service_name=<service_name>)
+- GetRecentLogs(namespace=<namespace>, service_name=<service_name>)
+Evidence to collect: affected_service, pod_health_status, pod_restart_count, pod_node_placement, error_log_pattern, recent_log_pattern, application_error_present, downstream_timeout_found, fixed_latency_pattern, filesystem_write_surge, write_surge_with_cpu_or_503, per_request_file_io_candidate, connectivity_failure_pattern, code_level_performance_candidate, fixed_duration_latency_with_healthy_pods, shared_downstream_latency_candidate, business_logic_log_completion_fast, response_path_timer_candidate, leaf_service_instant_logs_with_seconds_latency, checkoutservice_placeorder_latency, checkoutservice_downstream_shippingservice, shippingservice_getquote_candidate, checkoutservice_getusercart_sleep_not_verified, source_excerpt_truncated_before_handler_bodies, local_failure_excluded
+Next: triage_performance_source
+
+### Step: triage_performance_source
+Goal: Locate the affected service's relevant source files and inspect the primary candidate code once before selecting a specific artificial-delay, busy-loop, excessive-read, or excessive-write confirmation. When a filesystem-write surge is present, look specifically for request handlers that create temporary files, serialize or export CSV or JSON, or write large batches such as tens of thousands of rows on the request path; this file-write-heavy work can also raise CPU and cause latency or 503 responses. When latency is severe, fixed-duration, and pods are healthy, inspect request-handler, helper, and RPC server files as well as main.go for an explicit blocking sleep, active spin-wait, or asynchronous response deferral. In Node.js or JavaScript services, check for setTimeout, setTimeout wrapped in a Promise, await new Promise(resolve => setTimeout(resolve, ms)), and response callbacks invoked after a timer delay. Do not assume main.go contains the delay and do not stop at blocking-sleep checks for a JavaScript service. When the service is a leaf whose business logs complete instantly, do not stop after main.go plus a partial helper excerpt: fully retrieve the quote/pricing and other request-path helper files, including lower portions of the file beyond the type definitions, and look for per-request temp-file creation or bulk row writes such as shippingservice quote.go where CreateQuoteFromCount -> CreateQuoteFromFloat creates /tmp/tmp.csv and writes 30000 CSV rows on every GetQuote call. A source response that ends before the helper functions is not evidence that no code defect exists. When checkoutservice PlaceOrder latency is the symptom and checkoutservice calls shippingservice, retrieve the full shippingservice quote.go body and do not treat a truncated excerpt ending at the Quote struct as clean. If checkoutservice source is retrieved only through its imports, do not treat an unsupported getUserCart time.Sleep claim as a confirmed artificial delay.
+Actions:
+- ListCodeFiles(app_name=<service_name>)
+- GetSourceCode(app_name=<service_name>, file_path=<candidate_source_file>)
+- GetSourceCode(app_name=<service_name>, file_path=<request_handler_or_helper_file>)
+- GetSourceCode(app_name=<service_name>, file_path=<server_handler_file>)
+Evidence to collect: source_file_list, candidate_source_files, primary_source_file, request_handler_or_helper_file, server_handler_file, source_code_pattern, artificial_delay_candidate, blocking_sleep_candidate, fixed_duration_sleep_candidate, busy_loop_candidate, nodejs_timer_delay_candidate, promise_wrapped_settimeout_candidate, delayed_callback_after_business_logic_candidate, excessive_file_read_candidate, excessive_file_write_candidate, per_request_file_generation_candidate, large_row_count_write_candidate, temp_file_create_write_delete_candidate, helper_file_fully_retrieved, quote_or_pricing_helper_write_site, shippingservice_quote_go_partial_excerpt, quote_go_ends_at_type_definitions, helper_file_bodies_not_retrieved, checkoutservice_main_go_partial_excerpt, checkoutservice_sleep_claim_not_visible, full_helper_retrieval_required, partial_source_does_not_exclude_file_write, no_obvious_code_defect
+Next: confirm_artificial_delay_code, confirm_busy_loop_code, confirm_excessive_file_writes_code, attribute_pod_network_delay_after_code_exclusion
+
+### Step: confirm_artificial_delay_code
+Goal: Confirm code_artificial_delay when an explicit delay operation is active with a meaningful non-zero duration on the failing request path. This includes blocking delays such as Go time.Sleep and non-blocking asynchronous delays such as JavaScript setTimeout, Promise-wrapped setTimeout, await new Promise(resolve => setTimeout(resolve, ms)), setInterval, or a response callback invoked only after a timer. A dormant, zero-valued, or unreachable delay hook is insufficient. Inspect the request-handler or helper file and the RPC server handler identified during source triage, not only main.go; a fixed sleep or timer in a handler or helper such as productcatalogservice ListProducts or a paymentservice Charge RPC callback is a valid artificial-delay site. In a Node.js gRPC service, a setTimeout that defers callback(null, response) after charge.js has already logged successful business processing is code_artificial_delay even though the business logs are fast and the event loop is not blocked. Corroborate that the delay duration matches the observed p50 or p90 latency and that the delay is on the failing execution path. Active spin or busy-wait code remains code_busy_loop even if a sleep expression also exists; a plain blocking sleep that does not consume CPU is code_artificial_delay. Finding no sleep in main.go or in a partially retrieved helper file does not establish that no request-path delay or file-write work exists; complete the helper inspection before excluding code. A code_artificial_delay confirmation for checkoutservice PlaceOrder requires the retrieved checkoutservice source to visibly contain a sleep or timer on that path. An unverified statement that getUserCart contains time.Sleep, while the retrieved source ends at imports, is insufficient. Before confirming checkoutservice artificial delay, fully retrieve shippingservice quote.go and rule out its per-request file-write latency when checkoutservice only calls shippingservice GetQuote and logs downstream success.
+Actions:
+- ListCodeFiles(app_name=<service_name>)
+- GetSourceCode(app_name=<service_name>, file_path=<candidate_source_file>)
+- GetSourceCode(app_name=<service_name>, file_path=<request_handler_or_helper_file>)
+- GetSourceCode(app_name=<service_name>, file_path=<server_handler_file>)
+Evidence to collect: source_file_list, target_source_file, request_handler_or_helper_file, server_handler_file, artificial_delay_present, blocking_sleep_call, async_timer_delay_present, nodejs_settimeout_delay, promise_wrapped_settimeout_delay, delayed_response_callback, business_logs_fast_but_response_deferred, sleep_or_timer_duration_ms, fixed_duration_latency_alignment, delay_on_failing_execution_path, helper_file_fully_retrieved, active_spin_mechanism_excluded, checkoutservice_getusercart_sleep_visible_in_source, checkoutservice_sleep_duration_matches_latency, source_excerpt_includes_handler_body, shippingservice_file_write_excluded_before_artificial_delay, non_delay_code_pattern, root_cause_confirmed
+Next: (end of this SOP - conclude here)
+
+### Step: confirm_busy_loop_code
+Goal: Confirm code_busy_loop when an active CPU-intensive loop or busy-wait explains the observed CPU saturation or latency. Concrete active-spin evidence remains a busy loop even if the same path also contains a sleep expression; a genuinely blocking delay without active spinning belongs to code_artificial_delay. Do not use this branch merely because CPU is elevated when the concrete CPU-consuming mechanism is writing or serializing a large per-request file.
+Actions:
+- GetSourceCode(app_name=<service_name>, file_path=main.go)
+Evidence to collect: source_code_evidence, busy_loop_found, non_busy_loop_code_pattern, root_cause_confirmation, code_defect_pattern
+Next: (end of this SOP - conclude here)
+
+### Step: confirm_excessive_file_writes_code
+Goal: Confirm code_excessive_file_writes when retrieved source shows repeated, unbounded, or large per-request file writes that explain the observed FILESYSTEM_WRITE_SURGE or abnormal fs_write_bytes and may also explain CPU elevation, latency, throughput collapse, or 503s. This includes request-path code that creates a temporary file and writes tens of thousands of rows per request before flushing or deleting it, such as shippingservice quote.go where CreateQuoteFromCount -> CreateQuoteFromFloat creates /tmp/tmp.csv and writes 30000 CSV rows on every GetQuote call. Do not require unbounded growth: a fixed large write repeated by request traffic is sufficient when the source and write-surge evidence align. Do not require a latency-dominant or timeout-bearing symptom, and do not treat instant received/completed business logs or a healthy 2/2 pod with zero restarts as evidence against this branch; a per-request bulk write site plus file-work-scaled latency on a leaf service is enough. When file creation or bulk serialization is the concrete mechanism, classify code_excessive_file_writes rather than code_busy_loop even if CPU rises as a side effect of the file work. When the affected service is a leaf with no downstream callee whose handlers log completion in microseconds yet clients see seconds of latency, this branch is preferred over pod_network_delay, and pod_network_delay must not be concluded until the quote/pricing helper file has been retrieved in full and its write site excluded; a partial excerpt ending at the Quote struct does not satisfy that exclusion. For checkoutservice PlaceOrder latency with healthy pods and successful downstream logs, a truncated shippingservice quote.go response that ends at the Quote struct is not an exclusion. Re-retrieve the lower portion with CreateQuoteFromCount and CreateQuoteFromFloat and confirm the per-request /tmp/tmp.csv 30000-row write site before accepting any checkoutservice artificial-delay conclusion. Inspect quote/pricing helpers reachable from the hot RPC, not only main.go.
+Actions:
+- ListCodeFiles(app_name=<service_name>)
+- GetSourceCode(app_name=<service_name>, file_path=<relevant_source_file>)
+- GetSourceCode(app_name=<service_name>, file_path=<quote_or_pricing_helper_file>)
+Evidence to collect: source_code_evidence, repeated_or_unbounded_file_write_path, per_request_file_creation, large_row_count_or_bulk_write, fixed_row_count_per_request_write, temp_file_create_write_delete_pattern, temp_csv_write_of_tens_of_thousands_of_rows, quote_or_pricing_helper_file_write_site, filesystem_write_surge_correlates_with_source_path, cpu_elevation_explained_by_file_write_work, fast_business_logs_do_not_exclude_file_write_defect, healthy_pod_does_not_exclude_file_write_defect, helper_file_fully_retrieved, leaf_service_no_downstream_not_network_evidence, pod_network_delay_not_concluded_from_partial_source, checkoutservice_placeorder_latency, shippingservice_getquote_on_path, quote_go_type_definitions_only, quote_helper_body_missing, shippingservice_temp_csv_write_site, checkoutservice_downstream_success_not_exclusion, code_excessive_file_writes_confirmed
+Next: (end of this SOP - conclude here)
+
+### Step: attribute_pod_network_delay_after_code_exclusion
+Goal: Attribute remaining service latency to pod_network_delay only after source inspection has explicitly excluded blocking sleeps, non-blocking asynchronous response-path delays, and per-request or bulk file writes, and after positive pod-level network evidence has been collected. A leaf service and fast business logs are not sufficient by themselves; they are expected when a request-path temp-file write inflates latency while the handler's logging stays instant. The exclusion is not complete until the quote, pricing, and other request-path helper files have been retrieved in full, including sections below type definitions; a helper source that cuts off before its functions leaves code_excessive_file_writes open and pod_network_delay unconfirmed. If the only exclusion evidence is an unverified checkoutservice time.Sleep or a truncated shippingservice quote.go, pod_network_delay is not confirmed and code_excessive_file_writes remains open. Compare co-located pods and services on the same node to rule out node_network_delay; if only absence of a code defect is available and no positive pod-level network evidence exists, report pod_network_delay as unconfirmed rather than concluding it.
+Actions:
+- GetServiceDependencies(service_name=<service_name>)
+- GetResources(resource_type=pods, namespace=<namespace>, output_wide=True)
+- GetAlerts(namespace=<namespace>)
+- CheckServiceConnectivity(service_name=<service_name>, port=<service_port>, namespace=<namespace>)
+Evidence to collect: observed_latency_degradation, source_code_review_summary, helper_files_fully_retrieved, blocking_sleep_excluded, async_timer_delay_excluded, excessive_file_write_excluded, service_dependency_topology, leaf_service_no_downstream, no_visible_downstream_bottleneck, co_located_pods_not_similarly_degraded, node_network_delay_excluded, pod_network_delay_positive_evidence, pod_network_delay_attributed_or_unconfirmed, pod_network_delay_unconfirmed_after_partial_source, checkoutservice_sleep_claim_unverified, shippingservice_quote_go_not_fully_retrieved, code_excessive_file_writes_not_excluded
+Next: (end of this SOP - conclude here)

@@ -1,0 +1,52 @@
+{
+ "summary": {
+  "all": {
+   "n": 1,
+   "ran": 1,
+   "top1": 0,
+   "object": 0,
+   "cause": 0,
+   "top3": 0
+  },
+  "medium": {
+   "n": 1,
+   "ran": 1,
+   "top1": 0,
+   "object": 0,
+   "cause": 0,
+   "top3": 0
+  },
+  "boutique/admission": {
+   "n": 1,
+   "ran": 1,
+   "top1": 0,
+   "object": 0,
+   "cause": 0,
+   "top3": 0
+  }
+ },
+ "rows": [
+  {
+   "id": "boutique/admission/50",
+   "difficulty": "medium",
+   "truth": {
+    "fault_taxonomy": "Admission_Fault",
+    "fault_object": "namespace/boutique",
+    "root_cause": "namespace_service_quota_exceeded"
+   },
+   "ran": true,
+   "top1": false,
+   "object": false,
+   "cause": false,
+   "top3": false,
+   "pred": {
+    "fault_object": "app/paymentservice",
+    "root_cause": "service_dns_resolution_failure"
+   },
+   "steps": 10,
+   "finished": true,
+   "in_tok": 69802,
+   "out_tok": 13921
+  }
+ ]
+}

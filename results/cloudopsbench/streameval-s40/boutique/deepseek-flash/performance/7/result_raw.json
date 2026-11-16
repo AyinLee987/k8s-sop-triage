@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show paymentservice RESOURCE_SATURATION (cpu_cfs throttled 0.614s; cpu core 0.00->0.16 cores, +4141%) with LATENCY_DEGRADATION (p95 4.81ms->60.66ms); worker-02 node CPU only 3.03%->5.12%. Pod paymentservice-869f9f96cd-k259k is 2/2 Running/Ready, 0 restarts, on worker-02; GetErrorLogs found no errors and recent logs show normal successful Charge transactions. Deployment has normal requests/limits (cpu 100m/200m, mem 64Mi/128Mi). Source inspection of server.js, charge.js, index.js found no busy loop, no repeated/large file reads or writes, and no artificial delay—Charge is simple card validation + uuid. With a normal limit, healthy pods, no app errors, and no supported code-level CPU defect, the supported conclusion is pod_cpu_overload on paymentservice, with the p95 latency rise being a consequence of CPU throttling.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/paymentservice\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 2, \"fault_object\": \"app/paymentservice\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 3, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 11
+}

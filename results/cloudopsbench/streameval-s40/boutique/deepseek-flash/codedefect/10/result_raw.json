@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"checkoutservice shows severe latency (p50 18.66ms -> 3750ms, p90 64ms -> 4750ms) while pods are healthy and downstream calls succeed. Recent logs show successful payment and email confirmations with no application errors. Inspection of checkoutservice main.go reveals an explicit time.Sleep(time.Millisecond * time.Duration(3000)) directly in the PlaceOrder handler before order preparation, matching the ~3s latency inflation. shippingservice quote.go was fully retrieved and contains no per-request file write or delay, excluding the suspected shipping file-write path.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 2, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"code_busy_loop\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 11
+}

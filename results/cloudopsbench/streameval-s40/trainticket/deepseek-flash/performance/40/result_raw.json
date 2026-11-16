@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show latency degradation and error spikes on ts-inside-payment-service, latency degradation on ts-payment-service, and CPU CFS throttling on ts-order-service. ts-order-service is a direct downstream dependency of ts-inside-payment-service. Its logs show repeated getSoldTickets/queryOrders processing with very large result sets (e.g., size: 5634 and massive LeftTicketInfo lists), indicating excessive application CPU work. This aligns with code_busy_loop in ts-order-service causing CPU throttling and propagated service latency.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 2, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 3, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"code_artificial_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 6
+}

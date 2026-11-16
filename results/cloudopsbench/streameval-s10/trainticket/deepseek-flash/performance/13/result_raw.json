@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Widespread LATENCY_DEGRADATION alerts (gateway, ui, preserve, travel, basic) center on ts-station-service, the leaf dependency called directly by both gateway and basic. ts-station-service shows extreme relative latency (p50 3.31ms->2477ms, p90 6.64ms->4492ms, peak 4750ms), yet its pod is 2/2 Running with 0 restarts, no error logs, and successful TCP connectivity on port 12345. No worker-01 sibling outside station's call chain (route/seat/etc.) is alerted during the window, excluding node-wide network delay; basic->route calls remain fast while basic->station dominates. Healthy pods with high caller-observed latency, fast/clean handlers, variable latency spread, no CPU/errors support pod-level network delay on the station pod.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-station-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-station-service\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 13
+}

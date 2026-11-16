@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All pods are Running and Ready. Frontend error logs are dominated by 'dial tcp 10.68.91.181:50051: connect: connection refused' for shippingservice (133 occurrences). The shippingservice Service exists at 10.68.91.181:50051 with targetPort 50051/TCP matching the container port, but it has NO endpoints because its selector is `application=shippingservice` while the running pod carries labels `app=shippingservice,pod-template-hash=7cbfcb6d68`. The selector mismatch makes the Service's endpoints empty, causing connection refusals. Secondary DNS 'no such host' errors for productcatalogservice appear only in early logs (14:00:37-43) right at pod startup, before the Service was registered, and are transient.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/shippingservice\", \"root_cause\": \"service_selector_mismatch\"}, {\"rank\": 2, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 3, \"fault_object\": \"app/shippingservice\", \"root_cause\": \"service_port_mapping_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 7
+}

@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Multiple unrelated TrainTicket service pods are in CrashLoopBackOff simultaneously. Representative crash log (ts-order-other-service) shows HikariPool init failure with java.sql.SQLNonTransientConnectionException: 'Too many connections' (SQL Error 1040, SQLState 08004), causing JPA EntityManagerFactory init failure and app exit. The tsdb-mysql error logs confirm the backend itself logs 1506 occurrences of '[Warning] Too many connections' (57% error ratio), while tsdb-mysql pods remain Running/operational. This points to database connection exhaustion at the shared MySQL backend as the single root cause propagating to all crashing services.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/tsdb-mysql\", \"root_cause\": \"db_connection_exhaustion\"}, {\"rank\": 2, \"fault_object\": \"app/ts-order-other-service\", \"root_cause\": \"db_connection_exhaustion\"}, {\"rank\": 3, \"fault_object\": \"app/tsdb-mysql\", \"root_cause\": \"pod_cpu_overload\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 5
+}

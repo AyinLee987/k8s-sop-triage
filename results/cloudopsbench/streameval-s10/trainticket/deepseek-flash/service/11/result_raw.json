@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All TrainTicket pods are Running, but the active alert reports repeated HTTP 500 failures for POST Process payment via ts-inside-payment-service. ts-inside-payment-service logs show it receives a 500 from /api/v1/paymentservice/payment. ts-payment-service logs show the underlying repeated exception: IncorrectResultSizeDataAccessException / NonUniqueResultException: query did not return a unique result: 5. Thus ts-payment-service application logic is failing during payment processing and causing the partial service failure.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"code_wrong_return\"}, {\"rank\": 2, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"code_wrong_argument_order\"}, {\"rank\": 3, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"code_missing_parameter\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 6
+}

@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"shippingservice shows CPU CFS throttling (1.082s), CPU spike (+9995.8%), and p50 latency jumping from 0.44ms to ~784ms (peak 829ms) while pods are 2/2 Running with 0 restarts. Full quote.go shows CreateQuoteFromFloat executing an active elapsed-time spin-wait that busy-loops for 500ms on every GetQuote/quote calculation, matching the ~784ms latency and CPU saturation. Alerts on worker-01 are only mild CPU utilization rise, and no application errors are present, so code-driven busy loop is the root cause.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/shippingservice\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 2, \"fault_object\": \"app/shippingservice\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 3, \"fault_object\": \"app/shippingservice\", \"root_cause\": \"pod_cpu_overload\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 6
+}

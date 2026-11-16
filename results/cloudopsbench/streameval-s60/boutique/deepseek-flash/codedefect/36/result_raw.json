@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Frontend alerts show CPU saturation with CFS throttling (1.274s throttled), CPU rising to 0.14 cores (+1461.5%), and severe latency (p50 21.25ms -> 2175.53ms; p90 230.50ms -> 4318.45ms). All pods are Running and Ready; frontend is on worker-01. Source inspection of frontend handlers.go shows chooseAd actively busy-waits in a tight loop until 800ms elapsed, with no blocking sleep. chooseAd is called from homeHandler and productHandler, matching reported HTTP 503s on `/` and `/product/{id}`. This request-path CPU spin explains the CPU throttling and latency.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 2, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_excessive_file_reads\"}, {\"rank\": 3, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_excessive_file_writes\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 7
+}

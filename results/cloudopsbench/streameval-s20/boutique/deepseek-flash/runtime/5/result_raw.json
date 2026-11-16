@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"paymentservice pod paymentservice-597747d4d8-jbdgb has restarted twice. DescribeResource shows Last State Terminated with Exit Code 137 and kubelet events: 'Liveness probe failed: Get \\\"http://172.20.2.186:50051/\\\": ... malformed HTTP response' followed by 'Container server failed liveness probe, will be restarted'. The deployment YAML confirms the container serves gRPC on port 50051, readinessProbe correctly uses grpc, but livenessProbe incorrectly uses httpGet against the same gRPC port. This protocol mismatch causes repeated liveness failures and restarts.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/paymentservice\", \"root_cause\": \"liveness_probe_incorrect_protocol\"}, {\"rank\": 2, \"fault_object\": \"app/paymentservice\", \"root_cause\": \"liveness_probe_incorrect_timing\"}, {\"rank\": 3, \"fault_object\": \"app/paymentservice\", \"root_cause\": \"container_memory_limit_too_low\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 6
+}

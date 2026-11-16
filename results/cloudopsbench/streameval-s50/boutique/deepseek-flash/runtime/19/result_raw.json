@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"emailservice is the only pod in CrashLoopBackOff. Logs show it starts successfully and listens on port 8080. The pod's termination exit code is 137, but events explicitly show repeated liveness probe failures: 'timeout: failed to connect service 172.20.1.163:8080 within 1s' followed by 'Container server failed liveness probe, will be restarted'. The deployment config has initialDelaySeconds=1, periodSeconds=1, timeoutSeconds=1, failureThreshold=1, which is excessively aggressive and causes kubelet to kill the container before/while the gRPC endpoint responds.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/emailservice\", \"root_cause\": \"liveness_probe_incorrect_timing\"}, {\"rank\": 2, \"fault_object\": \"app/emailservice\", \"root_cause\": \"liveness_probe_incorrect_port\"}, {\"rank\": 3, \"fault_object\": \"app/emailservice\", \"root_cause\": \"container_memory_limit_too_low\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 5
+}

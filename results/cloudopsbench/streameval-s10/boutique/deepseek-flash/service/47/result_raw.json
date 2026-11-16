@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"The shippingservice Service uses selector `application=shippingservice`, while the healthy shippingservice pod has label `app=shippingservice`. The shippingservice endpoints are `<none>`, unlike all other services, explaining partial service unreachability to shipping while other backend services remain reachable.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/shippingservice\", \"root_cause\": \"service_selector_mismatch\"}, {\"rank\": 2, \"fault_object\": \"app/shippingservice\", \"root_cause\": \"service_port_mapping_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/shippingservice\", \"root_cause\": \"service_protocol_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 6
+}

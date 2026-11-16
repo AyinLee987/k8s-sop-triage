@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Active alert reports HTTP 500 on Process payment via ts-inside-payment-service. Its error logs show a downstream 500 from /api/v1/paymentservice/payment. ts-payment-service logs reveal `IncorrectResultSizeDataAccessException: query did not return a unique result: 5` and `NonUniqueResultException`. Pods are running/ready, so this is an application query failure in ts-payment-service, not a pod or infrastructure outage.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"code_missing_parameter\"}, {\"rank\": 2, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"code_wrong_argument_order\"}, {\"rank\": 3, \"fault_object\": \"app/ts-inside-payment-service\", \"root_cause\": \"code_wrong_argument_order\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 7
+}

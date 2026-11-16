@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Only ts-food-service is abnormal (CrashLoopBackOff), with app container exiting code 1. Logs show UnknownHostException/Temporary failure in name resolution for tsdb-mysql-leader and sidecar i/o timeouts resolving istiod.istio-system.svc on nameserver 10.255.18.254. The Deployment uses dnsPolicy=None with a custom unreachable nameserver 10.255.18.254. The target Service tsdb-mysql-leader exists, and other pods on worker-01 remain healthy, excluding a missing Service and node-wide network loss. This is pod-local DNS resolution failure causing the crash.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-food-service\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_packet_loss\"}, {\"rank\": 3, \"fault_object\": \"app/ts-food-service\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 7
+}

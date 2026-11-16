@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Pod ts-config-service-5cc47cd465-5v4d6 is stuck in CreateContainerConfigError before container startup. DescribeResource shows kubelet event: Error: secret \\\"ts-config-mysql1\\\" not found. GetResources confirms secret ts-config-mysql1 does not exist in namespace train-ticket. Other TrainTicket pods are Running, so the fault is localized to ts-config-service and its required Secret reference.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-config-service\", \"root_cause\": \"missing_secret_binding\"}, {\"rank\": 2, \"fault_object\": \"app/ts-config-service\", \"root_cause\": \"mysql_invalid_credentials\"}, {\"rank\": 3, \"fault_object\": \"app/ts-config-service\", \"root_cause\": \"service_env_var_address_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 5
+}

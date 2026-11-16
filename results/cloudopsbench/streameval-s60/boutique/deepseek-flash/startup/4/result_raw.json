@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Frontend pod `frontend-7968b59db9-zs7zp` is in `ErrImagePull` / `ImagePullBackOff`. Describe events show kubelet failed to pull image `ghost-registry.example.net/google-samples/microservices-demo/frontend:v0.10.3` with `dial tcp: lookup ghost-registry.example.net on 127.0.0.53:53: no such host`. The frontend deployment YAML confirms this exact image reference. Other pods on the same worker-03 node are Running normally, so the fault is isolated to the frontend app’s image registry DNS resolution.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/frontend\", \"root_cause\": \"image_registry_dns_failure\"}, {\"rank\": 2, \"fault_object\": \"app/frontend\", \"root_cause\": \"incorrect_image_reference\"}, {\"rank\": 3, \"fault_object\": \"app/frontend\", \"root_cause\": \"missing_image_pull_secret\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 6
+}

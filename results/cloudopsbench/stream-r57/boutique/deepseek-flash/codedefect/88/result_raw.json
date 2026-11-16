@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"shippingservice shows CPU CFS throttling (1.069s throttled), CPU spike to 0.12 cores, and severe latency (p50 775.59ms) while its pod is 2/2 Running with 0 restarts and only informational logs. Source inspection confirms GetQuote calls CreateQuoteFromCount -> CreateQuoteFromFloat, which contains an active 500ms elapsed-time spin-wait on the request path, directly explaining the CPU saturation and latency.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/shippingservice\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 2, \"fault_object\": \"app/shippingservice\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 3, \"fault_object\": \"app/shippingservice\", \"root_cause\": \"code_artificial_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 8
+}

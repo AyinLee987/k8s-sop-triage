@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Frontend error logs repeatedly show `dial tcp: lookup checkoutservice on 169.254.20.10:53: no such host` (82/85 errors). The checkoutservice Service exists with ClusterIP 10.68.113.121, selector app=checkoutservice, port 5050/TCP, and healthy endpoint 172.20.3.231:5050. The checkoutservice pod is Running and Ready, direct connectivity to checkoutservice:5050 succeeds, and frontend has the correct `CHECKOUT_SERVICE_ADDR=checkoutservice:5050` configuration. kube-proxy on worker-03 is active. This isolates the fault to DNS resolution for checkoutservice rather than Service selector, port mapping, pod readiness, or routing.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 2, \"fault_object\": \"app/frontend\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 3, \"fault_object\": \"node/worker-03\", \"root_cause\": \"node_network_packet_loss\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 11
+}

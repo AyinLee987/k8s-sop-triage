@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show extreme latency and throughput drop at ts-contacts-service (p50 7.52ms -> 4750ms, p90 -> 8875ms, RPS -66.1%). ts-preserve-service, ts-gateway-service, and ts-ui-dashboard are upstream and show propagated latency. ts-contacts-service is a downstream leaf with healthy 2/2 pods, no restarts, and no error logs. Its handler logs show fast processing, and there is no CPU-saturation alert or application busy-loop evidence. The affected services are co-located on worker-03, but they form a single call chain, so co-location alone does not confirm node-wide network delay.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-contacts-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"node/worker-03\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-contacts-service\", \"root_cause\": \"code_artificial_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 12
+}

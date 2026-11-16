@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Active alerts show severe latency on ts-preserve-service (p50 7.5s, p90 9.75s) with ts-gateway-service and ts-ui-dashboard also abnormal upstream. All pods are Running/Ready with no relevant restarts, ts-preserve-service has no error logs, and its recent handler logs show fast step completion without multi-second internal gaps. No CPU CFS throttle, resource saturation, or traffic surge is reported. The affected services are not exclusively on one node, and no independent non-call-path service on worker-02 is demonstrably degraded, making pod-level network delay on ts-preserve-service the strongest explanation.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-preserve-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-gateway-service\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 9
+}

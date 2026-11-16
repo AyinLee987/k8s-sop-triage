@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show shippingservice p90 latency jumped from 4.18ms to 1716.67ms, with throughput down 91.6% and success rate at 16.7%; frontend and checkoutservice latency are downstream impacts. The shippingservice pod is Running/Ready 2/2 with 0 restarts on worker-02. Recent logs show GetQuote and ShipOrder business handlers receive and complete within microseconds, and source inspection of main.go and quote.go found no artificial delay. TCP connectivity to shippingservice:50051 succeeds. Other worker-02 pods (adservice, emailservice, paymentservice, recommendationservice) have no alerts, arguing against node-wide degradation. This supports pod-level network delay on shippingservice.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/shippingservice\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 2, \"fault_object\": \"node/worker-02\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/shippingservice\", \"root_cause\": \"code_artificial_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 12
+}

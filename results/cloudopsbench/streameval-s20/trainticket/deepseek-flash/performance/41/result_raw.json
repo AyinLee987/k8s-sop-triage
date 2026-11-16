@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show LATENCY_DEGRADATION on ts-preserve-service and ts-ui-dashboard, plus RESOURCE_SATURATION with CPU CFS throttling on ts-order-service. Dependency data shows ts-order-service is downstream of ts-preserve-service. Pods are Running with no relevant restarts. ts-order-service logs show repeated business-method invocations and large result-set processing, including queryOrders size 5841 and huge getSoldTickets lists, indicating application busy processing under CPU throttling.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 2, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 3, \"fault_object\": \"app/ts-preserve-service\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 6
+}

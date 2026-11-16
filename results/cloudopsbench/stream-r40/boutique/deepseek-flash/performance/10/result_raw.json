@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"redis-cart is the only service showing a resource anomaly: CPU increased from ~0.00 to 0.15 cores and CPU CFS throttling reached 0.679s. In the same interval, cartservice, checkoutservice, and frontend showed p95 latency degradation along the cart/checkout request path, while all pods remained Running/Ready and logs showed no application errors or restarts. This supports excessive CPU load localized to the redis-cart pod as the primary fault, with upstream latency as the propagated symptom.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/redis-cart\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 2, \"fault_object\": \"app/cartservice\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 12
+}

@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Dominant alert is ts-inside-payment-service (ERROR_SPIKE + LATENCY p50 ~6.0s, success 67.6%); its direct downstream ts-order-service shows RESOURCE_SATURATION cpu_cfs throttle 0.560s and logs full of heavy large-result-set work (queryOrders size: 5634, getSoldTickets returning hundreds/thousands of tickets repeatedly, each handler ~100-200ms). ts-payment-service latency (p50 ~4.5s) is a parallel leaf branch and consistent with propagation from the blocked dominant caller. Pods are all Running/Ready with no crashes. The CPU CFS throttle plus application busy/large-result processing on the call path point to code_busy_loop in ts-order-service rather than external pod CPU stress.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 2, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 3, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"code_artificial_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 8
+}

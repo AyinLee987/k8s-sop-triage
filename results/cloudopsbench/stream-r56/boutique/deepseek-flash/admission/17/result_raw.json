@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"All backend pods are Running/Ready except frontend. The frontend Deployment shows 0/1 available and ReplicaSet events repeatedly fail with `exceeded quota: cpu-quota, requested: requests.cpu=1, used: requests.cpu=10, limited: requests.cpu=10`. The frontend Service has no endpoints. A ResourceQuota named cpu-quota confirms `requests.cpu: 10/10` used. An initial missing serviceaccount error also appears, but the persistent failure is CPU quota exhaustion.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"namespace/boutique\", \"root_cause\": \"namespace_cpu_quota_exceeded\"}, {\"rank\": 2, \"fault_object\": \"app/frontend\", \"root_cause\": \"missing_service_account\"}, {\"rank\": 3, \"fault_object\": \"app/frontend\", \"root_cause\": \"deployment_zero_replicas\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 11
+}

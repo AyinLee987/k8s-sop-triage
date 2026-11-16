@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"The alert reports HTTP 503 for POST /api/v1/travelservice/trips/left on ts-travel-service. All pods are Running, ts-travel-service has a healthy endpoint (172.20.1.243:12346), and its application logs show successful downstream calls. The ts-gateway-service ConfigMap explicitly routes /api/v1/travelservice/** to lb://ts-nonexistent-travel-backend instead of ts-travel-service, proving a gateway route misconfiguration.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-gateway-service\", \"root_cause\": \"gateway_misrouted\"}, {\"rank\": 2, \"fault_object\": \"app/ts-gateway-service\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 3, \"fault_object\": \"app/ts-travel-service\", \"root_cause\": \"service_selector_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 11
+}

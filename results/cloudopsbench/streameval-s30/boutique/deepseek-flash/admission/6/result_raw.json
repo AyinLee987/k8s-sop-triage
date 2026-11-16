@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Frontend Deployment is 0/1 available and no frontend pod exists. Its pod template sets serviceAccountName: frontend-missing, while only ServiceAccount frontend exists. ReplicaSet frontend-fbbd6d5f5 reports FailedCreate: serviceaccount \\\"frontend-missing\\\" not found. Consequently frontend and frontend-external Services have no endpoints, while all other backend pods and Services are healthy.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/frontend\", \"root_cause\": \"missing_service_account\"}, {\"rank\": 2, \"fault_object\": \"app/frontend\", \"root_cause\": \"deployment_zero_replicas\"}, {\"rank\": 3, \"fault_object\": \"app/frontend\", \"root_cause\": \"service_selector_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 12
+}

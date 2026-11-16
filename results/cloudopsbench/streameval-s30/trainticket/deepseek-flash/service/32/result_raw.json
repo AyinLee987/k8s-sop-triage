@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"ts-seat-service-594847b77f-rsbbh is 0/2 Ready with 4 restarts; app container exits code 1 and istio-proxy startup probe on 15021 fails. App logs show Nacos registration failure (Client not connected) and istio-proxy logs show DNS lookups for istiod.istio-system.svc on 10.255.14.254:53 timing out (i/o timeout). The deployment has dnsPolicy: None with dnsConfig nameservers [10.255.14.254], an unreachable resolver. The target Services (nacos-headless, istiod) and other ts-* Services exist, and other pods on worker-01 (node of the failing pod) are Running/Ready, ruling out node-wide network loss. Root cause: pod-local DNS resolution failure on ts-seat-service.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-seat-service\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_packet_loss\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 7
+}

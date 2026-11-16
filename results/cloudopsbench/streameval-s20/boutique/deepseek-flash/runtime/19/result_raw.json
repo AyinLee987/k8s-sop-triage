@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"emailservice-75d7c8757-7pmzv is in CrashLoopBackOff with 4 restarts. Pod events show repeated liveness probe timeouts to 172.20.1.163:8080 followed by kubelet killing and restarting the container. The deployment config sets livenessProbe initialDelaySeconds=1, periodSeconds=1, timeoutSeconds=1, failureThreshold=1, which is too aggressive for the observed startup time. Logs show normal startup and listening on port 8080, and the termination reason is Error/exit 137 from the kubelet-triggered kill, not OOMKilled. Probe port 8080 matches containerPort 8080.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/emailservice\", \"root_cause\": \"liveness_probe_incorrect_timing\"}, {\"rank\": 2, \"fault_object\": \"app/emailservice\", \"root_cause\": \"container_memory_limit_too_low\"}, {\"rank\": 3, \"fault_object\": \"app/emailservice\", \"root_cause\": \"pod_cpu_overload\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 7
+}

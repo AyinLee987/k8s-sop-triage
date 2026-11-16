@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Active alerts show checkoutservice p50 latency rising from ~17ms to ~7.5s and p90 from ~30ms to ~23.8s, with success rate dropping to 12.5% and throughput falling ~93%. Checkoutservice pods are 2/2 Running with zero restarts, and logs show successful payment and email steps with no application errors. Shippingservice quote.go contains no per-request file I/O or delay. Checkoutservice main.go calculates the order total using money.MultiplySlow for every order item; money.MultiplySlow performs repeated money addition in a loop n-1 times, a CPU-intensive busy loop on the PlaceOrder path that explains the severe latency while downstream operations still complete.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 2, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 3, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"code_artificial_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 12
+}

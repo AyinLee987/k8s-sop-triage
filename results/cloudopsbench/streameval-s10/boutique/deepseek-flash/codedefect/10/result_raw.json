@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Checkoutservice alone showed severe latency degradation (p50 18.66ms -> 3750ms, p90 64.03ms -> 4750ms). Pods were Running and Ready with no restarts, error logs were absent, and recent logs showed successful payment/email downstream calls. Source inspection of checkoutservice main.go revealed an explicit time.Sleep(time.Millisecond * 3000) at the start of PlaceOrder, directly explaining the ~3-4s response delay.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 2, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"code_busy_loop\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 8
+}

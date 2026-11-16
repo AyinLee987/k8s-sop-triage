@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Pod ts-config-service-5cc47cd465-5v4d6 is in CreateContainerConfigError. DescribeResource events show 'Error: secret \\\"ts-config-mysql1\\\" not found'. GetResources(secrets) confirms ts-config-mysql1 does not exist; only ts-config-mysql exists. Thus the deployment references a non-existent Secret, blocking container startup and causing the service to be unreachable.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-config-service\", \"root_cause\": \"missing_secret_binding\"}, {\"rank\": 2, \"fault_object\": \"app/ts-config-service\", \"root_cause\": \"service_env_var_address_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/ts-config-service\", \"root_cause\": \"mysql_invalid_credentials\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 6
+}

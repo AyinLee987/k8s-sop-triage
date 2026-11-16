@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Latency alerts originate at the deepest leaf service, ts-station-service, with p50 2477.27ms vs normal 3.31ms and p90 4492.19ms vs normal 6.64ms. Upstream callers ts-basic-service, ts-travel-service, and ts-preserve-service show progressively larger latency degradation consistent with propagation through the dependency chain. All relevant pods are Running and Ready with no restarts, and no application error or CPU/resource saturation alerts were observed. ts-station-service has no downstream dependencies, making it the most likely root victim.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-station-service\", \"root_cause\": \"code_artificial_delay\"}, {\"rank\": 2, \"fault_object\": \"app/ts-station-service\", \"root_cause\": \"pod_network_delay\"}, {\"rank\": 3, \"fault_object\": \"app/ts-station-service\", \"root_cause\": \"pod_cpu_overload\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 11
+}

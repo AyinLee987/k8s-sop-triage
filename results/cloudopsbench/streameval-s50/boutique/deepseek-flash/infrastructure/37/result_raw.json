@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"frontend error logs show dial tcp 192.168.0.222:10250 connection refused to worker-01; worker-01 node status is Unknown with unreachable taints; kubelet.service on worker-01 is inactive (dead); productcatalogservice is Pending because worker-01 is unavailable and its nodeSelector targets worker-01, consistent with a node-level kubelet outage causing partial service unreachability.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"node/worker-01\", \"root_cause\": \"kubelet_unavailable\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_packet_loss\"}, {\"rank\": 3, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 8
+}

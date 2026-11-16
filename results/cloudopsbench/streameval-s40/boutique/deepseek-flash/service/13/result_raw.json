@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Frontend logs show persistent 'dial tcp 10.68.1.75:3550: connect: connection refused' when calling productcatalogservice. productcatalogservice Deployment container listens on port 3550 (containerPort and PORT env=3550, probes grpc 3550), but the Service maps port 3550 to targetPort 8081. Endpoints are 172.20.1.16:8081, so traffic goes to a port with no listener, producing connection refused despite all pods Running/Ready.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"service_port_mapping_mismatch\"}, {\"rank\": 2, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"service_protocol_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"service_selector_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 8
+}

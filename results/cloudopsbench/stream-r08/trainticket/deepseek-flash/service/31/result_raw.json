@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"ts-route-service pod is in CrashLoopBackOff (0/2, 4 restarts, exit code 1). Its application logs show CJCommunicationsException / UnknownHostException 'Temporary failure in name resolution' for tsdb-mysql-leader, and its istio-proxy logs show DNS timeouts resolving istiod.istio-system.svc via nameserver 10.255.11.254. The ts-route-service Deployment has dnsPolicy: 'None' with dnsConfig nameservers set to 10.255.11.254, which is unreachable. The target Services (tsdb-mysql-leader, istiod) exist and all other pods in the namespace are Running/Ready, confirming a pod-local DNS misconfiguration rather than a missing or cluster-wide fault.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-route-service\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 2, \"fault_object\": \"node/worker-01\", \"root_cause\": \"node_network_packet_loss\"}, {\"rank\": 3, \"fault_object\": \"app/ts-route-service\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 8
+}

@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show productcatalogservice CPU CFS throttling (1.095s throttled), CPU usage rising from 0.03 to 0.16 cores, and p95 latency rising from 0.57ms to 47.93ms; frontend, checkoutservice, and recommendationservice latency increases are upstream propagation. The productcatalogservice pod is 2/2 Running with 0 restarts, no error logs, a normal 200m CPU limit, and source/deployment inspection found no busy-loop, excessive file-read, or excessive file-write defect. Thus the incident is best attributed to excessive Pod CPU load on productcatalogservice.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 2, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"code_excessive_file_reads\"}, {\"rank\": 3, \"fault_object\": \"app/productcatalogservice\", \"root_cause\": \"code_busy_loop\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 11
+}

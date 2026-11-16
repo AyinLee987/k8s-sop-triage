@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Active alerts show severe latency on ts-travel-service, ts-basic-service, and ts-route-service, plus a RESOURCE_SATURATION cpu_cfs throttle on ts-order-service. Dependency tracing places ts-order-service under ts-seat-service in the ts-travel-service call path. ts-order-service logs repeatedly show getSoldTickets returning very large soldTickets arrays and queryOrders with ~6498 entries, indicating excessive application-level work. ts-seat-service logs show calls to order-service returning after hundreds of ms to ~1.5s with large result sets. Pods are Running with no crash/restart signal, so the primary fault is application busy processing in ts-order-service causing CPU throttling and propagated service latency.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 2, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 3, \"fault_object\": \"app/ts-basic-service\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 13
+}

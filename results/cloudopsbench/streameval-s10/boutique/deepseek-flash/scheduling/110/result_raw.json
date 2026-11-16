@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"redis-cart pod is Pending with PodScheduled=False. Scheduler event: 0/4 nodes available, 3 nodes did not match Pod's node affinity/selector. Pod spec has Node-Selectors: disktype=ssd, while healthy worker nodes are labeled disk-type=ssd. The master is unschedulable but workers are Ready. This confirms redis-cart cannot schedule due to a node selector mismatch, causing service availability disruption.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/redis-cart\", \"root_cause\": \"node_selector_mismatch\"}, {\"rank\": 2, \"fault_object\": \"app/redis-cart\", \"root_cause\": \"node_affinity_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/redis-cart\", \"root_cause\": \"pvc_selector_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 4
+}

@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Active alerts show ts-inside-payment-service latency/error degradation and ts-payment-service latency degradation. ts-order-service, a downstream dependency of the dominant caller ts-inside-payment-service, has a RESOURCE_SATURATION CPU CFS throttle alert. Its recent logs show excessive application work: queryOrders repeatedly processes size 5634 result sets and getSoldTickets returns very large ticket lists. Pods remain Running and Ready, so crashes/restarts are not the primary cause. This evidence points to application-level CPU-intensive busy processing in ts-order-service rather than external CPU stress or node failure.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 2, \"fault_object\": \"app/ts-order-service\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 3, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"pod_network_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 9
+}

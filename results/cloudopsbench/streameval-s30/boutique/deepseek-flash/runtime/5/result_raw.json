@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"paymentservice pod restarted twice. Its container runs a gRPC server on port 50051, but the livenessProbe uses httpGet on the same port. Kubelet logged malformed HTTP responses from the gRPC endpoint and killed the container after liveness failures. The readinessProbe correctly uses gRPC, confirming the liveness probe protocol is misconfigured.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/paymentservice\", \"root_cause\": \"liveness_probe_incorrect_protocol\"}, {\"rank\": 2, \"fault_object\": \"app/paymentservice\", \"root_cause\": \"liveness_probe_incorrect_timing\"}, {\"rank\": 3, \"fault_object\": \"app/paymentservice\", \"root_cause\": \"container_memory_limit_too_low\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 5
+}

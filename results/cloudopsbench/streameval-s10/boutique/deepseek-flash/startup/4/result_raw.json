@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"frontend-7968b59db9-zs7zp is in ErrImagePull/ImagePullBackOff. The kubelet event shows image pull failed because it could not resolve the registry hostname: `lookup ghost-registry.example.net on 127.0.0.53:53: no such host`. Other boutique pods are Running. This explains partial service unreachability: frontend is unavailable because its image cannot be pulled due to registry DNS failure.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/frontend\", \"root_cause\": \"image_registry_dns_failure\"}, {\"rank\": 2, \"fault_object\": \"app/frontend\", \"root_cause\": \"incorrect_image_reference\"}, {\"rank\": 3, \"fault_object\": \"app/frontend\", \"root_cause\": \"missing_image_pull_secret\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 5
+}

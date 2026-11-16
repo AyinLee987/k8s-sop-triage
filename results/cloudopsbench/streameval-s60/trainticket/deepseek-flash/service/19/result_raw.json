@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"The failing business request is POST /api/v1/travelservice/trips/left returning HTTP 503. ts-travel-service pods are Running, Ready, and have a healthy endpoint (172.20.1.243:12346); its logs show normal request processing and successful downstream seat/basic calls. The gateway ConfigMap routes /api/v1/travelservice/** to lb://ts-nonexistent-travel-backend instead of ts-travel-service, confirming a gateway route-to-backend mismatch.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-gateway-service\", \"root_cause\": \"gateway_misrouted\"}, {\"rank\": 2, \"fault_object\": \"app/ts-travel-service\", \"root_cause\": \"service_selector_mismatch\"}, {\"rank\": 3, \"fault_object\": \"app/ts-travel-service\", \"root_cause\": \"service_port_mapping_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 11
+}

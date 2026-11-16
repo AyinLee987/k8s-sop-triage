@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"checkoutservice deployment has 0/1 ready replicas and no created pods. Its ReplicaSet reports FailedCreate events: pods are forbidden because quota cpu-request-quota is exceeded, requested requests.cpu=2, used=10, limited=10. ResourceQuota confirms requests.cpu: 10/10, proving namespace CPU request quota exhaustion blocks checkoutservice pod creation.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"namespace/boutique\", \"root_cause\": \"namespace_cpu_quota_exceeded\"}, {\"rank\": 2, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"deployment_zero_replicas\"}, {\"rank\": 3, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"cpu_capacity_mismatch\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 8
+}

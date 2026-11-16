@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Frontend logs show repeated `lookup checkoutservice ... no such host` DNS errors, while the checkoutservice Service exists with valid endpoints, checkoutservice pods are Running and Ready, and direct connectivity to checkoutservice:5050 succeeds. This rules out pod crash, selector mismatch, and port/protocol mapping faults, leaving checkoutservice DNS resolution as the primary fault.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 2, \"fault_object\": \"app/frontend\", \"root_cause\": \"service_dns_resolution_failure\"}, {\"rank\": 3, \"fault_object\": \"node/worker-03\", \"root_cause\": \"node_network_packet_loss\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 11
+}

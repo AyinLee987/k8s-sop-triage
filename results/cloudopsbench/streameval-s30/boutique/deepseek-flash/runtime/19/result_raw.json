@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"emailservice pod is in CrashLoopBackOff with exit code 137 after kubelet liveness probe failures on 172.20.1.163:8080. Logs show the service starts normally and listens on port 8080, matching the probe port, but the deployment configures initialDelaySeconds=1, periodSeconds=1, timeoutSeconds=1, and failureThreshold=1, causing rapid restarts before the service is consistently probeable.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/emailservice\", \"root_cause\": \"liveness_probe_incorrect_timing\"}, {\"rank\": 2, \"fault_object\": \"app/emailservice\", \"root_cause\": \"container_memory_limit_too_low\"}, {\"rank\": 3, \"fault_object\": \"app/emailservice\", \"root_cause\": \"readiness_probe_incorrect_port\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 7
+}

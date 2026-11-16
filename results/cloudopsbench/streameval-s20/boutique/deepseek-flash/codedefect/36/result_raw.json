@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Alerts show frontend CPU saturation with CFS throttling and severe latency degradation. Frontend pods are 2/2 Running with no restarts and a normal 200m CPU limit. Error logs are mostly downstream ad DeadlineExceeded, which is secondary. Source inspection of frontend handlers.go found an active request-path busy-wait in chooseAd: a loop repeatedly checks elapsed time until 800ms passes, consuming CPU on home/product requests and explaining the CPU throttling and latency.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 2, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_excessive_file_reads\"}, {\"rank\": 3, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_excessive_file_writes\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 8
+}

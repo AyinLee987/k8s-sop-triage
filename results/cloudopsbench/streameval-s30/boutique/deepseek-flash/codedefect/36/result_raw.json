@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Frontend shows RESOURCE_SATURATION cpu_cfs throttling (1.274s), CPU +1461% and p50 latency 21ms->2175ms with 503 errors, while all pods are Running/Ready. Frontend source handlers.go chooseAd() contains an active busy-wait loop spinning until 800ms elapsed on every home/product request, consuming CPU. This confirms code_busy_loop as root cause on the frontend app.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 2, \"fault_object\": \"app/frontend\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 3, \"fault_object\": \"app/frontend\", \"root_cause\": \"code_artificial_delay\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 9
+}

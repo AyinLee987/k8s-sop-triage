@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Checkoutservice alerts show CPU CFS throttling (0.703s throttled), CPU usage rising from 0.01 to 0.15 cores (+1985.6%), and p95 latency increasing from 28.83ms to 93.18ms. The pod is Running 2/2 with no restarts and no error logs. Resource limits are CPU 200m / memory 128Mi. Source inspection of `checkoutservice/money/money.go` reveals `MultiplySlow`, a CPU-intensive repeated-addition loop called on the `PlaceOrder` request path, explaining the CPU saturation and latency without application errors.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"code_busy_loop\"}, {\"rank\": 2, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"pod_cpu_overload\"}, {\"rank\": 3, \"fault_object\": \"app/checkoutservice\", \"root_cause\": \"code_excessive_file_reads\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 11
+}

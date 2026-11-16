@@ -1,0 +1,6 @@
+{
+  "Completed": "{\"key_evidence_summary\": \"Active alert reports HTTP 500 for 'Process payment' at ts-inside-payment-service. Its logs show the failure is an upstream HTTP 500 from /api/v1/paymentservice/payment on ts-payment-service. ts-payment-service logs show IncorrectResultSizeDataAccessException / NonUniqueResultException: query did not return a unique result: 5. Pods are Running/Ready, and tsdb-mysql has no error logs, ruling out pod outage, DNS failure, or obvious database-side failure. This points to faulty application query logic in ts-payment-service.\", \"top_3_predictions\": [{\"rank\": 1, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"code_missing_parameter\"}, {\"rank\": 2, \"fault_object\": \"app/ts-inside-payment-service\", \"root_cause\": \"code_wrong_argument_order\"}, {\"rank\": 3, \"fault_object\": \"app/ts-payment-service\", \"root_cause\": \"code_wrong_argument_order\"}]}",
+  "finished": true,
+  "stop_reason": "submit",
+  "steps_used": 17
+}
