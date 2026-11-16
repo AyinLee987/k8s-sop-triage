@@ -19,9 +19,10 @@ SCENARIO_FILE = REPO / "scenarios" / "scenarios.yaml"
 BOUTIQUE_FILE = REPO / "scenarios" / "boutique.yaml"  # Online Boutique scenarios (app: boutique); never part of "handwritten"
 
 
-def load_boutique(generated: bool = False) -> list[dict]:
-    """Hand-written Online Boutique scenarios (B..), or the generated pool (BG.., boutique/make_scenarios.py)."""
-    path = BOUTIQUE_FILE.with_name("boutique_gen.yaml") if generated else BOUTIQUE_FILE
+def load_boutique(generated: bool = False, hard: bool = False) -> list[dict]:
+    """Hand-written Online Boutique scenarios (B..), the generated pool (BG.., boutique/make_scenarios.py),
+    or the harder set (BH.., boutique/make_hard_scenarios.py: double faults, decoys, packet loss)."""
+    path = BOUTIQUE_FILE.with_name("boutique_hard.yaml" if hard else "boutique_gen.yaml") if generated or hard else BOUTIQUE_FILE
     return yaml.safe_load(path.read_text(encoding="utf-8"))["scenarios"] if path.exists() else []
 
 
@@ -46,7 +47,7 @@ def load_scenarios(path: Path = SCENARIO_FILE, split: str | None = None, ids: li
         from triage.generator import expand
         items += expand(max_per_template=max_per_template)
     if source == "all":
-        items += load_boutique() + load_boutique(generated=True)
+        items += load_boutique() + load_boutique(generated=True) + load_boutique(hard=True)
     if ids:
         source_ids = {s["id"] for s in items}
         missing = set(ids) - source_ids

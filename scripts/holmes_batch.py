@@ -42,17 +42,28 @@ def pick_noise(mode: str, sc_id: str, rep: int) -> list[str]:
 def grade(answer_text: str, expected: dict, noise_ids: list[str] | None = None) -> dict:
     low = answer_text.lower()
     noise_named = [k for n in load_noises(noise_ids or []) for k in n.get("blame_keywords", []) if k.lower() in low]
-    cause_hits = [k for k in expected.get("accept_cause_keywords", []) if k.lower() in low]
-    evidence_hits = [k for k in expected.get("key_evidence", []) if k.lower() in low]
-    name = (expected.get("object") or {}).get("name", "")
-    return {
-        "object_mentioned": bool(name) and name.lower() in low,
-        "cause_hits": cause_hits,
-        "evidence_hits": evidence_hits,
-        "auto_correct": bool(cause_hits) and bool(evidence_hits),
+    # scenarios with several root causes (answer.also): every one of them has to be named
+    parts = []
+    for cause in [expected, *expected.get("also", [])]:
+        name = (cause.get("object") or {}).get("name", "")
+        cause_hits = [k for k in cause.get("accept_cause_keywords", []) if k.lower() in low]
+        evidence_hits = [k for k in cause.get("key_evidence", []) if k.lower() in low]
+        parts.append({"object": name, "object_mentioned": bool(name) and name.lower() in low, "cause_hits": cause_hits,
+                      "evidence_hits": evidence_hits, "ok": bool(cause_hits) and bool(evidence_hits)})
+    out = {
+        "object_mentioned": parts[0]["object_mentioned"],
+        "cause_hits": parts[0]["cause_hits"],
+        "evidence_hits": parts[0]["evidence_hits"],
+        "auto_correct": all(p["ok"] for p in parts),
         # the answer names a noise object: read it to see whether it blamed the noise or just listed it as checked
         "noise_named": noise_named,
     }
+    if len(parts) > 1:
+        out["root_causes"] = parts
+    if expected.get("not_cause"):
+        # a real anomaly that is not the cause: naming it is fine, blaming it is not. Keywords cannot tell, so read these.
+        out["decoy_named"] = [d["name"] for d in expected["not_cause"] if d["name"].lower() in low]
+    return out
 
 
 def run_one(sc_id: str, out: Path, max_steps: int, noise_ids: list[str], skills: str = "") -> dict:
