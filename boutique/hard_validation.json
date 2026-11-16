@@ -1,0 +1,13 @@
+{
+ "note": "Laptop validation of the BH set, 2026-11-16. BH01-BH10: confirmed, all pods 1/1 with 0 restarts, resets clean. Loss scenarios re-run with --observe 60 after the confirm check was limited to requests logged since the confirm step began (first run: BH14 confirmed in 0 s on slow requests from before the fault).",
+ "frontend_requests_since_confirm": {
+  "BH07 (no latency fault)": {"requests": 215, "share_slow_180ms": 0.0, "p50": 6, "p90": 13, "p99": 55},
+  "BH10 (no latency fault)": {"requests": 190, "share_slow_180ms": 0.0, "p50": 1, "p90": 2, "p99": 4},
+  "BH11 loss 6% productcatalogservice": {"requests": 264, "share_slow_180ms": 0.159, "p50": 11, "p90": 217, "p99": 431},
+  "BH12 loss 6% currencyservice": {"requests": 325, "share_slow_180ms": 0.123, "p50": 9, "p90": 215, "p99": 444},
+  "BH13 loss 6% redis-cart": {"requests": 406, "share_slow_180ms": 0.054, "p50": 9, "p90": 43, "p99": 240},
+  "BH14 loss 6% cartservice": {"requests": 409, "share_slow_180ms": 0.051, "p50": 5, "p90": 42, "p99": 222},
+  "BH15 loss 6% productcatalogservice": {"requests": 295, "share_slow_180ms": 0.19, "p50": 8, "p90": 219, "p99": 628}
+ },
+ "side_effects_of_loss": "kubelet probes cross the same interface: Unhealthy events (readiness and liveness timeouts) on the faulty pod in BH11 and BH13, and one liveness restart of cartservice in BH14 about two minutes in. The events point at the right pod, so these scenarios are easier than a loss that left no trace; the cause (network, not the application) still has to be worked out."
+}
