@@ -157,7 +157,7 @@ def main() -> None:
         return "delay 300ms 30ms" if t in GO or t == "redis-cart" else "delay 200ms 20ms"
 
     slow_check = lambda count: {"type": "slow_requests", "selector": "app=frontend", "field": "http.resp.took_ms",  # noqa: E731
-                                "match": {"message": "request complete"}, "min_ms": 180, "count": count}
+                                "match": {"message": "request complete"}, "min_ms": 180, "count": count, "since_confirm": True}
     order_check = {"type": "logs_contain", "selector": "app=frontend", "text": "failed to complete the order"}
     err_check = {"type": "logs_contain", "selector": "app=frontend", "text": '"http.resp.status":500'}
 

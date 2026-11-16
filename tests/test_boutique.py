@@ -183,3 +183,16 @@ def test_batch_grading_needs_every_root_cause():
     assert both["auto_correct"] and len(both["root_causes"]) == 2
     decoy = hb.grade("adservice 副本数为 0，是根因", H["BH06"]["answer"])
     assert not decoy["auto_correct"] and decoy["decoy_named"] == ["adservice"]
+
+
+def test_slow_requests_can_ignore_what_happened_before_the_fault():
+    import json
+    lines = "\n".join(json.dumps({"message": "request complete", "http.resp.took_ms": ms}) for ms in (300, 420))
+    k = FakeRunner(lambda a: KubeResult(True, lines))
+    lc = BoutiqueLifecycle(k, "/lab/k8s")
+    check = {"type": "slow_requests", "selector": "app=frontend", "field": "http.resp.took_ms", "match": {"message": "request complete"},
+             "min_ms": 180, "count": 2, "since_confirm": True}
+    lc.confirm({"confirm": {"timeout_s": 1, "checks": [check]}}, StepLog())
+    call = next(c for c in k.calls if "logs" in c)
+    assert any(a.startswith("--since-time=20") for a in call) and "--tail=-1" in call
+    assert all(c.get("since_confirm") for s in H.values() for c in s["confirm"]["checks"] if c["type"] == "slow_requests")

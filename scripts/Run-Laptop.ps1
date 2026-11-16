@@ -22,6 +22,7 @@ param(
     [string]$Skills = '',       # batch/pilot: skill dirs relative to the repo, comma-separated; empty = no SOP
     [string]$Source = '',       # batch: handwritten (default) | generated | all
     [int]$MaxSteps = 0,         # batch/pilot: HolmesGPT step limit; 0 = the scripts' default (25)
+    [int]$Observe = 0,          # validate: keep each fault this many more seconds and record the frontend's latency meanwhile
     [switch]$Rebuild
 )
 # Not 'Stop': in Windows PowerShell 5.1 any stderr line from a native command (docker progress, a failed
@@ -172,7 +173,7 @@ switch ($Action) {
     'check'    { $runArgs = @('check') }
     'pilot'    { $runArgs = @('pilot', $Scenario); if ($Noise) { $runArgs += @('--noise', $Noise) }; if ($Skills) { $runArgs += @('--skills', $Skills) }; if ($MaxSteps -gt 0) { $runArgs += @('--max-steps', "$MaxSteps") } }
     'noise'    { $runArgs = @('noise') }
-    'validate' { $runArgs = @('validate'); if ($Scenarios) { $runArgs += ($Scenarios -split ',') } else { $runArgs += $Scenario } }
+    'validate' { $runArgs = @('validate'); if ($Scenarios) { $runArgs += ($Scenarios -split ',') } else { $runArgs += $Scenario }; if ($Observe -gt 0) { $runArgs += @('--observe', "$Observe") } }
     'shell'    { $runArgs = @('shell') }
     'sweep'    { $runArgs = @('sweep') }
     'batch'    {

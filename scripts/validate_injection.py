@@ -54,6 +54,10 @@ def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("ids", nargs="+")
     ap.add_argument("--settle", type=float, default=15, help="seconds to wait after confirm before the snapshot")
+    ap.add_argument("--observe", type=float, default=0,
+                    help="Online Boutique: keep the fault this many more seconds, then record how slow the frontend's requests "
+                         "were since the confirm step began (count, share >= 180 ms, percentiles). A scenario without a "
+                         "latency fault gives the baseline to compare with.")
     args = ap.parse_args()
     load_dotenv()
     ns = cfg("NAMESPACE", "tiktok-k8s-lab")
@@ -84,6 +88,14 @@ def main() -> int:
             except EnvironmentError_ as exc:
                 record["confirm_error"] = str(exc)
             time.sleep(args.settle)
+            if boutique and args.observe:
+                time.sleep(args.observe)
+                t = sorted(lc.request_times({"selector": "app=frontend", "field": "http.resp.took_ms", "match": {"message": "request complete"}},
+                                            since=getattr(lc, "confirm_since", None)))
+                pick = lambda q: round(t[min(len(t) - 1, int(len(t) * q))]) if t else None  # noqa: E731
+                record["latency_since_confirm"] = {"requests": len(t), "slow_180ms": sum(x >= 180 for x in t),
+                                                   "share_slow": round(sum(x >= 180 for x in t) / len(t), 3) if t else None,
+                                                   "p50": pick(0.5), "p90": pick(0.9), "p99": pick(0.99)}
             record["snapshot"] = (snapshot(admin, lc.ns, None, ("app=frontend", "app=checkoutservice", "app=cartservice",
                                                                "app=productcatalogservice", "app=redis-cart"))
                                   if boutique else snapshot(admin, ns, secret))
@@ -107,7 +119,8 @@ def main() -> int:
             path = OUT / f"{sid}.json"
             path.write_text(json.dumps(record, ensure_ascii=False, indent=1), encoding="utf-8")
             seen = record.get("key_evidence_seen", {})
-            print(f"{sid}: confirmed={record['confirmed']} evidence={seen} reset_ok={'reset_error' not in record} -> {path}")
+            print(f"{sid}: confirmed={record['confirmed']} evidence={seen} reset_ok={'reset_error' not in record}"
+                  + (f" latency={record['latency_since_confirm']}" if "latency_since_confirm" in record else "") + f" -> {path}")
         if status == 2:
             print("reset failed; stopping so the next scenario does not start from a broken environment")
             break

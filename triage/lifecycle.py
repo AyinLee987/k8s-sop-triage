@@ -135,6 +135,8 @@ class Lifecycle:
         spec = scenario.get("confirm") or {"timeout_s": 10, "checks": [{"type": "always"}]}
         deadline = time.monotonic() + float(spec.get("timeout_s", 60))
         started = time.monotonic()
+        # checks marked since_confirm only count what happened from here on (after every inject step)
+        self.confirm_since = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
         last = ""
         while True:
             results = [self._check(c) for c in spec.get("checks", [])]
@@ -265,18 +267,13 @@ class Lifecycle:
                         f"(need >= {check.get('min_seconds', 0)}s)")
         if kind == "slow_requests":
             # api request-log lines (image v3+) whose elapsed_ms is at least min_ms; needs at least `count` of them
-            res = self._run(["-n", ns, "logs", "-l", check.get("selector", "app=api"), "--tail=600", "--max-log-requests=10"], 30)
-            slow = total = 0
-            for line in res.stdout.splitlines():
-                try:
-                    rec = json.loads(line)
-                except json.JSONDecodeError:
-                    continue
-                # default: the lab api's request log; `match` + `field` adapt it to another log format
-                if all(rec.get(k) == v for k, v in (check.get("match") or {"phase": "request"}).items()):
-                    total += 1
-                    slow += float(rec.get(check.get("field", "elapsed_ms")) or 0) >= float(check["min_ms"])
-            return slow >= int(check.get("count", 5)), f"{slow}/{total} requests >= {check['min_ms']} ms"
+            # since_confirm: only requests logged after the confirm step began. Without it, slow requests from
+            # before the fault (a restart, a caller reconnecting after a scale-down) count as the fault's effect.
+            since = getattr(self, "confirm_since", None) if check.get("since_confirm") else None
+            times = self.request_times(check, ns, since)
+            slow = sum(t >= float(check["min_ms"]) for t in times)
+            return slow >= int(check.get("count", 5)), (f"{slow}/{len(times)} requests >= {check['min_ms']} ms"
+                                                        + (f" since {since}" if since else ""))
         if kind == "logs_contain":
             res = self._run(["-n", ns, "logs", "-l", check["selector"], "--tail=200", "--all-containers",
                              "--prefix", "--max-log-requests=10"], 30)
@@ -301,6 +298,20 @@ class Lifecycle:
         return False, f"unknown check {kind}"
 
     # ---- helpers ----
+    def request_times(self, check: dict, ns: str | None = None, since: str | None = None) -> list[float]:
+        """Elapsed times (ms) from a JSON request log. Default: the lab api's log; `match` + `field` adapt it."""
+        window = [f"--since-time={since}", "--tail=-1"] if since else ["--tail=600"]
+        res = self._run(["-n", ns or self.ns, "logs", "-l", check.get("selector", "app=api"), *window, "--max-log-requests=10"], 30)
+        times = []
+        for line in res.stdout.splitlines():
+            try:
+                rec = json.loads(line)
+            except json.JSONDecodeError:
+                continue
+            if isinstance(rec, dict) and all(rec.get(k) == v for k, v in (check.get("match") or {"phase": "request"}).items()):
+                times.append(float(rec.get(check.get("field", "elapsed_ms")) or 0))
+        return times
+
     def _render(self, value: str) -> str:
         for k, v in self.vars.items():
             value = value.replace("{" + k + "}", v)
