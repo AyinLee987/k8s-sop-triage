@@ -4,6 +4,7 @@
 #   .\scripts\Run-Laptop.ps1 -Action pilot -Scenario R06         # one scenario
 #   .\scripts\Run-Laptop.ps1 -Action batch                       # dev split x 3 repeats (about 1-2 hours)
 #   .\scripts\Run-Laptop.ps1 -Action batch -Scenarios R06,R09 -Repeats 2 -Tag try1
+#   .\scripts\Run-Laptop.ps1 -Action loop -Scenarios BH01,BH12 -Rounds 3 -MaxSteps 100 -Tag loop-pilot   # diagnose, fix, verify, repeat
 #   .\scripts\Run-Laptop.ps1 -Action noise                       # check the ambient noise applies and removes cleanly
 #   .\scripts\Run-Laptop.ps1 -Action batch -Noise random -Tag noise1   # same scenarios with ambient noise
 #
@@ -13,7 +14,7 @@
 # no WSL shutdown; no PVC, namespace or cluster deletion.
 [CmdletBinding()]
 param(
-    [ValidateSet('check', 'pilot', 'batch', 'validate', 'noise', 'shell', 'sweep')][string]$Action = 'check',
+    [ValidateSet('check', 'pilot', 'batch', 'loop', 'validate', 'noise', 'shell', 'sweep')][string]$Action = 'check',
     [string]$Scenario = 'R06',
     [string]$Scenarios = '',
     [int]$Repeats = 3,
@@ -22,6 +23,7 @@ param(
     [string]$Skills = '',       # batch/pilot: skill dirs relative to the repo, comma-separated; empty = no SOP
     [string]$Source = '',       # batch: handwritten (default) | generated | all
     [int]$MaxSteps = 0,         # batch/pilot: HolmesGPT step limit; 0 = the scripts' default (25)
+    [int]$Rounds = 3,           # loop: how many diagnose-fix-verify rounds the agent gets
     [int]$Observe = 0,          # validate: keep each fault this many more seconds and record the frontend's latency meanwhile
     [switch]$Rebuild
 )
@@ -174,6 +176,7 @@ switch ($Action) {
     'pilot'    { $runArgs = @('pilot', $Scenario); if ($Noise) { $runArgs += @('--noise', $Noise) }; if ($Skills) { $runArgs += @('--skills', $Skills) }; if ($MaxSteps -gt 0) { $runArgs += @('--max-steps', "$MaxSteps") } }
     'noise'    { $runArgs = @('noise') }
     'validate' { $runArgs = @('validate'); if ($Scenarios) { $runArgs += ($Scenarios -split ',') } else { $runArgs += $Scenario }; if ($Observe -gt 0) { $runArgs += @('--observe', "$Observe") } }
+    'loop'     { $runArgs = @('loop'); if ($Scenarios) { $runArgs += ($Scenarios -split ',') } else { $runArgs += $Scenario }; $runArgs += @('--rounds', "$Rounds"); if ($Tag) { $runArgs += @('--tag', $Tag) }; if ($Skills) { $runArgs += @('--skills', $Skills) }; if ($MaxSteps -gt 0) { $runArgs += @('--max-steps', "$MaxSteps") } }
     'shell'    { $runArgs = @('shell') }
     'sweep'    { $runArgs = @('sweep') }
     'batch'    {
