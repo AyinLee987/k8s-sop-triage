@@ -422,6 +422,12 @@ class BoutiqueLifecycle(Lifecycle):
                for e in c.get("env", []) or []}
         if env.get("SHIPPING_SERVICE_ADDR") != "shippingservice:50051":
             problems.append("checkoutservice SHIPPING_SERVICE_ADDR differs from baseline")
+        for name, want in (("productcatalogservice", "200m"), ("redis-cart", "125m")):
+            d = self._json(["-n", self.ns, "get", "deployment", name]) or {}
+            got = [((c.get("resources") or {}).get("limits") or {}).get("cpu")
+                   for c in (d.get("spec") or {}).get("template", {}).get("spec", {}).get("containers", [])]
+            if got != [want]:
+                problems.append(f"{name} cpu limit {got} differs from baseline ({want})")
         if self._run(["-n", "infra-tools", "get", "pod", "net-injector"], 20).ok:
             problems.append("pod infra-tools/net-injector still exists (network delay may still be applied)")
         if not problems:

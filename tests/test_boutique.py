@@ -6,7 +6,7 @@ B = {s["id"]: s for s in load_boutique()}
 
 
 def test_boutique_specs_are_complete():
-    assert set(B) == {"B01", "B02", "B03", "B04", "B05"}
+    assert set(B) == {"B01", "B02", "B03", "B04", "B05", "B06", "B07"}
     for s in B.values():
         assert s["app"] == "boutique" and s["split"] == "dev" and s["hops"] in (1, 2)
         for key in ("symptom", "inject", "confirm", "reset", "answer", "realism"):
@@ -20,6 +20,9 @@ def test_boutique_specs_are_complete():
                     assert (REPO / str(arg).split("{repo}/")[1]).exists(), arg
     # same symptom, different depth: the pairs the per-service SOP experiment is about
     assert B["B01"]["symptom"] == B["B03"]["symptom"] and B["B04"]["symptom"] == B["B05"]["symptom"]
+    # same symptom on the same service, other mechanism: what a rule learned from B04/B05 can get wrong
+    assert B["B06"]["symptom"] == B["B04"]["symptom"] and B["B07"]["symptom"] == B["B05"]["symptom"]
+    assert B["B06"]["answer"]["object"]["name"] == B["B04"]["answer"]["object"]["name"]
 
 
 def test_boutique_scenarios_stay_out_of_the_default_set():

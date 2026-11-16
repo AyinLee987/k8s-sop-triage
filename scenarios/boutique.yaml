@@ -4,7 +4,7 @@
 #           shippingservice / adservice / checkoutservice -> (productcatalog, cart, shipping, currency, payment, email)
 # 说明：改 Service 之后要重建后端 Pod（直接删 Pod，不用 rollout restart，后者会在 Deployment 上留下 restartedAt 注解）。已建立的长连接不受 Service 变更影响（kube-proxy 不清 TCP 连接跟踪），
 #       不重启的话调用方会继续用旧连接，故障不生效。
-baseline: 命名空间 boutique 内 12 个 Deployment 各 1 个副本且 Ready；Service productcatalogservice 的 targetPort 为 3550；Service redis-cart 的 selector 为 app=redis-cart；checkoutservice 的 SHIPPING_SERVICE_ADDR 为 shippingservice:50051；首页可访问。
+baseline: 命名空间 boutique 内 12 个 Deployment 各 1 个副本且 Ready；Service productcatalogservice 的 targetPort 为 3550；Service redis-cart 的 selector 为 app=redis-cart；checkoutservice 的 SHIPPING_SERVICE_ADDR 为 shippingservice:50051；productcatalogservice 的 CPU limit 为 200m、redis-cart 为 125m；首页可访问。
 scenarios:
 - id: B01
   app: boutique
@@ -190,3 +190,77 @@ scenarios:
     explanation: redis-cart 的 Pod 网络被加了约 300 毫秒延迟；cartservice 每次读写购物车都变慢，frontend 的页面跟着变慢；各服务自身的配置、镜像、资源都没有变化。
     key_evidence: [redis-cart]
     accept_cause_keywords: [网络, network, 延迟, latency, delay]
+
+- id: B06
+  app: boutique
+  split: dev
+  kind: cross_service
+  mechanism: pod_cpu_throttle
+  hops: 1
+  symptom: 商城页面明显变慢了，但没有报错；Pod 看起来都是正常的。
+  realism:
+    pattern: 'CPU limit 过低被限流（Cloud-OpsBench: pod_cpu_overload）。症状与 B04 的网络延迟完全相同、出在同一个服务上，区别只在 Deployment 的资源配置里看得到。'
+    sources:
+    - Cloud-OpsBench Performance
+    - k8s.af CPU throttling
+    validated: false
+    validate_note: 确认首页耗时比正常（约 0.06 秒）明显变长；productcatalogservice 的 Pod 是 Ready 的、没有重启（限得太狠会让探针超时，那样就不是“看起来正常”了）。
+  inject:
+  - kubectl: ['-n', '{ns}', set, resources, deployment/productcatalogservice, '--limits=cpu=15m', '--requests=cpu=15m']
+  - kubectl: ['-n', '{ns}', rollout, status, deployment/productcatalogservice, --timeout=140s]
+  confirm:
+    timeout_s: 90
+    checks:
+    - type: http_probe
+      path: /
+      contains: Online Boutique
+      min_seconds: 0.15
+    debug_on_fail:
+    - ['-n', '{ns}', get, pods, -l, app=productcatalogservice, -o, wide]
+    - ['-n', '{ns}', logs, -l, app=frontend, --tail=8]
+  reset:
+  - kubectl: ['-n', '{ns}', set, resources, deployment/productcatalogservice, '--limits=cpu=200m', '--requests=cpu=100m']
+  answer:
+    status: root_cause_found
+    object: {kind: Deployment, name: productcatalogservice}
+    cause_category: other
+    explanation: productcatalogservice 的 CPU limit 被改成 15m（原来是 200m），容器被 CFS 限流，处理每个请求都要等配额；调用它的 frontend、recommendationservice、checkoutservice 都跟着变慢；网络没有问题。
+    key_evidence: ['15m']
+    accept_cause_keywords: [cpu, 限流, 节流, throttl]
+
+- id: B07
+  app: boutique
+  split: dev
+  kind: cross_service
+  mechanism: pod_cpu_throttle
+  hops: 2
+  symptom: 商城页面明显变慢了，但没有报错；Pod 看起来都是正常的。
+  realism:
+    pattern: 'CPU limit 过低被限流（Cloud-OpsBench: pod_cpu_overload）。症状与 B05 的网络延迟完全相同、出在同一个服务上，区别只在 Deployment 的资源配置里看得到。链路：frontend -> cartservice -> redis-cart。'
+    sources:
+    - Cloud-OpsBench Performance
+    - k8s.af CPU throttling
+    validated: false
+    validate_note: 确认首页耗时比正常（约 0.06 秒）明显变长；redis-cart 的 Pod 是 Ready 的、没有重启（限得太狠会让探针超时，那样就不是“看起来正常”了）。
+  inject:
+  - kubectl: ['-n', '{ns}', set, resources, deployment/redis-cart, '--limits=cpu=10m', '--requests=cpu=10m']
+  - kubectl: ['-n', '{ns}', rollout, status, deployment/redis-cart, --timeout=140s]
+  confirm:
+    timeout_s: 90
+    checks:
+    - type: http_probe
+      path: /
+      contains: Online Boutique
+      min_seconds: 0.15
+    debug_on_fail:
+    - ['-n', '{ns}', get, pods, -l, app=redis-cart, -o, wide]
+    - ['-n', '{ns}', logs, -l, app=frontend, --tail=8]
+  reset:
+  - kubectl: ['-n', '{ns}', set, resources, deployment/redis-cart, '--limits=cpu=125m', '--requests=cpu=70m']
+  answer:
+    status: root_cause_found
+    object: {kind: Deployment, name: redis-cart}
+    cause_category: other
+    explanation: redis-cart 的 CPU limit 被改成 10m（原来是 125m），容器被 CFS 限流，处理每个请求都要等配额；cartservice 每次读写购物车都变慢，页面跟着变慢；网络没有问题。
+    key_evidence: ['10m']
+    accept_cause_keywords: [cpu, 限流, 节流, throttl]
