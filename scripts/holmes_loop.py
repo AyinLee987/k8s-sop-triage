@@ -164,7 +164,16 @@ def run(sc: dict, args) -> int:
             rnd["observation"] = remediate.observe(lc, now_iso())
             print(f"   after: {remediate.describe(rnd['observation'])}", flush=True)
             # a round that did not help is rolled back, so the next one does not start from a pile of failed fixes
-            rnd["kept"] = remediate.improved(history[-1]["observation"] if history else first_obs, rnd["observation"])
+            prev_obs = history[-1]["observation"] if history else first_obs
+            rnd["kept"] = remediate.improved(prev_obs, rnd["observation"])
+            if not rnd["kept"]:
+                # A correct fix can take a while to show: callers keep failing until their gRPC channels reconnect (back-off
+                # up to two minutes). loop-v2 BH02: the right Service selector was judged useless after 95 s and rolled back.
+                # So a round is only called useless after a second, later window.
+                rnd["observation_first"] = rnd["observation"]
+                rnd["observation"] = remediate.observe(lc, now_iso())
+                print(f"   later: {remediate.describe(rnd['observation'])}", flush=True)
+                rnd["kept"] = remediate.improved(prev_obs, rnd["observation"])
             if not rnd["kept"]:
                 rnd["undone"] = remediate.restore_to(lc, before_actions)
                 print(f"   no improvement: undone {rnd['undone']}", flush=True)
