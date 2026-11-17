@@ -121,3 +121,16 @@ def test_a_failed_round_is_rolled_back_to_the_state_before_it():
     assert remediate.snapshot(lc)[("Deployment", "currencyservice")]["cpu_limit"] == "1"
     done = remediate.restore_to(lc, before)
     assert len(done) == 1 and "currencyservice" in done[0]
+
+
+def test_recover_removes_a_left_over_injector_and_is_quiet_on_a_clean_namespace():
+    def dirty(args):
+        if args[:5] == ["-n", "infra-tools", "get", "pod", "net-injector"]:
+            return KubeResult(True, "net-injector 1/1 Running")
+        return KubeResult(True, "{}")
+    lc = lifecycle(dirty)
+    done = remediate.recover(lc)
+    flat = [" ".join(c) for c in lc.k.calls]
+    assert done == ["net-injector removed"] and any("delete pod net-injector" in c for c in flat) and any("rollout status" in c for c in flat)
+    clean = lifecycle(lambda a: KubeResult(False, "", "NotFound", 1) if "net-injector" in a else KubeResult(True, "{}"))
+    assert remediate.recover(clean) == [] and not any("delete" in c or "rollout" in c for c in (" ".join(x) for x in clean.k.calls))

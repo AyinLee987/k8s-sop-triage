@@ -211,3 +211,17 @@ def restore_to(lc, target: dict) -> list[str]:
             res = lc._run(args, 60)
             done.append(f"{kind}/{name}: {' '.join(args[2:5])} -> {'ok' if res.ok else res.stderr.strip()[:120]}")
     return done
+
+
+def recover(lc) -> list[str]:
+    """Clean up after a run that was killed before its own reset (Ctrl+C, a closed terminal): remove the fault injector,
+    put every Service and Deployment back to the release manifest, wait for the rollouts. Safe to call on a clean namespace."""
+    done = []
+    if lc._run(["-n", "infra-tools", "get", "pod", "net-injector"], 20).ok:
+        res = lc._run(["-n", "infra-tools", "delete", "pod", "net-injector", "--ignore-not-found", "--wait=true", "--timeout=90s"], 120)
+        done.append("net-injector removed" if res.ok else f"net-injector: {res.stderr.strip()[:120]}")
+    done += restore_baseline(lc)
+    if done:
+        for name in BOUTIQUE_DEPLOYMENTS:
+            lc._run(["-n", NS, "rollout", "status", f"deployment/{name}", "--timeout=140s"], 150)
+    return done

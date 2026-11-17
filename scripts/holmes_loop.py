@@ -120,6 +120,10 @@ def run(sc: dict, args) -> int:
     env = holmes_env(args.skills)
     log = StepLog()
     record = {"scenario": sc["id"], "model": model, "max_rounds": args.rounds, "frame": args.frame, "rounds": [], "outcome": "error"}
+    leftovers = remediate.recover(lc)   # a previous run killed mid-scenario leaves its injector and changes behind
+    if leftovers:
+        print(f"cleaned up after an interrupted run: {leftovers}", flush=True)
+        record["recovered"] = leftovers
     lc.verify_healthy(log)
     try:
         lc.inject(sc, log)
