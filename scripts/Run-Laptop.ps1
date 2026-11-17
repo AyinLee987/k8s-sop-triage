@@ -23,6 +23,7 @@ param(
     [string]$Skills = '',       # batch/pilot: skill dirs relative to the repo, comma-separated; empty = no SOP
     [string]$Source = '',       # batch: handwritten (default) | generated | all
     [int]$MaxSteps = 0,         # batch/pilot: HolmesGPT step limit; 0 = the scripts' default (25)
+    [string]$Frame = '',        # loop: 'prod' tells the agent this is a real production incident, not a test
     [int]$Rounds = 3,           # loop: how many diagnose-fix-verify rounds the agent gets
     [int]$Observe = 0,          # validate: keep each fault this many more seconds and record the frontend's latency meanwhile
     [switch]$Rebuild
@@ -176,7 +177,7 @@ switch ($Action) {
     'pilot'    { $runArgs = @('pilot', $Scenario); if ($Noise) { $runArgs += @('--noise', $Noise) }; if ($Skills) { $runArgs += @('--skills', $Skills) }; if ($MaxSteps -gt 0) { $runArgs += @('--max-steps', "$MaxSteps") } }
     'noise'    { $runArgs = @('noise') }
     'validate' { $runArgs = @('validate'); if ($Scenarios) { $runArgs += ($Scenarios -split ',') } else { $runArgs += $Scenario }; if ($Observe -gt 0) { $runArgs += @('--observe', "$Observe") } }
-    'loop'     { $runArgs = @('loop'); if ($Scenarios) { $runArgs += ($Scenarios -split ',') } else { $runArgs += $Scenario }; $runArgs += @('--rounds', "$Rounds"); if ($Tag) { $runArgs += @('--tag', $Tag) }; if ($Skills) { $runArgs += @('--skills', $Skills) }; if ($MaxSteps -gt 0) { $runArgs += @('--max-steps', "$MaxSteps") } }
+    'loop'     { $runArgs = @('loop'); if ($Scenarios) { $runArgs += ($Scenarios -split ',') } else { $runArgs += $Scenario }; $runArgs += @('--rounds', "$Rounds"); if ($Frame) { $runArgs += @('--frame', $Frame) }; if ($Tag) { $runArgs += @('--tag', $Tag) }; if ($Skills) { $runArgs += @('--skills', $Skills) }; if ($MaxSteps -gt 0) { $runArgs += @('--max-steps', "$MaxSteps") } }
     'shell'    { $runArgs = @('shell') }
     'sweep'    { $runArgs = @('sweep') }
     'batch'    {

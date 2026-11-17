@@ -35,9 +35,16 @@ FORMAT = """回答的最后必须是一个 ```json 代码块，格式如下（ro
 ```"""
 
 
-def build_prompt(ns: str, symptom: str, rounds: int, history: list[dict], first_obs: dict) -> str:
+# --frame prod: the trajectories of the first runs show the agent working out that it is in a lab and reasoning about
+# "what a test would inject" (boutique/loop_trajectory_notes.md). This says otherwise and asks for evidence only.
+PROD_FRAME = ("这是线上生产环境里正在发生的真实故障，不是演练、测试或练习题，没有“出题人”，也没有预设的标准答案。"
+              "只根据你在这个集群里实际观察到的证据下结论；不要推测“可能被注入了什么故障”，也不要因为某种原因更常见就选它。"
+              "如果两个解释都说得通而你无法区分，就把两个都写出来，并说明还缺什么证据。\n\n")
+
+
+def build_prompt(ns: str, symptom: str, rounds: int, history: list[dict], first_obs: dict, frame: str = "") -> str:
     n = len(history) + 1
-    head = (f"命名空间 {ns} 里出了问题。用户反馈：{symptom}\n"
+    head = ((PROD_FRAME if frame == "prod" else "") + f"命名空间 {ns} 里出了问题。用户反馈：{symptom}\n"
             f"监控看到的用户侧情况：{remediate.describe(first_obs)}\n\n"
             f"请排查根因并提出修复。你只有只读权限；修复由运维按你的申请执行，执行后会把用户侧的最新情况告诉你，"
             f"没恢复的话可以继续排查。最多 {rounds} 轮，现在是第 {n} 轮。\n\n{remediate.ACTIONS_HELP}\n\n{FORMAT}")
@@ -84,6 +91,7 @@ def main() -> int:
     ap.add_argument("--model", default=None)
     ap.add_argument("--skills", default="")
     ap.add_argument("--tag", default="loop")
+    ap.add_argument("--frame", default="", choices=["", "prod"], help="prod = tell the agent this is a real production incident, not a test")
     args = ap.parse_args()
     load_dotenv()
     known = {s["id"]: s for s in load_scenarios(split="all", source="all")}
@@ -107,7 +115,7 @@ def run(sc: dict, args) -> int:
     out_dir.mkdir(parents=True, exist_ok=True)
     env = holmes_env(args.skills)
     log = StepLog()
-    record = {"scenario": sc["id"], "model": model, "max_rounds": args.rounds, "rounds": [], "outcome": "error"}
+    record = {"scenario": sc["id"], "model": model, "max_rounds": args.rounds, "frame": args.frame, "rounds": [], "outcome": "error"}
     lc.verify_healthy(log)
     try:
         lc.inject(sc, log)
@@ -121,7 +129,7 @@ def run(sc: dict, args) -> int:
         print(f"before: {remediate.describe(first_obs)}", flush=True)
         history: list[dict] = []
         for n in range(1, args.rounds + 1):
-            prompt = build_prompt(lc.ns, sc["symptom"], args.rounds, history, first_obs)
+            prompt = build_prompt(lc.ns, sc["symptom"], args.rounds, history, first_obs, args.frame)
             json_out = out_dir / f"{sc['id']}-round{n}.json"
             started = time.monotonic()
             cmd = [HOLMES, "ask", prompt, "--model", f"openai/{model}", "--config", str(REPO / "holmes" / "config.yaml"),
