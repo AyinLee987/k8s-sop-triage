@@ -25,6 +25,7 @@ def test_entries_round_trip_and_sit_under_the_title():
     two = rf.with_items(one, [("E1", "BH05、BH06", "看到 A → 查 C"), ("E2", "BH06", "D")])
     assert rf.items_of(two) == [("E1", "BH05、BH06", "看到 A → 查 C"), ("E2", "BH06", "D")] and two.count(rf.SECTION) == 1
     assert "## 信号 → 步骤" in two and "## 步骤" in two and two.count("表") == 1      # the rest of the SOP is untouched
+    assert two.count("适用症状：……") == 1                                             # including text between the title and the first heading
     assert rf.with_items(two, []) == body
 
 

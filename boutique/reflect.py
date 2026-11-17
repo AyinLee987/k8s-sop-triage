@@ -29,6 +29,7 @@ sys.path.insert(0, str(REPO / "experiments" / "cloudopsbench"))
 from triage import remediate  # noqa: E402
 
 SECTION = "## 经验条目"
+END = "<!-- 经验条目结束 -->"   # explicit end: whatever follows the section belongs to the original SOP
 ITEM = re.compile(r"^- \[E(\d+)\]（(.*?)）(.*)$")
 MAX_CHANGES, MAX_TEXT = 3, 500
 
@@ -54,7 +55,7 @@ def items_of(body: str) -> list[tuple[str, str, str]]:
     """(id, source, text) of the entries in a SOP body."""
     out = []
     if SECTION in body:
-        for line in body.split(SECTION, 1)[1].split("\n## ", 1)[0].splitlines():
+        for line in body.split(SECTION, 1)[1].split(END, 1)[0].splitlines():
             m = ITEM.match(line.strip())
             if m:
                 out.append((f"E{m.group(1)}", m.group(2), m.group(3).strip()))
@@ -65,12 +66,13 @@ def with_items(body: str, items: list[tuple[str, str, str]]) -> str:
     """The body with its entries section replaced. The section sits right under the title, where it is read first."""
     if SECTION in body:
         before, rest = body.split(SECTION, 1)
-        after = ("\n## " + rest.split("\n## ", 1)[1]) if "\n## " in rest else ""
-        body = re.sub(r"\n{3,}", "\n\n", before.rstrip() + "\n" + after)
+        if END not in rest:
+            raise ValueError("entries section without its end marker")
+        body = re.sub(r"\n{3,}", "\n\n", before.rstrip() + "\n\n" + rest.split(END, 1)[1].lstrip())
     if not items:
         return body.strip()
     lines = body.strip().split("\n")
-    block = [SECTION, "", "以下条目来自过去的排查记录，括号里是来源。", ""] + [f"- [{i}]（{src}）{text}" for i, src, text in items] + [""]
+    block = [SECTION, "", "以下条目来自过去的排查记录，括号里是来源。", ""] + [f"- [{i}]（{src}）{text}" for i, src, text in items] + ["", END, ""]
     at = 1 if lines and lines[0].startswith("# ") else 0
     return re.sub(r"\n{3,}", "\n\n", "\n".join(lines[:at] + [""] + block + lines[at:])).strip()
 
