@@ -1,0 +1,59 @@
+---
+name: boutique-recommendationservice
+description: Online Boutique 的 recommendationservice 排查 SOP：症状涉及 recommendationservice，或从调用方（frontend）查到它时读。下游：productcatalogservice。
+---
+
+# recommendationservice 排查 SOP
+
+## 经验条目
+
+以下条目来自过去的排查记录，括号里是来源。
+
+- [E1]（BH03）前端 `/product/*`、`/cart` 页面约 400ms 慢，而首页、`/setCurrency`、`/_healthz`、`POST /cart` 仍 0–50ms（这些不调用 recommendationservice）时，先按时间戳对齐：若前端发起 ListRecommendations 后，recommendationservice 日志的 `[Recv ListRecommendations]` 晚约 400ms 才出现、而处理器返回仅几 ms，说明延迟在“请求到达该 Pod 之前”，属入方向网络路径异常，不是该服务 CPU/处理慢。核对 CPU limit 与 last-applied 一致、无探针失败、其出向 productcatalog 调用毫秒级即可佐证。处置：先重建 recommendationservice Pod 尝试清除绑定在 Pod 网络命名空间的入向延迟；若新 Pod 延迟不变，按宿主机 tc/网络注入器按 selector 下发排查，重启可能无效，转网络/运维。
+- [E2]（BH07）前端每个商品页/购物车页都打 `failed to get product recommendations ... dial tcp <recommendationservice ClusterIP>:8080: connect: connection refused`，但页面仍返回 200、耗时毫秒级（只是推荐内容缺失、被降级）时：查 Deployment `spec.replicas`（可能被缩到 0）、Service Endpoints（应为空）和 Pod 事件 `Scaled down replica set ... from 1 to 0`。这类错误不贡献延迟、不致 500，不要当作页面变慢或下单失败的原因；把副本恢复到 1，20–60 秒就绪后报错消失。若同时刻还发现别的服务 env/副本被改，按总则判断是否同一次注入。
+
+<!-- 经验条目结束 -->
+
+适用症状：frontend 推荐内容报错或为空，或 recommendationservice 的 Pod 不 Ready、重启、Service 无可用 endpoint。
+
+## 信号 → 步骤
+
+| 信号 | 动作 |
+|---|---|
+| `Deployment/recommendationservice` AVAILABLE 为 0/1，或 Pod 不存在/非 Running | 第 1 步 |
+| Pod `Pending` | 第 1 步，查事件和 ResourceQuota |
+| Pod `ImagePullBackOff` / `ErrImagePull` | 第 2 步 |
+| Pod `CrashLoopBackOff`、频繁重启、`OOMKilled` | 第 1、3 步，查事件和日志 |
+| Pod Ready=false，事件中有 probe failed | 第 4 步 |
+| `Service/recommendationservice` 对应 EndpointSlice 无 ready endpoint | 第 5 步 |
+| recommendationservice 日志出现连接 `productcatalogservice:3550` 失败/超时等实际错误 | 第 6 步；下游异常跳 skill `boutique-productcatalogservice` |
+| recommendationservice 自身 Ready、EndpointSlice 有 ready endpoint，但 frontend 报调用失败 | 第 7 步；跳 skill `boutique-frontend` |
+
+## 步骤
+
+1. 先确认影响面：查看 `Deployment/recommendationservice`、其 ReplicaSet、Pod 列表、Pod 状态、重启次数、Ready 条件和事件；查看命名空间内 ResourceQuota。该 Deployment 只有 1 个副本，任何 Pod 不 Ready 都会导致无可用实例。Pod `Pending` 时先看事件中的调度失败/配额不足原因；不要归因节点，因为当前权限不能看节点。若 Deployment/Pod 状态正常，继续第 5、6 步；若异常，按事件进入对应步骤。
+
+2. 查镜像和启动失败：确认实际 Deployment 的镜像是否为 `us-central1-docker.pkg.dev/google-samples/microservices-demo/recommendationservice:v0.10.3`。看 Pod 事件是否有 `ImagePullBackOff`、`ErrImagePull`，看当前及上一次容器日志中的实际启动错误；不要预设日志格式。镜像不一致属发布配置问题；镜像拉取失败时记录事件，并由有权限的人确认镜像是否存在及拉取权限。
+
+3. 查资源限制：对照清单确认 requests 为 cpu `100m`、memory `220Mi`，limits 为 cpu `200m`、memory `450Mi`。查看 Pod 事件是否有 `OOMKilled`、`FailedScheduling`、ResourceQuota 限制相关事件。没有监控指标，不查 CPU/内存使用率；若没有 OOMKilled、调度失败或配额证据，不要仅凭延迟/慢归因资源不足。
+
+4. 查探针和端口配置：确认实际 Deployment 容器端口为 `8080`，env `PORT=8080`，readinessProbe/livenessProbe 为 grpc `8080` 且 `periodSeconds: 5`。查看 Pod Ready 条件和事件中的 probe failed。配置与清单不一致属本服务配置问题。不能进容器执行命令，不能 netstat；不要臆断进程监听状态，先以配置、事件和日志实际内容为准。
+
+5. 查本服务 Service 和 EndpointSlice：查看 `Service/recommendationservice` 的 selector 是否为 `app: recommendationservice`、端口是否为 grpc `8080`、targetPort 是否为 `8080`；查看对应 EndpointSlice 是否有 ready endpoint 指向 Pod IP:8080。无 ready endpoint 时，先确认 Pod 是否 Ready、Pod 实际 labels 是否匹配 Service selector、端口是否匹配。selector、端口或 targetPort 不一致属本服务 Service/Deployment 配置问题。
+
+6. 查下游 productcatalogservice：确认 env `PRODUCT_CATALOG_SERVICE_ADDR` 实际值为 `productcatalogservice:3550`。查看 recommendationservice 日志中与调用 productcatalogservice 相关的实际错误，不预设日志格式。只读权限下可看 `Service/productcatalogservice`、其 EndpointSlice 和相关 Pod 状态/事件/日志，确认下游是否有 ready endpoint。地址配置错误属本服务配置问题；若地址正确但下游无 ready endpoint，或 recommendationservice 日志持续显示连接下游失败，跳 skill `boutique-productcatalogservice`。
+
+7. 查调用方 frontend：若 recommendationservice 的 Pod Ready、Service EndpointSlice 有 ready endpoint、日志无自身启动/探针/下游连接错误，但 frontend 日志或事件显示调用 recommendationservice 失败，查看 frontend 侧实际错误和其调用的服务地址配置。此时问题可能在调用方或调用路径，跳 skill `boutique-frontend`。恢复验证只看 Pod Ready、EndpointSlice ready、相关事件和日志，不使用监控指标。
+
+## 什么时候跳到别的服务
+
+- recommendationservice 日志显示连接 `productcatalogservice:3550` 失败/超时/不可用，且 `Service/productcatalogservice` 或其 EndpointSlice 无 ready endpoint、或 productcatalogservice Pod 不 Ready → 跳 skill `boutique-productcatalogservice`，结论写在 productcatalogservice。
+- `PRODUCT_CATALOG_SERVICE_ADDR` 实际值不是 `productcatalogservice:3550`，或 recommendationservice 自身镜像、资源、探针、Service selector/端口异常 → 不跳，结论写在 recommendationservice。
+- recommendationservice 自身 Ready、EndpointSlice 有 ready endpoint、日志无自身和下游错误，但 frontend 报调用 recommendationservice 失败 → 回到调用方，跳 skill `boutique-frontend`，结论写在 frontend/调用路径，并附 recommendationservice 正常证据。
+- frontend 报错同时 recommendationservice 自身 Pod 不 Ready 或 EndpointSlice 无 ready endpoint → 先按本服务步骤定位，结论写在 recommendationservice，不要直接归因 frontend。
+
+## 结论怎么写
+
+结论必须包含具体对象：`Deployment/recommendationservice`、具体 Pod、`Service/recommendationservice`、对应 EndpointSlice，或下游 `Service/productcatalogservice`/其 Pod；调用方问题写 frontend 侧对象。  
+原因写可验证项：镜像或配置字段不一致、资源限制导致 OOMKilled/FailedScheduling、探针失败、selector/端口不匹配、下游无 ready endpoint 等。  
+证据写具体事件、日志实际错误或字段值，例如 `OOMKilled`、probe failed 事件、EndpointSlice 无 ready endpoint、`PRODUCT_CATALOG_SERVICE_ADDR` 实际值；无证据不要猜。

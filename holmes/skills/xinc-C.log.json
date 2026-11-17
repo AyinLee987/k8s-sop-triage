@@ -1,0 +1,589 @@
+[
+ {
+  "scenario": "BH01",
+  "mode": "C",
+  "lesson": "这次是两条独立故障：checkoutservice 的 PAYMENT_SERVICE_ADDR 被改成 paymentservice:50052（只监听 50051）导致下单 500，改回即恢复；变慢则是每个 currencyservice RPC 固定 ~195ms，页面耗时 = 货币调用次数 × 195ms，提高 CPU 上限和重建 Pod 均无效，指向网络层延迟注入，需 tc/chaos 证据，本次未解决。",
+  "changes": [
+   {
+    "change": {
+     "op": "add",
+     "sop": "boutique-checkoutservice",
+     "text": "【已证实】checkoutservice 报“支付失败/下单失败”时：frontend 日志出现 `failed to charge card ... dial tcp <IP>:<端口>: i/o timeout`、POST /cart/checkout 返回 500 → 先核对 paymentservice 的 Service 端口/targetPort 与容器 PORT（正常均为 50051；50052 无监听则丢包 timeout），再对比 checkoutservice 新旧 ReplicaSet 的 env 与创建时间，看 PAYMENT_SERVICE_ADDR 是否被改错。确认后 set_env 改回 paymentservice:50051，预期 /cart/checkout 失败归零、500 归零（本次实测 15/20 失败 → 10/10 成功）。"
+    },
+    "applied": true,
+    "id": "E1"
+   },
+   {
+    "change": {
+     "op": "add",
+     "sop": "boutique-currencyservice",
+     "text": "【已排除】currencyservice 日志无 error、CPU 看似打满时，不要靠加 CPU 上限解决：limit 200m→1 核并重建 Pod 后延迟完全不变（中位 416→415ms、p90 2056→1838ms、>180ms 比例 68.8%→77%），且服务端实际吞吐 7–10 RPC/s，排除进程内阻塞、CPU 节流与 Pod 内部状态（新 Pod 首个请求即慢）。若页面耗时 = 调用 currency 次数 × ~195ms（首页 11 次≈2.1s、商品页 2 次≈0.4s、购物车每件 +195ms、不调 currency 的请求 0–1ms），转向网络层：在 currency Pod netns 与节点 veth 上 `tc -s qdisc show` / `tc filter show`，并排查针对 currencyservice:7000 的 netem 延迟或 NetworkChaos 对象；set_env/重启/扩缩容/改端口均无效（该方向尚无 tc 证据，未验证）。"
+    },
+    "applied": true,
+    "id": "E1"
+   },
+   {
+    "change": {
+     "op": "add",
+     "sop": "boutique-triage-overview",
+     "text": "【已证实】多条用户症状要拆成独立链路分别定位（“下单失败”查错误日志与 5xx，“变慢”查耗时分解），不要用同一根因解释。定位慢依赖：取调用方各 handler 的 took_ms，与该 handler 内调用某依赖的次数对照——耗时随次数线性增长（斜率≈单次调用延迟）即为该依赖慢；调用次数为 0 的 handler 仍 1–2ms 可作佐证。再用被调方日志的接收时间戳与调用方完成时间对比判断延迟方向：被调方相邻请求接收间隔≈单次延迟、而调用方在被调方最后一条日志后几毫秒就完成 → 延迟在请求到达方向，属网络/CNI（tc netem、chaos），不在服务端代码。资源类处置（加 CPU、重启）后必须回看同一组指标，无变化即排除该假设并换方向。"
+    },
+    "applied": true,
+    "id": "E1"
+   }
+  ],
+  "prompt_chars": 12266,
+  "tokens": 9041,
+  "entries_total": 3,
+  "truth": "checkoutservice 的环境变量 PAYMENT_SERVICE_ADDR 被改成 paymentservice:50052（应为 paymentservice:50051），调不到 paymentservice；paymentservice 自身没有问题。"
+ },
+ {
+  "scenario": "BH02",
+  "mode": "C",
+  "lesson": "两类症状要拆开：下单失败先查 paymentservice 的 Service selector 与 Endpoints 是否为空（connection refused）；变慢若按每次网络往返固定 +200ms 成台阶、重建 Pod 无效，别继续重启，升级到节点侧查 tc netem/注入器。",
+  "changes": [
+   {
+    "change": {
+     "op": "modify",
+     "sop": "boutique-triage-overview",
+     "id": "E1",
+     "text": "（BH01）【已证实】多条用户症状要拆成独立链路分别定位（“下单失败”查错误日志与 5xx，“变慢”查耗时分解），不要用同一根因解释。定位慢依赖：取调用方各 handler 的 took_ms，与该 handler 内调用某依赖的次数对照——耗时随次数线性增长（斜率≈单次调用延迟）即为该依赖慢；调用次数为 0 的 handler 仍 1–2ms 可作佐证。再用被调方日志的接收时间戳与调用方完成时间对比判断延迟方向：被调方相邻请求接收间隔≈单次延迟、而调用方在被调方最后一条日志后几毫秒就完成 → 延迟在请求到达方向，属网络/CNI（tc netem、chaos），不在服务端代码。资源类处置（加 CPU、重启）后必须回看同一组指标，无变化即排除该假设；若延迟按每往返固定台阶增长（如 +200ms/往返）且重建 Pod 后新 IP 立即复现，排除 Pod 内状态/CPU 限流，应用层操作无效，升级运维在节点 `tc -s qdisc show dev <veth>` 查 netem/注入器。"
+    },
+    "applied": true,
+    "before": "【已证实】多条用户症状要拆成独立链路分别定位（“下单失败”查错误日志与 5xx，“变慢”查耗时分解），不要用同一根因解释。定位慢依赖：取调用方各 handler 的 took_ms，与该 handler 内调用某依赖的次数对照——耗时随次数线性增长（斜率≈单次调用延迟）即为该依赖慢；调用次数为 0 的 handler 仍 1–2ms 可作佐证。再用被调方日志的接收时间戳与调用方完成时间对比判断延迟方向：被调方相邻请求接收间隔≈单次延迟、而调用方在被调方最后一条日志后几毫秒就完成 → 延迟在请求到达方向，属网络/CNI（tc netem、chaos），不在服务端代码。资源类处置（加 CPU、重启）后必须回看同一组指标，无变化即排除该假设并换方向。"
+   },
+   {
+    "change": {
+     "op": "add",
+     "sop": "boutique-paymentservice",
+     "text": "【已证实】checkout 报 `failed to charge card ... dial tcp <IP>:50051: connect: connection refused`、下单 100% 失败且 500 集中时：优先查 paymentservice 的 Service selector 与 Pod 标签是否一致（本例 selector=app=paymentservice-v2，Pod=app=paymentservice），并 `kubectl get endpoints paymentservice`——`subsets: []` 即根因；改回 selector=app=paymentservice 后下单失败与 500 归零（本次 7/7 失败→8/8 成功）。Endpoints 非空时再查端口/targetPort 与 env（见 checkoutservice E1）。"
+    },
+    "applied": true,
+    "id": "E1"
+   },
+   {
+    "change": {
+     "op": "add",
+     "sop": "boutique-cartservice",
+     "text": "【已排除】cart 相关请求稳定慢、非 cart 端点 0–3ms，且耗时呈固定台阶（GetCart≈400ms、AddItem≈600ms、checkout≈800ms，无<370ms 快样本）时：不要只重启 cartservice/redis-cart——实测重建两者后新 Pod 首个请求即复现，排除 Pod 内状态、应用配置、redis 服务端慢与 CPU 限流。下一步按总则升级节点侧查 netem/注入器（`tc -s qdisc show dev <cartservice/redis-cart veth>`）；在拿到 tc 证据前，延迟到底加在 cartservice 全部流量还是仅 redis 路径仍属【未解决】。应用层 set_env/扩缩容/改端口均不适用。"
+    },
+    "applied": true,
+    "id": "E1"
+   }
+  ],
+  "prompt_chars": 17583,
+  "tokens": 13258,
+  "entries_total": 5,
+  "truth": "Service paymentservice 的 selector 被改成 app=paymentservice-v2，匹配不到 Pod，端点为空。"
+ },
+ {
+  "scenario": "BH03",
+  "mode": "C",
+  "lesson": "两处独立故障必须分开修：下单 500 是 checkoutservice 的依赖地址端口被单独 patch 改错（首笔约 4s 建连超时、之后 2–3ms 快速失败，即对端端口无监听），把 *_SERVICE_ADDR 与环境里的 Service/容器端口逐一比对再 set_env 即可证实修好；而固定约 400ms 的慢只出现在调用 recommendationservice 的路径上，重建两端 Pod 均无效，只能上节点查 tc/netem，且判断延迟方向前必须先确认被调方那条日志打在 handler 入口还是结尾。",
+  "changes": [
+   {
+    "change": {
+     "op": "modify",
+     "sop": "boutique-checkoutservice",
+     "id": "E1",
+     "text": "【已证实】checkoutservice 下单失败、frontend 返回 500，日志出现 `failed to charge card ... dial tcp <IP>:<端口>: i/o timeout` 或 `failed to prepare order: failed to convert price` 时：先看失败耗时——首笔约 4s（建连超时）、之后 2–3ms（快速失败），即“对端端口无监听”。把该 Deployment 所有 *_SERVICE_ADDR env 与对应 Service 的 port/targetPort、容器 PORT、endpoint 端口逐一比对（paymentservice 应为 50051，currencyservice 应为 7000；本次 CURRENCY_SERVICE_ADDR 被单独 patch 成 7001 而 currencyservice 只监听 7000）；再用新旧 ReplicaSet 的 env 与创建时间定位是哪次滚动引入的。用 set_env 改回正确值并等滚动完成，预期 500 归零、下单全部成功（本次 3/3 失败、3 个 500 → 5/5 成功、0 个 500）。"
+    },
+    "applied": true,
+    "before": "【已证实】checkoutservice 报“支付失败/下单失败”时：frontend 日志出现 `failed to charge card ... dial tcp <IP>:<端口>: i/o timeout`、POST /cart/checkout 返回 500 → 先核对 paymentservice 的 Service 端口/targetPort 与容器 PORT（正常均为 50051；50052 无监听则丢包 timeout），再对比 checkoutservice 新旧 ReplicaSet 的 env 与创建时间，看 PAYMENT_SERVICE_ADDR 是否被改错。确认后 set_env 改回 paymentservice:50051，预期 /cart/checkout 失败归零、500 归零（本次实测 15/20 失败 → 10/10 成功）。"
+   },
+   {
+    "change": {
+     "op": "add",
+     "sop": "boutique-recommendationservice",
+     "text": "【已证实】/product、/cart、/cart/checkout 稳定慢约 400ms，而 GET /（10–40ms）、POST /cart（1ms）、POST /setCurrency（0ms）正常时，慢在 frontend→recommendationservice 的 ListRecommendations 调用（首页和 POST /cart 不调它，故约 28% 请求仍快）。注意 `[Recv ListRecommendations]` 是在调用完 productcatalogservice 的 ListProducts、handler 返回前才打印，不是入口，别拿它当“请求到达时间”判断方向；与 frontend 日志逐条配对（rec 日志时间≈前端完成−225ms，请求开始→rec 日志≈190ms，25 组误差±3ms）显示延迟双向各约 200ms，不是单向入向。【已排除】Pod 内状态、CPU 限流、排队、DNS、Service selector/targetPort/容器端口错误——重建 recommendationservice 与 frontend 两端 Pod 后延迟完全不变。【未解决】规则挂在哪一侧（frontend 出向 / rec 入向 / rec→productcatalog 出向）需平台在节点对两端 veth 执行 `tc -s qdisc show`、`tc filter show dev <veth> ingress` 并配合 tcpdump，清掉 netem delay 或对应的延迟 chaos 对象。不要用改 selector/targetPort/缩容去试探：rec 无 endpoint 时这些页面会直接 500，把“慢”变成“错”。"
+    },
+    "applied": true,
+    "id": "E1"
+   },
+   {
+    "change": {
+     "op": "modify",
+     "sop": "boutique-triage-overview",
+     "id": "E1",
+     "text": "【已证实】多条用户症状要拆成独立链路分别定位（“下单失败”查错误日志与 5xx，“变慢”查耗时分解），不要用同一根因解释。定位慢依赖：把调用方各 handler 的 took_ms 与该 handler 内调用某依赖的次数对照，随次数线性增长（斜率≈单次调用延迟）即该依赖慢；调用次数为 0 的 handler 仍 1–2ms 可佐证。判断延迟方向前必须先确认被调方那条日志打在 handler 入口还是结尾（有的服务在调用下游之后才打印，如 recommendationservice 的 `[Recv ...]`），否则“调用方在被调方最后一条日志后几毫秒完成”会被误读成单向入向延迟；正确做法是分别配对“请求开始→被调方日志”和“被调方日志→调用方完成”两段，看是否对称。资源类处置（加 CPU、重启）后必须回看同一组指标，无变化即排除；若延迟按每往返固定台阶增长且重建 Pod（含调用方与被调方两端都重建）后立即复现，则排除 Pod 内状态/CPU 限流与生命周期绑定的规则，应用层操作无效，升级运维在节点 `tc -s qdisc show dev <veth>` / ingress filter 查 netem/chaos。"
+    },
+    "applied": true,
+    "before": "（BH01）【已证实】多条用户症状要拆成独立链路分别定位（“下单失败”查错误日志与 5xx，“变慢”查耗时分解），不要用同一根因解释。定位慢依赖：取调用方各 handler 的 took_ms，与该 handler 内调用某依赖的次数对照——耗时随次数线性增长（斜率≈单次调用延迟）即为该依赖慢；调用次数为 0 的 handler 仍 1–2ms 可作佐证。再用被调方日志的接收时间戳与调用方完成时间对比判断延迟方向：被调方相邻请求接收间隔≈单次延迟、而调用方在被调方最后一条日志后几毫秒就完成 → 延迟在请求到达方向，属网络/CNI（tc netem、chaos），不在服务端代码。资源类处置（加 CPU、重启）后必须回看同一组指标，无变化即排除该假设；若延迟按每往返固定台阶增长（如 +200ms/往返）且重建 Pod 后新 IP 立即复现，排除 Pod 内状态/CPU 限流，应用层操作无效，升级运维在节点 `tc -s qdisc show dev <veth>` 查 netem/注入器。"
+   }
+  ],
+  "prompt_chars": 19934,
+  "tokens": 14559,
+  "entries_total": 6,
+  "truth": "checkoutservice 的环境变量 CURRENCY_SERVICE_ADDR 被改成 currencyservice:7001（应为 currencyservice:7000），调不到 currencyservice；currencyservice 自身没有问题。"
+ },
+ {
+  "scenario": "BH04",
+  "mode": "C",
+  "lesson": "多服务同时变慢时，先配对“调用方开始→目标入口日志”和“目标入口日志→调用方完成”：若入口日志几乎与调用方完成同时，返回方向正常、延迟全在请求去程；一次重启多个目的 Pod 后名字/IP 都变仍慢，排除 Pod 内状态与按名字/IP 选择，需平台侧查网络注入。",
+  "changes": [
+   {
+    "change": {
+     "op": "modify",
+     "sop": "boutique-triage-overview",
+     "id": "E1",
+     "text": "【已证实】多条症状要拆成独立链路分别定位（错误查 5xx/日志，变慢查耗时分解），不要用同一根因解释。定位慢依赖：调用方 handler 的 took_ms 随其内调用某依赖次数线性增长（斜率≈单次延迟）即该依赖慢；调用次数为 0 仍 1–2ms 可佐证。判断方向先确认被调方日志打在 handler 入口还是结尾，再配对“请求开始→被调方入口日志”和“被调方入口日志→调用方完成”。若入口日志几乎与调用方完成同时（差 1–2ms），返回正常，延迟全在请求去程；同窗口对 currency/payment/shipping <1ms 而 cart/email/ad/product 慢，则排除节点 CPU、全局网络与调用方进程，是只针对这些目的服务的网络规则。资源类处置（加 CPU、重启）后回看同一组指标，无变化即排除；一次重启多个目的 Pod 后名字/IP 都变仍慢，排除 Pod 内状态与按名字/IP 选择，指向按标签重放。set_env/set_cpu_limit/scale/service selector/targetPort 能否绕过该网络规则未经结果检验，属【未解决】；不要重复重启，升级平台侧在 Pod netns/节点 veth 查 `tc -s qdisc/filter`（含 ifb）、iptables 与 chaos 控制器。规则在目的端入向还是发送端按目的 IP 出向仍未区分，需 tc 证据。"
+    },
+    "applied": true,
+    "before": "【已证实】多条用户症状要拆成独立链路分别定位（“下单失败”查错误日志与 5xx，“变慢”查耗时分解），不要用同一根因解释。定位慢依赖：把调用方各 handler 的 took_ms 与该 handler 内调用某依赖的次数对照，随次数线性增长（斜率≈单次调用延迟）即该依赖慢；调用次数为 0 的 handler 仍 1–2ms 可佐证。判断延迟方向前必须先确认被调方那条日志打在 handler 入口还是结尾（有的服务在调用下游之后才打印，如 recommendationservice 的 `[Recv ...]`），否则“调用方在被调方最后一条日志后几毫秒完成”会被误读成单向入向延迟；正确做法是分别配对“请求开始→被调方日志”和“被调方日志→调用方完成”两段，看是否对称。资源类处置（加 CPU、重启）后必须回看同一组指标，无变化即排除；若延迟按每往返固定台阶增长且重建 Pod（含调用方与被调方两端都重建）后立即复现，则排除 Pod 内状态/CPU 限流与生命周期绑定的规则，应用层操作无效，升级运维在节点 `tc -s qdisc show dev <veth>` / ingress fi"
+   },
+   {
+    "change": {
+     "op": "modify",
+     "sop": "boutique-recommendationservice",
+     "id": "E1",
+     "text": "【已证实】/product、/cart、/cart/checkout 稳定慢而 GET /、POST /cart、POST /setCurrency 正常时，先怀疑 frontend→recommendationservice 的 ListRecommendations（首页和 POST /cart 不调它，故约 28% 请求仍快）。注意 `[Recv ListRecommendations]` 在调用完 productcatalogservice、handler 返回前才打印，不是入口，别拿它当请求到达时间；必须把 frontend 与 rec 日志逐条配对，分别算“请求开始→rec 日志”和“rec 日志→前端完成”。方向可能双向（BH03 各约 200ms），也可能仅去程（若 rec 入口日志几乎在前端完成时出现，则去程约 300ms、返回 <2ms）；不要预设双向。【已排除】Pod 内状态、CPU 限流、排队、DNS、Service selector/targetPort/容器端口错误——重建 recommendationservice 与 frontend 两端后仍复现；若重启后名字/IP 都变仍慢，转网络层查 tc/netem/按标签注入。"
+    },
+    "applied": true,
+    "before": "【已证实】/product、/cart、/cart/checkout 稳定慢约 400ms，而 GET /（10–40ms）、POST /cart（1ms）、POST /setCurrency（0ms）正常时，慢在 frontend→recommendationservice 的 ListRecommendations 调用（首页和 POST /cart 不调它，故约 28% 请求仍快）。注意 `[Recv ListRecommendations]` 是在调用完 productcatalogservice 的 ListProducts、handler 返回前才打印，不是入口，别拿它当“请求到达时间”判断方向；与 frontend 日志逐条配对（rec 日志时间≈前端完成−225ms，请求开始→rec 日志≈190ms，25 组误差±3ms）显示延迟双向各约 200ms，不是单向入向。【已排除】Pod 内状态、CPU 限流、排队、DNS、Service selector/targetPort/容器端口错误——重建 recommendationservice 与 frontend 两端 P"
+   },
+   {
+    "change": {
+     "op": "add",
+     "sop": "boutique-adservice",
+     "text": "【已证实】商品页稳定慢、adservice 日志 `received ad request` 出现在 frontend `request complete` 前 1–2ms（多组样本一致）时：广告请求到达 adservice 后整页很快结束，返回方向正常，约 300ms 延迟在请求到达 adservice 之前，不是 adservice handler 慢。不要重启 adservice 或调 CPU/内存；把 frontend 请求开始→adservice 入口日志的差值与同窗口其他依赖对比，若只有发往 adservice 的方向慢，按总则转网络层查 tc/netem/按标签注入。"
+    },
+    "applied": true,
+    "id": "E1"
+   }
+  ],
+  "prompt_chars": 15734,
+  "tokens": 18225,
+  "entries_total": 7,
+  "truth": "productcatalogservice 的 Pod 网络被加了约 300ms 延迟；它自身处理不慢，调用它的服务跟着变慢。"
+ },
+ {
+  "scenario": "BH05",
+  "mode": "C",
+  "lesson": "慢依赖的延迟若只加在请求去程、按每个 RPC 固定值累加，且重建目标 Pod 与全部客户端 Pod 都毫无变化，就不要再重启：规则在 Pod 之外，由节点/CNI 层按目的地持续重放，只能交运维用 tc/iptables 处理。同时必须逐个实测每个目的服务，多个目标可能同时被注入且数值不同（如 currency 200ms、shipping 300ms），也不按端口匹配。",
+  "changes": [
+   {
+    "change": {
+     "op": "modify",
+     "sop": "boutique-triage-overview",
+     "id": "E1",
+     "text": "【已证实】多条症状拆成独立链路分别定位；慢依赖看调用方 took_ms 与调用该依赖次数是否线性（斜率≈单次延迟）。判断方向先确认被调方日志打在 handler 入口还是结尾，再配对“请求开始→被调方入口”与“入口→调用方完成”：入口恒晚固定值、入口→完成仅几 ms，则延迟在去程、响应正常。被注入延迟的目的服务名单每案不同，可能同时多个且数值不同（currency +200ms、shipping +300ms），须逐个实测，别沿用上次名单，也别用一个目标的延迟解释另一段耗时；同端口可一慢一快（payment/shipping 均 50051）→ 排除按端口，指向按目的 Pod/标签的规则。重建目标 Pod 与全部客户端 Pod 后数值完全不变 → 排除 Pod 内状态与 netns、按旧 IP 匹配、DNS/连接缓存；此时停止重启，交运维用节点 root/NET_ADMIN 查 tc/iptables。探针超时 1s，200–300ms 下 Pod 仍 Ready、0 重启、0 500，别据此排除网络层；改 PORT/targetPort 会让写死端口的探针失败、变慢成全站 500，禁止。"
+    },
+    "applied": true,
+    "before": "【已证实】多条症状要拆成独立链路分别定位（错误查 5xx/日志，变慢查耗时分解），不要用同一根因解释。定位慢依赖：调用方 handler 的 took_ms 随其内调用某依赖次数线性增长（斜率≈单次延迟）即该依赖慢；调用次数为 0 仍 1–2ms 可佐证。判断方向先确认被调方日志打在 handler 入口还是结尾，再配对“请求开始→被调方入口日志”和“被调方入口日志→调用方完成”。若入口日志几乎与调用方完成同时（差 1–2ms），返回正常，延迟全在请求去程；同窗口对 currency/payment/shipping <1ms 而 cart/email/ad/product 慢，则排除节点 CPU、全局网络与调用方进程，是只针对这些目的服务的网络规则。资源类处置（加 CPU、重启）后回看同一组指标，无变化即排除；一次重启多个目的 Pod 后名字/IP 都变仍慢，排除 Pod 内状态与按名字/IP 选择，指向按标签重放。set_env/set_cpu_limit/scale/service selector/targetPort 能否绕过该网络规则未经结果检验，属【未解决】；不要重复重启"
+   },
+   {
+    "change": {
+     "op": "modify",
+     "sop": "boutique-currencyservice",
+     "id": "E1",
+     "text": "【已排除】日志无 error、CPU 看似打满时不要加 CPU：limit 200m→1 核并重建后延迟不变（中位 416→415ms、p90 2056→1838ms），服务端吞吐仅 7–10 RPC/s，排除进程内阻塞、CPU 节流、Pod 内状态。页面耗时 = currency 调用次数 × ~200ms（首页 ~2.1s、商品页 ~400ms、购物车每件 +200ms、不调 currency 的请求 0–3ms）时：配对“调用方请求开始→`Getting supported currencies...`（handler 入口）”，若恒 +180–210ms 而入口→调用方完成仅几 ms，则延迟在去程、响应正常。重建 currencyservice Pod（IP 变更）与重建 frontend、checkoutservice 后每次 RPC 仍 +181ms → 排除本 Pod 与客户端 Pod 的 netns、按旧 IP 匹配、DNS/连接缓存，不要再重启。shipping 可能同时被注入（本期 ~300ms），别把 checkout 里 290–330ms 空隙全算作 currency。下一步只能由节点 root/NET_ADMIN 在 Pod netns/宿主 veth 上 `tc qdisc/filter show`、查 iptables/nft 对 Service VIP:7000 或 dport 的规则与按标签重放的注入 agent；改 PORT/targetPort 会令写死 7000 的探针失败、直接全站 500。"
+    },
+    "applied": true,
+    "before": "【已排除】currencyservice 日志无 error、CPU 看似打满时，不要靠加 CPU 上限解决：limit 200m→1 核并重建 Pod 后延迟完全不变（中位 416→415ms、p90 2056→1838ms、>180ms 比例 68.8%→77%），且服务端实际吞吐 7–10 RPC/s，排除进程内阻塞、CPU 节流与 Pod 内部状态（新 Pod 首个请求即慢）。若页面耗时 = 调用 currency 次数 × ~195ms（首页 11 次≈2.1s、商品页 2 次≈0.4s、购物车每件 +195ms、不调 currency 的请求 0–1ms），转向网络层：在 currency Pod netns 与节点 veth 上 `tc -s qdisc show` / `tc filter show`，并排查针对 currencyservice:7000 的 netem 延迟或 NetworkChaos 对象；set_env/重启/扩缩容/改端口均无效（该方向尚无 tc 证据，未验证）。"
+   },
+   {
+    "change": {
+     "op": "add",
+     "sop": "boutique-shippingservice",
+     "text": "【已排除】checkout 的 `payment went through`→shipping `[ShipOrder] received` 间隔稳定 276–331ms，而 shipping 内 `received→completed` 仅 ~50µs、响应 1–2ms 即回，且 /cart 页面 ≈3×200ms(currency)+~300ms(GetQuote) 时：延迟在发往 shipping 的去程，排除 shipping 应用慢、CPU、Pod 内状态。shipping 与 payment 同用 50051 而 payment 零延迟 → 排除按端口匹配，指向按目的 Pod/标签的规则；与 currencyservice 同窗口被注入，勿当独立故障。重建 Pod 能否清除未验证（currency 已证明无效，见 currencyservice E1），需节点侧 tc/iptables 证据，属【未解决】。"
+    },
+    "applied": true,
+    "id": "E1"
+   }
+  ],
+  "prompt_chars": 20223,
+  "tokens": 15252,
+  "entries_total": 8,
+  "truth": "currencyservice 的 Pod 网络被加了约 200ms 延迟；它自身处理不慢，调用它的服务跟着变慢。"
+ },
+ {
+  "scenario": "BH06",
+  "mode": "C",
+  "lesson": "页面变慢但无 500、Pod 正常时，先算页面耗时≈某依赖调用次数×固定值；本例每次 currencyservice ~200ms。连续重建目标/客户端 Pod、直连 Pod IP 均无效，排除 Pod 内、ClusterIP/DNS/env，停手转节点 tc/iptables；adservice 0 副本只是并发的毫秒级 connection refused，不是慢因。",
+  "changes": [
+   {
+    "change": {
+     "op": "modify",
+     "sop": "boutique-triage-overview",
+     "id": "E1",
+     "text": "（BH01、BH02、BH03、BH04、BH05）【已证实】多条症状拆成独立链路分别定位；慢依赖看调用方 took_ms 与调用该依赖次数是否线性（斜率≈单次延迟）。判断方向先确认被调方日志打在 handler 入口还是结尾，再配对“请求开始→被调方入口”与“入口→调用方完成”：入口恒晚固定值、入口→完成仅几 ms，则延迟在去程、响应正常。被注入延迟的目的服务名单每案不同，可能同时多个且数值不同，须逐个实测，别沿用上次名单，也别用一个目标的延迟解释另一段耗时；同端口可一慢一快（payment/shipping 均 50051）→ 排除按端口，指向按目的 Pod/标签的规则。重建目标 Pod 与全部客户端 Pod 后数值完全不变 → 排除 Pod 内状态与 netns、按旧 IP 匹配、DNS/连接缓存；再把调用方 env 指向被调 Pod IP 直连仍不变 → 排除 ClusterIP/DNS/客户端 env，直连非修复（重建失效），停止重启，交运维用节点 root/NET_ADMIN 查 tc/iptables。探针超时 1s，200–300ms 下 Pod 仍 Ready、0 重启、0 500，别据此排除网络层；改 PORT/targetPort 会让写死端口的探针失败、变慢成全站 500，禁"
+    },
+    "applied": true,
+    "before": "【已证实】多条症状拆成独立链路分别定位；慢依赖看调用方 took_ms 与调用该依赖次数是否线性（斜率≈单次延迟）。判断方向先确认被调方日志打在 handler 入口还是结尾，再配对“请求开始→被调方入口”与“入口→调用方完成”：入口恒晚固定值、入口→完成仅几 ms，则延迟在去程、响应正常。被注入延迟的目的服务名单每案不同，可能同时多个且数值不同（currency +200ms、shipping +300ms），须逐个实测，别沿用上次名单，也别用一个目标的延迟解释另一段耗时；同端口可一慢一快（payment/shipping 均 50051）→ 排除按端口，指向按目的 Pod/标签的规则。重建目标 Pod 与全部客户端 Pod 后数值完全不变 → 排除 Pod 内状态与 netns、按旧 IP 匹配、DNS/连接缓存；此时停止重启，交运维用节点 root/NET_ADMIN 查 tc/iptables。探针超时 1s，200–300ms 下 Pod 仍 Ready、0 重启、0 500，别据此排除网络层；改 PORT/targetPort 会让写死端口的探针失败、变慢成全站 500，禁"
+   },
+   {
+    "change": {
+     "op": "add",
+     "sop": "boutique-adservice",
+     "text": "【已排除】页面变慢且 frontend 日志大量 `failed to retrieve ads: ... dial tcp <adservice ClusterIP>:9555: connect: connection refused`，同时 adservice Deployment replicas=0 或 `kubectl get endpoints adservice` 为空时：这是并发的广告不可用，不是页面慢因——广告调用毫秒级失败，页面耗时已由 currency 调用次数×~200ms 解释；把 adservice 扩到 1 后用户侧中位仍 ~414ms、>180ms 仍 ~76%，排除其贡献延迟。先查 replicas、Pod 删除事件与 endpoints 确认无端点；恢复副本只解决无广告/报错。若恢复后又缩回 0，查谁在改副本，别用重启解决慢。"
+    },
+    "applied": true,
+    "id": "E2"
+   }
+  ],
+  "prompt_chars": 22870,
+  "tokens": 19822,
+  "entries_total": 9,
+  "truth": "currencyservice 的 Pod 网络被加了约 200ms 延迟；它自身处理不慢，调用它的服务跟着变慢。"
+ },
+ {
+  "scenario": "BH07",
+  "mode": "C",
+  "lesson": "延迟分位数完全正常、只有少量 500 且某业务动作 100% 失败时，这是快速失败型的连接/配置错误，不是延迟注入：直接抓 500 日志里的 dial tcp 目标端口，比对 Service/Endpoint/Pod PORT 与调用方 env，再用新旧 ReplicaSet 的 env 和滚动事件追溯是哪次发布改的；同时把「副本为 0、连接被拒但页面仍 200」的可降级依赖降为噪声，别当根因。",
+  "changes": [
+   {
+    "change": {
+     "op": "modify",
+     "sop": "boutique-checkoutservice",
+     "id": "E1",
+     "text": "[E1]（BH01、BH03、BH07）【已证实】checkout 下单 100% 失败、frontend 返回 500，而用户侧延迟分位数完全正常（中位个位数 ms、0 个 >180ms）时：这是必经步骤上的连接/配置错误，不是延迟问题，不要查 netem。抓 500 日志中的 `dial tcp <IP>:<port>: i/o timeout`（首笔约 4s 建连超时，之后毫秒级快速失败），把该 IP 对应 Service 的 port/targetPort、Endpoint 端口、Pod 容器 PORT 与 checkout 的 *_SERVICE_ADDR env 逐一比对（payment/shipping 50051、currency 7000、productcatalog 3550、email 5000、cart 7070）。本次 SHIPPING_SERVICE_ADDR=shippingservice:50052 而 Service 只开 50051，shipping quote 阶段超时；因失败早于此步，paymentservice 几乎无调用日志。用 live spec 的 env、新旧 ReplicaSet env/创建时间与 `Scaled up/down` 事件定位是哪次滚动引入（last-applied-configuration 仍是旧值=运行态 patch）。set_env 改回后 500 归零、下单全部成功（4/4 失败→9/9 成功）。"
+    },
+    "applied": true,
+    "before": "【已证实】checkoutservice 下单失败、frontend 返回 500，日志出现 `failed to charge card ... dial tcp <IP>:<端口>: i/o timeout` 或 `failed to prepare order: failed to convert price` 时：先看失败耗时——首笔约 4s（建连超时）、之后 2–3ms（快速失败），即“对端端口无监听”。把该 Deployment 所有 *_SERVICE_ADDR env 与对应 Service 的 port/targetPort、容器 PORT、endpoint 端口逐一比对（paymentservice 应为 50051，currencyservice 应为 7000；本次 CURRENCY_SERVICE_ADDR 被单独 patch 成 7001 而 currencyservice 只监听 7000）；再用新旧 ReplicaSet 的 env 与创建时间定位是哪次滚动引入的。用 set_env 改回正确值并等滚动完成，预期 500 归零、下单全部成功（本次 3/3"
+   },
+   {
+    "change": {
+     "op": "add",
+     "sop": "boutique-triage-overview",
+     "text": "[E2]【已证实】用户侧延迟完全正常（中位个位数 ms、0 个 >180ms）却出现稳定少量 500、某业务动作 100% 失败时，不要按延迟注入排查（无需 tc/netem、扩缩容、调 CPU）：直接看 500 响应日志里的下游报错，`dial tcp <IP>:<port>: i/o timeout` / `connection refused` 先比对 Service port/targetPort、Endpoint 端口、Pod PORT 与调用方 env，再查该下游 replicas 是否为 0、endpoints 是否为空。并按“是否必经步骤”区分两类错误：必经步骤失败→业务 100% 失败（本次改回 env 后 500 归零、下单 9/9 成功）；可降级依赖（推荐、广告）失败被调用方 catch、页面仍 200 且 took_ms 仅几 ms→是噪声，别当根因，但顺手恢复副本。"
+    },
+    "applied": true,
+    "id": "E2"
+   },
+   {
+    "change": {
+     "op": "add",
+     "sop": "boutique-recommendationservice",
+     "text": "[E2]【已证实】商品页/购物车仍 200、took_ms 只有几 ms，但 frontend 大量 `failed to get product recommendations ... dial tcp <ClusterIP>:8080: connect: connection refused` 时：这是被测调用方降级的非致命错误，既不是慢因也不是 500 因，不要按延迟或下单失败方向查。先 `kubectl get deploy recommendationservice` 看 spec.replicas（本次为 0）、`kubectl get endpoints recommendationservice` 看 subsets 是否为空，并在事件里找 `Scaled down ... from 1 to 0`；确认是谁改的副本，再 scale 回 1，恢复后核对 endpoints 非空、该报错消失。"
+    },
+    "applied": true,
+    "id": "E2"
+   }
+  ],
+  "prompt_chars": 10975,
+  "tokens": 8899,
+  "entries_total": 11,
+  "truth": "checkoutservice 的环境变量 SHIPPING_SERVICE_ADDR 被改成 shippingservice:50052（应为 shippingservice:50051），调不到 shippingservice；shippingservice 自身没有问题。"
+ },
+ {
+  "scenario": "BH08",
+  "mode": "C",
+  "lesson": "页面慢但无报错时，先按“每次请求里下游协议命令的条数”拆分耗时：1 条 Redis 命令约 285ms、2 条约 570ms，而 gRPC 固定开销只有 15–20ms，就能把延迟精确锁定到 cartservice↔redis-cart 的每条往返；随后重启 redis-cart 和 cartservice 两端、把 CPU 从 125m 提高到 1 核仍完全没有变化，说明延迟不在 Pod 内，也不是 CPU 导致，不该再继续重启。",
+  "changes": [
+   {
+    "change": {
+     "op": "modify",
+     "sop": "boutique-cartservice",
+     "id": "E1",
+     "text": "【已证实】cart 相关请求稳定慢、非 cart 端点 0–3ms 且耗时呈固定台阶（GetCart、AddItem、checkout 依次约 1:2:2 倍增，无快样本）时：先按每次请求内 Redis 命令条数拆分——1 条命令的 GET /cart、GET /、/product 约 285ms，2 条命令的 POST /cart、checkout 约 570ms，非 cart 部分仅 15–40ms → 延迟只加在 cartservice↔redis-cart:6379 的每条往返上，gRPC hop 与 cartservice 处理正常。不要只重启两端：redis-cart 两次重建（换 IP）、cartservice 重建（换 netns/连接）、redis CPU 125m→1 后均无任何变快窗口【已排除 Pod 内状态、netns、连接缓存、CPU 限流】。下一步到节点查 tc/eBPF/iptables 是否匹配 dst port 6379 或 redis ClusterIP；重建无效且按命令固定延迟也符合外部 chaos 按 label 给每个新 Pod 重注入，两者需平台侧 tc qdisc/filter 转储与 chaos 对象清单区分【未解决】。"
+    },
+    "applied": true,
+    "before": "【已排除】cart 相关请求稳定慢、非 cart 端点 0–3ms，且耗时呈固定台阶（GetCart≈400ms、AddItem≈600ms、checkout≈800ms，无<370ms 快样本）时：不要只重启 cartservice/redis-cart——实测重建两者后新 Pod 首个请求即复现，排除 Pod 内状态、应用配置、redis 服务端慢与 CPU 限流。下一步按总则升级节点侧查 netem/注入器（`tc -s qdisc show dev <cartservice/redis-cart veth>`）；在拿到 tc 证据前，延迟到底加在 cartservice 全部流量还是仅 redis 路径仍属【未解决】。应用层 set_env/扩缩容/改端口均不适用。"
+   },
+   {
+    "change": {
+     "op": "add",
+     "sop": "boutique-redis-cart",
+     "text": "【已排除】cart 请求慢、且延迟与 Redis 命令条数成正比（1 条≈285ms、2 条≈570ms）时，不要重启 redis-cart 或加 CPU：本 Pod 两次重建（IP 变化）与 CPU limit 125m→1 后单命令延迟完全不变（309→311ms），排除 Pod 内 datapath/沙箱、CPU 节流、Redis 进程慢、持久化与 AOF；Service selector/endpoints 也正常。方向在 Pod 外：节点 tc/eBPF/iptables 按 dst port 6379 或 redis ClusterIP 匹配，或外部 chaos 每次重建后重注入；拿到节点侧 tc qdisc/filter、iptables mangle 证据后再处置。"
+    },
+    "applied": true,
+    "id": "E1"
+   },
+   {
+    "change": {
+     "op": "modify",
+     "sop": "boutique-triage-overview",
+     "id": "E1",
+     "text": "【已证实】多条症状拆成独立链路分别定位；慢依赖看调用方 took_ms 与调用该依赖次数是否线性（斜率≈单次延迟）；协议类下游要按“每条命令”而非每次 RPC 拆分（Redis 1 条≈285ms、2 条≈570ms，而 gRPC 固定开销仅 15–20ms）。判断方向先确认被调方日志打在 handler 入口还是结尾，再配对“请求开始→被调方入口”与“入口→调用方完成”：入口恒晚固定值、入口→完成仅几 ms，则延迟在去程、响应正常。被注入延迟的目的服务名单每案不同，可能同时多个且数值不同，须逐个实测，别沿用上次名单。同端口可一慢一快（payment/shipping 均 50051）→ 排除按端口，指向按目的 Pod/标签的规则。重建目标 Pod 与全部客户端 Pod 后数值完全不变 → 排除 Pod 内状态与 netns、按旧 IP 匹配、DNS/连接缓存；提 CPU 上限仍无变化则再排除 CPU 节流。故障前几十秒的滚动发布/手动 env 改动不是根因（新 Pod Ready 后仍出现过正常快窗口）。探针超时 1s，200–300ms 下 Pod 仍 Ready、0 重启。"
+    },
+    "applied": true,
+    "before": "（BH01、BH02、BH03、BH04、BH05）【已证实】多条症状拆成独立链路分别定位；慢依赖看调用方 took_ms 与调用该依赖次数是否线性（斜率≈单次延迟）。判断方向先确认被调方日志打在 handler 入口还是结尾，再配对“请求开始→被调方入口”与“入口→调用方完成”：入口恒晚固定值、入口→完成仅几 ms，则延迟在去程、响应正常。被注入延迟的目的服务名单每案不同，可能同时多个且数值不同，须逐个实测，别沿用上次名单，也别用一个目标的延迟解释另一段耗时；同端口可一慢一快（payment/shipping 均 50051）→ 排除按端口，指向按目的 Pod/标签的规则。重建目标 Pod 与全部客户端 Pod 后数值完全不变 → 排除 Pod 内状态与 netns、按旧 IP 匹配、DNS/连接缓存；再把调用方 env 指向被调 Pod IP 直连仍不变 → 排除 ClusterIP/DNS/客户端 env，直连非修复（重建失效），停止重启，交运维用节点 root/NET_ADMIN 查 tc/iptables。探针超时 1s，200–300ms 下 Pod 仍 Ready、0 重"
+   }
+  ],
+  "prompt_chars": 20639,
+  "tokens": 13803,
+  "entries_total": 12,
+  "truth": "redis-cart 的 Pod 网络被加了约 300ms 延迟；它自身处理不慢，调用它的服务跟着变慢。"
+ },
+ {
+  "scenario": "BH09",
+  "mode": "C",
+  "lesson": "页面变慢但无报错、中位正常而 p90/p99 高时，先按 URL 和调用次数拆出固定台阶；只有调用某依赖的路径慢、服务端处理与回程正常，就是去程单向延迟。重建目标 Pod、改用 Pod IP 直连、重建客户端都无效时，别在命名空间内反复操作，直接转节点 tc/netem。",
+  "changes": [
+   {
+    "change": {
+     "op": "modify",
+     "sop": "boutique-shippingservice",
+     "id": "E1",
+     "text": "【已排除】checkout 的 `payment went through`→shipping `[ShipOrder] received`、或 /cart 的 shipping 调用入口恒晚 280–330ms，而 shipping 内处理约 50µs、回程 1–5ms，且只有 /cart（≈1×300ms）与 /cart/checkout（≈2×300ms）慢时：延迟在发往 shipping 的去程，排除应用慢、CPU、探针。重建 shippingservice Pod（换 IP）后延迟完全不变（均值仍约 304ms）；把 frontend/checkoutservice 的 SHIPPING_SERVICE_ADDR 改为新 Pod IP 并重建两个客户端也完全不变，排除 Pod 实例、Pod IP、Service VIP/DNAT、客户端 Pod netns、DNS、连接缓存。命名空间内 restart/set_env/scale/set_cpu_limit/set_service_selector/set_service_target_port 均无效（改端口会使硬编码 50051 探针永不 Ready）；需运维在节点/宿主 veth 清 tc netem 并删除重注入器。若同窗口 payment 同用 50051 却零延迟，排除按端口，指向按目的 Pod/标签的规则。"
+    },
+    "applied": true,
+    "before": "【已排除】checkout 的 `payment went through`→shipping `[ShipOrder] received` 间隔稳定 276–331ms，而 shipping 内 `received→completed` 仅 ~50µs、响应 1–2ms 即回，且 /cart 页面 ≈3×200ms(currency)+~300ms(GetQuote) 时：延迟在发往 shipping 的去程，排除 shipping 应用慢、CPU、Pod 内状态。shipping 与 payment 同用 50051 而 payment 零延迟 → 排除按端口匹配，指向按目的 Pod/标签的规则；与 currencyservice 同窗口被注入，勿当独立故障。重建 Pod 能否清除未验证（currency 已证明无效，见 currencyservice E1），需节点侧 tc/iptables 证据，属【未解决】。"
+   },
+   {
+    "change": {
+     "op": "add",
+     "sop": "boutique-emailservice",
+     "text": "【已证实】checkoutservice 日志 `failed to send order confirmation ... dial tcp <email ClusterIP>:5000: connect: connection refused`（仅 warning，订单仍成功、用户侧无 500）时：查 emailservice Service selector 是否与 Pod 标签一致、`kubectl get endpoints emailservice` 是否为空；本次 selector=app=emailservice-v2 而 Pod=app=emailservice，endpoints=null。把 selector 改回 app=emailservice 可恢复。注意 selector 修后若又被回滚成错误值、但 checkoutservice 未重建，旧长连接/conntrack 仍在，日志可能不再报错（假恢复）；以 endpoints 非空且 selector 正确为准，checkoutservice 一旦重建即复发。"
+    },
+    "applied": true,
+    "id": "E1"
+   },
+   {
+    "change": {
+     "op": "add",
+     "sop": "boutique-frontend",
+     "text": "【已证实】用户侧中位 9–11ms、0 个 500，但 19–21% 请求 >180ms、p90≈312–318ms、p99≈600–640ms 时：不要只看分位数，把 frontend `http.resp.took_ms` 按 URL 分组；若只有 `GET /cart` 281–404ms（≈1×300ms）与 `POST /cart/checkout` 585–664ms（≈2×300ms）慢，而 `/product/*` 7–13ms、`/` 14–77ms、`POST /cart` 1–2ms，则 >180ms 比例就是这两类路径的占比，根因是单个依赖（shippingservice）每次调用被单向延迟约 300ms，不是 frontend 全站慢。按调用次数拆分后转该依赖 SOP。"
+    },
+    "applied": true,
+    "id": "E1"
+   }
+  ],
+  "prompt_chars": 23809,
+  "tokens": 16845,
+  "entries_total": 14,
+  "truth": "shippingservice 的 Pod 网络被加了约 300ms 延迟；它自身处理不慢，调用它的服务跟着变慢。"
+ },
+ {
+  "scenario": "BH10",
+  "mode": "C",
+  "lesson": "延迟完全正常却大量 500，且必经依赖全部返回 connection refused 时，优先比对 Service port/targetPort、Endpoint 地址里的端口与 Pod 实际监听端口（启动日志 Now listening on），并注意 Endpoints 有就绪地址也可能是错端口；改完必须用完全落在改动之后的一整个用户侧窗口验证，残留 500 不能用“kube-proxy 生效滞后”解释收工——本次修好 targetPort 后下单已 8/8 成功，但 500 仍 79/222、最终用户侧未恢复，说明还有第二处没修。",
+  "changes": [
+   {
+    "change": {
+     "op": "modify",
+     "sop": "boutique-triage-overview",
+     "id": "E2",
+     "text": "【已证实】用户侧延迟完全正常（中位个位数 ms、0 个 >180ms）却大量 500、某业务动作 100% 失败时，不查延迟注入（无需 tc/netem、扩缩容、调 CPU）：抽出 500 日志里的 `dial tcp <IP>:<port>: connect: connection refused`，把 Service port/targetPort、Endpoint 地址里的端口、Pod containerPort 与 Pod 启动日志的实际监听端口（如 `Now listening on: http://[::]:7070`）逐一对齐，再查该下游 replicas 是否为 0、endpoints 是否 null——Endpoints 有就绪地址不代表端口对。按“是否必经步骤”分：必经步骤失败→业务 100% 失败、先修；可降级依赖（推荐、广告）失败被调用方 catch、页面仍 200，别当根因。改完 Service 必须取完全落在改动之后的整个用户侧窗口核对：本次改对 targetPort 后下单 2/2 失败→8/8 成功，但 500 仍 79/222、最终用户侧未恢复 → 残留 500 不能写成“kube-proxy/EndpointSlice 生效滞后”的尾巴，要继续逐条比对其他 Service 与端口，未归零不停手。"
+    },
+    "applied": true,
+    "before": "[E2]【已证实】用户侧延迟完全正常（中位个位数 ms、0 个 >180ms）却出现稳定少量 500、某业务动作 100% 失败时，不要按延迟注入排查（无需 tc/netem、扩缩容、调 CPU）：直接看 500 响应日志里的下游报错，`dial tcp <IP>:<port>: i/o timeout` / `connection refused` 先比对 Service port/targetPort、Endpoint 端口、Pod PORT 与调用方 env，再查该下游 replicas 是否为 0、endpoints 是否为空。并按“是否必经步骤”区分两类错误：必经步骤失败→业务 100% 失败（本次改回 env 后 500 归零、下单 9/9 成功）；可降级依赖（推荐、广告）失败被调用方 catch、页面仍 200 且 took_ms 仅几 ms→是噪声，别当根因，但顺手恢复副本。"
+   },
+   {
+    "change": {
+     "op": "add",
+     "sop": "boutique-cartservice",
+     "text": "【已证实】cart 相关调用全线 `dial tcp <cart ClusterIP>:7070: connect: connection refused`、首页/商品/购物车/下单全 500 且延迟只有 1–3ms 时：先查 cartservice Service 的 targetPort 是否等于 Pod 实际监听端口——本次 port 7070→targetPort 7071，而 Pod containerPort=7070、日志 `Now listening on: http://[::]:7070`、Endpoints 转发到 7071；把 targetPort 改回 7070 后 checkout 由 2/2 失败变 8/8 成功。Endpoints 里有就绪地址（:7071）也可能是错的，必须和容器实际监听端口对齐。若改后 frontend 500 仍大量存在，说明还有第二处配置错误：继续按 500 日志里的 IP:port 逐条比对，不要重启 Pod 或收工。"
+    },
+    "applied": true,
+    "id": "E2"
+   },
+   {
+    "change": {
+     "op": "modify",
+     "sop": "boutique-adservice",
+     "id": "E2",
+     "text": "【已证实】商品页/购物车仍 200、took_ms 只有几 ms，但 frontend 大量 `failed to retrieve ads ... dial tcp <ClusterIP>:9555: connect: connection refused` 时：这是被调用方 catch 的降级错误，不是慢因也不是 500 因。按三处查：`kubectl get deploy adservice` 的 spec.replicas 是否为 0（事件里找 `Scaled down ... from 1 to 0`）、`kubectl get endpoints adservice` 的 subsets 是否为 null、Service selector 是否与 Pod 标签一致（本次 selector=app=adservice-v2 而 Pod 标签 app=adservice，endpoints 为 null；改回 app=adservice 后 endpoints 有就绪地址、广告恢复，同期 500 仍 79/222 不变，再次确认不影响 500/延迟）。恢复后以 endpoints 非空且 selector 正确为准；若副本又被缩回，查谁在改。"
+    },
+    "applied": true,
+    "before": "【已排除】页面变慢且 frontend 日志大量 `failed to retrieve ads: ... dial tcp <adservice ClusterIP>:9555: connect: connection refused`，同时 adservice Deployment replicas=0 或 `kubectl get endpoints adservice` 为空时：这是并发的广告不可用，不是页面慢因——广告调用毫秒级失败，页面耗时已由 currency 调用次数×~200ms 解释；把 adservice 扩到 1 后用户侧中位仍 ~414ms、>180ms 仍 ~76%，排除其贡献延迟。先查 replicas、Pod 删除事件与 endpoints 确认无端点；恢复副本只解决无广告/报错。若恢复后又缩回 0，查谁在改副本，别用重启解决慢。"
+   }
+  ],
+  "prompt_chars": 14997,
+  "tokens": 13968,
+  "entries_total": 15,
+  "truth": "Service cartservice 的 targetPort 被改成 7071（容器监听 7070），Pod 正常但流量到不了。"
+ },
+ {
+  "scenario": "BH11",
+  "mode": "C",
+  "lesson": "中位正常、0 错误、只有偶发 >180ms 且延迟成 ~200ms 簇时，先做跨服务逐请求时间对齐；若不同服务/请求在同一瞬间恢复，就是节点级整机停顿，别再加 CPU、扩副本、重启，转节点侧证据。",
+  "changes": [
+   {
+    "change": {
+     "op": "add",
+     "sop": "boutique-triage-overview",
+     "text": "【已排除】用户侧中位 10–12ms、0 个 500、下单全成功，但 18–22% 请求 >180ms、p90 ~220ms、p99 400–650ms，且慢值成 ~200–240ms 簇并可叠加（~430ms）时，不要按“最可疑服务”抬 CPU、扩副本、重启或改 env：本次把 cart/redis/rec/productcatalog/frontend/currency 的 CPU 上限抬高、rec 1→3 副本、rec 下游改 ClusterIP 后，>180ms 占比仍 18.9%→22.5%→21.9%，排除单 Pod CPU 节流、rec 单 Pod/连接、DNS/短名解析、单服务变慢。用 frontend 与各后端日志逐请求对齐；若不同服务、不同连接的请求在同一微秒级时刻一起完成/恢复，且停顿长度 50–250ms 连续谱+主峰 ~210ms，指向节点/整机同步停顿。下一步停 Pod 级改动，转节点侧：kubectl top pods -A --sort-by=cpu、describe node、/proc/pressure/cpu、各 cgroup cpu.stat 的 nr_throttled/throttled_usec、vmstat st、nstat 重传；权限不足则交节点运维。具体是 CPU 争用/宿主 steal 还是 CNI 丢包仍【未解决】，需上述证据区分。"
+    },
+    "applied": true,
+    "id": "E3"
+   },
+   {
+    "change": {
+     "op": "modify",
+     "sop": "boutique-recommendationservice",
+     "id": "E1",
+     "text": "【已排除】不要仅凭 /product、/cart 慢而 /、POST /cart、POST /setCurrency 快（尤其小样本）就锁定 frontend→recommendationservice 的 ListRecommendations：本次首页 0/9 快，扩大窗口后首页也有 216/157ms；rec 1→3 副本、把 PRODUCT_CATALOG_SERVICE_ADDR 改成 ClusterIP 后慢占比仍 21.9%，排除 rec 单 Pod/连接、DNS/短名解析、扩副本能解决。仍可先按“是否调用 ListRecommendations”分组，但必须用足够大窗口并逐请求配对；rec 日志在调用下游、handler 返回前才打印，不是入口。若多个互不相关请求在同一微秒级恢复，转总则节点级停顿，不要预设双向。"
+    },
+    "applied": true,
+    "before": "【已证实】/product、/cart、/cart/checkout 稳定慢而 GET /、POST /cart、POST /setCurrency 正常时，先怀疑 frontend→recommendationservice 的 ListRecommendations（首页和 POST /cart 不调它，故约 28% 请求仍快）。注意 `[Recv ListRecommendations]` 在调用完 productcatalogservice、handler 返回前才打印，不是入口，别拿它当请求到达时间；必须把 frontend 与 rec 日志逐条配对，分别算“请求开始→rec 日志”和“rec 日志→前端完成”。方向可能双向（BH03 各约 200ms），也可能仅去程（若 rec 入口日志几乎在前端完成时出现，则去程约 300ms、返回 <2ms）；不要预设双向。【已排除】Pod 内状态、CPU 限流、排队、DNS、Service selector/targetPort/容器端口错误——重建 recommendationservice 与 frontend 两端后仍复现；若重"
+   },
+   {
+    "change": {
+     "op": "add",
+     "sop": "boutique-productcatalogservice",
+     "text": "【已排除】productcatalogservice 无 error、Pod Ready、restartCount=0，但稳态出现 liveness/readiness `failed to connect ... within 1s` 超时：不要据此重启或加 CPU。本次同时前端多端点偶发 ~200ms 尾部，且不同服务请求在同一微秒级恢复，首页直连 ListProducts 又很快，排除 productcatalogservice 自身慢作为唯一原因；它是节点级同步停顿的旁证。按总则做跨服务逐请求对齐，转节点侧 top pods -A、describe node、cpu.stat nr_throttled、vmstat st、nstat 重传。若只有该服务探针超时而其他服务无同步停顿，再查自身 CPU/GC/网络。"
+    },
+    "applied": true,
+    "id": "E1"
+   }
+  ],
+  "prompt_chars": 26158,
+  "tokens": 19211,
+  "entries_total": 17,
+  "truth": "productcatalogservice 的 Pod 网络有约 6% 的丢包；被丢的包要等重传，所以只有一部分请求变慢，它自身处理不慢。"
+ },
+ {
+  "scenario": "BH12",
+  "mode": "C",
+  "lesson": "同类“偶发 ~200ms、无报错”先按每页调用各依赖的次数和 handler 入口延迟定位，不要先抬 CPU；currencyservice 若入口延迟、多连接同毫秒放行且多个 Pod 实例探针超时，机制仍未证实，需 cgroup/网络计数再定。",
+  "changes": [
+   {
+    "change": {
+     "op": "modify",
+     "sop": "boutique-currencyservice",
+     "id": "E1",
+     "text": "【已排除】页面耗时≈currency 调用次数×~200ms（首页 ~2.1s、商品页 ~400ms、购物车每件+200ms、不调 currency 0–3ms）时，不要先加 CPU/重启/扩副本：limit 200m→1 核、前端 200m→500m、重建 currency（多次换 IP）与 frontend/checkout 后延迟仍不变（本次 >180ms 9.1%→10.5%、p90 114→214ms、新 Pod 仍探针超时）；排除 CPU 节流、Pod/netns、旧 IP、DNS/连接缓存。配对“调用方请求开始→`Getting supported currencies...`”：若入口恒晚 150–650ms 而入口→完成仅几 ms，且多个独立连接同一毫秒被放行、同一服务多个 Pod 实例均出现 >1s 探针超时，说明该端点上的请求一起被卡后集中放行；是进程停顿还是丢包 RTO 尚未证实，先取 cgroup cpu.stat/memory.events 与 TcpRetransSegs/ss -ti/veth tcpdump，再决定移除 tc/netem；不要靠重启/扩副本。"
+    },
+    "applied": true,
+    "before": "【已排除】日志无 error、CPU 看似打满时不要加 CPU：limit 200m→1 核并重建后延迟不变（中位 416→415ms、p90 2056→1838ms），服务端吞吐仅 7–10 RPC/s，排除进程内阻塞、CPU 节流、Pod 内状态。页面耗时 = currency 调用次数 × ~200ms（首页 ~2.1s、商品页 ~400ms、购物车每件 +200ms、不调 currency 的请求 0–3ms）时：配对“调用方请求开始→`Getting supported currencies...`（handler 入口）”，若恒 +180–210ms 而入口→调用方完成仅几 ms，则延迟在去程、响应正常。重建 currencyservice Pod（IP 变更）与重建 frontend、checkoutservice 后每次 RPC 仍 +181ms → 排除本 Pod 与客户端 Pod 的 netns、按旧 IP 匹配、DNS/连接缓存，不要再重启。shipping 可能同时被注入（本期 ~300ms），别把 checkout 里 290–330ms 空隙全算作 curr"
+   },
+   {
+    "change": {
+     "op": "modify",
+     "sop": "boutique-frontend",
+     "id": "E1",
+     "text": "【已证实】用户侧中位 9–11ms、0 个 500，但 9–21% 请求 >180ms、p90≈114–318ms、p99≈304–640ms 时：先按 `http.resp.took_ms` 的 URL 分组，再用“每页调用各依赖次数”解释。若慢只在 `GET /cart`≈1×300ms、`POST /cart/checkout`≈2×300ms，转 shippingservice；若首页、商品页、购物车都出现 200–230ms 台阶且首页（调用 currency 约 11 次）最慢，逐请求配对 frontend 开始→currencyservice `Getting supported currencies` 入口，入口晚而 currency 内处理仅几 ms 时转 currencyservice SOP；不要先抬 frontend CPU（200m→500m 实测 >180ms 仍 9.1%→10.5%）。"
+    },
+    "applied": true,
+    "before": "【已证实】用户侧中位 9–11ms、0 个 500，但 19–21% 请求 >180ms、p90≈312–318ms、p99≈600–640ms 时：不要只看分位数，把 frontend `http.resp.took_ms` 按 URL 分组；若只有 `GET /cart` 281–404ms（≈1×300ms）与 `POST /cart/checkout` 585–664ms（≈2×300ms）慢，而 `/product/*` 7–13ms、`/` 14–77ms、`POST /cart` 1–2ms，则 >180ms 比例就是这两类路径的占比，根因是单个依赖（shippingservice）每次调用被单向延迟约 300ms，不是 frontend 全站慢。按调用次数拆分后转该依赖 SOP。"
+   },
+   {
+    "change": {
+     "op": "modify",
+     "sop": "boutique-triage-overview",
+     "id": "E3",
+     "text": "【已排除】用户侧中位 ~10ms、0 个 500、下单全成功，但 9–22% 请求 >180ms、慢值成 ~200ms 簇并可叠加时，不要按“最可疑服务”抬 CPU/扩副本/重启/改 env：本次 currency 200m→1 核、frontend 200m→500m 后 >180ms 仍 9.1%→10.5%、p90 114→214ms；此前 cart/redis/rec/productcatalog 提 CPU、rec 1→3 副本、改 ClusterIP 后仍 18.9%→21.9%，排除 CPU 节流、单 Pod/连接、DNS/短名。下一步逐请求配对“调用方开始→各依赖 handler 入口”：若只有某依赖入口延迟而其它依赖同窗口≤1ms，按该服务 SOP（多连接同毫秒放行、多 Pod 探针超时先查 cgroup/网络计数）；若多个互不相关服务同一微秒级恢复/停顿，才转节点侧 top/describe/cpu.stat/nstat。"
+    },
+    "applied": true,
+    "before": "【已排除】用户侧中位 10–12ms、0 个 500、下单全成功，但 18–22% 请求 >180ms、p90 ~220ms、p99 400–650ms，且慢值成 ~200–240ms 簇并可叠加（~430ms）时，不要按“最可疑服务”抬 CPU、扩副本、重启或改 env：本次把 cart/redis/rec/productcatalog/frontend/currency 的 CPU 上限抬高、rec 1→3 副本、rec 下游改 ClusterIP 后，>180ms 占比仍 18.9%→22.5%→21.9%，排除单 Pod CPU 节流、rec 单 Pod/连接、DNS/短名解析、单服务变慢。用 frontend 与各后端日志逐请求对齐；若不同服务、不同连接的请求在同一微秒级时刻一起完成/恢复，且停顿长度 50–250ms 连续谱+主峰 ~210ms，指向节点/整机同步停顿。下一步停 Pod 级改动，转节点侧：kubectl top pods -A --sort-by=cpu、describe node、/proc/pressure/cpu、各 cgroup cpu.stat 的"
+   }
+  ],
+  "prompt_chars": 20036,
+  "tokens": 14957,
+  "entries_total": 17,
+  "truth": "currencyservice 的 Pod 网络有约 6% 的丢包；被丢的包要等重传，所以只有一部分请求变慢，它自身处理不慢。"
+ },
+ {
+  "scenario": "BH13",
+  "mode": "C",
+  "lesson": "间歇性 +200ms 整数倍尾部延迟、0 报错、中位数正常，是丢包触发 TCP RTO 的形状，不是 CPU/GC；不要抬 CPU 或重启（多处实测无效），先看哪个 Pod 独占探针 dial i/o timeout（探测绕开应用代码），再看慢是否集中在购物车→redis 这一跳，最终要到节点数据面（tc/softnet/conntrack）取证。",
+  "changes": [
+   {
+    "change": {
+     "op": "modify",
+     "sop": "boutique-triage-overview",
+     "id": "E3",
+     "text": "【已排除】用户侧中位 ~10ms、0 个 500、下单成功，但数 %–20% 请求 >180ms、慢值成 ~200ms 整数倍簇（≈200/400/600ms，符合 TCP RTO 及指数退避形状）、中位数不变时：这不是排队/GC 形状，别按“最可疑服务”抬 CPU/扩副本/重启/改 env——currency、frontend、cart、redis、rec、productcatalog 实测均无改善，排除 CPU 节流、单 Pod/连接、DNS。先逐请求配对“调用方开始→各依赖 handler 入口”把慢定位到跳；再查各 Pod 探针：若只有某 Pod 反复 dial tcp …:…: i/o timeout（kubelet 探测绕开应用代码）而其它 Pod 探针零失败，提示丢包在该 Pod 的网络路径/数据面，按该服务 SOP 转节点侧。若多个互不相关跳同窗口也偶发（如结算里 redis 之外的回程或发信），可能是节点级丢包，需 tc qdisc/softnet/conntrack 计数确认；机制未证实前按【未解决】记录并说明缺节点侧证据。"
+    },
+    "applied": true,
+    "before": "【已排除】用户侧中位 ~10ms、0 个 500、下单全成功，但 9–22% 请求 >180ms、慢值成 ~200ms 簇并可叠加时，不要按“最可疑服务”抬 CPU/扩副本/重启/改 env：本次 currency 200m→1 核、frontend 200m→500m 后 >180ms 仍 9.1%→10.5%、p90 114→214ms；此前 cart/redis/rec/productcatalog 提 CPU、rec 1→3 副本、改 ClusterIP 后仍 18.9%→21.9%，排除 CPU 节流、单 Pod/连接、DNS/短名。下一步逐请求配对“调用方开始→各依赖 handler 入口”：若只有某依赖入口延迟而其它依赖同窗口≤1ms，按该服务 SOP（多连接同毫秒放行、多 Pod 探针超时先查 cgroup/网络计数）；若多个互不相关服务同一微秒级恢复/停顿，才转节点侧 top/describe/cpu.stat/nstat。"
+   },
+   {
+    "change": {
+     "op": "modify",
+     "sop": "boutique-redis-cart",
+     "id": "E1",
+     "text": "【已排除】cart 路径偶发慢（GET/POST /cart、EmptyCart、每页都调的 GetCart），慢值成 +200ms 整数倍簇，且 redis-cart 是命名空间里唯一反复探针失败（Liveness/Readiness dial tcp :6379 i/o timeout、跨多个 Pod/IP）时：不要重启 redis-cart 或加 CPU——本 Pod 多次重建换 IP 与 CPU limit 125m→1 后单命令延迟与慢占比完全不变（309→311ms；>180ms 仍 3.7%、p99 214ms），排除 Pod 内 datapath、CPU 节流、Redis 进程慢、持久化/AOF；Service selector/endpoints 正常。kubelet 探测绕开 cartservice，探针只在该 Pod 失败提示丢包在它的网络路径。警惕假好转：重建 redis 清空 emptyDir 购物车，GET /cart 载荷 16–20KB→~7KB 会使 p90 假降，须看 p99 与 >180ms 比例。下一步节点侧查 tc qdisc/filter、iptables、conntrack/softnet 计数。"
+    },
+    "applied": true,
+    "before": "【已排除】cart 请求慢、且延迟与 Redis 命令条数成正比（1 条≈285ms、2 条≈570ms）时，不要重启 redis-cart 或加 CPU：本 Pod 两次重建（IP 变化）与 CPU limit 125m→1 后单命令延迟完全不变（309→311ms），排除 Pod 内 datapath/沙箱、CPU 节流、Redis 进程慢、持久化与 AOF；Service selector/endpoints 也正常。方向在 Pod 外：节点 tc/eBPF/iptables 按 dst port 6379 或 redis ClusterIP 匹配，或外部 chaos 每次重建后重注入；拿到节点侧 tc qdisc/filter、iptables mangle 证据后再处置。"
+   },
+   {
+    "change": {
+     "op": "modify",
+     "sop": "boutique-cartservice",
+     "id": "E1",
+     "text": "【已证实】cart 相关请求稳定慢、非 cart 端点 0–3ms 且耗时呈固定台阶（GetCart、AddItem、checkout 依次约 1:2:2 倍增，无快样本）时：先按每次请求内 Redis 命令条数拆分——1 条命令的 GET /cart、GET /、/product 约 285ms，2 条命令的 POST /cart、checkout 约 570ms，非 cart 部分仅 15–40ms → 延迟只加在 cartservice↔redis-cart:6379 的每条往返上，gRPC hop 与 cartservice 处理正常。不要只重启两端或抬 CPU：redis-cart 两次重建（换 IP）、cartservice 重建与 CPU 300m→1、redis CPU 125m→1 后均无变快窗口【已排除 Pod 内状态、netns、连接缓存、CPU 限流、cartservice GC/线程池】。下一步到节点查 tc/eBPF/iptables 是否匹配 dst port 6379 或 redis ClusterIP；重建无效且按命令固定延迟也符合外部 chaos 按 label 给每个新 Pod 重注入，两者需节点侧证据再处置。"
+    },
+    "applied": true,
+    "before": "【已证实】cart 相关请求稳定慢、非 cart 端点 0–3ms 且耗时呈固定台阶（GetCart、AddItem、checkout 依次约 1:2:2 倍增，无快样本）时：先按每次请求内 Redis 命令条数拆分——1 条命令的 GET /cart、GET /、/product 约 285ms，2 条命令的 POST /cart、checkout 约 570ms，非 cart 部分仅 15–40ms → 延迟只加在 cartservice↔redis-cart:6379 的每条往返上，gRPC hop 与 cartservice 处理正常。不要只重启两端：redis-cart 两次重建（换 IP）、cartservice 重建（换 netns/连接）、redis CPU 125m→1 后均无任何变快窗口【已排除 Pod 内状态、netns、连接缓存、CPU 限流】。下一步到节点查 tc/eBPF/iptables 是否匹配 dst port 6379 或 redis ClusterIP；重建无效且按命令固定延迟也符合外部 chaos 按 label 给每个新 Pod 重注入，两者需"
+   }
+  ],
+  "prompt_chars": 21524,
+  "tokens": 20152,
+  "entries_total": 17,
+  "truth": "redis-cart 的 Pod 网络有约 6% 的丢包；被丢的包要等重传，所以只有一部分请求变慢，它自身处理不慢。"
+ },
+ {
+  "scenario": "BH14",
+  "mode": "C",
+  "lesson": "尾部延迟呈 ~200ms 整数倍、每次落在不同服务之间的随机 RPC 上，重建 Pod / 提 CPU / 重建下游都无效时，是节点东西向丢包触发 TCP RTO 重传，不要在命名空间内继续试；kubelet 单服务探针超时会跟着 Deployment 走，别据此把丢包锁在某个 Pod 的 netns。",
+  "changes": [
+   {
+    "change": {
+     "op": "modify",
+     "sop": "boutique-triage-overview",
+     "id": "E3",
+     "text": "【已排除】（BH11、BH12、BH13）用户侧中位 ~10ms、0 个 500、下单成功，但数 %–20% 请求 >180ms、慢值成 ~200ms 整数倍簇（200/400/800，TCP RTO 形状）时：不是排队/GC，别抬 CPU/扩副本/重启/改 env。本次 cartservice Pod 重建（新 IP/netns）、CPU 300m→1、redis-cart 重建、recommendationservice 0→1 均无改善（>180ms 5.8%→5.5%→5.8%→9.3%、p99 227→247→244→404ms），排除 Pod 内状态、CPU 节流、单个下游。逐请求配对（frontend took_ms + 各服务毫秒收包时间戳）：200ms 停顿每次落在不同 hop（frontend→cart GetCart 214ms、checkout→email 209.6ms，productcatalog 也中招），同一连接多个并发请求同一 0.6ms 内一起返回（HTTP/2 队头阻塞被重传解除）。kubelet 探针超时跟着 Deployment 走（cart 换 Pod 新 IP 仍 1s 超时），别据此把丢包锁在某 Pod netns。指向节点东西向丢包/软中断排队，需基础设施查 tc qdisc、nstat Retrans/Drop、softnet_stat drop、conntrack；机制未证实按【未解决】记录。"
+    },
+    "applied": true,
+    "before": "【已排除】用户侧中位 ~10ms、0 个 500、下单成功，但数 %–20% 请求 >180ms、慢值成 ~200ms 整数倍簇（≈200/400/600ms，符合 TCP RTO 及指数退避形状）、中位数不变时：这不是排队/GC 形状，别按“最可疑服务”抬 CPU/扩副本/重启/改 env——currency、frontend、cart、redis、rec、productcatalog 实测均无改善，排除 CPU 节流、单 Pod/连接、DNS。先逐请求配对“调用方开始→各依赖 handler 入口”把慢定位到跳；再查各 Pod 探针：若只有某 Pod 反复 dial tcp …:…: i/o timeout（kubelet 探测绕开应用代码）而其它 Pod 探针零失败，提示丢包在该 Pod 的网络路径/数据面，按该服务 SOP 转节点侧。若多个互不相关跳同窗口也偶发（如结算里 redis 之外的回程或发信），可能是节点级丢包，需 tc qdisc/softnet/conntrack 计数确认；机制未证实前按【未解决】记录并说明缺节点侧证据。"
+   },
+   {
+    "change": {
+     "op": "add",
+     "sop": "boutique-cartservice",
+     "text": "【已排除】cart 相关耗时只有偶发尾部 +200ms（中位 5–9ms 正常、非固定台阶、非全量慢），慢值为 211–232 及 400/770ms 等 200ms 整数倍时：不要按 E1 的「按每次请求 Redis 命令条数拆分」去锁 cart↔redis:6379。用 frontend took_ms 加各服务毫秒收包时间戳逐请求配对，可见停顿在调用方→cartservice 的 RPC 入口内（GetCart、EmptyCart 各约 210ms），且同窗口 checkout→emailservice、frontend→productcatalog 也出现同样 ~200ms 停顿、落在不同 hop；cartservice Pod 重建（换 IP/netns）、CPU 300m→1、redis-cart 重建后 >180ms 占比 5.8%→5.5%→5.8% 均不变。kubelet 对 cart Pod 的 :7070 grpc 探针 1s connect 超时会跟着 Deployment 走，别据此把丢包锁在 cart Pod 的 netns。按总则 E3 处理：指向节点东西向丢包（未证实），转基础设施查 tc/nstat/softnet/conntrack。"
+    },
+    "applied": true,
+    "id": "E3"
+   },
+   {
+    "change": {
+     "op": "modify",
+     "sop": "boutique-recommendationservice",
+     "id": "E2",
+     "text": "【已证实】（BH07）商品页/购物车仍 200、took_ms 只有几 ms，但 frontend 大量 `failed to get product recommendations ... dial tcp <ClusterIP>:8080: connect: connection refused` 时：这是被调用方降级的非致命错误，既不是慢因也不是 500 因，不要按延迟或下单失败方向查。先 `kubectl get deploy recommendationservice` 看 spec.replicas（常为 0）、`kubectl get endpoints recommendationservice` 看 subsets 是否为空，并在事件里找 `Scaled down ... from 1 to 0`；确认是谁改的副本，再 scale 回 1，恢复后核对 endpoints 非空、该报错消失。副本 0→1 只补推荐位/消 warning；本次实测用户侧 >180ms 占比 5.5%→9.3%、p99 244→404ms 不变（【已排除】与尾部延迟无关），别指望修它能让慢请求减少。"
+    },
+    "applied": true,
+    "before": "[E2]【已证实】商品页/购物车仍 200、took_ms 只有几 ms，但 frontend 大量 `failed to get product recommendations ... dial tcp <ClusterIP>:8080: connect: connection refused` 时：这是被测调用方降级的非致命错误，既不是慢因也不是 500 因，不要按延迟或下单失败方向查。先 `kubectl get deploy recommendationservice` 看 spec.replicas（本次为 0）、`kubectl get endpoints recommendationservice` 看 subsets 是否为空，并在事件里找 `Scaled down ... from 1 to 0`；确认是谁改的副本，再 scale 回 1，恢复后核对 endpoints 非空、该报错消失。"
+   }
+  ],
+  "prompt_chars": 26294,
+  "tokens": 25787,
+  "entries_total": 18,
+  "truth": "cartservice 的 Pod 网络有约 6% 的丢包；被丢的包要等重传，所以只有一部分请求变慢，它自身处理不慢。"
+ },
+ {
+  "scenario": "BH15",
+  "mode": "C",
+  "lesson": "一个窗口里常同时存在互不相干的故障：配置类（env 端口错、副本 0）只造成 500 或下单失败，改完立刻归零且延迟数字分毫不变，别把它和慢混为一因；~200ms 整数倍的尾部延迟必须用 frontend took_ms 加下游毫秒收包时间戳逐请求配对来定位到具体依赖，若重建被调方与调用方 Pod（新 netns/IP）都无效、而只有该工作负载的探针持续失败，则丢包在节点/CNI 数据面，Pod 级操作无解，需节点侧 tc/nstat 证据。",
+  "changes": [
+   {
+    "change": {
+     "op": "modify",
+     "sop": "boutique-productcatalogservice",
+     "id": "E1",
+     "text": "【已排除】本服务 Pod Ready、restartCount=0、日志无 error，但 kubelet 的 gRPC 探针从 Pod 创建后数秒起就持续 `failed to connect ...:3550 within 1s` 超时（累计多次、失败率约 10%，换 Pod/换 IP 后立即复现），而同期 frontend 的 HTTP 探针与其他服务探针 0 次失败、checkout 跨 Pod 调用恒 8–12ms 时：不要重启或加 CPU——本次重建本服务、currencyservice、frontend（各自新 netns/IP）后 >180ms 20.3%→23.1%→21.9%、p99 429→630→653ms 均不变，已排除 Pod 内状态/netns、CPU 节流、调用方 Pod 出口丢包、节点级整体劣化。若同时前端每个慢请求都含本服务调用、多出的耗时量化在 209–260/439/869ms（≈最小 RTO 200ms 的 1/2/4 次重传）与 20–80ms（dupACK/TLP 快速恢复），且完成时刻不落在 100ms CFS 网格上，则丢包在本服务工作负载的网络路径上（节点/CNI 数据面，按 Pod/标签或 dport 3550 注入），Pod 级操作清不掉。【未解决】是“按 Pod/标签”还是“按端口 3550”需节点侧 `tc -s qdisc show <veth>`、`nstat -az TcpRetransSegs`、`ss -tin`、CNI/eBPF drop 计数；改 PORT+targetPort 会让写死 3550 探针 CrashLoop，不要做。"
+    },
+    "applied": true,
+    "before": "【已排除】productcatalogservice 无 error、Pod Ready、restartCount=0，但稳态出现 liveness/readiness `failed to connect ... within 1s` 超时：不要据此重启或加 CPU。本次同时前端多端点偶发 ~200ms 尾部，且不同服务请求在同一微秒级恢复，首页直连 ListProducts 又很快，排除 productcatalogservice 自身慢作为唯一原因；它是节点级同步停顿的旁证。按总则做跨服务逐请求对齐，转节点侧 top pods -A、describe node、cpu.stat nr_throttled、vmstat st、nstat 重传。若只有该服务探针超时而其他服务无同步停顿，再查自身 CPU/GC/网络。"
+   },
+   {
+    "change": {
+     "op": "modify",
+     "sop": "boutique-triage-overview",
+     "id": "E3",
+     "text": "【已排除】（BH11–BH14）用户侧中位 ~10ms、下单成功，但数 %–20% 请求 >180ms、慢值成 ~200ms 整数倍簇（200/400/800，TCP RTO 形状）时：不是排队/GC/CPU，别抬 CPU/扩副本/改 env。Pod 级重启全部无效（cartservice、redis-cart、recommendationservice 0→1、productcatalogservice、currencyservice、frontend 新 netns，>180ms 5.8%→5.5%→5.8%→9.3%→23.1%→21.9%，p99 227→404→630→653ms），排除 Pod 内状态、CPU 节流、单个下游、调用方 Pod 出口。两类要分开：①探针超时跟着多个 Deployment 走、不同 hop 的请求在同一微秒级一起恢复 → 节点级同步停顿；②探针失败持续集中在某一个工作负载（跨 Pod/IP 重建后数秒内复现）、其他服务探针与跨 Pod 调用干净、每个慢请求都含该依赖的调用 → 该工作负载网络路径上的丢包，转节点侧 tc qdisc/nstat/ss -tin/CNI drop，Pod 层无解。定位只能靠逐请求配对（frontend took_ms + 各服务毫秒收包时间戳）；探针 1s 阈值对 200–300ms 不报，Pod 仍 Ready、0 重启。"
+    },
+    "applied": true,
+    "before": "【已排除】（BH11、BH12、BH13）用户侧中位 ~10ms、0 个 500、下单成功，但数 %–20% 请求 >180ms、慢值成 ~200ms 整数倍簇（200/400/800，TCP RTO 形状）时：不是排队/GC，别抬 CPU/扩副本/重启/改 env。本次 cartservice Pod 重建（新 IP/netns）、CPU 300m→1、redis-cart 重建、recommendationservice 0→1 均无改善（>180ms 5.8%→5.5%→5.8%→9.3%、p99 227→247→244→404ms），排除 Pod 内状态、CPU 节流、单个下游。逐请求配对（frontend took_ms + 各服务毫秒收包时间戳）：200ms 停顿每次落在不同 hop（frontend→cart GetCart 214ms、checkout→email 209.6ms，productcatalog 也中招），同一连接多个并发请求同一 0.6ms 内一起返回（HTTP/2 队头阻塞被重传解除）。kubelet 探针超时跟着 Deployment 走（cart "
+   },
+   {
+    "change": {
+     "op": "modify",
+     "sop": "boutique-checkoutservice",
+     "id": "E1",
+     "text": "【已证实】checkout 下单 100% 失败、frontend 500，而用户侧延迟分位数正常（中位个位数 ms）时：这是必经步骤上的连接/配置错误，不是延迟问题，不要查 netem。抓 500 日志的 `dial tcp <IP>:<port>` 判型：`i/o timeout`（首笔约 4s）多指该端口上没有任何 listener/kube-proxy 规则——本次 CART_SERVICE_ADDR=cartservice:7071 而 Service 只开 7070、endpoints 正常，改成 7070 后 500 由 4→0、下单 4/4 失败→7/7→10/10 成功；`connection refused` 则是端口有规则但无进程或 endpoints 为空（见 paymentservice/emailservice E1）。把各 *_SERVICE_ADDR 与 Service port/targetPort、Endpoint 端口、Pod 实际监听端口（payment/shipping 50051、currency 7000、productcatalog 3550、email 5000、cart 7070）逐一比对。修好后 >180ms 占比 20.3%→23.1% 不变，确认它只是 500 因、不是慢因。"
+    },
+    "applied": true,
+    "before": "[E1]（BH01、BH03、BH07）【已证实】checkout 下单 100% 失败、frontend 返回 500，而用户侧延迟分位数完全正常（中位个位数 ms、0 个 >180ms）时：这是必经步骤上的连接/配置错误，不是延迟问题，不要查 netem。抓 500 日志中的 `dial tcp <IP>:<port>: i/o timeout`（首笔约 4s 建连超时，之后毫秒级快速失败），把该 IP 对应 Service 的 port/targetPort、Endpoint 端口、Pod 容器 PORT 与 checkout 的 *_SERVICE_ADDR env 逐一比对（payment/shipping 50051、currency 7000、productcatalog 3550、email 5000、cart 7070）。本次 SHIPPING_SERVICE_ADDR=shippingservice:50052 而 Service 只开 50051，shipping quote 阶段超时；因失败早于此步，paymentservice 几乎无调用日志。用 live s"
+   }
+  ],
+  "prompt_chars": 26751,
+  "tokens": 17032,
+  "entries_total": 18,
+  "truth": "checkoutservice 的环境变量 CART_SERVICE_ADDR 被改成 cartservice:7071（应为 cartservice:7070），调不到 cartservice；cartservice 自身没有问题。"
+ }
+]

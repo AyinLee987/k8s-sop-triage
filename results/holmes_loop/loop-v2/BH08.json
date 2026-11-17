@@ -1,0 +1,313 @@
+{
+ "scenario": "BH08",
+ "model": "deepseek-flash",
+ "max_rounds": 3,
+ "frame": "prod",
+ "rounds": [
+  {
+   "round": 1,
+   "wall_s": 331,
+   "exit": 0,
+   "total_tokens": 984322,
+   "tool_calls": 30,
+   "answer": "I have enough evidence. Here's the analysis.\n\n## What I measured\n\n**Onset is sharp and late.** Frontend `http.resp.took_ms` (all traffic, 07:12–07:19):\n\n| time | `/` | `/product/*` | `/cart` | `POST /cart` | `POST /cart/checkout` |\n|---|---|---|---|---|---|\n| 07:13:22–07:13:39 | 17–25 ms | 10–16 ms | 9–15 ms | 2–3 ms | 22 ms |\n| 07:13:45 → now | 297–346 ms | 283–341 ms | 284–340 ms | 564–631 ms | 578–644 ms |\n\nLast fast request 07:13:39.6, first slow 07:13:45.7 — a step, not a ramp, and still present at 07:18:42. No 500s, no OOMKills, no restarts, no error/timeout/retry lines in **any** pod's logs.\n\n**The tax is per Redis round-trip, not per request or per gRPC call** — this is the key decomposition:\n- `GET /cart` = 1 cart call = **1** Redis op (`HGETALL`) → 284–340 ms (fast mode: 13 ms)\n- `POST /cart` (`addToCart` = `getProduct` + `addToCart`, i.e. **2** Redis ops: `HGET`+`HSET`) → 564–631 ms = **2.0×** the above\n- `POST /cart/checkout` (checkoutservice does `GetCart` + `EmptyCart` = **2** Redis ops, plus ~8 other RPCs) → 578–644 ms\n- `POST /setCurrency` (no downstream RPC) → **0 ms** throughout\n\nSo each `cartservice`→`redis-cart:6379` round trip costs ~285 ms (floor 283, ceiling ~345), where it cost <1 ms at 07:13:39. The 2.0 ratio also rules out a delay attached to the cartservice pod's own network (that would give 1.5×), and rules out packet loss (every single op is ≥283 ms — nothing comes through fast).\n\n**Everything else is provably healthy.** `GET /` renders 12+ RPCs (currency `GetSupportedCurrencies` + 10× `Convert`, catalog `ListProducts`, cart `GetCart`) in 297–346 ms — i.e. ~30 ms for all 12 non-cart RPCs plus 290 ms for the one cart op. So catalog/currency/shipping/ads/recommendations are fast; only the redis hop is slow.\nAlso verified and *not* the cause: all 12 Services have correct selectors and correct `targetPort`, every Endpoints object resolves to the one running pod IP (no stale endpoints), all pods Running/Ready with 0 restarts, `resources` for every deployment match upstream defaults, and no errors in frontend/cartservice/redis/ad/currency/recommendation logs. (Redis is Redis 8.10.3 with modules, AOF disabled, no BGSAVE in its log, empty dataset on a fresh `emptyDir`.)\n\n**Ruled out on evidence, though it looks suspicious:** `cartservice` carries an extra `RELEASE_TAG=2026.11.16-2` that is *not* in its `kubectl.kubernetes.io/last-applied-configuration` (added by a manual `set env`, RS `cartservice-896c89968` → `cartservice-cf4bb4fdc` at 07:12:55, old pod killed 07:13:16). That rollout cannot be the cause: the new pod served 10–16 ms pages at 07:13:22–07:13:39, ~30 s *after* becoming Ready, and the slowdown started 25 s later.\n\n**What I could not check:** node-level CPU/CPU-throttling metrics — `nodes` list is forbidden for `system:serviceaccount:diag-system:diag-agent` and no metrics/prometheus integration is configured. So a node-wide CPU story can't be excluded directly, but a node-wide problem would slow `currencyservice`/`productcatalogservice` too, and they are demonstrably fast.\n\n## Remaining two explanations (indistinguishable with available data)\n1. A fixed ~285 ms latency is being held on the `redis-cart` pod's side of the Redis round trip (in-pod datapath/qdisc, or the pod sandbox), so each command's reply is late.\n2. The `redis-cart` process cannot answer promptly (it is the tightest CPU limit in the namespace, 125 m, and could be throttled on a busy node). Neither redis (`restartCount` 0, no OOM) nor anything else logged an error.\n\nBoth point to the same remediation: recreate the redis pod, with CPU headroom in case it is throttling.\n\n```json\n{\"root_causes\": [{\"object\": \"redis-cart (boutique) / cartservice→redis-cart:6379 round trip\", \"cause\": \"Every Redis command round trip from cartservice gained a deterministic ~285ms (was <1ms until 07:13:45Z): GET /cart 1 op = 284-340ms, POST /cart 2 ops = 564-631ms, checkout 2 ops = 578-644ms, while all non-cart RPCs stay fast (home page renders 12 other RPCs in ~30ms). Confirmed candidates, not distinguishable without node metrics: (1) a fixed ~285ms delay held on the redis-cart pod's side of the round trip (in-pod datapath/sandbox), (2) redis-cart being CPU-throttled at its 125m limit so it cannot answer promptly. cartservice's unexpected RELEASE_TAG env/rollout is NOT the cause - the new pod served 10-16ms pages 30s after it became Ready.\"}], \"actions\": [{\"op\": \"restart\", \"deployment\": \"redis-cart\"}, {\"op\": \"set_cpu_limit\", \"deployment\": \"redis-cart\", \"cpu\": \"1\"}], \"expect\": \"Per-cart-op latency drops back to ~1ms: median 312ms -> ~20-30ms, requests over 180ms 86.4% -> ~0% (only rare outliers), p90 599ms -> ~50ms, p99 641ms -> ~80ms, POST /cart 564-631ms -> ~5ms, checkout ~590ms -> ~30-60ms; still 0 x 500 and 4/4 orders succeeding. Cart contents in redis are lost (emptyDir) but clients re-add them.\", \"explanation\": \"The added latency is exactly one ~285ms cost per Redis round trip on the cartservice->redis-cart hop and nothing else in the mesh; both candidate mechanisms live inside the redis-cart pod, so recreating it (and giving it CPU headroom) is the only read-only-permitted action that can clear it - a redis-side network/qdisc delay is removed with the pod sandbox, throttling is removed by the higher limit. If the numbers do not improve, the delay is being re-applied outside the pod and needs the platform/chaos owner to remove it.\"}\n```",
+   "plan": {
+    "root_causes": [
+     {
+      "object": "redis-cart (boutique) / cartservice→redis-cart:6379 round trip",
+      "cause": "Every Redis command round trip from cartservice gained a deterministic ~285ms (was <1ms until 07:13:45Z): GET /cart 1 op = 284-340ms, POST /cart 2 ops = 564-631ms, checkout 2 ops = 578-644ms, while all non-cart RPCs stay fast (home page renders 12 other RPCs in ~30ms). Confirmed candidates, not distinguishable without node metrics: (1) a fixed ~285ms delay held on the redis-cart pod's side of the round trip (in-pod datapath/sandbox), (2) redis-cart being CPU-throttled at its 125m limit so it cannot answer promptly. cartservice's unexpected RELEASE_TAG env/rollout is NOT the cause - the new pod served 10-16ms pages 30s after it became Ready."
+     }
+    ],
+    "actions": [
+     {
+      "op": "restart",
+      "deployment": "redis-cart"
+     },
+     {
+      "op": "set_cpu_limit",
+      "deployment": "redis-cart",
+      "cpu": "1"
+     }
+    ],
+    "expect": "Per-cart-op latency drops back to ~1ms: median 312ms -> ~20-30ms, requests over 180ms 86.4% -> ~0% (only rare outliers), p90 599ms -> ~50ms, p99 641ms -> ~80ms, POST /cart 564-631ms -> ~5ms, checkout ~590ms -> ~30-60ms; still 0 x 500 and 4/4 orders succeeding. Cart contents in redis are lost (emptyDir) but clients re-add them.",
+    "explanation": "The added latency is exactly one ~285ms cost per Redis round trip on the cartservice->redis-cart hop and nothing else in the mesh; both candidate mechanisms live inside the redis-cart pod, so recreating it (and giving it CPU headroom) is the only read-only-permitted action that can clear it - a redis-side network/qdisc delay is removed with the pod sandbox, throttling is removed by the higher limit. If the numbers do not improve, the delay is being re-applied outside the pod and needs the platform/chaos owner to remove it."
+   },
+   "plan_error": "",
+   "actions": [
+    {
+     "action": {
+      "op": "restart",
+      "deployment": "redis-cart"
+     },
+     "accepted": true,
+     "ok": true,
+     "result": "ok: pod \"redis-cart-788fbddc7-ql7nc\" deleted from boutique namespace | ok: Waiting for deployment \"redis-cart\" rollout to finish: 0 of 1 updated replicas are available...\ndeployment \"redis-cart\" successfully rolled out"
+    },
+    {
+     "action": {
+      "op": "set_cpu_limit",
+      "deployment": "redis-cart",
+      "cpu": "1"
+     },
+     "accepted": true,
+     "ok": true,
+     "result": "ok: deployment.apps/redis-cart resource requirements updated | ok: ut to finish: 1 old replicas are pending termination...\nWaiting for deployment \"redis-cart\" rollout to finish: 1 old replicas are pending termination...\ndeployment \"redis-cart\" successfully rolled out"
+    }
+   ],
+   "observation": {
+    "since": "2026-11-17T07:21:55Z",
+    "seconds": 75.0,
+    "requests": 199,
+    "slow_180ms": 169,
+    "share_slow": 0.849,
+    "p50_ms": 311,
+    "p90_ms": 600,
+    "p99_ms": 656,
+    "http_500": 0,
+    "checkout_attempts": 7,
+    "checkout_failed": 0,
+    "resolved": false
+   },
+   "kept": false,
+   "observation_first": {
+    "since": "2026-11-17T07:20:40Z",
+    "seconds": 75.0,
+    "requests": 195,
+    "slow_180ms": 167,
+    "share_slow": 0.856,
+    "p50_ms": 317,
+    "p90_ms": 588,
+    "p99_ms": 638,
+    "http_500": 0,
+    "checkout_attempts": 6,
+    "checkout_failed": 0,
+    "resolved": false
+   },
+   "undone": [
+    "Deployment/redis-cart: set resources deployment/redis-cart -> ok"
+   ]
+  },
+  {
+   "round": 2,
+   "wall_s": 244,
+   "exit": 0,
+   "total_tokens": 976096,
+   "tool_calls": 30,
+   "answer": "## 第 2 轮：对照结果\n\n**上一轮预期偏错的部分**\n- 我上轮把延迟归因于「redis-cart pod 内部的 datapath 或 CPU 节流」——**这两条都被推翻了**。redis-cart 被重建两次（IP 10.244.0.150→.151→.152，07:20:19、07:23:12 Ready），每次重建后**没有任何一段变快的时间窗**：07:20:33 的 `GET /cart` 已经是 309ms，07:23:43 已经是 311ms。CPU 上限提到 1 也没变化（现已随撤销回到 125m）。\n\n**被证实的部分（本轮重新取数确认）**\n- 故障起点精确定位在 07:13:42–07:13:51 之间：最后一个正常请求 07:13:42.34 `/cart took_ms=7`，之后 07:13:51.52 `/cart took_ms=340`。\n- 延迟按 **Redis 命令条数**线性叠加，不是按 RPC 条数：\n  - `GET /cart`（1 条 HMGET）282–343ms；`GET /`、`/product/*`（同样 1 条 cart 操作）296–370 / 281–342ms\n  - `POST /cart`（AddItem = Get+Set 两条）570–648ms\n  - `POST /cart/checkout`（checkoutservice 的 GetCart+EmptyCart 两条）578–649ms\n  - 同一时期非 cart 部分仍正常：故障前 `/product` 页面 9–14ms、`POST /cart` 2ms、checkout 22ms，现在这些页面的非 cart 开销仍只有 ~15–40ms。\n- 所以金额固定的 +~285ms 只加在 **cartservice ↔ redis-cart:6379 的每次往返**上，且只加在这条流上（cartservice 的 gRPC 收发光这部分没有第二次 +285ms，否则 `GET /cart` 会是 570ms）。\n- 一处次要发现：cartservice 日志中持续有零星的 `Can't access cart storage ... ConnectionReset/SocketClosed/ConnectTimeout(5000ms)`（07:24:00–07:27:17 约 12 条），时间上集中在 redis pod 重建时；量级 ~0.5%，不足以造成 285ms，也解释不了 0 个 500。\n\n**尚未解释、也是本轮要验证的部分**\n- redis-cart pod 被整体重建都清不掉，说明延迟要么挂在**客户端一侧（cartservice pod 的 netns/qdisc/连接状态）**，要么挂在**两个 pod 之外的节点/CNI 路径上（按端口 6379 打标）**。cartservice 这个 pod 自 07:12:55 起从未重建过（它正好是 07:12:55 那次带 `RELEASE_TAG=2026.11.16-2` 的 rev 32 滚动出来的新 Pod，比故障起点早 30 秒）——这是唯一还没被重建过的一侧。\n\n## 本轮申请的操作\n- `restart cartservice`：重建客户端 Pod 会换掉它的网络命名空间/veth 与 Pod IP，并重建 StackExchange.Redis 连接（连接状态也是当前唯一没被重置过的变量）。如果 285ms 是挂在 cartservice 侧的 tc/iptables 规则、或按 cartservice Pod IP 打标的节点规则上，这一步会清掉。\n\n```json\n{\"root_causes\": [{\"object\": \"cartservice -> redis-cart:6379 (boutique)\", \"cause\": \"每次 Redis 命令往返被固定加上约 285ms（故障前 <1ms）：GET /cart 1 条命令 282-343ms、POST /cart 2 条 570-648ms、checkout 2 条 578-649ms，非 cart 部分仍是 9-40ms。已排除 redis-cart pod 内部原因（pod 在 07:20:19 与 07:23:12 两次重建、CPU 上限提到 1，之后 07:20:33 仍是 309ms、07:23:43 仍是 311ms，没有任何变快窗口）。剩余位置：cartservice 一侧（该 pod 自 07:12:55 起从未重建，是唯一未被重置过的一侧，含其 netns/连接状态）或两 pod 之外的节点/CNI 层按 6379 端口的延迟规则。\"}], \"actions\": [{\"op\": \"restart\", \"deployment\": \"cartservice\"}], \"expect\": \"若延迟确实挂在 cartservice 侧：中位数 311ms -> 约 12-15ms，超过 180ms 的比例 84.9% -> 0%（仅极个别抖动），p90 600ms -> 约 20ms，p99 656ms -> 约 30ms；GET /cart 285-343ms -> 7-15ms，POST /cart 570-648ms -> 约 2-10ms，checkout 578-649ms -> 约 20-25ms；仍是 0 个 500、下单继续 0 失败（redis 数据不受影响，购物车不丢）。若数字完全不变，则说明延迟施加在两个 Pod 之外的节点/CNI 路径上（很可能按目标端口 6379 打标），本命名空间内的任何操作都清不掉。\", \"explanation\": \"上轮已证明延迟不在 redis-cart pod 里；本轮验证客户端一侧：重建 cartservice 会同时替换它的网络命名空间、Pod IP 和 Redis 连接状态。若仍无效，则需平台/网络负责人检查节点上的 tc/iptables 规则（目的端口 6379），这不是本命名空间内可修的问题。\"}\n```",
+   "plan": {
+    "root_causes": [
+     {
+      "object": "cartservice -> redis-cart:6379 (boutique)",
+      "cause": "每次 Redis 命令往返被固定加上约 285ms（故障前 <1ms）：GET /cart 1 条命令 282-343ms、POST /cart 2 条 570-648ms、checkout 2 条 578-649ms，非 cart 部分仍是 9-40ms。已排除 redis-cart pod 内部原因（pod 在 07:20:19 与 07:23:12 两次重建、CPU 上限提到 1，之后 07:20:33 仍是 309ms、07:23:43 仍是 311ms，没有任何变快窗口）。剩余位置：cartservice 一侧（该 pod 自 07:12:55 起从未重建，是唯一未被重置过的一侧，含其 netns/连接状态）或两 pod 之外的节点/CNI 层按 6379 端口的延迟规则。"
+     }
+    ],
+    "actions": [
+     {
+      "op": "restart",
+      "deployment": "cartservice"
+     }
+    ],
+    "expect": "若延迟确实挂在 cartservice 侧：中位数 311ms -> 约 12-15ms，超过 180ms 的比例 84.9% -> 0%（仅极个别抖动），p90 600ms -> 约 20ms，p99 656ms -> 约 30ms；GET /cart 285-343ms -> 7-15ms，POST /cart 570-648ms -> 约 2-10ms，checkout 578-649ms -> 约 20-25ms；仍是 0 个 500、下单继续 0 失败（redis 数据不受影响，购物车不丢）。若数字完全不变，则说明延迟施加在两个 Pod 之外的节点/CNI 路径上（很可能按目标端口 6379 打标），本命名空间内的任何操作都清不掉。",
+    "explanation": "上轮已证明延迟不在 redis-cart pod 里；本轮验证客户端一侧：重建 cartservice 会同时替换它的网络命名空间、Pod IP 和 Redis 连接状态。若仍无效，则需平台/网络负责人检查节点上的 tc/iptables 规则（目的端口 6379），这不是本命名空间内可修的问题。"
+   },
+   "plan_error": "",
+   "actions": [
+    {
+     "action": {
+      "op": "restart",
+      "deployment": "cartservice"
+     },
+     "accepted": true,
+     "ok": true,
+     "result": "ok: pod \"cartservice-cf4bb4fdc-zk928\" deleted from boutique namespace | ok: Waiting for deployment \"cartservice\" rollout to finish: 0 of 1 updated replicas are available...\ndeployment \"cartservice\" successfully rolled out"
+    }
+   ],
+   "observation": {
+    "since": "2026-11-17T07:29:31Z",
+    "seconds": 75.0,
+    "requests": 227,
+    "slow_180ms": 194,
+    "share_slow": 0.855,
+    "p50_ms": 315,
+    "p90_ms": 593,
+    "p99_ms": 643,
+    "http_500": 0,
+    "checkout_attempts": 11,
+    "checkout_failed": 0,
+    "resolved": false
+   },
+   "kept": false,
+   "observation_first": {
+    "since": "2026-11-17T07:28:16Z",
+    "seconds": 75.0,
+    "requests": 222,
+    "slow_180ms": 193,
+    "share_slow": 0.869,
+    "p50_ms": 317,
+    "p90_ms": 596,
+    "p99_ms": 651,
+    "http_500": 0,
+    "checkout_attempts": 11,
+    "checkout_failed": 0,
+    "resolved": false
+   },
+   "undone": []
+  },
+  {
+   "round": 3,
+   "wall_s": 288,
+   "exit": 0,
+   "total_tokens": 848412,
+   "tool_calls": 28,
+   "answer": "## 与上两轮预期的对照\n\n**被证实的**\n- 每次 Redis 命令往返固定多 ~285ms，实测（今天 07:30–07:33 前端日志，逐条 `took_ms`）：\n - 1 条 Redis 命令（`GET /cart`、`GET /`、`GET /product/*`，都只调一次 cart.GetCart）：278–387ms\n - 2 条 Redis 命令（`POST /cart` = cartservice `HashGet`+`HashSet`）：547、557、573、588、592、594、601、604、608、609、611、612、622ms\n - 2 条 Redis 命令（checkout：GetCart + EmptyCart）：616ms\n - 0 次 RPC 的 handler：`POST /setCurrency` 0ms，`/_healthz` 0ms\n- 反向推算：`POST /cart`(1 次 gRPC) 590 ≈ 2×285+20，`GET /cart`(≥5 次 gRPC) 300 ≈ 285+15 → **固定开销只有 15–20ms，增量全部落在每条 Redis 命令上**；gRPC hop、frontend、cartservice 处理、redis 进程本身都干净（cartservice 1178 行日志 0 条 error/warn；redis 无 error，10 keys，BGSAVE 每 5 分钟正常完成）。\n- Service/Endpoints 正确：`redis-cart` ClusterIP 10.96.137.241:6379 → 唯一 endpoint 10.244.0.152:6379，selector/port 无异常。\n\n**被推翻的**\n- 第 1 轮“延迟在 redis-cart 沙箱内 / CPU 被 125m 限流”：推翻。redis-cart 07:20:19、07:23:12 两次重建，且 07:20:19–07:23:12 真的以 1 CPU 运行，期间仍是 309ms。\n- 第 2 轮“延迟在 cartservice 一侧（netns/连接状态）”：推翻。cartservice 07:27:35 重建（新 IP 10.244.0.153）后，07:31 的单命令仍是 278–338ms，没有任何变快窗口。\n- `RELEASE_TAG=2026.11.16-2` 那次发布（rev 32，07:12:55 建 RS、07:13:16 换掉旧 Pod）也不是原因：rev31→rev32 的唯一模板差异是这个无人读取的 env（`last-applied-configuration` 里都没有它），镜像 `IfNotPresent` 且事件显示 “already present on machine”，即二进制未变；而那版 Pod 从 ~07:13:10 起还跑出过 10–16ms 的页面，延迟是 07:13:45 才出现的。\n\n**仍未解释、且我无法用现有权限取证的**\n延迟既不在两个 Pod 内、也不在进程内，只能在数据面上。两个解释都自洽、我分不开：\n1. 规则挂在**节点/CNI 层**（host 上 tc/eBPF/iptables 匹配 dst port 6379 或 redis ClusterIP 10.96.137.241）——所以换 Pod、换 IP 都清不掉；\n2. **集群外的 chaos 控制器**按 label 把 tc netem 注入每个新 Pod 的 netns（redisegress 单程延迟 ≈ 每命令一次），每次重建后被重新注入——所以重建也无效。\n缺的证据：两个 Pod 内与节点上 `tc -s qdisc/filter show`、`iptables -t mangle -L -v`、以及集群内 chaos/代理对象清单。我的 SA 对 nodes/CRDs/其他 namespace 都是 `Forbidden`，拿不到。\n\n本轮我不再申请会重建/改配置的操作：剩下所有候选（再重启、调 CPU、改 selector/targetPort、改 REDIS_ADDR 指向 Pod IP）都只能作用于已被两轮证明干净的那几层；唯一还能试的“REDIS_ADDR 直连 Pod IP”只对“规则按 ClusterIP 匹配”这一种最不可能的变体有效，且会把生产配置写死成 Pod IP。\n\n```json\n{\"root_causes\": [{\"object\": \"cartservice → redis-cart:6379 数据通路（boutique）\", \"cause\": \"每条 Redis 命令往返被固定加了 ~285ms（故障前 <1ms），失败数为 0：1 条命令的页面 278–387ms、2 条命令的 POST /cart 547–622ms、checkout 616ms，而同一次 gRPC 调用的固定开销只有 15–20ms，0 次 RPC 的 handler 为 0ms。两个端点 Pod 前后被重建过 4 次（redis-cart 07:20:19、07:23:12，cartservice 07:27:35），redis 还实测过 1 CPU 直方 3 分钟，延迟完全不变 → 延迟位于两个 Pod 之外的数据面。候选 1（较可能）：节点/CNI 层对目的端口 6379 或 redis Service ClusterIP 10.96.137.241 施加了 tc netem/eBPF 延迟，按端口/IP 匹配所以不随 Pod 重建消失。\"}, {\"object\": \"外部 chaos 注入（与上面无法区分）\", \"cause\": \"候选 2：集群外的 chaos 控制器按 label 选中 cartservice/redis-cart，在每个新 Pod 的 netns 里注入 tc netem ~285ms（redisegress 单程），每次重建后被重新下发——同样能解释“重建无效 + 每命令固定延迟 + 无任何报错/探针失败”。区分两者需要 tc qdisc/filter 转储和集群级 chaos 对象清单，namespace 只读权限取不到。\"}], \"actions\": [], \"expect\": \"\", \"explanation\": \"延迟已在 07:13:45 由外部施加在 cartservice↔redis-cart:6379 的数据面上，两轮 4 次 Pod 重建（含 redis 1 CPU）与 RELEASE_TAG 发布均已排除，namespace 内允许的 6 类操作都无法触及节点 tc/eBPF 规则或集群外 chaos 对象，故不再申请操作；请平台/网络负责人到 tiktok-k8s-lab-control-plane 上执行 tc -s qdisc show / tc filter show（cni0、flannel.1、两个 Pod 的 veth 及其 netns 内 eth0）、iptables -t mangle -L -v 检查匹配 6379 或 10.96.137.241 的规则，并列出全集群 chaos 类对象（NetworkChaos/Toxiproxy 等），移除后用户侧中位数应立即从 ~315ms 回到 ~20–30ms。\"}\n```",
+   "plan": {
+    "root_causes": [
+     {
+      "object": "cartservice → redis-cart:6379 数据通路（boutique）",
+      "cause": "每条 Redis 命令往返被固定加了 ~285ms（故障前 <1ms），失败数为 0：1 条命令的页面 278–387ms、2 条命令的 POST /cart 547–622ms、checkout 616ms，而同一次 gRPC 调用的固定开销只有 15–20ms，0 次 RPC 的 handler 为 0ms。两个端点 Pod 前后被重建过 4 次（redis-cart 07:20:19、07:23:12，cartservice 07:27:35），redis 还实测过 1 CPU 直方 3 分钟，延迟完全不变 → 延迟位于两个 Pod 之外的数据面。候选 1（较可能）：节点/CNI 层对目的端口 6379 或 redis Service ClusterIP 10.96.137.241 施加了 tc netem/eBPF 延迟，按端口/IP 匹配所以不随 Pod 重建消失。"
+     },
+     {
+      "object": "外部 chaos 注入（与上面无法区分）",
+      "cause": "候选 2：集群外的 chaos 控制器按 label 选中 cartservice/redis-cart，在每个新 Pod 的 netns 里注入 tc netem ~285ms（redisegress 单程），每次重建后被重新下发——同样能解释“重建无效 + 每命令固定延迟 + 无任何报错/探针失败”。区分两者需要 tc qdisc/filter 转储和集群级 chaos 对象清单，namespace 只读权限取不到。"
+     }
+    ],
+    "actions": [],
+    "expect": "",
+    "explanation": "延迟已在 07:13:45 由外部施加在 cartservice↔redis-cart:6379 的数据面上，两轮 4 次 Pod 重建（含 redis 1 CPU）与 RELEASE_TAG 发布均已排除，namespace 内允许的 6 类操作都无法触及节点 tc/eBPF 规则或集群外 chaos 对象，故不再申请操作；请平台/网络负责人到 tiktok-k8s-lab-control-plane 上执行 tc -s qdisc show / tc filter show（cni0、flannel.1、两个 Pod 的 veth 及其 netns 内 eth0）、iptables -t mangle -L -v 检查匹配 6379 或 10.96.137.241 的规则，并列出全集群 chaos 类对象（NetworkChaos/Toxiproxy 等），移除后用户侧中位数应立即从 ~315ms 回到 ~20–30ms。"
+   },
+   "plan_error": "",
+   "actions": [],
+   "observation": null
+  }
+ ],
+ "outcome": "agent_stopped",
+ "before": {
+  "since": "2026-11-17T07:13:42Z",
+  "seconds": 45.0,
+  "requests": 140,
+  "slow_180ms": 121,
+  "share_slow": 0.864,
+  "p50_ms": 312,
+  "p90_ms": 599,
+  "p99_ms": 641,
+  "http_500": 0,
+  "checkout_attempts": 4,
+  "checkout_failed": 0,
+  "resolved": false
+ },
+ "injector_log": "netem on veth39bbebe8 (redis-cart-788fbddc7-ql7nc 10.244.0.147): delay 300ms 30ms\nqdisc netem 8063: root refcnt 17 limit 1000 delay 300ms  30ms seed 17387626758360585242\nnetem applied: 1\nnetem re-applied on vethcfb640bb (redis-cart 10.244.0.150): delay 300ms 30ms\nnetem re-applied on veth67660b1e (redis-cart 10.244.0.151): delay 300ms 30ms\nnetem re-applied on veth507eb4cd (redis-cart 10.244.0.152): delay 300ms 30ms\n",
+ "restored": [
+  "Deployment/cartservice: set env deployment/cartservice -> ok"
+ ],
+ "steps": [
+  {
+   "phase": "verify_healthy",
+   "ok": true,
+   "detail": "healthy",
+   "seconds": 0.25
+  },
+  {
+   "phase": "home_latency",
+   "ok": true,
+   "detail": "GET / ok=True median=0.05s of [0.05] (need >= 0s)",
+   "seconds": 0.0
+  },
+  {
+   "phase": "clean_slate",
+   "ok": true,
+   "detail": "fresh pods",
+   "seconds": 33.35
+  },
+  {
+   "phase": "verify_fresh",
+   "ok": true,
+   "detail": "healthy",
+   "seconds": 0.25
+  },
+  {
+   "phase": "home_latency",
+   "ok": true,
+   "detail": "GET / ok=True median=0.09s of [0.09] (need >= 0s)",
+   "seconds": 0.0
+  },
+  {
+   "phase": "clear_events",
+   "ok": true,
+   "detail": "",
+   "seconds": 0.0
+  },
+  {
+   "phase": "prune_history",
+   "ok": true,
+   "detail": "1 old replicasets",
+   "seconds": 0.0
+  },
+  {
+   "phase": "inject",
+   "ok": true,
+   "detail": "-n boutique set env deployment/cartservice RELEASE_TAG=2026.11.16-2",
+   "seconds": 0.07
+  },
+  {
+   "phase": "inject",
+   "ok": true,
+   "detail": "-n boutique rollout status deployment/cartservice --timeout=140s",
+   "seconds": 21.31
+  },
+  {
+   "phase": "inject",
+   "ok": true,
+   "detail": "-n infra-tools delete pod net-injector --ignore-not-found",
+   "seconds": 0.05
+  },
+  {
+   "phase": "inject",
+   "ok": true,
+   "detail": "apply -f /work/scenarios/netem/injector-boutique-hard-BH08.yaml",
+   "seconds": 0.2
+  },
+  {
+   "phase": "inject",
+   "ok": true,
+   "detail": "-n infra-tools wait --for=condition=Ready pod/net-injector --timeout=180s",
+   "seconds": 1.33
+  },
+  {
+   "phase": "confirm",
+   "ok": true,
+   "detail": "20/27 requests >= 180 ms since 2026-11-17T07:13:42Z; logs(app=net-injector) contain 'netem applied: 1': True",
+   "seconds": 12.61
+  },
+  {
+   "phase": "reset",
+   "ok": true,
+   "detail": "-n infra-tools delete pod net-injector --ignore-not-found",
+   "seconds": 1.14
+  },
+  {
+   "phase": "reset",
+   "ok": true,
+   "detail": "-n boutique set env deployment/cartservice RELEASE_TAG-",
+   "seconds": 0.05
+  },
+  {
+   "phase": "reset",
+   "ok": true,
+   "detail": "reset steps applied",
+   "seconds": 21.74
+  },
+  {
+   "phase": "verify_recovered",
+   "ok": true,
+   "detail": "healthy",
+   "seconds": 23.54
+  },
+  {
+   "phase": "home_latency",
+   "ok": true,
+   "detail": "GET / ok=True median=0.06s of [0.06] (need >= 0s)",
+   "seconds": 0.0
+  }
+ ],
+ "total_tokens": 2808830
+}

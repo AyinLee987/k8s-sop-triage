@@ -1,0 +1,305 @@
+{
+ "scenario": "BH02",
+ "model": "deepseek-flash",
+ "max_rounds": 3,
+ "frame": "prod",
+ "rounds": [
+  {
+   "round": 1,
+   "wall_s": 253,
+   "exit": 0,
+   "total_tokens": 1173622,
+   "tool_calls": 35,
+   "answer": "## 排查结果\n\n### 证据链\n\n**1) 下单 100% 失败 — paymentservice 的 Service selector 指向了不存在的标签**\n\n```\nService paymentservice  selector: {app: paymentservice-v2}\nPod paymentservice-78f6cfdf7f-9zgp9  labels: {app: paymentservice}\nEndpoints paymentservice → subsets: []   ← 完全没有后端地址\n```\ncheckoutservice 的 `PAYMENT_SERVICE_ADDR=paymentservice:50051`，前端日志里每次结账都是同一句（末 10 分钟内抽样）：\n\n```\nfailed to complete the order: rpc error: code = Internal desc = failed to charge card:\ncould not charge the card: rpc error: code = Unavailable desc = connection error:\n\"transport: Error while dialing: dial tcp 10.96.55.1:50051: connect: connection refused\"\n```\nlocust 侧统计 `POST /cart/checkout 16 次 12 失败`，与用户侧“下单 7 次失败 7 次”一致。其余 11 个 Service 的 selector 与 Pod 标签都能对上、Endpoints 都有地址，只有 paymentservice 是空的。\n\n**2) 全站变慢 — 瓶颈定位在 cartservice 这一个跳上的固定延迟**\n\n按单个请求逐跳对时（05:49:17–05:49:19 的 `/product/607e6a80…`，前端耗时 411 ms）：\n- `getProduct`：handler 起 17.706 → currencyservice “Getting supported currencies” 17.707，**约 1 ms**（productcatalog 正常）\n- 17.707 → convertCurrency 18.111：**中间只夹一个 `getCart`，耗掉约 404 ms**\n- 之后 recommendations 18.113、adservice 18.116，都是 **2–3 ms** 级\n\n耗时是整齐的 200 ms 台阶，而不是波动：\n- `GetCart`（cartservice 内 1 次 redis 往返 + 1 次前端↔cart 往返）：375–445 ms\n- `AddItem`（2 次 redis 往返）：567–639 ms，稳定比 GetCart 多约 195 ms\n- 所有页面（home/product/cart）都只有一次 getCart，因此统统落在约 400 ms；checkout 也是先调 cartservice，所以失败请求也要 378–441 ms\n- 同 pod 的 `/_healthz` 全程 0 ms，productcatalog/currency/ads/recommendation 全是毫秒级 → 排除前端进程（CPU 饿死）与整节点负载\n\n拟合为“cartservice Pod 网络单向约 100 ms 延迟”：200 ms（前端↔cart 一次往返）+ 200 ms/次 redis 往返 → GetCart 400 ms、AddItem 600 ms，与观测完全吻合。备选解释“cartservice CPU 被 throttle”无法完全排除（无 cgroup throttling 指标），但 throttle 不会给出这样固定的 200 ms 台阶，故列为次要假设。\n\n参考基线：整轮压测早期（05:40–05:47，cartservice 旧 Pod 时）locust 聚合中位数 **12–17 ms、最大 74 ms、0 失败**；新 Pod 05:46:38 创建、05:47:00 Ready 后中位数一路抬到 400 ms —— 与“延迟在 cartservice 这个 Pod 上”一致。\n\n**cartservice/redis 本身是健康的**：redis-cart 无 slowlog/报错，05:51:41 BGSAVE 5 ms 完成；cartservice 无重启（RESTARTS=0）、Readiness 正常。\n\n### 修复申请（第 1 轮）\n\n1. 把 paymentservice 的 Service selector 改回 `app=paymentservice` → 结账链路恢复\n2. 重建 cartservice Pod → 该 Pod 上的网络延迟状态不会被带入新 Pod\n\n```json\n{\"root_causes\": [{\"object\": \"paymentservice (Service selector)\", \"cause\": \"Service paymentservice 的 selector 被改成 app=paymentservice-v2，而 Pod 标签是 app=paymentservice，Endpoints 为空（subsets: []），checkoutservice 调 paymentservice:50051 得到 connection refused，导致 100% 下单失败和 500\"}, {\"object\": \"cartservice (Pod 网络/运行时状态)\", \"cause\": \"cartservice Pod 上存在约 100ms 单向的固定网络延迟（每次往返约 +200ms）：GetCart 400ms、AddItem 600ms，而同期 productcatalog/currency/ad/recommendation 均为 1-3ms、/_healthz 0ms，使每个前端页面都因一次 getCart 而变成约 400ms\"}], \"actions\": [{\"op\": \"set_service_selector\", \"service\": \"paymentservice\", \"app\": \"paymentservice\"}, {\"op\": \"restart\", \"deployment\": \"cartservice\"}], \"expect\": \"下单：7/7 失败 → 0 失败、HTTP 500 归零（checkout 恢复到正常的百毫秒级内成功）。延迟：中位数 412ms → 应在 20ms 量级（压测基线中位 12-17ms）、>180ms 的比例 85.9% → 接近 0%、p90 579ms → <180ms；因下游调用本身是毫秒级，剩余耗时主要是 cart 一次往返。\", \"explanation\": \"两个独立故障：paymentservice 的 Service selector 写错导致 Endpoints 为空使结账全部失败；cartservice Pod 内约 100ms 单向固定延迟使每个页面都要多付约 200ms（GetCart 400ms / AddItem 600ms 的 200ms 台阶是判据）。若重启后延迟不变，则次选假设是 cartservice CPU 被限流过狠，下一轮再调 set_cpu_limit 并提供 cgroup throttle 证据。\"}\n```",
+   "plan": {
+    "root_causes": [
+     {
+      "object": "paymentservice (Service selector)",
+      "cause": "Service paymentservice 的 selector 被改成 app=paymentservice-v2，而 Pod 标签是 app=paymentservice，Endpoints 为空（subsets: []），checkoutservice 调 paymentservice:50051 得到 connection refused，导致 100% 下单失败和 500"
+     },
+     {
+      "object": "cartservice (Pod 网络/运行时状态)",
+      "cause": "cartservice Pod 上存在约 100ms 单向的固定网络延迟（每次往返约 +200ms）：GetCart 400ms、AddItem 600ms，而同期 productcatalog/currency/ad/recommendation 均为 1-3ms、/_healthz 0ms，使每个前端页面都因一次 getCart 而变成约 400ms"
+     }
+    ],
+    "actions": [
+     {
+      "op": "set_service_selector",
+      "service": "paymentservice",
+      "app": "paymentservice"
+     },
+     {
+      "op": "restart",
+      "deployment": "cartservice"
+     }
+    ],
+    "expect": "下单：7/7 失败 → 0 失败、HTTP 500 归零（checkout 恢复到正常的百毫秒级内成功）。延迟：中位数 412ms → 应在 20ms 量级（压测基线中位 12-17ms）、>180ms 的比例 85.9% → 接近 0%、p90 579ms → <180ms；因下游调用本身是毫秒级，剩余耗时主要是 cart 一次往返。",
+    "explanation": "两个独立故障：paymentservice 的 Service selector 写错导致 Endpoints 为空使结账全部失败；cartservice Pod 内约 100ms 单向固定延迟使每个页面都要多付约 200ms（GetCart 400ms / AddItem 600ms 的 200ms 台阶是判据）。若重启后延迟不变，则次选假设是 cartservice CPU 被限流过狠，下一轮再调 set_cpu_limit 并提供 cgroup throttle 证据。"
+   },
+   "plan_error": "",
+   "actions": [
+    {
+     "action": {
+      "op": "set_service_selector",
+      "service": "paymentservice",
+      "app": "paymentservice"
+     },
+     "accepted": true,
+     "ok": true,
+     "result": "ok: service/paymentservice patched"
+    },
+    {
+     "action": {
+      "op": "restart",
+      "deployment": "cartservice"
+     },
+     "accepted": true,
+     "ok": true,
+     "result": "ok: pod \"cartservice-896c89968-wwmsq\" deleted from boutique namespace | ok: Waiting for deployment \"cartservice\" rollout to finish: 0 of 1 updated replicas are available...\ndeployment \"cartservice\" successfully rolled out"
+    }
+   ],
+   "observation": {
+    "since": "2026-11-17T05:54:19Z",
+    "seconds": 75.0,
+    "requests": 211,
+    "slow_180ms": 183,
+    "share_slow": 0.867,
+    "p50_ms": 414,
+    "p90_ms": 608,
+    "p99_ms": 840,
+    "http_500": 0,
+    "checkout_attempts": 8,
+    "checkout_failed": 0,
+    "resolved": false
+   },
+   "kept": true
+  },
+  {
+   "round": 2,
+   "wall_s": 428,
+   "exit": 0,
+   "total_tokens": 567547,
+   "tool_calls": 24,
+   "answer": "## 对照上一轮的预期：哪些被证实、哪些被推翻\n\n**被证实（两个数字）**\n- `500` 返回：7/7 失败 → **0 个 500、8/8 下单成功**。前端日志里已有成功下单记录（`order placed` / `status\":200` @ 05:55:54）。→ paymentservice Service selector 写错（Endpoints 为空 → connection refused）这条根因**确认成立且已修好**。\n- 重启 cartservice 期间（05:53:39–05:54:08）前端确实出现一段 `dial tcp 10.96.234.227:7070: connect: connection refused`（rollout 引起的短暂窗口，已自行恢复，不是新故障）。\n\n**被推翻**\n- “cartservice Pod 内是瞬时的运行时异常，重启即好”——**推翻**。新 Pod `cartservice-896c89968-xtsqv`（IP 10.244.0.82，0 次重启，探针正常，日志无任何 error/redis 告警）从第一个服务成功的请求起就一样慢：用户侧中位 414ms、86.7% > 180ms，与重启前 412ms / 85.9% 完全一致。**Pod 重建不能消除该延迟。**\n\n## 这一轮新测到的证据（都是刚抓的）\n\n前端日志（05:52–05:56，JSON 里自带 `http.resp.took_ms`）按路径分组：\n\n| 请求 | 实测 | 下游调用 |\n|---|---|---|\n| `GET /`（首页） | 399ms | currency+product+**cart(GetCart)**+ad |\n| `GET /product/*` | 380 / 397 / 412 / 416 / 418 / 420 / 425 / 426ms | product+currency+**cart(GetCart)**+reco+ad |\n| `GET /cart` | 378 / 394 / 396 / 398 / 417 / 422ms | **cart(GetCart)** + 每件商品 product/currency |\n| `POST /cart`（加购） | 581 / 609 / 626ms | **cart(AddItem)** |\n| `POST /cart/checkout` | **824ms**（checkoutservice 内部 820ms） | **2 次 cart RPC**（GetCart+EmptyCart）+ payment/shipping×2/email/currency/product |\n| `POST /setCurrency` | **0ms** | 无下游 |\n\n由此可以算出两个稳定台阶：\n- **一次 cart RPC 往返 ≈ +200ms**（`/cart` 页 378–426，而同一页面里 product/currency 调用加不出时间）；\n- **一次 redis 往返 ≈ +200ms**（AddItem 比 GetCart **正好多 200ms** = 多一次 redis 往返；checkout 的 824 ≈ 2×400 + 24（payment/shipping/email/product/currency 全部只占 ~20ms））。\n- 所有“碰 cart”的请求都慢、不碰 cart 的请求 0ms；且 152 个慢请求一个快的都没有 → 这是**固定注入型延迟**，不是 CPU 限流（限流会有 <100ms 的快请求和按 100ms 周期量化的长尾）也不是 redis 服务端慢：\n- **redis-cart 日志证明它基本空转**：唯一有 10 个 key、1.1KB，BGSAVE 每 300s 一次 “100 changes / 10 keys saved”，无 Warning/无慢日志、0 次重启。redis 只有 cartservice 一个客户端。\n\n## 还没解释的现象 / 无法排除的第二个解释\n\n同一个“每次 Redis/Cart 往返 +200ms”的观测，能支持两个位置，只读权限**无法区分**（我这边 `kubectl exec` 不可用，`nodes`/集群级 `events` 对 `system:serviceaccount:diag-system:diag-agent` 是 Forbidden，也没有 cAdvisor/Prometheus 指标）：\n\n1. **延迟加在 cartservice Pod 的网络出口上（首选）**：一次 cart↔前端往返 +200、一次 cart↔redis 往返 +200，正好解释 380/400/600/824 的阶梯，且 cart 与\"非 cart\"流量形成反差。问题是它**在 Pod 重建后立刻复现**（新 Pod 05:53:28 起、第一次成功页面就 400ms），说明规则打在 Pod 外部（节点 tc/netem 或持续注入的 agent），不是 Pod 内状态，也不是应用配置（cartservice 只有 `REDIS_ADDR=redis-cart:6379`，无 envFrom、无 sidecar、无 ConfigMap 注入）。\n2. **延迟加在 redis-cart Pod 上（备选）**：cart 每次 RPC 的 redis 往返各多 200ms 也解释同一组数字（要求 GetCart/EmptyCart/AddItem 分别发出 2/2/3 条 Redis 命令）。\n   - 关键点：**redis-cart 是目前这条慢链路上唯一从故障开始就没被重建过的 Pod**（05:46:40 启动，至今未动）。所以本轮用它做一次判决性试验。\n\n## 本轮申请的操作（1 个）\n\n`restart deployment redis-cart`（重新创建 redis-cart Pod）。这不只是为了“修”，更是判决上面第 1/2 两种解释：如果延迟绑在 redis-cart Pod 上，重建即消失（同时修好故障）；如果延迟在 cartservice Pod 的流量上（Pod 外部注入），重启 redis 不会有任何变化，那时只能由运维在节点侧处理——我这边没有权限看/清 `tc qdisc`（`nodes` 被禁、无 exec），需要运维执行 `tc -s qdisc show dev <cartservice pod 的 veth>`、检查节点上是否有持续注入延迟的 agent/脚本，然后将其移除。\n\n```json\n{\"root_causes\": [{\"object\": \"cartservice Pod 网络（cartservice-896c89968-xtsqv / 重建前的旧 Pod）\", \"cause\": \"cartservice Pod 每条进出流量被固定加约 100ms 单程（一次前端↔cart RPC +200ms，一次 cart↔redis 往返 +200ms），使所有含 getCart 的页面 ~400ms、AddItem ~600ms、checkout 824ms；Pod 重建后新 Pod（10.244.0.82）第一次响应即复现，说明规则加在 Pod 外部（节点 tc/netem 或持续注入的 agent），不是应用配置/Pod 内状态\"}, {\"object\": \"redis-cart Pod 网络（备选解释，本轮用于判决）\", \"cause\": \"若延迟只作用在 redis-cart Pod 上，则 cart 每次 RPC 内多出的 redis 往返各 +200ms 也能量化出同样的 400/600/824ms 阶梯；redis-cart 是这条链路上唯一自故障以来未被重建过的 Pod，redis 服务端本身空转（10 keys、1KB、无慢日志）\"}], \"actions\": [{\"op\": \"restart\", \"deployment\": \"redis-cart\"}], \"expect\": \"若延迟绑在 redis-cart Pod 上：中位 414ms → 15ms 量级，>180ms 比例 86.7% → ~0%，p90 608ms → <180ms，500 维持 0、下单维持 0 失败（重启瞬间可能有 3-5 秒、个位数 cart 报错，属 rollout 窗口）。若数字完全不变（仍中位 ~410ms、>180ms ~85%），则证实延迟是加在 cartservice Pod 自身流量上的节点级规则，任何应用级操作都修不掉，需运维清掉节点上的 netem/注入器\", \"explanation\": \"上一轮已确认并修好 paymentservice selector（500 和下单失败归零）；剩下的是 cart 链路上固定 ~200ms/往返的网络延迟，Pod 重建后立即复现，故本轮用重启 redis-cart 判决延迟绑定在哪个 Pod 上——若无效，则只能由运维在节点侧清除对 cartservice Pod 的 tc/netem 注入（我的只读权限无法查看节点，也无 exec 权限做包内测量）。\"}\n```",
+   "plan": {
+    "root_causes": [
+     {
+      "object": "cartservice Pod 网络（cartservice-896c89968-xtsqv / 重建前的旧 Pod）",
+      "cause": "cartservice Pod 每条进出流量被固定加约 100ms 单程（一次前端↔cart RPC +200ms，一次 cart↔redis 往返 +200ms），使所有含 getCart 的页面 ~400ms、AddItem ~600ms、checkout 824ms；Pod 重建后新 Pod（10.244.0.82）第一次响应即复现，说明规则加在 Pod 外部（节点 tc/netem 或持续注入的 agent），不是应用配置/Pod 内状态"
+     },
+     {
+      "object": "redis-cart Pod 网络（备选解释，本轮用于判决）",
+      "cause": "若延迟只作用在 redis-cart Pod 上，则 cart 每次 RPC 内多出的 redis 往返各 +200ms 也能量化出同样的 400/600/824ms 阶梯；redis-cart 是这条链路上唯一自故障以来未被重建过的 Pod，redis 服务端本身空转（10 keys、1KB、无慢日志）"
+     }
+    ],
+    "actions": [
+     {
+      "op": "restart",
+      "deployment": "redis-cart"
+     }
+    ],
+    "expect": "若延迟绑在 redis-cart Pod 上：中位 414ms → 15ms 量级，>180ms 比例 86.7% → ~0%，p90 608ms → <180ms，500 维持 0、下单维持 0 失败（重启瞬间可能有 3-5 秒、个位数 cart 报错，属 rollout 窗口）。若数字完全不变（仍中位 ~410ms、>180ms ~85%），则证实延迟是加在 cartservice Pod 自身流量上的节点级规则，任何应用级操作都修不掉，需运维清掉节点上的 netem/注入器",
+    "explanation": "上一轮已确认并修好 paymentservice selector（500 和下单失败归零）；剩下的是 cart 链路上固定 ~200ms/往返的网络延迟，Pod 重建后立即复现，故本轮用重启 redis-cart 判决延迟绑定在哪个 Pod 上——若无效，则只能由运维在节点侧清除对 cartservice Pod 的 tc/netem 注入（我的只读权限无法查看节点，也无 exec 权限做包内测量）。"
+   },
+   "plan_error": "",
+   "actions": [
+    {
+     "action": {
+      "op": "restart",
+      "deployment": "redis-cart"
+     },
+     "accepted": true,
+     "ok": true,
+     "result": "ok: pod \"redis-cart-788fbddc7-2s6pp\" deleted from boutique namespace | ok: Waiting for deployment \"redis-cart\" rollout to finish: 0 of 1 updated replicas are available...\ndeployment \"redis-cart\" successfully rolled out"
+    }
+   ],
+   "observation": {
+    "since": "2026-11-17T06:04:24Z",
+    "seconds": 75.0,
+    "requests": 179,
+    "slow_180ms": 154,
+    "share_slow": 0.86,
+    "p50_ms": 412,
+    "p90_ms": 584,
+    "p99_ms": 817,
+    "http_500": 0,
+    "checkout_attempts": 4,
+    "checkout_failed": 0,
+    "resolved": false
+   },
+   "kept": false,
+   "observation_first": {
+    "since": "2026-11-17T06:03:09Z",
+    "seconds": 75.0,
+    "requests": 195,
+    "slow_180ms": 167,
+    "share_slow": 0.856,
+    "p50_ms": 411,
+    "p90_ms": 611,
+    "p99_ms": 845,
+    "http_500": 0,
+    "checkout_attempts": 10,
+    "checkout_failed": 0,
+    "resolved": false
+   },
+   "undone": []
+  },
+  {
+   "round": 3,
+   "wall_s": 271,
+   "exit": 0,
+   "total_tokens": 664450,
+   "tool_calls": 27,
+   "answer": "## 对照预期：哪些得到证实，哪些被推翻\n\n| 轮次 | 预期 | 实际 | 判定 |\n|---|---|---|---|\n| 1 | 修复 paymentservice selector 后下单失败失败数与 500 均归零 | 500=0，下单 8/8 成功（本轮复查 06:09:25 单笔 checkout 777ms 返回 200） | ✅ 证实 |\n| 1 | 重建 cartservice → 中位 412ms → 20ms 量级 | 414ms，86.7% 仍超 180ms | ❌ 推翻 |\n| 2 | 延迟若绑在 redis-cart Pod 上 → 重建后中位 412→15ms | 412ms，86.0% 仍超 180ms | ❌ 推翻（延迟不在 redis Pod 的 netns 里） |\n| 2 | “延迟只作用在 redis 路径”这一备选解释 | 重建 redis 后完全不变 | 未能证伪（见下），需与 (a) 并列 |\n\n## 本轮实测（本轮新取的数据，非上一轮结论的转述）\n\n- 纯 cart 读：`GET /cart` 连续 11 次采样 **395 / 400 / 403 / 404 / 407 / 407 / 408 / 419 / 421 / 422 / 432 / 445 ms**（frontend 日志 06:08:05–06:08:18，`http.resp.took_ms`）。\n- `POST /cart`（addToCart 处理逻辑 = getProduct + AddItem，**不含 getCart**）：**596 / 617 / 598 ms**（06:08:06、06:08:11、06:08:22）。\n    - AddItem 比 GetCart 恰好多次一个 redis 往返量级（≈ +200ms）。\n- `POST /cart/checkout`（= getCart + … + emptyCart）：**777–795 ms** ≈ 两次 cart RPC。\n- 完全不经过 cart 的端点：`/_healthz` **0ms**、`/setCurrency` **0ms**。\n- 所有 cart 调用 **无一个 <370ms 的快样本**（数秒内数十次调用），前端整体 14% 未超 180ms 的请求就是这些非 cart 端点。\n\n## 结论：剩下的 +400ms 是“按往返计费”的固定网络延迟，且施加在 Pod 之外\n\n1. **每多一次网络往返就多 ≈200ms**，与服务端工作量无关：GetCart（2 次往返级）= 400，AddItem（再多一次 redis 往返）= 598–617，checkout（两轮 cart RPC）= 782。\n2. **不是 CPU 限流**：cartservice 限 300m/请求 200m、redis 125m/70m、frontend 200m/100m，全部是 microservice-demo 的原版值，没有被改动过；而 CPU 被限流的典型特征（同一 CFS 周期里刚续上配额的请求会很快返回，出现大量 10–50ms 快样本，且延迟按 100ms 周期随机分布）在这里**一次都没出现**——每个 cart 调用都 ≥370ms，台阶严格是 200ms 的倍数。\n3. **不在任何一个 Pod 内部**：cartservice Pod 重建（新 IP 10.244.0.82）在第一次响应就复现，redis-cart Pod 重建（新 IP 10.244.0.83）也完全不变 → 规则不是 Pod netns 里的 tc，也不是应用配置；它按 label（app=cartservice / app=redis-cart）在 Pod 重建后被重新施加，或直接是节点 tiktok-k8s-lab-control-plane 上按 veth/端口下的规则。集群只有一个节点，两个 Pod 都在它上面。\n\n两种具体落点都符合现有数据，我无法用只读权限区分（都写进 root_causes）：\n- **(a) 落在 cartservice Pod 的全部流量**：frontend/checkout→cart 一次往返 +200ms，cart→redis 一次往返 +200ms → GetCart 400、AddItem 600、checkout 800。\n- **(b) 只落在 redis 路径**：若 GetCart 内部对 redis 有两次命令往返（HMGET + 滑动过期刷新），则 GetCart = 2×200、AddItem = 3×200，同样得出 400/600；此模型下 front↔cart 那一跳是快的。\n\n## 其余现象都已解释（不是新故障）\n\n- cartservice 日志里的 `RedisConnectionException: SocketClosed (ReadEndOfStream)` 与 `RedisTimeoutException ... 5000ms backlog`、以及 06:02:50 的 2 个 500（`/cart` 5521ms、`/product/...` 5774ms），全部发生在 06:02:42–06:02:50，即**我上一轮重建 redis-cart 的窗口**（旧 SE.Redis 连接打到已删除的 Pod，新 Pod 尚未 ready）。之后 SE.Redis 重连成功，用户侧 500 已归零，属已恢复的动作副作用。\n- 05:53:49 cartservice 的 `health rpc did not complete within 1s` 只有 1 次，在 Pod 启动 21 秒时（JIT + 首次连 redis），非持续失败。\n- 服务/端点全部健康：12 个 Service 的 selector 与 Pod label 一致，每个 Endpoints 各有 1 个 ready 地址（含已修的 paymentservice 10.244.0.81）。\n- 无法查看：`nodes`/`namespaces`/`networkpolicies`/`daemonsets` 全部 Forbidden（我是 `system:serviceaccount:diag-system:diag-agent`，只能读 boutique 的 pods/deployments/services/endpoints/events/configmaps + Pod 日志），也没有 exec、没有 Prometheus，因此拿不到节点 `tc qdisc`、cgroup 限流计数和包内 RTT。\n\n## 修复建议（我的权限内没有任何操作能去掉这条延迟规则，故不提交操作）\n\n请运维在节点 `tiktok-k8s-lab-control-plane` 上执行：\n1. 定位：`crictl ps | grep -E 'cartservice|redis-cart'` → 取容器 PID → 宿主上 `tc qdisc show dev <对应 veth>`（以及 `nsenter -t <pid> -n tc qdisc show`），找 `qdisc netem ... delay 100ms`（可能挂在 egress 或 ifb ingress 上）。\n2. 删除：`tc qdisc del dev <veth> root`（若有 ingress/ifb 规则一并删）。\n3. 若规则由注入器持续重建（这解释了两次 Pod 重建无效），则删除针对 `app=cartservice`（或 `app=redis-cart`）的 NetworkChaos/netem 实验或注入 DaemonSet。\n4. 验证：在 cart Pod 内 `redis-cli -h redis-cart --latency` 应为 sub-ms；前端 `GET /cart` 应回到 12–20ms，`/_healthz` 保持 0ms。\n\n```json\n{\"root_causes\": [{\"object\": \"paymentservice (Service selector)\", \"cause\": \"第 1 轮已确认并修复：selector 曾被写成 app=paymentservice-v2 导致 Endpoints 为空、checkoutservice 连 paymentservice:50051 connection refused，100% 下单失败；现 selector=app=paymentservice，endpoint 10.244.0.81:50051 正常，下单 8/8 成功、500 归零\"}, {\"object\": \"cartservice Pod 网络路径（备选：(a) cartservice Pod 全部流量 或 (b) 仅 cart→redis 路径）\", \"cause\": \"该路径上被固定加了约 100ms 单向/200ms 每往返的延迟：GetCart 395–445ms(2 次往返)、AddItem 596–617ms(+1 次往返)、checkout 777–795ms(两轮 cart RPC)，而 /_healthz、/setCurrency 与 productcatalog/currency/ad/recommendation 均为 0–3ms；无任何 <370ms 的 cart 快样本、CPU limit 全是 demo 原版值，故排除 CPU 限流，属确定性每往返延迟。cartservice Pod（新 IP 10.244.0.82）与 redis-cart Pod（新 IP 10.244.0.83）各自重建后延迟立即复现，说明规则不在任何 Pod 的 netns/应用配置内，而是节点 tiktok-k8s-lab-control-plane 上按 veth/端口施加、或由 Pod 外注入器按 label 重新施加。两种落点用现有只读权限无法区分：若 GetCart 内部对 redis 只有一次命令往返，则延迟覆盖 cart Pod 全部进出流量；若含滑动过期刷新共两次往返，则延迟只需落在 redis 那一段。\"}], \"actions\": [], \"expect\": \"\", \"explanation\": \"所有允许的操作（restart / set_env / unset_env / scale / set_cpu_limit / set_service_selector / set_service_target_port）都作用在 Pod 或 Service 定义上，而这条延迟既不在 Pod 内（两次重建、两个新 IP 均复现），也与 Service/IP 选择无关（各 Endpoints 都正常，其他服务同一节点只有 0–3ms），因此应用层操作一轮也修不掉，只会白白消耗轮次。需由运维在 tiktok-k8s-lab-control-plane 上清除针对 cartservice/redis-cart 的 netem 规则（tc qdisc show/del dev <veth>）或停掉持续注入它的控制器；清除后前端 GET /cart 应从 ~410ms 回到 12–20ms、>180ms 比例 86%→≈0%、p90 584ms→<180ms，下单仍保持 0 失败、500 保持 0。\"}\n```",
+   "plan": {
+    "root_causes": [
+     {
+      "object": "paymentservice (Service selector)",
+      "cause": "第 1 轮已确认并修复：selector 曾被写成 app=paymentservice-v2 导致 Endpoints 为空、checkoutservice 连 paymentservice:50051 connection refused，100% 下单失败；现 selector=app=paymentservice，endpoint 10.244.0.81:50051 正常，下单 8/8 成功、500 归零"
+     },
+     {
+      "object": "cartservice Pod 网络路径（备选：(a) cartservice Pod 全部流量 或 (b) 仅 cart→redis 路径）",
+      "cause": "该路径上被固定加了约 100ms 单向/200ms 每往返的延迟：GetCart 395–445ms(2 次往返)、AddItem 596–617ms(+1 次往返)、checkout 777–795ms(两轮 cart RPC)，而 /_healthz、/setCurrency 与 productcatalog/currency/ad/recommendation 均为 0–3ms；无任何 <370ms 的 cart 快样本、CPU limit 全是 demo 原版值，故排除 CPU 限流，属确定性每往返延迟。cartservice Pod（新 IP 10.244.0.82）与 redis-cart Pod（新 IP 10.244.0.83）各自重建后延迟立即复现，说明规则不在任何 Pod 的 netns/应用配置内，而是节点 tiktok-k8s-lab-control-plane 上按 veth/端口施加、或由 Pod 外注入器按 label 重新施加。两种落点用现有只读权限无法区分：若 GetCart 内部对 redis 只有一次命令往返，则延迟覆盖 cart Pod 全部进出流量；若含滑动过期刷新共两次往返，则延迟只需落在 redis 那一段。"
+     }
+    ],
+    "actions": [],
+    "expect": "",
+    "explanation": "所有允许的操作（restart / set_env / unset_env / scale / set_cpu_limit / set_service_selector / set_service_target_port）都作用在 Pod 或 Service 定义上，而这条延迟既不在 Pod 内（两次重建、两个新 IP 均复现），也与 Service/IP 选择无关（各 Endpoints 都正常，其他服务同一节点只有 0–3ms），因此应用层操作一轮也修不掉，只会白白消耗轮次。需由运维在 tiktok-k8s-lab-control-plane 上清除针对 cartservice/redis-cart 的 netem 规则（tc qdisc show/del dev <veth>）或停掉持续注入它的控制器；清除后前端 GET /cart 应从 ~410ms 回到 12–20ms、>180ms 比例 86%→≈0%、p90 584ms→<180ms，下单仍保持 0 失败、500 保持 0。"
+   },
+   "plan_error": "",
+   "actions": [],
+   "observation": null
+  }
+ ],
+ "outcome": "agent_stopped",
+ "recovered": [
+  "Deployment/adservice: scale deployment/adservice --replicas=1 -> ok"
+ ],
+ "before": {
+  "since": "2026-11-17T05:48:10Z",
+  "seconds": 45.0,
+  "requests": 177,
+  "slow_180ms": 152,
+  "share_slow": 0.859,
+  "p50_ms": 412,
+  "p90_ms": 579,
+  "p99_ms": 637,
+  "http_500": 7,
+  "checkout_attempts": 7,
+  "checkout_failed": 7,
+  "resolved": false
+ },
+ "injector_log": "netem on veth3df9fb82 (cartservice-896c89968-wwmsq 10.244.0.70): delay 200ms 20ms\nqdisc netem 805c: root refcnt 17 limit 1000 delay 200ms  20ms seed 15340816453358046538\nnetem applied: 1\nnetem re-applied on veth3681f2bb (cartservice 10.244.0.82): delay 200ms 20ms\n",
+ "restored": [],
+ "steps": [
+  {
+   "phase": "verify_healthy",
+   "ok": true,
+   "detail": "healthy",
+   "seconds": 0.38
+  },
+  {
+   "phase": "home_latency",
+   "ok": true,
+   "detail": "GET / ok=True median=0.07s of [0.07] (need >= 0s)",
+   "seconds": 0.0
+  },
+  {
+   "phase": "clean_slate",
+   "ok": true,
+   "detail": "fresh pods",
+   "seconds": 36.25
+  },
+  {
+   "phase": "verify_fresh",
+   "ok": true,
+   "detail": "healthy",
+   "seconds": 0.3
+  },
+  {
+   "phase": "home_latency",
+   "ok": true,
+   "detail": "GET / ok=True median=0.07s of [0.07] (need >= 0s)",
+   "seconds": 0.0
+  },
+  {
+   "phase": "clear_events",
+   "ok": true,
+   "detail": "",
+   "seconds": 0.0
+  },
+  {
+   "phase": "inject",
+   "ok": true,
+   "detail": "-n boutique patch service paymentservice --type=merge",
+   "seconds": 0.06
+  },
+  {
+   "phase": "inject",
+   "ok": true,
+   "detail": "-n boutique delete pod -l app=paymentservice",
+   "seconds": 6.22
+  },
+  {
+   "phase": "inject",
+   "ok": true,
+   "detail": "-n boutique rollout status deployment/paymentservice --timeout=140s",
+   "seconds": 5.61
+  },
+  {
+   "phase": "inject",
+   "ok": true,
+   "detail": "-n infra-tools delete pod net-injector --ignore-not-found",
+   "seconds": 0.05
+  },
+  {
+   "phase": "inject",
+   "ok": true,
+   "detail": "apply -f /work/scenarios/netem/injector-boutique-hard-BH02.yaml",
+   "seconds": 0.19
+  },
+  {
+   "phase": "inject",
+   "ok": true,
+   "detail": "-n infra-tools wait --for=condition=Ready pod/net-injector --timeout=180s",
+   "seconds": 1.26
+  },
+  {
+   "phase": "confirm",
+   "ok": true,
+   "detail": "50/59 requests >= 180 ms since 2026-11-17T05:48:10Z; logs(app=frontend) contain 'failed to complete the order': True; logs(app=net-injector) contain 'netem applied: 1': True",
+   "seconds": 19.27
+  },
+  {
+   "phase": "reset",
+   "ok": true,
+   "detail": "-n infra-tools delete pod net-injector --ignore-not-found",
+   "seconds": 1.72
+  },
+  {
+   "phase": "reset",
+   "ok": true,
+   "detail": "-n boutique patch service paymentservice --type=merge",
+   "seconds": 0.05
+  },
+  {
+   "phase": "reset",
+   "ok": true,
+   "detail": "reset steps applied",
+   "seconds": 2.44
+  },
+  {
+   "phase": "verify_recovered",
+   "ok": true,
+   "detail": "healthy",
+   "seconds": 0.29
+  },
+  {
+   "phase": "home_latency",
+   "ok": true,
+   "detail": "GET / ok=True median=0.06s of [0.06] (need >= 0s)",
+   "seconds": 0.0
+  }
+ ],
+ "total_tokens": 2405619
+}

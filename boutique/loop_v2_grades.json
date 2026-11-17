@@ -1,0 +1,36 @@
+{
+ "note": "All 15 learning scenarios through the fix-and-verify loop with today's defaults: production framing, expected numbers stated before a fix, a round that does not help rolled back after two observation windows (tag loop-v2, 2026-11-17, deepseek-flash, no SOP, one run each, up to 3 rounds). Graded by reading every round. BH02, BH05 and BH06 are reruns: their first attempts overlapped with a second run on the same cluster and were discarded.",
+ "totals": {"correct": 10, "right_mechanism_location_imprecise": 3, "half": 1, "wrong": 1, "tokens": 44164218,
+            "one_shot_without_sop_same_scenarios": "3 of 15 correct (hard-nosop)",
+            "loop_pilot_on_the_12_then_wrong": "6 correct, 3 nearly, 1 half, 2 wrong; today on the same 12: 7, 3, 1, 1"},
+ "final_diagnosis": {
+  "BH01": "correct, round 2 (round 1: currencyservice CPU throttling)",
+  "BH02": "correct: payment selector fixed; fixed delay on cartservice's pod network, named in round 1",
+  "BH03": "correct: checkout address fixed; directed network delay on the recommendationservice hop, named in round 1",
+  "BH04": "mechanism right (one-way network delay injected below the namespace), location too wide: productcatalogservice and the cart path, plus adservice and emailservice",
+  "BH05": "correct: both delays (currencyservice, shippingservice) as inbound network delay; no false third service this time",
+  "BH06": "correct: request-direction network delay on currencyservice; adservice at 0 replicas called unrelated in every round. Kept requesting bypass tests, so rounds ran out",
+  "BH07": "correct and resolved in one round (349k tokens)",
+  "BH08": "mechanism right (a fixed delay per Redis command, CPU and pod state ruled out), not pinned to redis-cart rather than cartservice",
+  "BH09": "correct: inbound network delay on shippingservice; emailservice selector called a separate defect",
+  "BH10": "correct: cartservice targetPort fixed, orders work; adservice selector called secondary",
+  "BH11": "wrong: five CPU limits in round 1, then recommendationservice, ends on node-level stalls with packet loss 'not fully excluded'",
+  "BH12": "half: currencyservice located; in-process stalls or packet loss on its pod network, not decided",
+  "BH13": "correct in round 2: packet loss on redis-cart's network path (round 1 raised its CPU limit). Round 3 gave no JSON plan",
+  "BH14": "mechanism right, location lost: round 1 named packet loss on cartservice's pod path, round 3 widened it to the node's pod network",
+  "BH15": "correct in round 3: checkout address fixed; persistent packet loss on productcatalogservice's network path"
+ },
+ "first_round": {
+  "cpu_named_as_cause": ["BH01", "BH11", "BH12"],
+  "cpu_limit_raised_as_a_hedge": ["BH08", "BH13"],
+  "latency_scenarios": 13,
+  "loop_pilot": "CPU blamed or raised in 10 of 12",
+  "decoy_taken_for_the_cause": "none of 6 (loop-pilot: 3)"
+ },
+ "rollback": {
+  "wrong_rollback_of_a_correct_fix": "none after the second observation window was added",
+  "side_effect": "a round is kept or rolled back as a whole, so a correct fix of an unrelated defect (adservice or recommendationservice back to 1 replica, the emailservice selector) was undone together with the useless part of its round: BH06 three times, BH09 twice, BH14 twice"
+ },
+ "caveats": ["single runs", "BH12 and BH14 ended worse than in loop-pilot, BH04, BH05 and BH15 better: differences of this size appear between two runs of the same configuration",
+             "three things changed at once since loop-pilot (framing, expected numbers, rollback); their effects are not separated"]
+}
