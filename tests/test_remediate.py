@@ -94,3 +94,30 @@ def test_restore_puts_back_what_differs_from_the_manifest():
     assert any("set resources deployment/currencyservice --limits=cpu=" + base[("Deployment", "currencyservice")]["cpu_limit"] in c for c in flat)
     assert any("scale deployment/adservice --replicas=1" in c for c in flat) and any("patch service cartservice" in c and "7070" in c for c in flat)
     assert len(done) == 4   # nothing else is touched
+
+
+def test_a_round_counts_as_helpful_only_beyond_the_noise():
+    base = {"http_500": 0, "checkout_failed": 0, "share_slow": 0.24, "resolved": False}
+    assert not remediate.improved(base, {**base, "share_slow": 0.14})          # BH15: 24% -> 14% is what the share does on its own
+    assert remediate.improved(base, {**base, "share_slow": 0.10})
+    assert remediate.improved({**base, "http_500": 9, "checkout_failed": 9}, base)   # errors gone, still slow: keep the fix
+    assert remediate.improved(base, {**base, "share_slow": 0.0, "resolved": True})
+    assert not remediate.improved(base, {**base, "http_500": 12})
+
+
+def test_a_failed_round_is_rolled_back_to_the_state_before_it():
+    lc = lifecycle()
+    before = dict(lc._baseline())
+    before[("Deployment", "checkoutservice")] = {**before[("Deployment", "checkoutservice")], "replicas": 1}
+    items = []
+    for (kind, name), shape in before.items():
+        if kind == "Service":
+            items.append({"kind": kind, "metadata": {"name": name}, "spec": {"selector": shape["selector"], "ports": [{"port": 1, "targetPort": p} for p in shape["targetPorts"]]}})
+        else:
+            cpu = "1" if name == "currencyservice" else shape["cpu_limit"]          # what the round changed
+            items.append({"kind": kind, "metadata": {"name": name}, "spec": {"replicas": shape["replicas"], "template": {"spec": {"containers": [
+                {"env": [{"name": k, "value": v} for k, v in shape["env"].items()], "resources": {"limits": {"cpu": cpu}}}]}}}})
+    lc = lifecycle(lambda a: KubeResult(True, json.dumps({"items": items})))
+    assert remediate.snapshot(lc)[("Deployment", "currencyservice")]["cpu_limit"] == "1"
+    done = remediate.restore_to(lc, before)
+    assert len(done) == 1 and "currencyservice" in done[0]

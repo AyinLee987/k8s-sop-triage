@@ -23,7 +23,7 @@ param(
     [string]$Skills = '',       # batch/pilot: skill dirs relative to the repo, comma-separated; empty = no SOP
     [string]$Source = '',       # batch: handwritten (default) | generated | all
     [int]$MaxSteps = 0,         # batch/pilot: HolmesGPT step limit; 0 = the scripts' default (25)
-    [string]$Frame = '',        # loop: 'prod' tells the agent this is a real production incident, not a test
+    [string]$Frame = '',        # loop: empty = the default framing (a real production incident, judge from evidence only); 'none' = the bare prompt
     [int]$Rounds = 3,           # loop: how many diagnose-fix-verify rounds the agent gets
     [int]$Observe = 0,          # validate: keep each fault this many more seconds and record the frontend's latency meanwhile
     [switch]$Rebuild

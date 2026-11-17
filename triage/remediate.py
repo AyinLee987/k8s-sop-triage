@@ -161,12 +161,33 @@ def describe(obs: dict) -> str:
             f"返回 500 的请求 {obs['http_500']} 个；下单 {obs['checkout_attempts']} 次，失败 {obs['checkout_failed']} 次。")
 
 
+def snapshot(lc) -> dict:
+    """The fields the agent's actions can change, for every Service and Deployment, as they are now."""
+    items = (lc._json(["-n", NS, "get", "services,deployments"]) or {}).get("items", [])
+    return {(i["kind"], i["metadata"]["name"]): lc._shape(i) for i in items if (i["kind"], i["metadata"]["name"]) in lc._baseline()}
+
+
+def improved(before: dict, after: dict) -> bool:
+    """Did users get better off between two observations? Errors gone, or the share of slow requests at least halved
+    (a smaller change is within what the share does on its own from one window to the next)."""
+    if after.get("resolved"):
+        return True
+    errors_gone = (before["http_500"] > 0 and after["http_500"] == 0) or (before["checkout_failed"] > 0 and after["checkout_failed"] == 0)
+    b, a = before.get("share_slow") or 0, after.get("share_slow") or 0
+    return bool(errors_gone or (b >= 0.04 and a <= b / 2))
+
+
 def restore_baseline(lc) -> list[str]:
     """Undo whatever the agent changed: every Deployment and Service back to the release manifest's replicas,
     environment, CPU limit, selector and targetPort (the same fields the health check compares)."""
+    return restore_to(lc, lc._baseline())
+
+
+def restore_to(lc, target: dict) -> list[str]:
+    """Put every Service and Deployment back to `target` (a snapshot() or the manifest baseline)."""
     done = []
     live = {(i["kind"], i["metadata"]["name"]): i for i in (lc._json(["-n", NS, "get", "services,deployments"]) or {}).get("items", [])}
-    for (kind, name), want in lc._baseline().items():
+    for (kind, name), want in target.items():
         if (kind, name) not in live:
             continue
         got = lc._shape(live[(kind, name)])

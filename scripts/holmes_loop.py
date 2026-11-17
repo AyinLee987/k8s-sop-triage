@@ -31,7 +31,7 @@ HOLMES = os.environ.get("HOLMES_BIN", "holmes")
 
 FORMAT = """回答的最后必须是一个 ```json 代码块，格式如下（root_causes 写你认为的全部根因；不需要操作或现有操作修不了时 actions 留空数组，并在 explanation 里说明原因、该由谁处理）：
 ```json
-{"root_causes": [{"object": "<服务或对象>", "cause": "<原因>"}], "actions": [], "explanation": "<一两句话>"}
+{"root_causes": [{"object": "<服务或对象>", "cause": "<原因>"}], "actions": [], "expect": "<如果你的判断是对的，执行这些操作后用户侧的数字会怎么变，写具体数字；没有操作就留空>", "explanation": "<一两句话>"}
 ```"""
 
 
@@ -47,17 +47,19 @@ def build_prompt(ns: str, symptom: str, rounds: int, history: list[dict], first_
     head = ((PROD_FRAME if frame == "prod" else "") + f"命名空间 {ns} 里出了问题。用户反馈：{symptom}\n"
             f"监控看到的用户侧情况：{remediate.describe(first_obs)}\n\n"
             f"请排查根因并提出修复。你只有只读权限；修复由运维按你的申请执行，执行后会把用户侧的最新情况告诉你，"
-            f"没恢复的话可以继续排查。最多 {rounds} 轮，现在是第 {n} 轮。\n\n{remediate.ACTIONS_HELP}\n\n{FORMAT}")
+            f"没恢复的话可以继续排查；一轮操作如果没有让用户侧好转，会被全部撤销（重建过的 Pod 除外）。最多 {rounds} 轮，现在是第 {n} 轮。\n\n{remediate.ACTIONS_HELP}\n\n{FORMAT}")
     if not history:
         return head
     past = []
     for h in history:
         plan = h.get("plan") or {}
         acts = "\n".join(f"    {json.dumps(a['action'], ensure_ascii=False)} -> {a['result']}" for a in h["actions"]) or "    （没有执行任何操作）"
+        kept = {True: "用户侧有好转，这一轮的改动已保留。", False: "用户侧没有好转，这一轮的改动已全部撤销（重建过的 Pod 除外）。", None: ""}[h.get("kept")]
         past.append(f"第 {h['round']} 轮你的结论：{json.dumps({'root_causes': plan.get('root_causes'), 'explanation': plan.get('explanation')}, ensure_ascii=False)}\n"
-                    f"  执行的操作及结果：\n{acts}\n  执行后用户侧情况：{remediate.describe(h['observation'])}")
+                    f"  执行的操作及结果：\n{acts}\n  你当时的预期：{plan.get('expect') or '（没有写）'}\n"
+                    f"  执行后用户侧情况：{remediate.describe(h['observation'])}\n  {kept}")
     return (head + "\n\n之前的经过：\n" + "\n".join(past) +
-            "\n\n问题还没有完全恢复。请继续排查：之前的判断哪些被这些结果证实了、哪些被推翻了、还有哪些现象没有解释。")
+            "\n\n问题还没有完全恢复。请继续排查：拿实际结果对照你当时的预期，之前的判断哪些被证实了、哪些被推翻了、还有哪些现象没有解释。")
 
 
 def holmes_env(skills: str) -> dict:
@@ -91,7 +93,9 @@ def main() -> int:
     ap.add_argument("--model", default=None)
     ap.add_argument("--skills", default="")
     ap.add_argument("--tag", default="loop")
-    ap.add_argument("--frame", default="", choices=["", "prod"], help="prod = tell the agent this is a real production incident, not a test")
+    ap.add_argument("--frame", default="prod", choices=["prod", "none"],
+                    help="prod (default since 2026-11-17) = tell the agent this is a real production incident and to judge from evidence only; "
+                         "none = the bare prompt of the first loop-pilot runs")
     args = ap.parse_args()
     load_dotenv()
     known = {s["id"]: s for s in load_scenarios(split="all", source="all")}
@@ -152,12 +156,19 @@ def run(sc: dict, args) -> int:
                 record["rounds"].append(rnd)
                 record["outcome"] = "no_plan" if plan is None else "agent_stopped"   # nothing (more) it wants changed
                 break
+            before_actions = remediate.snapshot(lc)
             rnd["actions"] = remediate.apply_actions(lc, requested)
             for a in rnd["actions"]:
                 print(f"   {json.dumps(a['action'], ensure_ascii=False)} -> {a['result']}", flush=True)
             time.sleep(20)   # let restarts settle before measuring
             rnd["observation"] = remediate.observe(lc, now_iso())
             print(f"   after: {remediate.describe(rnd['observation'])}", flush=True)
+            # a round that did not help is rolled back, so the next one does not start from a pile of failed fixes
+            rnd["kept"] = remediate.improved(history[-1]["observation"] if history else first_obs, rnd["observation"])
+            if not rnd["kept"]:
+                rnd["undone"] = remediate.restore_to(lc, before_actions)
+                print(f"   no improvement: undone {rnd['undone']}", flush=True)
+                time.sleep(20)
             record["rounds"].append(rnd)
             history.append(rnd)
             if rnd["observation"]["resolved"]:
