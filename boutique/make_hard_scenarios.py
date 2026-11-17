@@ -178,10 +178,11 @@ def main() -> None:
     err_check = {"type": "logs_contain", "selector": "app=frontend", "text": '"http.resp.status":500'}
 
     out = []
+    prefix = ["BH"]   # BH = the set experience is written from; BT = the set it is tested on
 
     def add(kind: str, symptom: str, note: str, config: list, net: list, decoys: list, checks: list) -> None:
         """config: fault building blocks that are root causes; net: [(service, netem args)]; decoys: [(building block, service, why not)]"""
-        sid = f"BH{len(out) + 1:02d}"
+        sid = f"{prefix[0]}{sum(1 for o in out if o['id'].startswith(prefix[0])) + 1:02d}"
         inject, reset, causes = [], [], []
         # everything that recreates pods comes first: netem is tied to a pod's interface and would be lost on a restart
         for steps, undo, _why in [(d[0][0], d[0][1], None) for d in decoys]:
@@ -208,7 +209,7 @@ def main() -> None:
             answer["also"] = causes[1:]   # every one of these must be named too
         if decoys:
             answer["not_cause"] = [{"name": name, "why": why} for _, name, why in decoys]
-        out.append({"id": sid, "app": "boutique", "split": "dev", "kind": "cross_service", "mechanism": kind, "hard": kind,
+        out.append({"id": sid, "pool": "learn" if prefix[0] == "BH" else "test", "app": "boutique", "split": "dev", "kind": "cross_service", "mechanism": kind, "hard": kind,
                     "root_causes": len(causes), "symptom": symptom,
                     "realism": {"pattern": note, "sources": ["Cloud-OpsBench", "k8s.af"], "validated": False,
                                 "validate_note": "确认每个故障都生效；延迟和丢包场景确认被注入的 Pod 仍是 Ready、重启次数为 0（丢包会影响探针，留意 Unhealthy 事件）。"},
@@ -253,6 +254,51 @@ def main() -> None:
         "两个互不相关的故障（productcatalogservice 的 Pod 网络丢包、checkoutservice 的购物车服务地址配置错误），再加一个和两者都无关的真实异常（adservice 被缩到 0 副本）。",
         [env_addr("checkoutservice", "CART_SERVICE_ADDR")], [("productcatalogservice", LOSS)], [(replicas0("adservice"), "adservice", swallowed)], [slow_check(8), order_check])
 
+    # ---- BT: the test set. Same kinds of trouble on other services or in other combinations; never used to write SOPs.
+    # It also holds cases where "slow, so it is the network" is wrong (a delay configured in the application) and cases
+    # without any latency fault, so that a blanket rule learned from BH does not score.
+    prefix[0] = "BT"
+
+    def extra_latency(t="productcatalogservice"):
+        return ([K("-n", "{ns}", "set", "env", f"deployment/{t}", "EXTRA_LATENCY=300ms"), K("-n", "{ns}", "rollout", "status", f"deployment/{t}", "--timeout=140s")],
+                [K("-n", "{ns}", "set", "env", f"deployment/{t}", "EXTRA_LATENCY-")],
+                {"object": {"kind": "Deployment", "name": t},
+                 "explanation": f"{t} 的 Deployment 被加了环境变量 EXTRA_LATENCY=300ms，服务处理每个请求时主动等待 300 毫秒；网络和资源都没有问题。",
+                 "key_evidence": ["EXTRA_LATENCY"], "accept_cause_keywords": ["extra_latency", "环境变量", "env"]})
+
+    def zero(t):
+        steps, undo, _ = replicas0(t)
+        return (steps, undo, {"object": {"kind": "Deployment", "name": t}, "explanation": f"Deployment {t} 的副本数被改成 0，没有 Pod 在运行。",
+                              "key_evidence": [t], "accept_cause_keywords": ["replicas", "副本", "scale", "缩"]})
+
+    add("delay", SLOW, "productcatalogservice 的 Pod 网络有固定延迟，只有这一个故障。", [], [("productcatalogservice", delay("productcatalogservice"))], [], [slow_check(15)])
+    add("intermittent", FLAKY, "shippingservice 的 Pod 网络有少量丢包（BH 里它只出现过固定延迟）。", [], [("shippingservice", LOSS)], [], [slow_check(6)])
+    add("intermittent", FLAKY, "recommendationservice 的 Pod 网络有少量丢包。", [], [("recommendationservice", LOSS)], [], [slow_check(8)])
+    add("decoy", SLOW, "真正的原因是 cartservice 的 Pod 网络延迟。同时 emailservice 被缩到 0 副本，是和症状无关的真实异常。",
+        [], [("cartservice", delay("cartservice"))], [(replicas0("emailservice"), "emailservice", swallowed)], [slow_check(15)])
+    add("double", BOTH, "两个互不相关的故障：shippingservice 的 Pod 网络延迟，加上 checkoutservice 的商品目录地址配置错误。",
+        [env_addr("checkoutservice", "PRODUCT_CATALOG_SERVICE_ADDR")], [("shippingservice", delay("shippingservice"))], [], [slow_check(10), order_check])
+    add("double+intermittent", "有用户反馈商城时快时慢，另外还有人说下单失败、订单提交不了。",
+        "两个互不相关的故障：currencyservice 的 Pod 网络丢包，加上 paymentservice 的 Service 端口配错。",
+        [svc_port("paymentservice")], [("currencyservice", LOSS)], [], [slow_check(8), order_check])
+    add("app_delay", SLOW, "不是网络：productcatalogservice 被配置了人为延迟（环境变量 EXTRA_LATENCY）。症状和它的网络延迟完全一样，区别只在 Deployment 的环境变量和它自己的日志里看得到。",
+        [extra_latency()], [], [], [slow_check(15)])
+    add("app_delay+decoy", SLOW, "不是网络：productcatalogservice 被配置了人为延迟。同时 adservice 的 Service 选不到 Pod，是和症状无关的真实异常。",
+        [extra_latency()], [], [(selector("adservice"), "adservice", swallowed)], [slow_check(15)])
+    add("config", ERR, "没有任何延迟类故障：frontend 的货币服务地址配置错误。", [env_addr("frontend", "CURRENCY_SERVICE_ADDR")], [], [], [err_check])
+    add("config+decoy", ORDER, "没有任何延迟类故障：shippingservice 被缩到 0 副本，下单和购物车页失败。同时 recommendationservice 刚做了一次无害的发布。",
+        [zero("shippingservice")], [], [(release_tag("recommendationservice"), "recommendationservice", "只是多了一个不起作用的环境变量")], [err_check])
+    add("decoy", SLOW, "真正的原因是 recommendationservice 的 Pod 网络延迟。同时 adservice 被缩到 0 副本，是和症状无关的真实异常。",
+        [], [("recommendationservice", delay("recommendationservice"))], [(replicas0("adservice"), "adservice", swallowed)], [slow_check(15)])
+    add("double", SLOW, "两个互不调用的服务的 Pod 网络同时有延迟：cartservice 和 currencyservice。",
+        [], [("cartservice", delay("cartservice")), ("currencyservice", delay("currencyservice"))], [], [slow_check(15)])
+
+    test = [o for o in out if o["pool"] == "test"]
+    out = [o for o in out if o["pool"] == "learn"]
+    (REPO / "scenarios" / "boutique_test.yaml").write_text(
+        "# Generated by boutique/make_hard_scenarios.py — do not edit by hand. Test set: never used to write SOPs.\n"
+        + yaml.safe_dump({"scenarios": test}, allow_unicode=True, sort_keys=False, width=200), encoding="utf-8")
+    print(len(test), dict(__import__("collections").Counter(s["hard"] for s in test)))
     (REPO / "scenarios" / "boutique_hard.yaml").write_text(
         "# Generated by boutique/make_hard_scenarios.py — do not edit by hand.\n" + yaml.safe_dump({"scenarios": out}, allow_unicode=True, sort_keys=False, width=200),
         encoding="utf-8")

@@ -122,13 +122,15 @@ def test_slow_requests_reads_the_frontend_log_format():
 
 
 # ---------------- harder set: double faults, decoys, packet loss ----------------
-H = {s["id"]: s for s in load_boutique(hard=True)}
+ALL_H = {s["id"]: s for s in load_boutique(hard=True)}
+H = {k: v for k, v in ALL_H.items() if v["pool"] == "learn"}   # BH: experience is written from these
+T = {k: v for k, v in ALL_H.items() if v["pool"] == "test"}    # BT: and tested on these
 
 
 def test_hard_set_is_complete_and_safe_to_run():
     assert len(H) == 15 and {s["hard"].split("+")[0] for s in H.values()} == {"double", "decoy", "intermittent"}
     assert set(H) <= {s["id"] for s in load_scenarios(split="all", source="all")}
-    for s in H.values():
+    for s in ALL_H.values():
         a = s["answer"]
         causes = [a, *a.get("also", [])]
         assert s["root_causes"] == len(causes) and (len(causes) > 1) == ("double" in s["hard"])
@@ -162,7 +164,7 @@ def test_hard_set_is_complete_and_safe_to_run():
 
 
 def test_hard_injector_removes_every_qdisc_it_added():
-    for s in H.values():
+    for s in ALL_H.values():
         for args in (st.get("kubectl", []) for st in s["inject"]):
             for arg in args:
                 if "injector-boutique-hard" in arg:
@@ -195,4 +197,15 @@ def test_slow_requests_can_ignore_what_happened_before_the_fault():
     lc.confirm({"confirm": {"timeout_s": 1, "checks": [check]}}, StepLog())
     call = next(c for c in k.calls if "logs" in c)
     assert any(a.startswith("--since-time=20") for a in call) and "--tail=-1" in call
-    assert all(c.get("since_confirm") for s in H.values() for c in s["confirm"]["checks"] if c["type"] == "slow_requests")
+    assert all(c.get("since_confirm") for s in ALL_H.values() for c in s["confirm"]["checks"] if c["type"] == "slow_requests")
+
+
+def test_the_test_set_is_separate_and_not_all_network():
+    assert len(T) == 12 and set(T) == {f"BT{i:02d}" for i in range(1, 13)} and not set(T) & set(H)
+    sig = lambda s: (s["hard"], tuple(sorted(c["object"]["name"] for c in [s["answer"], *s["answer"].get("also", [])])),  # noqa: E731
+                     tuple(sorted(d["name"] for d in s["answer"].get("not_cause", []))))
+    assert not {sig(s) for s in T.values()} & {sig(s) for s in H.values()}, "a test scenario repeats a learning scenario"
+    # a blanket "slow means network" must not score: some slow cases are an application setting, some cases are not slow at all
+    network = lambda s: any("网络" in c["accept_cause_keywords"] for c in [s["answer"], *s["answer"].get("also", [])])  # noqa: E731
+    assert sum(1 for s in T.values() if not network(s)) >= 4
+    assert sum(1 for s in T.values() if "EXTRA_LATENCY" in s["answer"]["key_evidence"]) == 2

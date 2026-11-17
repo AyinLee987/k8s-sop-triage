@@ -23,7 +23,11 @@ def load_boutique(generated: bool = False, hard: bool = False) -> list[dict]:
     """Hand-written Online Boutique scenarios (B..), the generated pool (BG.., boutique/make_scenarios.py),
     or the harder set (BH.., boutique/make_hard_scenarios.py: double faults, decoys, packet loss)."""
     path = BOUTIQUE_FILE.with_name("boutique_hard.yaml" if hard else "boutique_gen.yaml") if generated or hard else BOUTIQUE_FILE
-    return yaml.safe_load(path.read_text(encoding="utf-8"))["scenarios"] if path.exists() else []
+    items = yaml.safe_load(path.read_text(encoding="utf-8"))["scenarios"] if path.exists() else []
+    test = BOUTIQUE_FILE.with_name("boutique_test.yaml")   # BT..: the set SOPs are tested on, never written from
+    if hard and test.exists():
+        items = items + yaml.safe_load(test.read_text(encoding="utf-8"))["scenarios"]
+    return items
 
 
 def load_noises(ids: list[str] | None = None, path: Path | None = None) -> list[dict]:
