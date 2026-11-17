@@ -1,0 +1,25 @@
+{
+ "note": "Fix-and-verify loop on the 12 BH scenarios the one-shot run got wrong (tag loop-pilot, 2026-11-16/17, deepseek-flash, no SOP, one run each, up to 3 rounds). Graded by reading the last round's root causes. All 12 records are complete; no run timed out; every reset was clean; the injector re-applied the netem after every pod replacement.",
+ "totals": {"scenarios": 12, "correct": 6, "right_mechanism_location_imprecise_or_one_false_extra": 3, "half": 1, "wrong": 2,
+            "tokens_all_12": 35510616, "tokens_these_10": 31121580},
+ "final_diagnosis": {
+  "BH01": "correct (2 rounds)", "BH06": "correct (3 rounds; round 1 blamed the decoy)",
+  "BH02": "payment selector fixed; delay called a fixed ~200 ms on the cartservice<->redis-cart network path (it is on cartservice's pod interface). Changed REDIS_ADDR to a pod IP in round 2, which caused twelve HTTP 500s, then reverted it",
+  "BH03": "correct: checkout address fixed; a directed network delay on the recommendationservice hop, CPU and process state ruled out",
+  "BH04": "wrong: three rounds of CPU limits, replicas and restarts across recommendationservice, frontend, productcatalogservice, cartservice; ends on 'degraded gRPC connections' or the node",
+  "BH05": "both delays found as one-way network delay (currencyservice, shippingservice); also names paymentservice, which has none",
+  "BH08": "a fixed ~300 ms per Redis round trip between cartservice and redis-cart, injected from outside and re-applied after pod replacement (it is on redis-cart); the cartservice release was not blamed",
+  "BH11": "half: packet loss with 200 ms retransmissions is right, but placed on the node's pod network as a whole; productcatalogservice only flagged as the one pod with probe failures. Raised the CPU limit on eight deployments on the way",
+  "BH12": "correct: per-packet loss on currencyservice's path, survives CPU, restart and replicas",
+  "BH13": "correct in round 2: loss on redis-cart's network path, follows the pod to a new IP",
+  "BH14": "correct in round 3: loss on cartservice's pod path. Round 1 blamed the decoy (recommendationservice at 0) and still credits it with part of the tail",
+  "BH15": "wrong: checkout address fixed, but the intermittent slowness goes from adservice (decoy) to productcatalogservice CPU to recommendationservice/cartservice/frontend CPU"
+ },
+ "patterns": [
+  "First rounds: a CPU limit is blamed or raised in 10 of 12 runs, and the decoy is taken for a cause in BH06, BH14, BH15.",
+  "A wrong theory is dropped when its fix leaves a large, steady signal unchanged (fixed delays: 60-90% of requests slow before and after).",
+  "It is not dropped when the signal is small and noisy: with 6% loss the share of slow requests moves between about 5% and 24% from one 75-second window to the next, and BH15 read 24% -> 14% as a partial success of a CPU change.",
+  "Two simultaneous delays (BH04) were never separated.",
+  "Trial fixes have a cost: restarts and one address change produced HTTP 500s that were not there before."
+ ]
+}
