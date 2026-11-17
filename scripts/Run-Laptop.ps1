@@ -192,6 +192,14 @@ switch ($Action) {
 }
 $tty = if ($Action -eq 'shell') { @('-it') } else { @() }
 
+# One run at a time. Ctrl+C in this window stops the docker client, not the container: the run goes on in the
+# background, and a second run on the same cluster mixes two scenarios' faults (2026-11-17).
+if ($Action -ne 'shell') {
+    $active = @(& docker ps -q --filter "ancestor=$Image")
+    if ($active.Count -gt 0) {
+        throw "another run is still active (container $($active -join ', ')). Stop it first with: docker stop $($active -join ' ')"
+    }
+}
 Step "running: $($runArgs -join ' ')"
 & docker run --rm @tty --network kind `
     -v "${Repo}:/work" -v "${Lab}:/lab:ro" `
