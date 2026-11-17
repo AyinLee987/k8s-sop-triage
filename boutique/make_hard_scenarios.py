@@ -272,7 +272,10 @@ def main() -> None:
                               "key_evidence": [t], "accept_cause_keywords": ["replicas", "副本", "scale", "缩"]})
 
     add("delay", SLOW, "productcatalogservice 的 Pod 网络有固定延迟，只有这一个故障。", [], [("productcatalogservice", delay("productcatalogservice"))], [], [slow_check(15)])
-    add("intermittent", FLAKY, "shippingservice 的 Pod 网络有少量丢包（BH 里它只出现过固定延迟）。", [], [("shippingservice", LOSS)], [], [slow_check(6)])
+    # first version: 6% loss on shippingservice. Validation 2026-11-17: 1.3% of requests slow, not distinguishable from healthy
+    # (only the cart and checkout pages call it). Moved to the entry service, where every reply from a backend crosses the interface.
+    add("intermittent", FLAKY, "frontend 自己的 Pod 网络有少量丢包：所有后端的回包都经过这块网卡，所以每一跳都偶尔变慢，而后端之间互相调用是正常的。",
+        [], [("frontend", "loss 3%")], [], [slow_check(8)])
     add("intermittent", FLAKY, "recommendationservice 的 Pod 网络有少量丢包。", [], [("recommendationservice", LOSS)], [], [slow_check(8)])
     add("decoy", SLOW, "真正的原因是 cartservice 的 Pod 网络延迟。同时 emailservice 被缩到 0 副本，是和症状无关的真实异常。",
         [], [("cartservice", delay("cartservice"))], [(replicas0("emailservice"), "emailservice", swallowed)], [slow_check(15)])

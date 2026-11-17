@@ -107,7 +107,7 @@ scenarios:
   root_causes: 1
   symptom: 商城时快时慢：大部分请求正常，偶尔有页面要等很久，没有报错。
   realism:
-    pattern: shippingservice 的 Pod 网络有少量丢包（BH 里它只出现过固定延迟）。
+    pattern: frontend 自己的 Pod 网络有少量丢包：所有后端的回包都经过这块网卡，所以每一跳都偶尔变慢，而后端之间互相调用是正常的。
     sources:
     - Cloud-OpsBench
     - k8s.af
@@ -143,7 +143,7 @@ scenarios:
       match:
         message: request complete
       min_ms: 180
-      count: 6
+      count: 8
       since_confirm: true
     - type: logs_contain
       namespace: infra-tools
@@ -182,12 +182,12 @@ scenarios:
     cause_category: other
     object:
       kind: Pod
-      name: shippingservice
+      name: frontend
     accept_objects:
-    - shippingservice
-    explanation: shippingservice 的 Pod 网络有约 6% 的丢包；被丢的包要等重传，所以只有一部分请求变慢，它自身处理不慢。
+    - frontend
+    explanation: frontend 的 Pod 网络有约 3% 的丢包；被丢的包要等重传，所以只有一部分请求变慢，它自身处理不慢。
     key_evidence:
-    - shippingservice
+    - frontend
     accept_cause_keywords:
     - 网络
     - network
