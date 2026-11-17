@@ -172,7 +172,10 @@ def improved(before: dict, after: dict) -> bool:
     (a smaller change is within what the share does on its own from one window to the next)."""
     if after.get("resolved"):
         return True
-    errors_gone = (before["http_500"] > 0 and after["http_500"] == 0) or (before["checkout_failed"] > 0 and after["checkout_failed"] == 0)
+    # "no failed order" only counts when somebody ordered, and "no 500" only when the frontend served requests
+    errors_gone = ((before["http_500"] > 0 and after["http_500"] == 0 and after.get("requests", 1) >= 30 and
+                    (before["checkout_failed"] == 0 or after.get("checkout_attempts", 1) >= 1))
+                   or (before["checkout_failed"] > 0 and after["checkout_failed"] == 0 and after.get("checkout_attempts", 1) >= 1 and after["http_500"] <= before["http_500"]))
     b, a = before.get("share_slow") or 0, after.get("share_slow") or 0
     return bool(errors_gone or (b >= 0.04 and a <= b / 2))
 

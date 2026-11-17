@@ -134,3 +134,12 @@ def test_recover_removes_a_left_over_injector_and_is_quiet_on_a_clean_namespace(
     assert done == ["net-injector removed"] and any("delete pod net-injector" in c for c in flat) and any("rollout status" in c for c in flat)
     clean = lifecycle(lambda a: KubeResult(False, "", "NotFound", 1) if "net-injector" in a else KubeResult(True, "{}"))
     assert remediate.recover(clean) == [] and not any("delete" in c or "rollout" in c for c in (" ".join(x) for x in clean.k.calls))
+
+
+def test_no_orders_in_the_window_is_not_orders_fixed():
+    before = {"http_500": 4, "checkout_failed": 4, "share_slow": 0.8, "requests": 200, "checkout_attempts": 4, "resolved": False}
+    quiet = {"http_500": 0, "checkout_failed": 0, "share_slow": 0.8, "requests": 200, "checkout_attempts": 0, "resolved": False}
+    assert not remediate.improved(before, quiet)
+    assert remediate.improved(before, {**quiet, "checkout_attempts": 3})
+    assert not remediate.improved(before, {**quiet, "requests": 0})            # frontend scaled away: silence is not health
+    assert not remediate.improved(before, {**quiet, "checkout_attempts": 3, "http_500": 9})   # orders pass but more pages fail than before

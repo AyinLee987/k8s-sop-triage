@@ -117,6 +117,9 @@ def run(sc: dict, args) -> int:
     lc = make_lifecycle(sc, admin, cfg("NAMESPACE", "tiktok-k8s-lab"), cfg("LAB_K8S_DIR"))
     out_dir = REPO / "results" / "holmes_loop" / args.tag
     out_dir.mkdir(parents=True, exist_ok=True)
+    # a rerun into the same tag must not pick up an earlier attempt's files (a round that writes nothing would read the old one)
+    for old in [out_dir / f"{sc['id']}.json", *out_dir.glob(f"{sc['id']}-round*.json")]:
+        old.unlink(missing_ok=True)
     env = holmes_env(args.skills)
     log = StepLog()
     record = {"scenario": sc["id"], "model": model, "max_rounds": args.rounds, "frame": args.frame, "rounds": [], "outcome": "error"}
@@ -142,8 +145,15 @@ def run(sc: dict, args) -> int:
             started = time.monotonic()
             cmd = [HOLMES, "ask", prompt, "--model", f"openai/{model}", "--config", str(REPO / "holmes" / "config.yaml"),
                    "--max-steps", str(args.max_steps), "--no-interactive", "--no-echo", "--log-costs", "--json-output-file", str(json_out)]
-            res = subprocess.run(cmd, env=env, capture_output=True, text=True, timeout=1500, stdin=subprocess.DEVNULL)
-            data = json.loads(json_out.read_text(encoding="utf-8")) if json_out.exists() else {}
+            try:
+                res = subprocess.run(cmd, env=env, capture_output=True, text=True, timeout=1500, stdin=subprocess.DEVNULL)
+                data = json.loads(json_out.read_text(encoding="utf-8")) if json_out.exists() else {}
+            except (subprocess.TimeoutExpired, json.JSONDecodeError) as exc:
+                # one stuck or broken round ends this scenario, not the whole batch
+                record["rounds"].append({"round": n, "wall_s": round(time.monotonic() - started), "error": f"{type(exc).__name__}: {str(exc)[:300]}",
+                                         "total_tokens": None, "plan": None, "actions": [], "observation": None})
+                record["outcome"] = "agent_error"
+                break
             answer = data.get("result") or ""
             plan, plan_error = remediate.parse_plan(answer)
             rnd = {"round": n, "wall_s": round(time.monotonic() - started), "exit": res.returncode,
