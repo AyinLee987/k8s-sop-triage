@@ -1,0 +1,134 @@
+{
+ "scenario": "BH12",
+ "symptom": "商城时快时慢：大部分请求正常，偶尔有页面要等很久，没有报错。",
+ "steps": [
+  {
+   "n": 1,
+   "operation": "在节点上清除了 currencyservice 的 Pod 对应 veth 网卡上的 tc 规则（恢复为默认队列）",
+   "observation": {
+    "since": "2026-11-20T07:05:42Z",
+    "seconds": 75.0,
+    "requests": 225,
+    "slow_180ms": 0,
+    "share_slow": 0.0,
+    "p50_ms": 9,
+    "p90_ms": 14,
+    "p99_ms": 42,
+    "http_500": 0,
+    "checkout_attempts": 4,
+    "checkout_failed": 0,
+    "resolved": true
+   },
+   "improved": true
+  }
+ ],
+ "resolved": true,
+ "outcome": "resolved",
+ "before": {
+  "since": "2026-11-20T07:04:15Z",
+  "seconds": 45.0,
+  "requests": 177,
+  "slow_180ms": 17,
+  "share_slow": 0.096,
+  "p50_ms": 10,
+  "p90_ms": 121,
+  "p99_ms": 426,
+  "http_500": 0,
+  "checkout_attempts": 5,
+  "checkout_failed": 0,
+  "resolved": false
+ },
+ "restored": [],
+ "log": [
+  {
+   "phase": "verify_healthy",
+   "ok": true,
+   "detail": "healthy",
+   "seconds": 0.26
+  },
+  {
+   "phase": "home_latency",
+   "ok": true,
+   "detail": "GET / ok=True median=0.19s of [0.19] (need >= 0s)",
+   "seconds": 0.0
+  },
+  {
+   "phase": "clean_slate",
+   "ok": true,
+   "detail": "fresh pods",
+   "seconds": 35.21
+  },
+  {
+   "phase": "verify_fresh",
+   "ok": true,
+   "detail": "healthy",
+   "seconds": 0.29
+  },
+  {
+   "phase": "home_latency",
+   "ok": true,
+   "detail": "GET / ok=True median=0.07s of [0.07] (need >= 0s)",
+   "seconds": 0.0
+  },
+  {
+   "phase": "clear_events",
+   "ok": true,
+   "detail": "",
+   "seconds": 0.0
+  },
+  {
+   "phase": "inject",
+   "ok": true,
+   "detail": "-n infra-tools delete pod net-injector --ignore-not-found",
+   "seconds": 0.05
+  },
+  {
+   "phase": "inject",
+   "ok": true,
+   "detail": "apply -f /work/scenarios/netem/injector-boutique-hard-BH12.yaml",
+   "seconds": 0.16
+  },
+  {
+   "phase": "inject",
+   "ok": true,
+   "detail": "-n infra-tools wait --for=condition=Ready pod/net-injector --timeout=180s",
+   "seconds": 1.37
+  },
+  {
+   "phase": "confirm",
+   "ok": true,
+   "detail": "8/58 requests >= 180 ms since 2026-11-20T07:04:15Z; logs(app=net-injector) contain 'netem applied: 1': True",
+   "seconds": 18.76
+  },
+  {
+   "phase": "fix",
+   "ok": true,
+   "detail": "-n infra-tools delete pod net-injector --ignore-not-found",
+   "seconds": 2.2
+  },
+  {
+   "phase": "reset",
+   "ok": true,
+   "detail": "-n infra-tools delete pod net-injector --ignore-not-found",
+   "seconds": 0.05
+  },
+  {
+   "phase": "reset",
+   "ok": true,
+   "detail": "reset steps applied",
+   "seconds": 0.64
+  },
+  {
+   "phase": "verify_recovered",
+   "ok": true,
+   "detail": "healthy",
+   "seconds": 0.22
+  },
+  {
+   "phase": "home_latency",
+   "ok": true,
+   "detail": "GET / ok=True median=0.17s of [0.17] (need >= 0s)",
+   "seconds": 0.0
+  }
+ ]
+}

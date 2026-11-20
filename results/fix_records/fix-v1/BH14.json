@@ -1,0 +1,185 @@
+{
+ "scenario": "BH14",
+ "symptom": "商城时快时慢：大部分请求正常，偶尔有页面要等很久，没有报错。",
+ "steps": [
+  {
+   "n": 1,
+   "operation": "把 Deployment recommendationservice 的副本数设为 1",
+   "observation": {
+    "since": "2026-11-20T07:15:16Z",
+    "seconds": 75.0,
+    "requests": 216,
+    "slow_180ms": 33,
+    "share_slow": 0.153,
+    "p50_ms": 9,
+    "p90_ms": 217,
+    "p99_ms": 436,
+    "http_500": 0,
+    "checkout_attempts": 10,
+    "checkout_failed": 0,
+    "resolved": false
+   },
+   "improved": false,
+   "observation_first": {
+    "since": "2026-11-20T07:14:00Z",
+    "seconds": 75.0,
+    "requests": 213,
+    "slow_180ms": 11,
+    "share_slow": 0.052,
+    "p50_ms": 9,
+    "p90_ms": 27,
+    "p99_ms": 331,
+    "http_500": 0,
+    "checkout_attempts": 6,
+    "checkout_failed": 0,
+    "resolved": false
+   }
+  },
+  {
+   "n": 2,
+   "operation": "在节点上清除了 cartservice 的 Pod 对应 veth 网卡上的 tc 规则（恢复为默认队列）",
+   "observation": {
+    "since": "2026-11-20T07:16:54Z",
+    "seconds": 75.0,
+    "requests": 196,
+    "slow_180ms": 0,
+    "share_slow": 0.0,
+    "p50_ms": 9,
+    "p90_ms": 20,
+    "p99_ms": 46,
+    "http_500": 0,
+    "checkout_attempts": 5,
+    "checkout_failed": 0,
+    "resolved": true
+   },
+   "improved": true
+  }
+ ],
+ "resolved": true,
+ "outcome": "resolved",
+ "before": {
+  "since": "2026-11-20T07:12:11Z",
+  "seconds": 45.0,
+  "requests": 228,
+  "slow_180ms": 17,
+  "share_slow": 0.075,
+  "p50_ms": 6,
+  "p90_ms": 41,
+  "p99_ms": 259,
+  "http_500": 0,
+  "checkout_attempts": 8,
+  "checkout_failed": 0,
+  "resolved": false
+ },
+ "restored": [],
+ "log": [
+  {
+   "phase": "verify_healthy",
+   "ok": true,
+   "detail": "healthy",
+   "seconds": 0.22
+  },
+  {
+   "phase": "home_latency",
+   "ok": true,
+   "detail": "GET / ok=True median=0.06s of [0.06] (need >= 0s)",
+   "seconds": 0.0
+  },
+  {
+   "phase": "clean_slate",
+   "ok": true,
+   "detail": "fresh pods",
+   "seconds": 33.64
+  },
+  {
+   "phase": "verify_fresh",
+   "ok": true,
+   "detail": "healthy",
+   "seconds": 0.28
+  },
+  {
+   "phase": "home_latency",
+   "ok": true,
+   "detail": "GET / ok=True median=0.09s of [0.09] (need >= 0s)",
+   "seconds": 0.0
+  },
+  {
+   "phase": "clear_events",
+   "ok": true,
+   "detail": "",
+   "seconds": 0.0
+  },
+  {
+   "phase": "inject",
+   "ok": true,
+   "detail": "-n boutique scale deployment/recommendationservice --replicas=0",
+   "seconds": 0.06
+  },
+  {
+   "phase": "inject",
+   "ok": true,
+   "detail": "-n infra-tools delete pod net-injector --ignore-not-found",
+   "seconds": 0.04
+  },
+  {
+   "phase": "inject",
+   "ok": true,
+   "detail": "apply -f /work/scenarios/netem/injector-boutique-hard-BH14.yaml",
+   "seconds": 0.16
+  },
+  {
+   "phase": "inject",
+   "ok": true,
+   "detail": "-n infra-tools wait --for=condition=Ready pod/net-injector --timeout=180s",
+   "seconds": 1.56
+  },
+  {
+   "phase": "confirm",
+   "ok": true,
+   "detail": "8/105 requests >= 180 ms since 2026-11-20T07:12:11Z; logs(app=net-injector) contain 'netem applied: 1': True",
+   "seconds": 37.36
+  },
+  {
+   "phase": "fix",
+   "ok": true,
+   "detail": "-n boutique scale deployment/recommendationservice --replicas=1",
+   "seconds": 0.06
+  },
+  {
+   "phase": "fix",
+   "ok": true,
+   "detail": "-n infra-tools delete pod net-injector --ignore-not-found",
+   "seconds": 2.64
+  },
+  {
+   "phase": "reset",
+   "ok": true,
+   "detail": "-n infra-tools delete pod net-injector --ignore-not-found",
+   "seconds": 0.05
+  },
+  {
+   "phase": "reset",
+   "ok": true,
+   "detail": "-n boutique scale deployment/recommendationservice --replicas=1",
+   "seconds": 0.06
+  },
+  {
+   "phase": "reset",
+   "ok": true,
+   "detail": "reset steps applied",
+   "seconds": 0.81
+  },
+  {
+   "phase": "verify_recovered",
+   "ok": true,
+   "detail": "healthy",
+   "seconds": 0.29
+  },
+  {
+   "phase": "home_latency",
+   "ok": true,
+   "detail": "GET / ok=True median=0.07s of [0.07] (need >= 0s)",
+   "seconds": 0.0
+  }
+ ]
+}

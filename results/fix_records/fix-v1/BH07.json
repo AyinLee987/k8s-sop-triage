@@ -1,0 +1,179 @@
+{
+ "scenario": "BH07",
+ "symptom": "有用户反馈下单失败，订单提交不了；其它页面还能打开。",
+ "steps": [
+  {
+   "n": 1,
+   "operation": "把 Deployment recommendationservice 的副本数设为 1",
+   "observation": {
+    "since": "2026-11-20T06:34:32Z",
+    "seconds": 75.0,
+    "requests": 200,
+    "slow_180ms": 0,
+    "share_slow": 0.0,
+    "p50_ms": 8,
+    "p90_ms": 13,
+    "p99_ms": 63,
+    "http_500": 8,
+    "checkout_attempts": 8,
+    "checkout_failed": 8,
+    "resolved": false
+   },
+   "improved": false,
+   "observation_first": {
+    "since": "2026-11-20T06:33:16Z",
+    "seconds": 75.0,
+    "requests": 208,
+    "slow_180ms": 0,
+    "share_slow": 0.0,
+    "p50_ms": 8,
+    "p90_ms": 13,
+    "p99_ms": 40,
+    "http_500": 3,
+    "checkout_attempts": 3,
+    "checkout_failed": 3,
+    "resolved": false
+   }
+  },
+  {
+   "n": 2,
+   "operation": "把 Deployment checkoutservice 的环境变量 SHIPPING_SERVICE_ADDR 设为 shippingservice:50051（Pod 随之滚动更新）",
+   "observation": {
+    "since": "2026-11-20T06:36:09Z",
+    "seconds": 75.0,
+    "requests": 209,
+    "slow_180ms": 0,
+    "share_slow": 0.0,
+    "p50_ms": 8,
+    "p90_ms": 15,
+    "p99_ms": 61,
+    "http_500": 0,
+    "checkout_attempts": 8,
+    "checkout_failed": 0,
+    "resolved": true
+   },
+   "improved": true
+  }
+ ],
+ "resolved": true,
+ "outcome": "resolved",
+ "before": {
+  "since": "2026-11-20T06:31:55Z",
+  "seconds": 45.0,
+  "requests": 169,
+  "slow_180ms": 1,
+  "share_slow": 0.006,
+  "p50_ms": 6,
+  "p90_ms": 20,
+  "p99_ms": 105,
+  "http_500": 9,
+  "checkout_attempts": 9,
+  "checkout_failed": 9,
+  "resolved": false
+ },
+ "restored": [],
+ "log": [
+  {
+   "phase": "verify_healthy",
+   "ok": true,
+   "detail": "healthy",
+   "seconds": 0.25
+  },
+  {
+   "phase": "home_latency",
+   "ok": true,
+   "detail": "GET / ok=True median=0.06s of [0.06] (need >= 0s)",
+   "seconds": 0.0
+  },
+  {
+   "phase": "clean_slate",
+   "ok": true,
+   "detail": "fresh pods",
+   "seconds": 35.82
+  },
+  {
+   "phase": "verify_fresh",
+   "ok": true,
+   "detail": "healthy",
+   "seconds": 0.26
+  },
+  {
+   "phase": "home_latency",
+   "ok": true,
+   "detail": "GET / ok=True median=0.07s of [0.07] (need >= 0s)",
+   "seconds": 0.0
+  },
+  {
+   "phase": "clear_events",
+   "ok": true,
+   "detail": "",
+   "seconds": 0.0
+  },
+  {
+   "phase": "inject",
+   "ok": true,
+   "detail": "-n boutique scale deployment/recommendationservice --replicas=0",
+   "seconds": 0.08
+  },
+  {
+   "phase": "inject",
+   "ok": true,
+   "detail": "-n boutique set env deployment/checkoutservice SHIPPING_SERVICE_ADDR=shippingservice:50052",
+   "seconds": 0.11
+  },
+  {
+   "phase": "inject",
+   "ok": true,
+   "detail": "-n boutique rollout status deployment/checkoutservice --timeout=140s",
+   "seconds": 1.72
+  },
+  {
+   "phase": "confirm",
+   "ok": true,
+   "detail": "logs(app=frontend) contain 'failed to complete the order': True",
+   "seconds": 9.23
+  },
+  {
+   "phase": "fix",
+   "ok": true,
+   "detail": "-n boutique scale deployment/recommendationservice --replicas=1",
+   "seconds": 0.07
+  },
+  {
+   "phase": "fix",
+   "ok": true,
+   "detail": "-n boutique set env deployment/checkoutservice SHIPPING_SERVICE_ADDR=shippingservice:50051",
+   "seconds": 0.06
+  },
+  {
+   "phase": "reset",
+   "ok": true,
+   "detail": "-n boutique scale deployment/recommendationservice --replicas=1",
+   "seconds": 0.05
+  },
+  {
+   "phase": "reset",
+   "ok": true,
+   "detail": "-n boutique set env deployment/checkoutservice SHIPPING_SERVICE_ADDR=shippingservice:50051",
+   "seconds": 0.05
+  },
+  {
+   "phase": "reset",
+   "ok": true,
+   "detail": "reset steps applied",
+   "seconds": 0.73
+  },
+  {
+   "phase": "verify_recovered",
+   "ok": true,
+   "detail": "healthy",
+   "seconds": 0.24
+  },
+  {
+   "phase": "home_latency",
+   "ok": true,
+   "detail": "GET / ok=True median=0.06s of [0.06] (need >= 0s)",
+   "seconds": 0.0
+  }
+ ]
+}

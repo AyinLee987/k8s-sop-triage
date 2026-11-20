@@ -1,0 +1,228 @@
+{
+ "scenario": "BH15",
+ "symptom": "有用户反馈商城时快时慢，另外还有人说下单失败、订单提交不了。",
+ "steps": [
+  {
+   "n": 1,
+   "operation": "把 Deployment adservice 的副本数设为 1",
+   "observation": {
+    "since": "2026-11-20T07:22:42Z",
+    "seconds": 75.0,
+    "requests": 208,
+    "slow_180ms": 43,
+    "share_slow": 0.207,
+    "p50_ms": 12,
+    "p90_ms": 220,
+    "p99_ms": 632,
+    "http_500": 5,
+    "checkout_attempts": 5,
+    "checkout_failed": 5,
+    "resolved": false
+   },
+   "improved": false,
+   "observation_first": {
+    "since": "2026-11-20T07:21:26Z",
+    "seconds": 75.0,
+    "requests": 207,
+    "slow_180ms": 47,
+    "share_slow": 0.227,
+    "p50_ms": 11,
+    "p90_ms": 233,
+    "p99_ms": 450,
+    "http_500": 5,
+    "checkout_attempts": 5,
+    "checkout_failed": 5,
+    "resolved": false
+   }
+  },
+  {
+   "n": 2,
+   "operation": "把 Deployment checkoutservice 的环境变量 CART_SERVICE_ADDR 设为 cartservice:7070（Pod 随之滚动更新）",
+   "observation": {
+    "since": "2026-11-20T07:24:19Z",
+    "seconds": 75.0,
+    "requests": 206,
+    "slow_180ms": 48,
+    "share_slow": 0.233,
+    "p50_ms": 11,
+    "p90_ms": 224,
+    "p99_ms": 426,
+    "http_500": 0,
+    "checkout_attempts": 7,
+    "checkout_failed": 0,
+    "resolved": false
+   },
+   "improved": true
+  },
+  {
+   "n": 3,
+   "operation": "在节点上清除了 productcatalogservice 的 Pod 对应 veth 网卡上的 tc 规则（恢复为默认队列）",
+   "observation": {
+    "since": "2026-11-20T07:25:57Z",
+    "seconds": 75.0,
+    "requests": 226,
+    "slow_180ms": 0,
+    "share_slow": 0.0,
+    "p50_ms": 8,
+    "p90_ms": 13,
+    "p99_ms": 28,
+    "http_500": 0,
+    "checkout_attempts": 6,
+    "checkout_failed": 0,
+    "resolved": true
+   },
+   "improved": true
+  }
+ ],
+ "resolved": true,
+ "outcome": "resolved",
+ "before": {
+  "since": "2026-11-20T07:19:33Z",
+  "seconds": 45.0,
+  "requests": 184,
+  "slow_180ms": 25,
+  "share_slow": 0.136,
+  "p50_ms": 8,
+  "p90_ms": 214,
+  "p99_ms": 568,
+  "http_500": 8,
+  "checkout_attempts": 8,
+  "checkout_failed": 8,
+  "resolved": false
+ },
+ "restored": [],
+ "log": [
+  {
+   "phase": "verify_healthy",
+   "ok": true,
+   "detail": "healthy",
+   "seconds": 0.26
+  },
+  {
+   "phase": "home_latency",
+   "ok": true,
+   "detail": "GET / ok=True median=0.35s of [0.35] (need >= 0s)",
+   "seconds": 0.0
+  },
+  {
+   "phase": "clean_slate",
+   "ok": true,
+   "detail": "fresh pods",
+   "seconds": 34.82
+  },
+  {
+   "phase": "verify_fresh",
+   "ok": true,
+   "detail": "healthy",
+   "seconds": 0.26
+  },
+  {
+   "phase": "home_latency",
+   "ok": true,
+   "detail": "GET / ok=True median=0.08s of [0.08] (need >= 0s)",
+   "seconds": 0.0
+  },
+  {
+   "phase": "clear_events",
+   "ok": true,
+   "detail": "",
+   "seconds": 0.0
+  },
+  {
+   "phase": "inject",
+   "ok": true,
+   "detail": "-n boutique scale deployment/adservice --replicas=0",
+   "seconds": 0.05
+  },
+  {
+   "phase": "inject",
+   "ok": true,
+   "detail": "-n boutique set env deployment/checkoutservice CART_SERVICE_ADDR=cartservice:7071",
+   "seconds": 0.06
+  },
+  {
+   "phase": "inject",
+   "ok": true,
+   "detail": "-n boutique rollout status deployment/checkoutservice --timeout=140s",
+   "seconds": 1.8
+  },
+  {
+   "phase": "inject",
+   "ok": true,
+   "detail": "-n infra-tools delete pod net-injector --ignore-not-found",
+   "seconds": 0.04
+  },
+  {
+   "phase": "inject",
+   "ok": true,
+   "detail": "apply -f /work/scenarios/netem/injector-boutique-hard-BH15.yaml",
+   "seconds": 0.16
+  },
+  {
+   "phase": "inject",
+   "ok": true,
+   "detail": "-n infra-tools wait --for=condition=Ready pod/net-injector --timeout=180s",
+   "seconds": 1.07
+  },
+  {
+   "phase": "confirm",
+   "ok": true,
+   "detail": "9/49 requests >= 180 ms since 2026-11-20T07:19:33Z; logs(app=frontend) contain 'failed to complete the order': True; logs(app=net-injector) contain 'netem applied: 1': True",
+   "seconds": 15.95
+  },
+  {
+   "phase": "fix",
+   "ok": true,
+   "detail": "-n boutique scale deployment/adservice --replicas=1",
+   "seconds": 0.06
+  },
+  {
+   "phase": "fix",
+   "ok": true,
+   "detail": "-n boutique set env deployment/checkoutservice CART_SERVICE_ADDR=cartservice:7070",
+   "seconds": 0.07
+  },
+  {
+   "phase": "fix",
+   "ok": true,
+   "detail": "-n infra-tools delete pod net-injector --ignore-not-found",
+   "seconds": 1.61
+  },
+  {
+   "phase": "reset",
+   "ok": true,
+   "detail": "-n infra-tools delete pod net-injector --ignore-not-found",
+   "seconds": 0.05
+  },
+  {
+   "phase": "reset",
+   "ok": true,
+   "detail": "-n boutique scale deployment/adservice --replicas=1",
+   "seconds": 0.05
+  },
+  {
+   "phase": "reset",
+   "ok": true,
+   "detail": "-n boutique set env deployment/checkoutservice CART_SERVICE_ADDR=cartservice:7070",
+   "seconds": 0.04
+  },
+  {
+   "phase": "reset",
+   "ok": true,
+   "detail": "reset steps applied",
+   "seconds": 0.73
+  },
+  {
+   "phase": "verify_recovered",
+   "ok": true,
+   "detail": "healthy",
+   "seconds": 0.23
+  },
+  {
+   "phase": "home_latency",
+   "ok": true,
+   "detail": "GET / ok=True median=0.05s of [0.05] (need >= 0s)",
+   "seconds": 0.0
+  }
+ ]
+}

@@ -1,0 +1,203 @@
+{
+ "scenario": "BH09",
+ "symptom": "商城页面明显变慢了，但没有报错；Pod 看起来都是正常的。",
+ "steps": [
+  {
+   "n": 1,
+   "operation": "把 Service emailservice 的 selector 设为 app=emailservice",
+   "observation": {
+    "since": "2026-11-20T06:49:09Z",
+    "seconds": 75.0,
+    "requests": 220,
+    "slow_180ms": 64,
+    "share_slow": 0.291,
+    "p50_ms": 9,
+    "p90_ms": 328,
+    "p99_ms": 658,
+    "http_500": 0,
+    "checkout_attempts": 13,
+    "checkout_failed": 0,
+    "resolved": false
+   },
+   "improved": false,
+   "observation_first": {
+    "since": "2026-11-20T06:47:54Z",
+    "seconds": 75.0,
+    "requests": 195,
+    "slow_180ms": 52,
+    "share_slow": 0.267,
+    "p50_ms": 9,
+    "p90_ms": 322,
+    "p99_ms": 637,
+    "http_500": 0,
+    "checkout_attempts": 7,
+    "checkout_failed": 0,
+    "resolved": false
+   }
+  },
+  {
+   "n": 2,
+   "operation": "在节点上清除了 shippingservice 的 Pod 对应 veth 网卡上的 tc 规则（恢复为默认队列）",
+   "observation": {
+    "since": "2026-11-20T06:50:47Z",
+    "seconds": 75.0,
+    "requests": 221,
+    "slow_180ms": 0,
+    "share_slow": 0.0,
+    "p50_ms": 8,
+    "p90_ms": 13,
+    "p99_ms": 37,
+    "http_500": 0,
+    "checkout_attempts": 6,
+    "checkout_failed": 0,
+    "resolved": true
+   },
+   "improved": true
+  }
+ ],
+ "resolved": true,
+ "outcome": "resolved",
+ "before": {
+  "since": "2026-11-20T06:46:29Z",
+  "seconds": 45.0,
+  "requests": 180,
+  "slow_180ms": 41,
+  "share_slow": 0.228,
+  "p50_ms": 10,
+  "p90_ms": 318,
+  "p99_ms": 663,
+  "http_500": 0,
+  "checkout_attempts": 9,
+  "checkout_failed": 0,
+  "resolved": false
+ },
+ "restored": [],
+ "log": [
+  {
+   "phase": "verify_healthy",
+   "ok": true,
+   "detail": "healthy",
+   "seconds": 0.26
+  },
+  {
+   "phase": "home_latency",
+   "ok": true,
+   "detail": "GET / ok=True median=0.06s of [0.06] (need >= 0s)",
+   "seconds": 0.0
+  },
+  {
+   "phase": "clean_slate",
+   "ok": true,
+   "detail": "fresh pods",
+   "seconds": 36.28
+  },
+  {
+   "phase": "verify_fresh",
+   "ok": true,
+   "detail": "healthy",
+   "seconds": 0.32
+  },
+  {
+   "phase": "home_latency",
+   "ok": true,
+   "detail": "GET / ok=True median=0.06s of [0.06] (need >= 0s)",
+   "seconds": 0.0
+  },
+  {
+   "phase": "clear_events",
+   "ok": true,
+   "detail": "",
+   "seconds": 0.0
+  },
+  {
+   "phase": "prune_history",
+   "ok": true,
+   "detail": "1 old replicasets",
+   "seconds": 0.0
+  },
+  {
+   "phase": "inject",
+   "ok": true,
+   "detail": "-n boutique patch service emailservice --type=merge",
+   "seconds": 0.07
+  },
+  {
+   "phase": "inject",
+   "ok": true,
+   "detail": "-n boutique delete pod -l app=emailservice",
+   "seconds": 5.74
+  },
+  {
+   "phase": "inject",
+   "ok": true,
+   "detail": "-n boutique rollout status deployment/emailservice --timeout=140s",
+   "seconds": 0.94
+  },
+  {
+   "phase": "inject",
+   "ok": true,
+   "detail": "-n infra-tools delete pod net-injector --ignore-not-found",
+   "seconds": 0.05
+  },
+  {
+   "phase": "inject",
+   "ok": true,
+   "detail": "apply -f /work/scenarios/netem/injector-boutique-hard-BH09.yaml",
+   "seconds": 0.17
+  },
+  {
+   "phase": "inject",
+   "ok": true,
+   "detail": "-n infra-tools wait --for=condition=Ready pod/net-injector --timeout=180s",
+   "seconds": 2.63
+  },
+  {
+   "phase": "confirm",
+   "ok": true,
+   "detail": "15/54 requests >= 180 ms since 2026-11-20T06:46:29Z; logs(app=net-injector) contain 'netem applied: 1': True",
+   "seconds": 18.77
+  },
+  {
+   "phase": "fix",
+   "ok": true,
+   "detail": "-n boutique patch service emailservice --type=merge",
+   "seconds": 0.05
+  },
+  {
+   "phase": "fix",
+   "ok": true,
+   "detail": "-n infra-tools delete pod net-injector --ignore-not-found",
+   "seconds": 2.3
+  },
+  {
+   "phase": "reset",
+   "ok": true,
+   "detail": "-n infra-tools delete pod net-injector --ignore-not-found",
+   "seconds": 0.06
+  },
+  {
+   "phase": "reset",
+   "ok": true,
+   "detail": "-n boutique patch service emailservice --type=merge",
+   "seconds": 0.06
+  },
+  {
+   "phase": "reset",
+   "ok": true,
+   "detail": "reset steps applied",
+   "seconds": 0.8
+  },
+  {
+   "phase": "verify_recovered",
+   "ok": true,
+   "detail": "healthy",
+   "seconds": 0.26
+  },
+  {
+   "phase": "home_latency",
+   "ok": true,
+   "detail": "GET / ok=True median=0.06s of [0.06] (need >= 0s)",
+   "seconds": 0.0
+  }
+ ]
+}

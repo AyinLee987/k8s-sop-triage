@@ -1,0 +1,197 @@
+{
+ "scenario": "BH10",
+ "symptom": "有用户反馈商城出问题了：有的页面打不开或者操作失败，报 500 错误。",
+ "steps": [
+  {
+   "n": 1,
+   "operation": "把 Service adservice 的 selector 设为 app=adservice",
+   "observation": {
+    "since": "2026-11-20T06:56:37Z",
+    "seconds": 75.0,
+    "requests": 207,
+    "slow_180ms": 0,
+    "share_slow": 0.0,
+    "p50_ms": 1,
+    "p90_ms": 2,
+    "p99_ms": 4,
+    "http_500": 169,
+    "checkout_attempts": 2,
+    "checkout_failed": 2,
+    "resolved": false
+   },
+   "improved": false,
+   "observation_first": {
+    "since": "2026-11-20T06:55:22Z",
+    "seconds": 75.0,
+    "requests": 200,
+    "slow_180ms": 2,
+    "share_slow": 0.01,
+    "p50_ms": 2,
+    "p90_ms": 2,
+    "p99_ms": 513,
+    "http_500": 169,
+    "checkout_attempts": 8,
+    "checkout_failed": 8,
+    "resolved": false
+   }
+  },
+  {
+   "n": 2,
+   "operation": "把 Service cartservice 第一个端口的 targetPort 设为 7070",
+   "observation": {
+    "since": "2026-11-20T06:58:13Z",
+    "seconds": 75.0,
+    "requests": 225,
+    "slow_180ms": 0,
+    "share_slow": 0.0,
+    "p50_ms": 9,
+    "p90_ms": 14,
+    "p99_ms": 61,
+    "http_500": 0,
+    "checkout_attempts": 7,
+    "checkout_failed": 0,
+    "resolved": true
+   },
+   "improved": true
+  }
+ ],
+ "resolved": true,
+ "outcome": "resolved",
+ "before": {
+  "since": "2026-11-20T06:54:16Z",
+  "seconds": 45.0,
+  "requests": 123,
+  "slow_180ms": 0,
+  "share_slow": 0.0,
+  "p50_ms": 1,
+  "p90_ms": 2,
+  "p99_ms": 3,
+  "http_500": 105,
+  "checkout_attempts": 6,
+  "checkout_failed": 6,
+  "resolved": false
+ },
+ "restored": [],
+ "log": [
+  {
+   "phase": "verify_healthy",
+   "ok": true,
+   "detail": "healthy",
+   "seconds": 0.24
+  },
+  {
+   "phase": "home_latency",
+   "ok": true,
+   "detail": "GET / ok=True median=0.05s of [0.05] (need >= 0s)",
+   "seconds": 0.0
+  },
+  {
+   "phase": "clean_slate",
+   "ok": true,
+   "detail": "fresh pods",
+   "seconds": 36.16
+  },
+  {
+   "phase": "verify_fresh",
+   "ok": true,
+   "detail": "healthy",
+   "seconds": 0.27
+  },
+  {
+   "phase": "home_latency",
+   "ok": true,
+   "detail": "GET / ok=True median=0.06s of [0.06] (need >= 0s)",
+   "seconds": 0.0
+  },
+  {
+   "phase": "clear_events",
+   "ok": true,
+   "detail": "",
+   "seconds": 0.0
+  },
+  {
+   "phase": "inject",
+   "ok": true,
+   "detail": "-n boutique patch service adservice --type=merge",
+   "seconds": 0.05
+  },
+  {
+   "phase": "inject",
+   "ok": true,
+   "detail": "-n boutique delete pod -l app=adservice",
+   "seconds": 1.58
+  },
+  {
+   "phase": "inject",
+   "ok": true,
+   "detail": "-n boutique rollout status deployment/adservice --timeout=140s",
+   "seconds": 30.04
+  },
+  {
+   "phase": "inject",
+   "ok": true,
+   "detail": "-n boutique patch service cartservice --type=json",
+   "seconds": 0.06
+  },
+  {
+   "phase": "inject",
+   "ok": true,
+   "detail": "-n boutique delete pod -l app=cartservice",
+   "seconds": 1.01
+  },
+  {
+   "phase": "inject",
+   "ok": true,
+   "detail": "-n boutique rollout status deployment/cartservice --timeout=140s",
+   "seconds": 20.36
+  },
+  {
+   "phase": "confirm",
+   "ok": true,
+   "detail": "logs(app=frontend) contain '\"http.resp.status\":500': True",
+   "seconds": 0.06
+  },
+  {
+   "phase": "fix",
+   "ok": true,
+   "detail": "-n boutique patch service adservice --type=merge",
+   "seconds": 0.06
+  },
+  {
+   "phase": "fix",
+   "ok": true,
+   "detail": "-n boutique patch service cartservice --type=json",
+   "seconds": 0.06
+  },
+  {
+   "phase": "reset",
+   "ok": true,
+   "detail": "-n boutique patch service adservice --type=merge",
+   "seconds": 0.05
+  },
+  {
+   "phase": "reset",
+   "ok": true,
+   "detail": "-n boutique patch service cartservice --type=json",
+   "seconds": 0.05
+  },
+  {
+   "phase": "reset",
+   "ok": true,
+   "detail": "reset steps applied",
+   "seconds": 0.71
+  },
+  {
+   "phase": "verify_recovered",
+   "ok": true,
+   "detail": "healthy",
+   "seconds": 0.25
+  },
+  {
+   "phase": "home_latency",
+   "ok": true,
+   "detail": "GET / ok=True median=0.06s of [0.06] (need >= 0s)",
+   "seconds": 0.0
+  }
+ ]
+}
