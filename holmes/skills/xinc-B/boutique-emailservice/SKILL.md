@@ -9,7 +9,7 @@ description: Online Boutique 的 emailservice 排查 SOP：症状涉及 emailser
 
 以下条目来自过去的排查记录，括号里是来源。
 
-- [E1]（BH09）（BH09）checkoutservice 日志持续 `failed to send order confirmation ... dial tcp <emailservice ClusterIP>:5000: connect: connection refused`（severity=warning），但订单仍成功、0 个 500、下单成功率不变时：这是丢订单确认邮件，不是用户可见故障，不要并入延迟或失败归因。查 `get endpoints emailservice`（subsets 为 null）并对比 Service selector 与 Deployment/Pod 的 `app` 标签——常见为 selector 被改成 `app=emailservice-v2` 而 Pod 仍是 `app=emailservice`；改回正确 selector，Endpoints 出现后报错即消失。若同一时间窗内该 Pod 被重建过，视为同一次变更注入的旁证。
+- [E1]（BH09）checkoutservice 日志持续 `failed to send order confirmation ... dial tcp <emailservice ClusterIP>:5000: connect: connection refused`（severity=warning），但订单仍成功、0 个 500、下单成功率不变时：这是丢订单确认邮件，不是用户可见故障，不要并入延迟或失败归因。查 `get endpoints emailservice`（subsets 为 null）并对比 Service selector 与 Deployment/Pod 的 `app` 标签——常见为 selector 被改成 `app=emailservice-v2` 而 Pod 仍是 `app=emailservice`；改回正确 selector，Endpoints 出现后报错即消失。若同一时间窗内该 Pod 被重建过，视为同一次变更注入的旁证。
 
 <!-- 经验条目结束 -->
 

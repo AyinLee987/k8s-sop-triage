@@ -9,7 +9,7 @@ description: Online Boutique 的 shippingservice 排查 SOP：症状涉及 shipp
 
 以下条目来自过去的排查记录，括号里是来源。
 
-- [E1]（BH05、BH09）【已排除】checkout 的 `payment went through`→shipping `[ShipOrder] received`、或 /cart 的 shipping 调用入口恒晚 280–330ms，而 shipping 内处理约 50µs、回程 1–5ms，且只有 /cart（≈1×300ms）与 /cart/checkout（≈2×300ms）慢时：延迟在发往 shipping 的去程，排除应用慢、CPU、探针。重建 shippingservice Pod（换 IP）后延迟完全不变（均值仍约 304ms）；把 frontend/checkoutservice 的 SHIPPING_SERVICE_ADDR 改为新 Pod IP 并重建两个客户端也完全不变，排除 Pod 实例、Pod IP、Service VIP/DNAT、客户端 Pod netns、DNS、连接缓存。命名空间内 restart/set_env/scale/set_cpu_limit/set_service_selector/set_service_target_port 均无效（改端口会使硬编码 50
+- [E1]（BH05、BH09）【已排除】checkout 的 `payment went through`→shipping `[ShipOrder] received`、或 /cart 的 shipping 调用入口恒晚 280–330ms，而 shipping 内处理约 50µs、回程 1–5ms，且只有 /cart（≈1×300ms）与 /cart/checkout（≈2×300ms）慢时：延迟在发往 shipping 的去程，排除应用慢、CPU、探针。重建 shippingservice Pod（换 IP）后延迟完全不变（均值仍约 304ms）；把 frontend/checkoutservice 的 SHIPPING_SERVICE_ADDR 改为新 Pod IP 并重建两个客户端也完全不变，排除 Pod 实例、Pod IP、Service VIP/DNAT、客户端 Pod netns、DNS、连接缓存。命名空间内 restart/set_env/scale/set_cpu_limit/set_service_selector/set_service_target_port 均无效（改端口会使硬编码 50051 探针永不 Ready）；需运维在节点/宿主 veth 清 tc netem 并删除重注入器。若同窗口 payment 同用 50051 却零延迟，排除按端口，指向按目的 Pod/标签的规则。
 
 <!-- 经验条目结束 -->
 

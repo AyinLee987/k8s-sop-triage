@@ -9,7 +9,7 @@ description: Online Boutique 的 frontend 排查 SOP：症状涉及 frontend，�
 
 以下条目来自过去的排查记录，括号里是来源。
 
-- [E1]（BH14）[E1]（BH11、BH14）用户报『时快时慢』时先用 frontend 自身日志定量：按 `took_ms>=150` 过滤统计慢请求占比，应与用户侧 45s 窗口 >180ms 的占比吻合；`/_healthz` 与无下游调用的 `/setCurrency` 若恒为 0ms，即可排除前端进程卡顿/CPU，把嫌疑推到它调用的下游。再看慢请求内部：慢日志里相邻两个埋点之间只有一次下游调用（如『adding to cart』→『request complete』）就锁定该跳；多个页面共有的前段调用（getCart）同时抬尾即该依赖。注意 0 个 500、Pod Ready、无 Unhealthy 都不能排除网络注入，探针超时通常大于台阶。
+- [E1]（BH14）用户报『时快时慢』时先用 frontend 自身日志定量：按 `took_ms>=150` 过滤统计慢请求占比，应与用户侧 45s 窗口 >180ms 的占比吻合；`/_healthz` 与无下游调用的 `/setCurrency` 若恒为 0ms，即可排除前端进程卡顿/CPU，把嫌疑推到它调用的下游。再看慢请求内部：慢日志里相邻两个埋点之间只有一次下游调用（如『adding to cart』→『request complete』）就锁定该跳；多个页面共有的前段调用（getCart）同时抬尾即该依赖。注意 0 个 500、Pod Ready、无 Unhealthy 都不能排除网络注入，探针超时通常大于台阶。
 
 <!-- 经验条目结束 -->
 

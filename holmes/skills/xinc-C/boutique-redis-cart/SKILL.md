@@ -9,7 +9,7 @@ description: Online Boutique 的 redis-cart 排查 SOP：症状涉及 redis-cart
 
 以下条目来自过去的排查记录，括号里是来源。
 
-- [E1]（BH08、BH13）【已排除】cart 路径偶发慢（GET/POST /cart、EmptyCart、每页都调的 GetCart），慢值成 +200ms 整数倍簇，且 redis-cart 是命名空间里唯一反复探针失败（Liveness/Readiness dial tcp :6379 i/o timeout、跨多个 Pod/IP）时：不要重启 redis-cart 或加 CPU——本 Pod 多次重建换 IP 与 CPU limit 125m→1 后单命令延迟与慢占比完全不变（309→311ms；>180ms 仍 3.7%、p99 214ms），排除 Pod 内 datapath、CPU 节流、Redis 进程慢、持久化/AOF；Service selector/endpoints 正常。kubelet 探测绕开 cartservice，探针只在该 Pod 失败提示丢包在它的网络路径。警惕假好转：重建 redis 清空 emptyDir 购物车，GET /cart 载荷 16–20KB→~7KB 会使 p90 假降，须看 p99 与 >180ms 比例。下一步节点侧查 tc qdisc/filter、i
+- [E1]（BH08、BH13）【已排除】cart 路径偶发慢（GET/POST /cart、EmptyCart、每页都调的 GetCart），慢值成 +200ms 整数倍簇，且 redis-cart 是命名空间里唯一反复探针失败（Liveness/Readiness dial tcp :6379 i/o timeout、跨多个 Pod/IP）时：不要重启 redis-cart 或加 CPU——本 Pod 多次重建换 IP 与 CPU limit 125m→1 后单命令延迟与慢占比完全不变（309→311ms；>180ms 仍 3.7%、p99 214ms），排除 Pod 内 datapath、CPU 节流、Redis 进程慢、持久化/AOF；Service selector/endpoints 正常。kubelet 探测绕开 cartservice，探针只在该 Pod 失败提示丢包在它的网络路径。警惕假好转：重建 redis 清空 emptyDir 购物车，GET /cart 载荷 16–20KB→~7KB 会使 p90 假降，须看 p99 与 >180ms 比例。下一步节点侧查 tc qdisc/filter、iptables、conntrack/softnet 计数。
 
 <!-- 经验条目结束 -->
 

@@ -10,7 +10,7 @@ description: Online Boutique 的 productcatalogservice 排查 SOP：症状涉及
 以下条目来自过去的排查记录，括号里是来源。
 
 - [E1]（BH04）整站变慢、零 500、Pod 健康且 env/resources 未变时，先量本服务 GetProduct/ListProducts 单次耗时：若从 ~1ms 稳定升到固定数百 ms（不随负载波动、无 throttle 证据），不是 CPU/资源问题，属该 Pod 的运行期延迟。它对 /、/product、/cart、checkout 是公共依赖，一处抬高会放大到全部页面：可用“首页≈2 个台阶、加购≈3 个台阶、商品页可达 8 个台阶”核对（商品页格外高是因为 recommendationservice 内部还会再调一次 ListProducts，叠加两层）。若 cartservice、adservice、recommendationservice 同时出现同一台阶，按总则 E1 处理（重建 Pod；重建无效转运维查注入源），不要逐个去调 CPU limit。
-- [E2]（BH15）（BH14）用户侧“时快时慢”、中位数正常、约 20% 请求 >180ms、0 个 500、Pod Ready，慢值 200–600ms 成簇时，不要按 E1 的固定台阶处理：逐请求对齐前端日志，若慢请求的停顿都落在某次 productcatalog 调用上（请求开始后停 ~200ms 才发出下一步 currency 调用，而 currency 只花 2–3ms），且依赖次数越多越慢（商品页经 recommendationservice 发 5 次 ListProducts，两次叠加可达 400–660ms），即为本 Pod 的概率型停顿。直接证据：本 Pod 的 kubelet 探针出现 `Liveness probe failed: timeout: failed to connect service <podIP>:3550 within 1s`——探针直连 Pod、绕开调用方，超时即停顿在本 Pod 内；同窗口其它 Pod 探针正常可排除节点级。处置：restart 本 Pod 后复测 >180ms 占比，无效再转运维查 tc/CNI；不要挨个重启下游，也别把下游日志的孤立的数
+- [E2]（BH15）用户侧“时快时慢”、中位数正常、约 20% 请求 >180ms、0 个 500、Pod Ready，慢值 200–600ms 成簇时，不要按 E1 的固定台阶处理：逐请求对齐前端日志，若慢请求的停顿都落在某次 productcatalog 调用上（请求开始后停 ~200ms 才发出下一步 currency 调用，而 currency 只花 2–3ms），且依赖次数越多越慢（商品页经 recommendationservice 发 5 次 ListProducts，两次叠加可达 400–660ms），即为本 Pod 的概率型停顿。直接证据：本 Pod 的 kubelet 探针出现 `Liveness probe failed: timeout: failed to connect service <podIP>:3550 within 1s`——探针直连 Pod、绕开调用方，超时即停顿在本 Pod 内；同窗口其它 Pod 探针正常可排除节点级。处置：restart 本 Pod 后复测 >180ms 占比，无效再转运维查 tc/CNI；不要挨个重启下游，也别把下游日志的孤立的数百毫秒空档当定因。
 
 <!-- 经验条目结束 -->
 

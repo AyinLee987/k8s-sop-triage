@@ -9,7 +9,7 @@ description: Online Boutique 的 shippingservice 排查 SOP：症状涉及 shipp
 
 以下条目来自过去的排查记录，括号里是来源。
 
-- [E1]（BH09）（BH09）用户报页面变慢、0 个 500、Pod 全 Ready 时，若前端只有 `GET /cart`（约 300ms）和 `POST /cart/checkout`（约 600ms，同一 RPC 在 PlaceOrder 里走两次）慢，而 `/`、`/product/*` 正常，本服务入向延迟即为首选假设：①前端日志按路径分桶，`POST /cart` 1–2ms 即 cart/redis/currency 全链健康；②时间戳对齐——调用方发出 GetQuote 后 `[GetQuote] received request` 恒定晚 278–331ms，而 completed <0.1ms、响应回路 1–2ms，说明延迟只在请求方向；③最硬佐证在 checkoutservice：Charge 返回后到 ShipOrder 收到之间只隔一次 shipping RPC，同样晚约 300ms。CPU limit 与其他服务一致且 handler 瞬时完成可排除限流；探针超时 1s 大于台阶，所以 Pod 一直 Ready，别因『Pod 正常/无 Unhealthy』排除网络注入。处置：
+- [E1]（BH09）用户报页面变慢、0 个 500、Pod 全 Ready 时，若前端只有 `GET /cart`（约 300ms）和 `POST /cart/checkout`（约 600ms，同一 RPC 在 PlaceOrder 里走两次）慢，而 `/`、`/product/*` 正常，本服务入向延迟即为首选假设：①前端日志按路径分桶，`POST /cart` 1–2ms 即 cart/redis/currency 全链健康；②时间戳对齐——调用方发出 GetQuote 后 `[GetQuote] received request` 恒定晚 278–331ms，而 completed <0.1ms、响应回路 1–2ms，说明延迟只在请求方向；③最硬佐证在 checkoutservice：Charge 返回后到 ShipOrder 收到之间只隔一次 shipping RPC，同样晚约 300ms。CPU limit 与其他服务一致且 handler 瞬时完成可排除限流；探针超时 1s 大于台阶，所以 Pod 一直 Ready，别因『Pod 正常/无 Unhealthy』排除网络注入。处置：重建 Pod 换 netns/veth，仍慢则转运维清理宿主机 veth 上 tc/netem。
 
 <!-- 经验条目结束 -->
 

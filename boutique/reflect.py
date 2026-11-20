@@ -37,14 +37,18 @@ from triage import remediate  # noqa: E402
 SECTION = "## 经验条目"
 END = "<!-- 经验条目结束 -->"   # explicit end: whatever follows the section belongs to the original SOP
 ITEM = re.compile(r"^- \[E(\d+)\]（(.*?)）(.*)$")
-MAX_CHANGES, MAX_TEXT = 3, 500
+# The model is asked for 500 characters and often writes more (up to 754 in the first runs). Entries used to be cut at
+# 500, mid-sentence, in more than half of the cases, usually losing the "what to do next" part. They are now kept whole
+# up to MAX_TEXT. --replay rebuilds a library from its log with the current limits, without calling the model.
+MAX_CHANGES, ASK_TEXT, MAX_TEXT = 3, 500, 800
+LABEL = re.compile(r"^(\[E\d+\]\s*)?([（(]\s*(BH\d+|本次|[、，,~～\-–—\s])+[）)]\s*)?")   # an id or source the model repeated in front of its text
 
 COMMON = ("你维护一套按服务组织的排查 SOP，值班的排障 agent 排查时会读它。下面是一次故障的排查记录。"
           "从中提炼以后排查同类问题能直接用上的经验，写成条目加入 SOP。\n规则：\n"
           "1. 每条写清“看到什么现象 → 怎么判断、下一步查什么”，具体到可以照做；不要写这次故障里的 Pod 名、IP、时间。\n"
           "2. 对整个系统都适用的经验写进 boutique-triage-overview；只和某个服务有关的写进那个服务的 SOP。\n"
           "3. 已有条目能覆盖的，就修改那一条，不要新增重复的；发现已有条目和这次的记录矛盾，可以修改或删除它。\n"
-          f"4. 最多 {MAX_CHANGES} 处改动，每条不超过 {MAX_TEXT} 字；没有值得写的就让 changes 为空。\n")
+          f"4. 最多 {MAX_CHANGES} 处改动，每条不超过 {ASK_TEXT} 字；没有值得写的就让 changes 为空。\n")
 VERIFIED = ("5. 记录里有每一轮的预期、执行的操作、执行后的实际数字。只有被这些结果支持的内容才能写成经验："
             "修复后症状消失的，写成【已证实】；修复后数字没有变化的，写成【已排除】并说明排除了什么；"
             "到最后也没有被结果检验过的猜测，不能写成结论，最多写成【未解决】并说明还缺什么证据。每条以这三个标记之一开头。\n")
@@ -94,7 +98,7 @@ def apply(lib: dict[str, list], changes: list, source: str) -> list[dict]:
     for ch in (changes or [])[:MAX_CHANGES]:
         ch = ch if isinstance(ch, dict) else {}
         op, sop = ch.get("op"), ch.get("sop")
-        text = " ".join(str(ch.get("text", "")).split())[:MAX_TEXT]
+        text = LABEL.sub("", " ".join(str(ch.get("text", "")).split()), count=1)[:MAX_TEXT]
         rec = {"change": ch, "applied": False}
         if sop not in lib:
             rec["why"] = f"unknown sop {sop!r}"
@@ -162,16 +166,37 @@ def library_view(heads: dict, lib: dict) -> str:
     return "\n".join(out)
 
 
+def replay(out: Path, base: Path) -> None:
+    """Apply the logged changes again, in order, to a fresh copy of the base SOPs. Same entries and ids as the run that
+    wrote the log; only the limits of apply() differ. The log's own record of what was applied is left as it is."""
+    log = json.loads(out.with_suffix(".log.json").read_text(encoding="utf-8"))
+    shutil.rmtree(out)
+    shutil.copytree(base, out)
+    docs = {p.parent.name: split(p.read_text(encoding="utf-8")) for p in sorted(out.glob("*/SKILL.md"))}
+    lib = {n: items_of(b) for n, (_, b) in docs.items()}
+    for entry in log:
+        apply(lib, [c["change"] for c in entry["changes"]], entry["scenario"])
+    for name, (head, body) in docs.items():
+        new = with_items(body, lib[name])
+        if new != body:
+            (out / name / "SKILL.md").write_text(f"---\n{head}---\n\n{new}\n", encoding="utf-8")
+    texts = [t for v in lib.values() for _, _, t in v]
+    print(f"{out.name}: {len(texts)} entries, longest {max(map(len, texts))} characters, {sum(len(t) >= MAX_TEXT for t in texts)} cut at {MAX_TEXT}")
+
+
 def main() -> None:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--mode", required=True, choices=["B", "C", "D"])
-    ap.add_argument("--runs", required=True, help="directory with <id>.json records written by scripts/holmes_loop.py")
+    ap.add_argument("--mode", choices=["B", "C", "D"])
+    ap.add_argument("--runs", default="", help="directory with <id>.json records written by scripts/holmes_loop.py")
     ap.add_argument("--fixes", default="", help="mode D: directory with <id>.json records written by scripts/fix_records.py")
     ap.add_argument("--out", required=True, help="skill directory to write, e.g. holmes/skills/xinc-C")
     ap.add_argument("--base", default="holmes/skills/svc-sop-v0")
     ap.add_argument("--ids", default=",".join(f"BH{i:02d}" for i in range(1, 16)))
     ap.add_argument("--dry", action="store_true", help="print the first incident's prompt and stop (no model call)")
+    ap.add_argument("--replay", action="store_true", help="rebuild --out from --base and the existing log (no model call)")
     args = ap.parse_args()
+    if args.replay:
+        return replay(REPO / args.out, REPO / args.base)
     from openai import OpenAI
     import make_experience as me
     runs, out, base = REPO / args.runs, REPO / args.out, REPO / args.base

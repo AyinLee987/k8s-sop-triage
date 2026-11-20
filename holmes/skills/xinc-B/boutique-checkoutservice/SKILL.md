@@ -9,8 +9,8 @@ description: Online Boutique 的 checkoutservice 排查 SOP：症状涉及 check
 
 以下条目来自过去的排查记录，括号里是来源。
 
-- [E1]（BH01、BH02、BH03、BH07、BH15）（BH01、BH02、BH03、BH14）下单/结账 500 且日志出现 `failed to charge card`/`failed to convert price`/`cart failure: failed to get user cart` 等下游 RPC 失败时先看错误语义：`dial tcp <ClusterIP>:<port>: i/o timeout`=地址/端口写错——注意可能是毫秒级快速失败（目标端口无 listener/kube-proxy 规则时立即失败），监控上是 100% 下单失败但 took_ms≈1ms，不要当成延迟或资源问题；`connection refused`=该 Service Endpoints 为空/selector 不匹配（逐个 `get endpoints`）。定位到失败阶段后，把该下游 `*_SERVICE_ADDR` 的端口与 Service 的 port→targetPort、容器实际监听端口（containerPort、启动日志）三方对齐，并与上一版 RS 的 env、`last-applied-configuration`
-- [E2]（BH05）（BH05）结账变慢但返回 200、无 failed to charge card 等错误时：把 `[PlaceOrder]` 起始到 payment went through 的耗时按“购物车条目数×下游调用次数”拆解，若≈条目数×固定台阶（如每件约 200ms），说明慢在逐件的货币转换等上游依赖单次调用上，转 currencyservice 等对应服务 SOP 查入向延迟/限流；不要先怀疑 payment 或本服务自身的下单逻辑。
+- [E1]（BH01、BH02、BH03、BH07、BH15）下单/结账 500 且日志出现 `failed to charge card`/`failed to convert price`/`cart failure: failed to get user cart` 等下游 RPC 失败时先看错误语义：`dial tcp <ClusterIP>:<port>: i/o timeout`=地址/端口写错——注意可能是毫秒级快速失败（目标端口无 listener/kube-proxy 规则时立即失败），监控上是 100% 下单失败但 took_ms≈1ms，不要当成延迟或资源问题；`connection refused`=该 Service Endpoints 为空/selector 不匹配（逐个 `get endpoints`）。定位到失败阶段后，把该下游 `*_SERVICE_ADDR` 的端口与 Service 的 port→targetPort、容器实际监听端口（containerPort、启动日志）三方对齐，并与上一版 RS 的 env、`last-applied-configuration` 对比：旧 RS 正确、只有新 RS 错即为运行态被改，改回 env 重建即恢复，不要先改 Service 或重启下游。失败阶段之后的依赖不会有调用日志。
+- [E2]（BH05）结账变慢但返回 200、无 failed to charge card 等错误时：把 `[PlaceOrder]` 起始到 payment went through 的耗时按“购物车条目数×下游调用次数”拆解，若≈条目数×固定台阶（如每件约 200ms），说明慢在逐件的货币转换等上游依赖单次调用上，转 currencyservice 等对应服务 SOP 查入向延迟/限流；不要先怀疑 payment 或本服务自身的下单逻辑。
 
 <!-- 经验条目结束 -->
 

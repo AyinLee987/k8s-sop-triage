@@ -9,7 +9,7 @@ description: Online Boutique 的 productcatalogservice 排查 SOP：症状涉及
 
 以下条目来自过去的排查记录，括号里是来源。
 
-- [E1]（BH11、BH15）【已排除】本服务 Pod Ready、restartCount=0、日志无 error，但 kubelet 的 gRPC 探针从 Pod 创建后数秒起就持续 `failed to connect ...:3550 within 1s` 超时（累计多次、失败率约 10%，换 Pod/换 IP 后立即复现），而同期 frontend 的 HTTP 探针与其他服务探针 0 次失败、checkout 跨 Pod 调用恒 8–12ms 时：不要重启或加 CPU——本次重建本服务、currencyservice、frontend（各自新 netns/IP）后 >180ms 20.3%→23.1%→21.9%、p99 429→630→653ms 均不变，已排除 Pod 内状态/netns、CPU 节流、调用方 Pod 出口丢包、节点级整体劣化。若同时前端每个慢请求都含本服务调用、多出的耗时量化在 209–260/439/869ms（≈最小 RTO 200ms 的 1/2/4 次重传）与 20–80ms（dupACK/TLP 快速恢复），且完成时刻不落在 100ms CFS 网格上，则丢包在本服务工作
+- [E1]（BH11、BH15）【已排除】本服务 Pod Ready、restartCount=0、日志无 error，但 kubelet 的 gRPC 探针从 Pod 创建后数秒起就持续 `failed to connect ...:3550 within 1s` 超时（累计多次、失败率约 10%，换 Pod/换 IP 后立即复现），而同期 frontend 的 HTTP 探针与其他服务探针 0 次失败、checkout 跨 Pod 调用恒 8–12ms 时：不要重启或加 CPU——本次重建本服务、currencyservice、frontend（各自新 netns/IP）后 >180ms 20.3%→23.1%→21.9%、p99 429→630→653ms 均不变，已排除 Pod 内状态/netns、CPU 节流、调用方 Pod 出口丢包、节点级整体劣化。若同时前端每个慢请求都含本服务调用、多出的耗时量化在 209–260/439/869ms（≈最小 RTO 200ms 的 1/2/4 次重传）与 20–80ms（dupACK/TLP 快速恢复），且完成时刻不落在 100ms CFS 网格上，则丢包在本服务工作负载的网络路径上（节点/CNI 数据面，按 Pod/标签或 dport 3550 注入），Pod 级操作清不掉。【未解决】是“按 Pod/标签”还是“按端口 3550”需节点侧 `tc -s qdisc show <veth>`、`nstat -az TcpRetransSegs`、`ss -tin`、CNI/eBPF drop 计数；改 PORT+targetPort 会让写死 3550 探针 CrashLoop，不要做。
 
 <!-- 经验条目结束 -->
 

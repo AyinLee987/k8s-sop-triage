@@ -9,8 +9,8 @@ description: Online Boutique 的 currencyservice 排查 SOP：症状涉及 curre
 
 以下条目来自过去的排查记录，括号里是来源。
 
-- [E1]（BH01、BH05、BH06）（BH01、BH05、BH06）页面变慢但各 handler 耗时与『调用 currencyservice 次数』成正比（首页 10 次≈2s、商品页 2 次≈400ms、购物车 (1+条目数)×台阶），不调 currency 的请求（POST /cart、/setCurrency、/_healthz）仍 0–2ms → 单次 RPC 多出固定台阶（正常约 2ms）。用两点锁定：①同 Pod 故障前后基线对比（如 2ms→200ms）；②第二个独立调用方佐证——checkoutservice 的 `[PlaceOrder]`→payment went through 内部耗时同样按转换次数放大，即可判慢点在本服务一侧，无需 exec/节点权限。再分两步定因：①时间戳对齐——调用方发起时刻 vs 本服务 handler 入口日志恒定晚约 200ms、handler 瞬时完成=入向网络延迟，重建该 Pod；新 Pod 仍慢则转运维查 veth 上 tc/netem。②服务端处理本身耗时且 CPU 顶到 limit、有 cgroup throttle 证据→提高 CPU limit。
-- [E2]（BH12）（BH11）本服务是全命名空间 RPC 最频繁的服务（首页约 10 次换算、商品页 2 次、购物车 1+条目数），且为单线程 Node 进程、CPU limit 常低至 200m：页面『时快时慢、中位数正常、约 3–9% 请求多等 200ms 左右、零 500』时，先怀疑本服务被 CFS 冻结，而不是 E1 描述的入向网络延迟。区分：慢值落在基线+100ms 整数倍、分布呈双峰→限流；每条调用都恒定增加台阶→按 E1 查网络注入。处置：只把本服务 CPU limit 提到 1（可回滚）并回传用户侧 45s 窗口统计；不要同时改 frontend 等其它服务配额，否则无法归因；若 >180ms 占比不变，再按 E1 重建 Pod/转网络排查。
+- [E1]（BH01、BH05、BH06）页面变慢但各 handler 耗时与『调用 currencyservice 次数』成正比（首页 10 次≈2s、商品页 2 次≈400ms、购物车 (1+条目数)×台阶），不调 currency 的请求（POST /cart、/setCurrency、/_healthz）仍 0–2ms → 单次 RPC 多出固定台阶（正常约 2ms）。用两点锁定：①同 Pod 故障前后基线对比（如 2ms→200ms）；②第二个独立调用方佐证——checkoutservice 的 `[PlaceOrder]`→payment went through 内部耗时同样按转换次数放大，即可判慢点在本服务一侧，无需 exec/节点权限。再分两步定因：①时间戳对齐——调用方发起时刻 vs 本服务 handler 入口日志恒定晚约 200ms、handler 瞬时完成=入向网络延迟，重建该 Pod；新 Pod 仍慢则转运维查 veth 上 tc/netem。②服务端处理本身耗时且 CPU 顶到 limit、有 cgroup throttle 证据→提高 CPU limit。
+- [E2]（BH12）本服务是全命名空间 RPC 最频繁的服务（首页约 10 次换算、商品页 2 次、购物车 1+条目数），且为单线程 Node 进程、CPU limit 常低至 200m：页面『时快时慢、中位数正常、约 3–9% 请求多等 200ms 左右、零 500』时，先怀疑本服务被 CFS 冻结，而不是 E1 描述的入向网络延迟。区分：慢值落在基线+100ms 整数倍、分布呈双峰→限流；每条调用都恒定增加台阶→按 E1 查网络注入。处置：只把本服务 CPU limit 提到 1（可回滚）并回传用户侧 45s 窗口统计；不要同时改 frontend 等其它服务配额，否则无法归因；若 >180ms 占比不变，再按 E1 重建 Pod/转网络排查。
 
 <!-- 经验条目结束 -->
 

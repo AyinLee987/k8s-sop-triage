@@ -9,7 +9,7 @@ description: Online Boutique 的 adservice 排查 SOP：症状涉及 adservice�
 
 以下条目来自过去的排查记录，括号里是来源。
 
-- [E1]（BH06）（BH06）页面其余功能正常、无 5xx，但 frontend 每个首页/商品页日志反复出现 `failed to retrieve ads: ... dial tcp <adservice ClusterIP>:9555: connect: connection refused`、页面无广告，且这些页面耗时与前缀广告调用无关时：查 adservice Deployment 的 `replicas`（可能被缩容到 0）、Pod 事件（`Killing: Stopping container server`/`SuccessfulDelete`）和 Service 的 Endpoints（应为空）。此类调用毫秒级失败，不贡献页面延迟台阶——不要把它当作变慢原因，也不要为它去调 CPU/网络；把副本数恢复到 1，20–60 秒就绪后报错停止、广告恢复。若仍有延迟台阶，按总则 E2 另行定位真正的慢点。
+- [E1]（BH06）页面其余功能正常、无 5xx，但 frontend 每个首页/商品页日志反复出现 `failed to retrieve ads: ... dial tcp <adservice ClusterIP>:9555: connect: connection refused`、页面无广告，且这些页面耗时与前缀广告调用无关时：查 adservice Deployment 的 `replicas`（可能被缩容到 0）、Pod 事件（`Killing: Stopping container server`/`SuccessfulDelete`）和 Service 的 Endpoints（应为空）。此类调用毫秒级失败，不贡献页面延迟台阶——不要把它当作变慢原因，也不要为它去调 CPU/网络；把副本数恢复到 1，20–60 秒就绪后报错停止、广告恢复。若仍有延迟台阶，按总则 E2 另行定位真正的慢点。
 
 <!-- 经验条目结束 -->
 

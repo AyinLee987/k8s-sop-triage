@@ -10,7 +10,7 @@ description: Online Boutique 的 recommendationservice 排查 SOP：症状涉及
 以下条目来自过去的排查记录，括号里是来源。
 
 - [E1]（BH03、BH04、BH11）【已排除】不要仅凭 /product、/cart 慢而 /、POST /cart、POST /setCurrency 快（尤其小样本）就锁定 frontend→recommendationservice 的 ListRecommendations：本次首页 0/9 快，扩大窗口后首页也有 216/157ms；rec 1→3 副本、把 PRODUCT_CATALOG_SERVICE_ADDR 改成 ClusterIP 后慢占比仍 21.9%，排除 rec 单 Pod/连接、DNS/短名解析、扩副本能解决。仍可先按“是否调用 ListRecommendations”分组，但必须用足够大窗口并逐请求配对；rec 日志在调用下游、handler 返回前才打印，不是入口。若多个互不相关请求在同一微秒级恢复，转总则节点级停顿，不要预设双向。
-- [E2]（BH07、BH14）【已证实】（BH07）商品页/购物车仍 200、took_ms 只有几 ms，但 frontend 大量 `failed to get product recommendations ... dial tcp <ClusterIP>:8080: connect: connection refused` 时：这是被调用方降级的非致命错误，既不是慢因也不是 500 因，不要按延迟或下单失败方向查。先 `kubectl get deploy recommendationservice` 看 spec.replicas（常为 0）、`kubectl get endpoints recommendationservice` 看 subsets 是否为空，并在事件里找 `Scaled down ... from 1 to 0`；确认是谁改的副本，再 scale 回 1，恢复后核对 endpoints 非空、该报错消失。副本 0→1 只补推荐位/消 warning；本次实测用户侧 >180ms 占比 5.5%→9.3%、p99 244→404ms 不变（【已排除】与尾部延迟无关），别指望修它能让慢请
+- [E2]（BH07、BH14）【已证实】（BH07）商品页/购物车仍 200、took_ms 只有几 ms，但 frontend 大量 `failed to get product recommendations ... dial tcp <ClusterIP>:8080: connect: connection refused` 时：这是被调用方降级的非致命错误，既不是慢因也不是 500 因，不要按延迟或下单失败方向查。先 `kubectl get deploy recommendationservice` 看 spec.replicas（常为 0）、`kubectl get endpoints recommendationservice` 看 subsets 是否为空，并在事件里找 `Scaled down ... from 1 to 0`；确认是谁改的副本，再 scale 回 1，恢复后核对 endpoints 非空、该报错消失。副本 0→1 只补推荐位/消 warning；本次实测用户侧 >180ms 占比 5.5%→9.3%、p99 244→404ms 不变（【已排除】与尾部延迟无关），别指望修它能让慢请求减少。
 
 <!-- 经验条目结束 -->
 

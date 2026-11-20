@@ -53,3 +53,27 @@ def test_one_shot_material_has_no_outcomes_and_neither_has_the_answer():
     assert "已证实" in rf.VERIFIED and "已证实" not in rf.COMMON          # the verification rule is only given where outcomes exist
     import inspect
     assert "truth" not in inspect.getsource(rf.material) and "answer\"]" not in inspect.getsource(rf.material).replace('r.get("answer")', "")
+
+
+def test_entries_are_kept_whole_and_a_repeated_label_is_dropped(tmp_path):
+    lib = {"boutique-currencyservice": []}
+    long = "【已证实】" + "看到 A → 查 B。" * 60          # about 670 characters: over what is asked for, under the hard limit
+    rf.apply(lib, [{"op": "add", "sop": "boutique-currencyservice", "text": "（BH01、BH05、本次）" + long},
+                   {"op": "add", "sop": "boutique-currencyservice", "text": "[E2]（BH13、本次）【已排除】不是 CPU"},
+                   {"op": "add", "sop": "boutique-currencyservice", "text": "【已证实】（BH07）这种括号在正文里，保留"}], "BH05")
+    texts = [t for _, _, t in lib["boutique-currencyservice"]]
+    assert texts[0] == long and rf.ASK_TEXT < len(long) <= rf.MAX_TEXT and str(rf.ASK_TEXT) in rf.COMMON
+    assert texts[1] == "【已排除】不是 CPU" and texts[2] == "【已证实】（BH07）这种括号在正文里，保留"
+    # a library can be rebuilt from its log without the model: same ids and sources
+    base, out = tmp_path / "base", tmp_path / "xinc-X"
+    (base / "boutique-currencyservice").mkdir(parents=True)
+    (base / "boutique-currencyservice" / "SKILL.md").write_text("---\nname: boutique-currencyservice\ndescription: d\n---\n\n# currencyservice 排查 SOP\n\n正文\n", encoding="utf-8")
+    import json, shutil
+    shutil.copytree(base, out)
+    (tmp_path / "xinc-X.log.json").write_text(json.dumps([
+        {"scenario": "BH01", "changes": [{"change": {"op": "add", "sop": "boutique-currencyservice", "text": "（BH01）" + long}, "applied": True}]},
+        {"scenario": "BH05", "changes": [{"change": {"op": "modify", "sop": "boutique-currencyservice", "id": "E1", "text": "改后的条目"}, "applied": True},
+                                         {"change": {"op": "add", "sop": "nope", "text": "x"}, "applied": False}]}], ensure_ascii=False), encoding="utf-8")
+    rf.replay(out, base)
+    body = rf.split((out / "boutique-currencyservice" / "SKILL.md").read_text(encoding="utf-8"))[1]
+    assert rf.items_of(body) == [("E1", "BH01、BH05", "改后的条目")] and "正文" in body

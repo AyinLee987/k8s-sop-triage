@@ -9,7 +9,7 @@ description: Online Boutique 的 productcatalogservice 排查 SOP：症状涉及
 
 以下条目来自过去的排查记录，括号里是来源。
 
-- [E1]（BH04、BH11）（BH04、本次）【已证实】首页、商品页、购物车、下单页一起变慢但无 5xx、Pod 无重启且配置正常时，若耗时随对 productcatalogservice 的往返次数增长，到该 Pod 所在节点 `tc qdisc show dev <veth>` 查 netem 延时/丢包并清除恢复默认队列。两种形态：整体台阶（首页≈2×300ms、商品页≈8×300ms），或尾部弥散（中位数正常、仅 ~15% 请求偶发 +200ms、慢占比随调用次数上升）；本次只清它（及 redis-cart）的 veth 即恢复：2405→10ms、>180ms 86.1%→0%；本次 >180ms 15.9%→0%、p90 217→15ms、p99 428→50ms。它的 veth 延时会让调用方（recommendationservice、checkout、frontend）看起来也慢，修好后自动回落，别把它们判成源头。【已排除】CPU/CFS 节流、配置漂移、需重建 Pod（未改 limit、未重启 Pod 即恢复）；一次 Liveness probe >1s 超时不等于 CPU 不足。
+- [E1]（BH04、BH11）【已证实】首页、商品页、购物车、下单页一起变慢但无 5xx、Pod 无重启且配置正常时，若耗时随对 productcatalogservice 的往返次数增长，到该 Pod 所在节点 `tc qdisc show dev <veth>` 查 netem 延时/丢包并清除恢复默认队列。两种形态：整体台阶（首页≈2×300ms、商品页≈8×300ms），或尾部弥散（中位数正常、仅 ~15% 请求偶发 +200ms、慢占比随调用次数上升）；本次只清它（及 redis-cart）的 veth 即恢复：2405→10ms、>180ms 86.1%→0%；本次 >180ms 15.9%→0%、p90 217→15ms、p99 428→50ms。它的 veth 延时会让调用方（recommendationservice、checkout、frontend）看起来也慢，修好后自动回落，别把它们判成源头。【已排除】CPU/CFS 节流、配置漂移、需重建 Pod（未改 limit、未重启 Pod 即恢复）；一次 Liveness probe >1s 超时不等于 CPU 不足。
 
 <!-- 经验条目结束 -->
 

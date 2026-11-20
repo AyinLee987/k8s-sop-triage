@@ -9,7 +9,7 @@ description: Online Boutique 的 checkoutservice 排查 SOP：症状涉及 check
 
 以下条目来自过去的排查记录，括号里是来源。
 
-- [E1]（BH01、BH03、BH07、BH15）【已证实】checkout 下单 100% 失败、frontend 500，而用户侧延迟分位数正常（中位个位数 ms）时：这是必经步骤上的连接/配置错误，不是延迟问题，不要查 netem。抓 500 日志的 `dial tcp <IP>:<port>` 判型：`i/o timeout`（首笔约 4s）多指该端口上没有任何 listener/kube-proxy 规则——本次 CART_SERVICE_ADDR=cartservice:7071 而 Service 只开 7070、endpoints 正常，改成 7070 后 500 由 4→0、下单 4/4 失败→7/7→10/10 成功；`connection refused` 则是端口有规则但无进程或 endpoints 为空（见 paymentservice/emailservice E1）。把各 *_SERVICE_ADDR 与 Service port/targetPort、Endpoint 端口、Pod 实际监听端口（payment/shipping 50051、currency 7000、productcatalog 35
+- [E1]（BH01、BH03、BH07、BH15）【已证实】checkout 下单 100% 失败、frontend 500，而用户侧延迟分位数正常（中位个位数 ms）时：这是必经步骤上的连接/配置错误，不是延迟问题，不要查 netem。抓 500 日志的 `dial tcp <IP>:<port>` 判型：`i/o timeout`（首笔约 4s）多指该端口上没有任何 listener/kube-proxy 规则——本次 CART_SERVICE_ADDR=cartservice:7071 而 Service 只开 7070、endpoints 正常，改成 7070 后 500 由 4→0、下单 4/4 失败→7/7→10/10 成功；`connection refused` 则是端口有规则但无进程或 endpoints 为空（见 paymentservice/emailservice E1）。把各 *_SERVICE_ADDR 与 Service port/targetPort、Endpoint 端口、Pod 实际监听端口（payment/shipping 50051、currency 7000、productcatalog 3550、email 5000、cart 7070）逐一比对。修好后 >180ms 占比 20.3%→23.1% 不变，确认它只是 500 因、不是慢因。
 
 <!-- 经验条目结束 -->
 

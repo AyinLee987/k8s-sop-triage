@@ -9,7 +9,7 @@ description: Online Boutique 的 currencyservice 排查 SOP：症状涉及 curre
 
 以下条目来自过去的排查记录，括号里是来源。
 
-- [E1]（BH01、BH05、BH12）【已排除】页面耗时≈currency 调用次数×~200ms（首页 ~2.1s、商品页 ~400ms、购物车每件+200ms、不调 currency 0–3ms）时，不要先加 CPU/重启/扩副本：limit 200m→1 核、前端 200m→500m、重建 currency（多次换 IP）与 frontend/checkout 后延迟仍不变（本次 >180ms 9.1%→10.5%、p90 114→214ms、新 Pod 仍探针超时）；排除 CPU 节流、Pod/netns、旧 IP、DNS/连接缓存。配对“调用方请求开始→`Getting supported currencies...`”：若入口恒晚 150–650ms 而入口→完成仅几 ms，且多个独立连接同一毫秒被放行、同一服务多个 Pod 实例均出现 >1s 探针超时，说明该端点上的请求一起被卡后集中放行；是进程停顿还是丢包 RTO 尚未证实，先取 cgroup cpu.stat/memory.events 与 TcpRetransSegs/ss -ti/veth tcpdump，再决定移除 tc/netem；不要靠重启/扩
+- [E1]（BH01、BH05、BH12）【已排除】页面耗时≈currency 调用次数×~200ms（首页 ~2.1s、商品页 ~400ms、购物车每件+200ms、不调 currency 0–3ms）时，不要先加 CPU/重启/扩副本：limit 200m→1 核、前端 200m→500m、重建 currency（多次换 IP）与 frontend/checkout 后延迟仍不变（本次 >180ms 9.1%→10.5%、p90 114→214ms、新 Pod 仍探针超时）；排除 CPU 节流、Pod/netns、旧 IP、DNS/连接缓存。配对“调用方请求开始→`Getting supported currencies...`”：若入口恒晚 150–650ms 而入口→完成仅几 ms，且多个独立连接同一毫秒被放行、同一服务多个 Pod 实例均出现 >1s 探针超时，说明该端点上的请求一起被卡后集中放行；是进程停顿还是丢包 RTO 尚未证实，先取 cgroup cpu.stat/memory.events 与 TcpRetransSegs/ss -ti/veth tcpdump，再决定移除 tc/netem；不要靠重启/扩副本。
 
 <!-- 经验条目结束 -->
 

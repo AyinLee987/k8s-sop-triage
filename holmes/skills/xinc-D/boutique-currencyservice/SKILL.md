@@ -9,7 +9,7 @@ description: Online Boutique 的 currencyservice 排查 SOP：症状涉及 curre
 
 以下条目来自过去的排查记录，括号里是来源。
 
-- [E1]（BH01、BH05、BH06、BH12）【已证实】页面变慢但无 5xx、currencyservice 自身日志无错误时，延迟常挂在它这一跳的 veth netem，两种形态都要认：(a) 台阶——耗时与调用次数成比例（首页 ~2s≈10 次 Convert、商品页 ~400ms≈2 次、/cart 每多一件 +200ms，而 POST /cart、/_healthz 仍 0–2ms）；(b) 尾部弥散——中位数正常（~10ms）、仅约 10% 请求 >180ms、p90 121ms/p99 426ms，首页因调用次数最多最明显，checkoutservice PlaceOrder→payment 段偶发 +200ms 可作旁证。下一步到该 Pod 所在节点 `tc qdisc show dev <veth>` 查 netem 并清除恢复默认队列；本次清除后 >180ms 9.6%→0%、p90 121→14ms、p99 426→42ms，500 与下单失败保持 0。【已排除】CPU/CFS 限流：未改任何 CPU limit（曾怀疑 200m 配额被冻结、并有一次 `Readiness probe failed: fail
+- [E1]（BH01、BH05、BH06、BH12）【已证实】页面变慢但无 5xx、currencyservice 自身日志无错误时，延迟常挂在它这一跳的 veth netem，两种形态都要认：(a) 台阶——耗时与调用次数成比例（首页 ~2s≈10 次 Convert、商品页 ~400ms≈2 次、/cart 每多一件 +200ms，而 POST /cart、/_healthz 仍 0–2ms）；(b) 尾部弥散——中位数正常（~10ms）、仅约 10% 请求 >180ms、p90 121ms/p99 426ms，首页因调用次数最多最明显，checkoutservice PlaceOrder→payment 段偶发 +200ms 可作旁证。下一步到该 Pod 所在节点 `tc qdisc show dev <veth>` 查 netem 并清除恢复默认队列；本次清除后 >180ms 9.6%→0%、p90 121→14ms、p99 426→42ms，500 与下单失败保持 0。【已排除】CPU/CFS 限流：未改任何 CPU limit（曾怀疑 200m 配额被冻结、并有一次 `Readiness probe failed: failed to connect ... within 1s`），清 tc 即恢复；耗时落在 100ms 整数倍、探针偶发超时都不足以判定 CFS 限流，先清 tc 复测。
 
 <!-- 经验条目结束 -->
 

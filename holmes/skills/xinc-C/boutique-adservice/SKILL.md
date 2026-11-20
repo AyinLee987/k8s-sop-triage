@@ -10,7 +10,7 @@ description: Online Boutique 的 adservice 排查 SOP：症状涉及 adservice�
 以下条目来自过去的排查记录，括号里是来源。
 
 - [E1]（BH04）【已证实】商品页稳定慢、adservice 日志 `received ad request` 出现在 frontend `request complete` 前 1–2ms（多组样本一致）时：广告请求到达 adservice 后整页很快结束，返回方向正常，约 300ms 延迟在请求到达 adservice 之前，不是 adservice handler 慢。不要重启 adservice 或调 CPU/内存；把 frontend 请求开始→adservice 入口日志的差值与同窗口其他依赖对比，若只有发往 adservice 的方向慢，按总则转网络层查 tc/netem/按标签注入。
-- [E2]（BH06、BH10）【已证实】商品页/购物车仍 200、took_ms 只有几 ms，但 frontend 大量 `failed to retrieve ads ... dial tcp <ClusterIP>:9555: connect: connection refused` 时：这是被调用方 catch 的降级错误，不是慢因也不是 500 因。按三处查：`kubectl get deploy adservice` 的 spec.replicas 是否为 0（事件里找 `Scaled down ... from 1 to 0`）、`kubectl get endpoints adservice` 的 subsets 是否为 null、Service selector 是否与 Pod 标签一致（本次 selector=app=adservice-v2 而 Pod 标签 app=adservice，endpoints 为 null；改回 app=adservice 后 endpoints 有就绪地址、广告恢复，同期 500 仍 79/222 不变，再次确认不影响 500/延迟）。恢复后以 endpoint
+- [E2]（BH06、BH10）【已证实】商品页/购物车仍 200、took_ms 只有几 ms，但 frontend 大量 `failed to retrieve ads ... dial tcp <ClusterIP>:9555: connect: connection refused` 时：这是被调用方 catch 的降级错误，不是慢因也不是 500 因。按三处查：`kubectl get deploy adservice` 的 spec.replicas 是否为 0（事件里找 `Scaled down ... from 1 to 0`）、`kubectl get endpoints adservice` 的 subsets 是否为 null、Service selector 是否与 Pod 标签一致（本次 selector=app=adservice-v2 而 Pod 标签 app=adservice，endpoints 为 null；改回 app=adservice 后 endpoints 有就绪地址、广告恢复，同期 500 仍 79/222 不变，再次确认不影响 500/延迟）。恢复后以 endpoints 非空且 selector 正确为准；若副本又被缩回，查谁在改。
 
 <!-- 经验条目结束 -->
 
