@@ -143,3 +143,28 @@ def test_no_orders_in_the_window_is_not_orders_fixed():
     assert remediate.improved(before, {**quiet, "checkout_attempts": 3})
     assert not remediate.improved(before, {**quiet, "requests": 0})            # frontend scaled away: silence is not health
     assert not remediate.improved(before, {**quiet, "checkout_attempts": 3, "http_500": 9})   # orders pass but more pages fail than before
+
+
+def test_orders_refused_for_their_card_type_are_reported_but_not_held_against_a_fix():
+    """About 2% of the load generator's orders are refused by the payment service for the card type, fault or no fault."""
+    import types
+    ok = [{"message": "request complete", "http.req.path": "/", "http.resp.status": 200, "http.resp.took_ms": 9}] * 60
+    order = lambda status: {"message": "request complete", "http.req.path": "/cart/checkout", "http.resp.status": status, "http.resp.took_ms": 30}  # noqa: E731
+    refused = {"message": "request error", "error": "failed to complete the order: rpc error: code = Internal desc = failed to charge card: could not charge the card: "
+               "rpc error: code = Code(400) desc = Sorry, we cannot process visa_electron credit cards. Only VISA or MasterCard is accepted."}
+    broken = {"message": "request error", "error": "failed to complete the order: rpc error: code = Unavailable desc = connection error"}
+
+    def obs(rows):
+        lc = types.SimpleNamespace(_run=lambda a, t: types.SimpleNamespace(ok=True, stdout="\n".join(json.dumps(r) for r in rows), stderr=""))
+        return remediate.observe(lc, "t", min_seconds=0, sleep=lambda s: None)
+    healthy = obs(ok + [order(200)] * 6 + [order(500), refused])
+    assert healthy["checkout_failed"] == 1 and healthy["card_rejected"] == 1 and healthy["resolved"] is True
+    assert "失败 1 次（其中 1 次是支付服务拒收卡种" in remediate.describe(healthy)
+    faulty = obs(ok + [order(200)] * 5 + [order(500), refused, order(500), broken])
+    assert faulty["card_rejected"] == 1 and faulty["checkout_failed"] == 2 and faulty["resolved"] is False
+    assert remediate.improved(faulty, healthy) is True and remediate.improved(healthy, healthy) is True
+    # a refusal alone is not an error that a fix can be credited with removing
+    clean = obs(ok + [order(200)] * 6)
+    slow = {**healthy, "resolved": False, "share_slow": 0.3}
+    assert "拒收" not in remediate.describe(clean) and remediate.improved(slow, {**clean, "resolved": False, "share_slow": 0.3}) is False
+    assert remediate.improved({"http_500": 3, "checkout_failed": 3, "share_slow": 0.0}, {"http_500": 0, "checkout_failed": 0, "share_slow": 0.0}) is True   # records without the new field

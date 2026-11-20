@@ -127,8 +127,9 @@ def observe(lc, since: str, min_seconds: float = 75, max_seconds: float = 180, s
     waited = 0.0
     while True:
         res = lc._run(["-n", NS, "logs", "-l", "app=frontend", f"--since-time={since}", "--tail=-1", "--max-log-requests=10"], 30)
-        rows = []
+        rows, card = [], 0
         for line in res.stdout.splitlines():
+            card += "cannot process" in line and "credit cards" in line
             try:
                 rec = json.loads(line)
             except json.JSONDecodeError:
@@ -147,9 +148,22 @@ def observe(lc, since: str, min_seconds: float = 75, max_seconds: float = 180, s
            "share_slow": round(slow / len(rows), 3) if rows else None, "p50_ms": pick(0.5), "p90_ms": pick(0.9), "p99_ms": pick(0.99),
            "http_500": sum(int(r.get("http.resp.status") or 0) >= 500 for r in rows),
            "checkout_attempts": len(checkouts), "checkout_failed": sum(int(r.get("http.resp.status") or 0) >= 500 for r in checkouts)}
+    # The load generator pays with random card numbers, and the payment service refuses a few of them by card type
+    # ("cannot process visa_electron credit cards"): about 2% of orders fail on a healthy system (fix-v1: 2 of 97 orders
+    # after everything was fixed). The frontend answers 500 for them. They are counted, reported, and not held against a fix.
+    out["card_rejected"] = min(card, out["checkout_failed"])
     # healthy on this cluster: no request over 180 ms and no 500 (boutique/hard_validation.json); 2% leaves room for a blip
-    out["resolved"] = bool(len(rows) >= 30 and out["share_slow"] <= 0.02 and out["http_500"] == 0 and out["checkout_attempts"] >= 1)
+    out["resolved"] = bool(len(rows) >= 30 and out["share_slow"] <= 0.02 and _errors(out) == 0 and out["checkout_attempts"] >= 1)
     return out
+
+
+def _errors(obs: dict) -> int:
+    """HTTP 500s that are not the payment service refusing a card type."""
+    return obs["http_500"] - obs.get("card_rejected", 0)
+
+
+def _failed_orders(obs: dict) -> int:
+    return obs["checkout_failed"] - obs.get("card_rejected", 0)
 
 
 def describe(obs: dict) -> str:
@@ -158,7 +172,8 @@ def describe(obs: dict) -> str:
         return f"最近 {obs['seconds']:.0f} 秒前端没有处理任何请求。"
     return (f"最近 {obs['seconds']:.0f} 秒前端处理了 {obs['requests']} 个请求：{obs['slow_180ms']} 个超过 180 毫秒（占 {obs['share_slow']:.1%}；"
             f"这个系统正常时没有请求超过 180 毫秒），中位数 {obs['p50_ms']} 毫秒，90 分位 {obs['p90_ms']} 毫秒，99 分位 {obs['p99_ms']} 毫秒；"
-            f"返回 500 的请求 {obs['http_500']} 个；下单 {obs['checkout_attempts']} 次，失败 {obs['checkout_failed']} 次。")
+            f"返回 500 的请求 {obs['http_500']} 个；下单 {obs['checkout_attempts']} 次，失败 {obs['checkout_failed']} 次"
+            + (f"（其中 {obs['card_rejected']} 次是支付服务拒收卡种，返回 400：只接受 VISA 或 MasterCard）" if obs.get("card_rejected") else "") + "。")
 
 
 def snapshot(lc) -> dict:
@@ -173,9 +188,9 @@ def improved(before: dict, after: dict) -> bool:
     if after.get("resolved"):
         return True
     # "no failed order" only counts when somebody ordered, and "no 500" only when the frontend served requests
-    errors_gone = ((before["http_500"] > 0 and after["http_500"] == 0 and after.get("requests", 1) >= 30 and
-                    (before["checkout_failed"] == 0 or after.get("checkout_attempts", 1) >= 1))
-                   or (before["checkout_failed"] > 0 and after["checkout_failed"] == 0 and after.get("checkout_attempts", 1) >= 1 and after["http_500"] <= before["http_500"]))
+    errors_gone = ((_errors(before) > 0 and _errors(after) == 0 and after.get("requests", 1) >= 30 and
+                    (_failed_orders(before) == 0 or after.get("checkout_attempts", 1) >= 1))
+                   or (_failed_orders(before) > 0 and _failed_orders(after) == 0 and after.get("checkout_attempts", 1) >= 1 and _errors(after) <= _errors(before)))
     b, a = before.get("share_slow") or 0, after.get("share_slow") or 0
     return bool(errors_gone or (b >= 0.04 and a <= b / 2))
 
