@@ -2,12 +2,18 @@
 
   python boutique/reflect.py --mode B --runs results/holmes_loop/loop-v2 --out holmes/skills/xinc-B
   python boutique/reflect.py --mode C --runs results/holmes_loop/loop-v2 --out holmes/skills/xinc-C
+  python boutique/reflect.py --mode D --runs results/holmes_loop/loop-v2 --fixes results/fix_records/fix-v1 --out holmes/skills/xinc-D
 
-Both modes start from the same SOPs (--base, default svc-sop-v0), use the same model, make one call per incident in the
-same order, and never see the real cause or whether the investigation was right. They differ only in the material:
+All modes start from the same SOPs (--base, default svc-sop-v0), use the same model, make one call per incident in the
+same order, and never see the real cause or whether the investigation was right. They differ only in the material
+(C and D get the same "only what the numbers support" rule, because both have numbers; B has none):
   B  what a one-shot diagnosis leaves behind: the first round's findings, conclusion and proposed fix.
   C  the whole fix-and-verify record: every round's conclusion, the numbers it expected, the actions that were run,
      what users saw afterwards, and whether the round was kept or rolled back.
+  D  the one-shot diagnosis of B, plus what the on-call engineer then did (scripts/fix_records.py): each operation as
+     it was run and the user-side numbers after it. No reason is given; the engineer may have done something else than
+     the agent proposed. This is what production leaves behind when the agent is read-only and people do the fixing.
+     (The diagnosis and the fix come from two injections of the same scenario; the incident header uses the fix run's numbers.)
 The model does not rewrite SOPs. It returns a few entry-level changes (add / modify / remove) that this program applies
 to an "经验条目" section, so one bad reflection cannot wipe or bloat a whole document, and every entry names its source.
 """
@@ -42,6 +48,11 @@ COMMON = ("你维护一套按服务组织的排查 SOP，值班的排障 agent �
 VERIFIED = ("5. 记录里有每一轮的预期、执行的操作、执行后的实际数字。只有被这些结果支持的内容才能写成经验："
             "修复后症状消失的，写成【已证实】；修复后数字没有变化的，写成【已排除】并说明排除了什么；"
             "到最后也没有被结果检验过的猜测，不能写成结论，最多写成【未解决】并说明还缺什么证据。每条以这三个标记之一开头。\n")
+ENGINEER = ("5. 记录分两部分：agent 当时的一次性诊断（只读排查，没有人验证过），以及值班工程师之后实际做的每一步操作和每一步之后的用户侧数字。"
+            "工程师没有写原因，做的也不一定是 agent 建议的。你要自己对照：哪一步之后哪个数字变了、哪一步之后没有变，这说明了什么；"
+            "agent 的诊断哪些和这些结果相符、哪些不符。只有被这些结果支持的内容才能写成经验："
+            "某一步之后对应的症状消失的，写成【已证实】；某一步之后数字没有变化的，写成【已排除】并说明排除了什么；"
+            "这些数字无法检验的猜测，不能写成结论，最多写成【未解决】并说明还缺什么证据。每条以这三个标记之一开头。\n")
 OUTPUT = ('只输出 JSON：{"lesson": "<这次最值得记住的一两句话>", "changes": [{"op": "add", "sop": "<skill 名>", "text": "<条目>"}, '
           '{"op": "modify", "sop": "<skill 名>", "id": "E<编号>", "text": "<新的条目>"}, {"op": "remove", "sop": "<skill 名>", "id": "E<编号>"}]}')
 
@@ -111,17 +122,18 @@ def apply(lib: dict[str, list], changes: list, source: str) -> list[dict]:
     return done
 
 
-def material(record: dict, symptom: str, mode: str, cap: int = 3500) -> str:
-    """The incident as the reflecting model sees it. B stops where a one-shot diagnosis stops."""
-    head = f"## 这次故障\n用户反馈：{symptom}\n监控看到的用户侧情况：{remediate.describe(record['before'])}\n"
-    rounds = record["rounds"][:1] if mode == "B" else record["rounds"]
+def material(record: dict, symptom: str, mode: str, cap: int = 3500, fix: dict | None = None) -> str:
+    """The incident as the reflecting model sees it. B stops where a one-shot diagnosis stops; D adds the engineer's fix."""
+    before = fix["before"] if mode == "D" else record["before"]
+    head = f"## 这次故障\n用户反馈：{symptom}\n监控看到的用户侧情况：{remediate.describe(before)}\n"
+    rounds = record["rounds"][:1] if mode in ("B", "D") else record["rounds"]
     parts = []
     for r in rounds:
         plan = r.get("plan") or {}
         acts = [json.dumps(a["action"], ensure_ascii=False) for a in r.get("actions") or []] or [json.dumps(a, ensure_ascii=False) for a in plan.get("actions") or []]
-        block = [f"### 第 {r['round']} 轮" if mode == "C" else "### 排查", f"agent 的分析（节选）：\n{(r.get('answer') or '')[:cap]}",
+        block = [{"B": "### 排查", "C": f"### 第 {r['round']} 轮", "D": "### agent 的一次性诊断（只读，没有验证）"}[mode], f"agent 的分析（节选）：\n{(r.get('answer') or '')[:cap]}",
                  f"结论：{json.dumps(plan.get('root_causes'), ensure_ascii=False)}", f"说明：{plan.get('explanation')}"]
-        if mode == "B":
+        if mode in ("B", "D"):
             block.append("建议的修复：" + ("；".join(acts) or "（无）"))
         else:
             ran = "\n".join(f"  {json.dumps(a['action'], ensure_ascii=False)} -> {a['result'][:160]}" for a in r.get("actions") or []) or "  （没有申请任何操作）"
@@ -134,6 +146,10 @@ def material(record: dict, symptom: str, mode: str, cap: int = 3500) -> str:
     if mode == "C":
         tail = "\n\n### 结局\n" + {"resolved": "用户侧已恢复正常。", "agent_stopped": "agent 认为现有操作修不了，不再申请操作；用户侧没有恢复。",
                                  "rounds_exhausted": "轮数用完，用户侧没有恢复。"}.get(record.get("outcome"), f"结束状态：{record.get('outcome')}")
+    if mode == "D":
+        ops = [f"{st['n']}. {st['operation']}\n   之后的用户侧情况：{remediate.describe(st['observation'])}" for st in fix["steps"]]
+        tail = ("\n\n### 值班工程师实际做的操作（按时间顺序，每一步之后都重新看了用户侧）\n" + "\n".join(ops) +
+                "\n\n### 结局\n" + ("用户侧已恢复正常。" if fix.get("resolved") else "全部操作做完后，用户侧没有完全恢复。"))
     return head + "\n\n" + "\n\n".join(parts) + tail
 
 
@@ -148,8 +164,9 @@ def library_view(heads: dict, lib: dict) -> str:
 
 def main() -> None:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--mode", required=True, choices=["B", "C"])
+    ap.add_argument("--mode", required=True, choices=["B", "C", "D"])
     ap.add_argument("--runs", required=True, help="directory with <id>.json records written by scripts/holmes_loop.py")
+    ap.add_argument("--fixes", default="", help="mode D: directory with <id>.json records written by scripts/fix_records.py")
     ap.add_argument("--out", required=True, help="skill directory to write, e.g. holmes/skills/xinc-C")
     ap.add_argument("--base", default="holmes/skills/svc-sop-v0")
     ap.add_argument("--ids", default=",".join(f"BH{i:02d}" for i in range(1, 16)))
@@ -166,7 +183,9 @@ def main() -> None:
     docs = {p.parent.name: split(p.read_text(encoding="utf-8")) for p in sorted(out.glob("*/SKILL.md"))}
     heads = {n: h for n, (h, _) in docs.items()}
     lib = {n: items_of(b) for n, (_, b) in docs.items()}
-    system = COMMON + (VERIFIED if args.mode == "C" else "") + OUTPUT
+    system = COMMON + {"B": "", "C": VERIFIED, "D": ENGINEER}[args.mode] + OUTPUT
+    if args.mode == "D" and not args.fixes:
+        raise SystemExit("--mode D needs --fixes")
     client = None
     for sid in [i for i in args.ids.split(",") if i]:
         if any(e["scenario"] == sid for e in log):
@@ -174,7 +193,12 @@ def main() -> None:
         record = json.loads((runs / f"{sid}.json").read_text(encoding="utf-8"))
         if scenarios[sid].get("pool") != "learn":
             raise SystemExit(f"{sid} is not a learning scenario")
-        user = library_view(heads, lib) + "\n\n" + material(record, scenarios[sid]["symptom"], args.mode)
+        fix = None
+        if args.mode == "D":
+            fix = json.loads((REPO / args.fixes / f"{sid}.json").read_text(encoding="utf-8"))
+            if not fix.get("steps") or fix.get("reset_error"):
+                raise SystemExit(f"{sid}: the fix record is incomplete ({fix.get('outcome')}); rerun scripts/fix_records.py {sid}")
+        user = library_view(heads, lib) + "\n\n" + material(record, scenarios[sid]["symptom"], args.mode, fix=fix)
         if args.dry:
             print(system, "\n\n", user)
             return

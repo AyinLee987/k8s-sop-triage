@@ -31,9 +31,10 @@ case "$cmd" in
   pilot)    mint_diag; python scripts/holmes_pilot.py "$@" ;;
   batch)    mint_diag; python scripts/holmes_batch.py "$@" ;;
   loop)     mint_diag; python scripts/holmes_loop.py "$@" ;;
+  fix)      python scripts/fix_records.py "$@" ;;
   validate) python scripts/validate_injection.py "$@" ;;
   noise)    python scripts/validate_noise.py "$@" ;;
   sweep)    python scripts/sweep_cpu_limit.py "$@" ;;
   shell)    exec bash ;;
-  *) echo "unknown command: $cmd (check | pilot | batch | loop | validate | noise | sweep | shell)" >&2; exit 2 ;;
+  *) echo "unknown command: $cmd (check | pilot | batch | loop | fix | validate | noise | sweep | shell)" >&2; exit 2 ;;
 esac

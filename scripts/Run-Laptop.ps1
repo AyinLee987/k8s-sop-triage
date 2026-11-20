@@ -5,6 +5,7 @@
 #   .\scripts\Run-Laptop.ps1 -Action batch                       # dev split x 3 repeats (about 1-2 hours)
 #   .\scripts\Run-Laptop.ps1 -Action batch -Scenarios R06,R09 -Repeats 2 -Tag try1
 #   .\scripts\Run-Laptop.ps1 -Action loop -Scenarios BH01,BH12 -Rounds 3 -MaxSteps 100 -Tag loop-pilot   # diagnose, fix, verify, repeat
+#   .\scripts\Run-Laptop.ps1 -Action fix -Scenarios BH01,BH02 -Tag fix-v1    # no model: apply the correct fix step by step and record what users see
 #   .\scripts\Run-Laptop.ps1 -Action noise                       # check the ambient noise applies and removes cleanly
 #   .\scripts\Run-Laptop.ps1 -Action batch -Noise random -Tag noise1   # same scenarios with ambient noise
 #
@@ -14,7 +15,7 @@
 # no WSL shutdown; no PVC, namespace or cluster deletion.
 [CmdletBinding()]
 param(
-    [ValidateSet('check', 'pilot', 'batch', 'loop', 'validate', 'noise', 'shell', 'sweep')][string]$Action = 'check',
+    [ValidateSet('check', 'pilot', 'batch', 'loop', 'fix', 'validate', 'noise', 'shell', 'sweep')][string]$Action = 'check',
     [string]$Scenario = 'R06',
     [string]$Scenarios = '',
     [int]$Repeats = 3,
@@ -178,6 +179,7 @@ switch ($Action) {
     'noise'    { $runArgs = @('noise') }
     'validate' { $runArgs = @('validate'); if ($Scenarios) { $runArgs += ($Scenarios -split ',') } else { $runArgs += $Scenario }; if ($Observe -gt 0) { $runArgs += @('--observe', "$Observe") } }
     'loop'     { $runArgs = @('loop'); if ($Scenarios) { $runArgs += ($Scenarios -split ',') } else { $runArgs += $Scenario }; $runArgs += @('--rounds', "$Rounds"); if ($Frame) { $runArgs += @('--frame', $Frame) }; if ($Tag) { $runArgs += @('--tag', $Tag) }; if ($Skills) { $runArgs += @('--skills', $Skills) }; if ($MaxSteps -gt 0) { $runArgs += @('--max-steps', "$MaxSteps") } }
+    'fix'      { $runArgs = @('fix'); if ($Scenarios) { $runArgs += ($Scenarios -split ',') } else { $runArgs += $Scenario }; if ($Tag) { $runArgs += @('--tag', $Tag) } }
     'shell'    { $runArgs = @('shell') }
     'sweep'    { $runArgs = @('sweep') }
     'batch'    {
