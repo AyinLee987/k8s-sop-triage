@@ -1,0 +1,539 @@
+[
+ {
+  "scenario": "BH01",
+  "mode": "D",
+  "lesson": "同时出现多个症状时要分开验证：把 checkoutservice 的支付地址改回正确端口后，500 和下单失败都归零，但超 180ms 请求的占比仍为 74.8%，说明变慢是另一个原因；真正的变慢源头是 currencyservice Pod 的 veth 上的 tc 延时规则，CPU 配额不足这一解释已被排除——所以应先查节点上的 tc/netem 规则，再考虑扩 CPU。",
+  "changes": [
+   {
+    "change": {
+     "op": "add",
+     "sop": "boutique-triage-overview",
+     "text": "【已证实】多个症状同时出现时，不要把它们合并成一个根因：应按症状分组逐项验证，每修完一项就重新查看全部用户侧数字。本次把 checkoutservice 支付地址改回正确端口后，500 和下单失败归零（3/3 失败→0/7），但超 180ms 请求的占比仍是 74.8%，中位数 418ms 基本不变，这证明两个故障彼此独立，剩下的变慢必须另找源头。判断变慢发生在哪一跳时：把各 handler 的耗时与它调用某个下游的次数对照，若耗时随调用次数成比例增长（而不调用该下游的 handler 仍是 0–2ms），就把范围锁定到该下游；接着去查该 Pod 所在节点上 veth 的 tc/netem 延时、丢包规则，再考虑 CPU 配额。"
+    },
+    "applied": true,
+    "id": "E1"
+   },
+   {
+    "change": {
+     "op": "add",
+     "sop": "boutique-checkoutservice",
+     "text": "【已证实】/cart/checkout 返回 500、用户反馈下单失败时，先看 frontend 日志里的 `failed to charge card ... dial tcp <ClusterIP>:<port>: i/o timeout`：核对 checkoutservice Deployment 的 PAYMENT_SERVICE_ADDR 与 paymentservice 的 Service、容器实际端口是否一致（本环境只监听 50051，50052 无监听，会丢包并导致 i/o timeout），并用 ReplicaSet 历史确认它是否最近被改过。改回 paymentservice:50051 触发滚动更新后，500 与下单失败立即归零（3/3 失败→0/7）。注意：此修复不影响页面耗时，若慢请求占比仍高，要去查别的服务（见 currencyservice）。"
+    },
+    "applied": true,
+    "id": "E1"
+   },
+   {
+    "change": {
+     "op": "add",
+     "sop": "boutique-currencyservice",
+     "text": "【已证实】出现“页面整体变慢、但 currencyservice 自身日志无错误”时，先看 frontend 各 handler 的耗时是否与调用 currencyservice 的次数成比例：首页（约 11 次 Convert/GetSupportedCurrencies）稳定在 ~2s、商品页（2 次）~400ms、购物车每多一件 +~200ms，而 POST /cart、/_healthz 等不调用 currency 的请求仍是 0–2ms，据此即可把慢定位到该服务。下一步到它 Pod 所在节点执行 `tc qdisc show dev <veth>`，检查是否有 netem 等延时、丢包规则，清除后恢复默认队列；本次清除后 0% 的请求超过 180ms、中位数 9ms。\n【已排除】200m CPU 上限或 CFS 节流：全程没有改动 CPU 配额，延迟却被清除 tc 规则治好，因此不要把“每次 ~200ms”归因于 CPU 配额不足。"
+    },
+    "applied": true,
+    "id": "E1"
+   }
+  ],
+  "prompt_chars": 7048,
+  "tokens": 6226,
+  "entries_total": 3,
+  "truth": "checkoutservice 的环境变量 PAYMENT_SERVICE_ADDR 被改成 paymentservice:50052（应为 paymentservice:50051），调不到 paymentservice；paymentservice 自身没有问题。"
+ },
+ {
+  "scenario": "BH02",
+  "mode": "D",
+  "lesson": "先按“下单失败”和“页面变慢”拆成两个独立故障：前者看 frontend 日志里 dial 报错的形态（i/o timeout 是端口配错，connection refused 是 Service selector 与 Pod 标签对不上、Endpoints 为空），后者逐跳对时、找 200ms 整数台阶并去节点上查 veth 的 tc/netem 规则；两次修复都只影响自己那一项，指标互不变动就是证据。",
+  "changes": [
+   {
+    "change": {
+     "op": "modify",
+     "sop": "boutique-checkoutservice",
+     "id": "E1",
+     "text": "（BH01）【已证实】/cart/checkout 返回 500、用户反馈下单失败时，先看 frontend 日志里 `failed to charge card ... dial tcp <ClusterIP>:<port>` 的报错形态，分两种查法：(a) `i/o timeout` → 核对 checkoutservice Deployment 的 PAYMENT_SERVICE_ADDR 端口与 paymentservice 实际监听端口是否一致（本环境只监听 50051，50052 无监听会丢包）；（b) `connection refused` → 核对 paymentservice 的 Service selector 与 Pod 标签是否对得上，`kubectl get endpoints paymentservice` 若 subsets 为空即命中（selector 被改成不存在的标签），此时连 ClusterIP 直接被拒。两种都用 ReplicaSet 历史确认是否最近被改过；改回 paymentservice:50051 或 app=paymentservice 后滚动更新，500 与下单失败立即归零（3/3→0/7；本次 5/5→0/7）。注意：此修复不影响页面耗时，>180ms 占比与中位数几乎不变（本次 85.2%、415ms），慢请求必须另查下游。"
+    },
+    "applied": true,
+    "before": "【已证实】/cart/checkout 返回 500、用户反馈下单失败时，先看 frontend 日志里的 `failed to charge card ... dial tcp <ClusterIP>:<port>: i/o timeout`：核对 checkoutservice Deployment 的 PAYMENT_SERVICE_ADDR 与 paymentservice 的 Service、容器实际端口是否一致（本环境只监听 50051，50052 无监听，会丢包并导致 i/o timeout），并用 ReplicaSet 历史确认它是否最近被改过。改回 paymentservice:50051 触发滚动更新后，500 与下单失败立即归零（3/3 失败→0/7）。注意：此修复不影响页面耗时，若慢请求占比仍高，要去查别的服务（见 currencyservice）。"
+   },
+   {
+    "change": {
+     "op": "add",
+     "sop": "boutique-cartservice",
+     "text": "（BH01）【已证实】页面整体变慢（中位数 400ms 级）、其它下游日志无错时，逐跳对时：若耗时呈 200ms 整数台阶、且随 cartservice 的 redis 往返次数成比例增长（GetCart≈400ms、AddItem≈600ms，比 GetCart 多约 200ms），而同 Pod 的 /_healthz 仍 0ms、其它服务毫秒级，就把范围锁到 cartservice Pod 的网络：到其所在节点 `tc qdisc show dev <veth>` 查 netem 等延时/丢包规则，清除恢复默认队列。本次清除后中位数 415ms→10ms、>180ms 占比 85.2%→0.5%，下单失败保持 0。 【已排除】redis-cart 或 cartservice 自身处理慢：redis 无 slowlog/报错、BGSAVE 毫秒级完成，cartservice 无重启且 Readiness 正常，而延迟随网络往返次数成比例增加；也【已排除】CPU 配额/CFS 节流——全程未改配额延迟即消失，不要把固定台阶归因于 CPU 不足。"
+    },
+    "applied": true,
+    "id": "E1"
+   },
+   {
+    "change": {
+     "op": "modify",
+     "sop": "boutique-triage-overview",
+     "id": "E1",
+     "text": "（BH01）【已证实】多个症状同时出现时，不要把它们合并成一个根因：应按症状分组逐项验证，每修完一项就重新查看全部用户侧数字。本次把 paymentservice 的 Service selector 改回正确标签后，500 和下单失败归零（5/5→0/7），但超 180ms 请求的占比仍是 85.2%、中位数 415ms 基本不变，这证明两个故障彼此独立，剩下的变慢必须另找源头。判断变慢发生在哪一跳时：把各 handler 的耗时与它调用某个下游的次数对照，若耗时随调用次数成比例增长（而不调用该下游的 handler 仍是 0–2ms），就把范围锁定到该下游；再看耗时是否为 200ms 整数台阶，去查该 Pod 所在节点上 veth 的 tc/netem 延时、丢包规则，清规则后本次中位数 415ms→10ms、>180ms 占比→0.5%。此模式已在 currencyservice 和 cartservice 两处被证实为节点 veth 的 tc 规则所致，优先级高于 CPU 配额假设。"
+    },
+    "applied": true,
+    "before": "【已证实】多个症状同时出现时，不要把它们合并成一个根因：应按症状分组逐项验证，每修完一项就重新查看全部用户侧数字。本次把 checkoutservice 支付地址改回正确端口后，500 和下单失败归零（3/3 失败→0/7），但超 180ms 请求的占比仍是 74.8%，中位数 418ms 基本不变，这证明两个故障彼此独立，剩下的变慢必须另找源头。判断变慢发生在哪一跳时：把各 handler 的耗时与它调用某个下游的次数对照，若耗时随调用次数成比例增长（而不调用该下游的 handler 仍是 0–2ms），就把范围锁定到该下游；接着去查该 Pod 所在节点上 veth 的 tc/netem 延时、丢包规则，再考虑 CPU 配额。"
+   }
+  ],
+  "prompt_chars": 7631,
+  "tokens": 6524,
+  "entries_total": 4,
+  "truth": "Service paymentservice 的 selector 被改成 app=paymentservice-v2，匹配不到 Pod，端点为空。"
+ },
+ {
+  "scenario": "BH03",
+  "mode": "D",
+  "lesson": "本次是两个独立故障：checkoutservice 的 CURRENCY_SERVICE_ADDR 指向 currencyservice 未监听的 7001 导致 500 和下单失败，改回 7000 后这两个数字归零，但延迟纹丝不动；约 400ms 的固定延迟是绑在 recommendationservice Pod 的 veth 上的 tc 规则，清规则后中位数 407ms→8ms，应当清 tc 规则，而不是重启 Pod。",
+  "changes": [
+   {
+    "change": {
+     "op": "add",
+     "sop": "boutique-recommendationservice",
+     "text": "【已证实】页面变慢、/product/* 与 /cart 页稳定 ~400ms，而首页、POST /cart、/_healthz 仍是 0–47ms 时，把范围锁到 recommendationservice：对齐前端日志，可见请求发出后 +399~435ms 才出现 [Recv ListRecommendations]，而其处理器返回后 4ms 前端即完成，说明延迟全部在入方向。下一步到该 Pod 所在节点执行 `tc qdisc show dev <veth>`，检查 netem 延时/丢包规则，清除后恢复默认队列；本次清除后中位数 407ms→8ms、>180ms 占比 67.4%→0%，500 和下单失败保持 0。 【已排除】该服务处理慢或 CPU 200m 限额：处理段仅 4ms、limit 与 last-applied 一致、全程未改配额延迟即消失。 【未解决】“重建 Pod 清除延迟”从未被验证——本次是清 tc 规则治好的，别把重启 Pod 当已验证手段。"
+    },
+    "applied": true,
+    "id": "E1"
+   },
+   {
+    "change": {
+     "op": "add",
+     "sop": "boutique-checkoutservice",
+     "text": "【已证实】/cart/checkout 返回 500、下单全失败，frontend 日志为 `failed to prepare order: failed to convert price of ...`（rpc code = Internal）而 currencyservice 自身日志全是 conversion request successful 时，查 checkoutservice 的 CURRENCY_SERVICE_ADDR 端口是否等于 currencyservice 实际监听端口（本环境只监听 7000，7001 无监听，首单会建连超时数秒、后续快速失败）：`kubectl get deploy checkoutservice -o yaml` 看容器 env 与 last-applied 差异，用新 ReplicaSet 创建时间确认是否刚被 patch。改回 currencyservice:7000 后本次 500 7→0、下单失败 7→0，但中位数 404→407ms、>180ms 65.4%→67.4% 不变——【已排除】该端口错误是变慢的原因，两者独立，改完继续按“耗时对下游调用次数”找变慢那一跳。"
+    },
+    "applied": true,
+    "id": "E2"
+   },
+   {
+    "change": {
+     "op": "modify",
+     "sop": "boutique-triage-overview",
+     "id": "E1",
+     "text": "【已证实】多个症状同时出现时不要合并成一个根因，按症状分组验证，每修完一项重看全部用户侧数字：本次把 checkoutservice 的 CURRENCY_SERVICE_ADDR 改回 7000 后 500 与下单失败归零，但中位数 404→407ms、>180ms 占比 65.4%→67.4% 不变，证明 500 与变慢是两个独立故障。定位变慢：把各 handler 耗时与它调用某下游的次数对照，耗时随调用次数成比例增长（不调用它的 handler 仍 0–2ms）就锁定该下游；/product 与 /cart 页慢时也要看它是否调用 recommendationservice，别默认归到 cartservice。若耗时呈 200ms 整数台阶，到该 Pod 所在节点 `tc qdisc show dev <veth>` 查 netem 延时/丢包规则，清除恢复默认队列。此模式已在 currencyservice、cartservice、recommendationservice 三处证实为节点 veth tc 规则所致（本次清后 407ms→8ms、>180ms 67.4%→0%），优先级高于 CPU 配额假设。"
+    },
+    "applied": true,
+    "before": "（BH01）【已证实】多个症状同时出现时，不要把它们合并成一个根因：应按症状分组逐项验证，每修完一项就重新查看全部用户侧数字。本次把 paymentservice 的 Service selector 改回正确标签后，500 和下单失败归零（5/5→0/7），但超 180ms 请求的占比仍是 85.2%、中位数 415ms 基本不变，这证明两个故障彼此独立，剩下的变慢必须另找源头。判断变慢发生在哪一跳时：把各 handler 的耗时与它调用某个下游的次数对照，若耗时随调用次数成比例增长（而不调用该下游的 handler 仍是 0–2ms），就把范围锁定到该下游；再看耗时是否为 200ms 整数台阶，去查该 Pod 所在节点上 veth 的 tc/netem 延时、丢包规则，清规则后本次中位数 415ms→10ms、>180ms 占比→0.5%。此模式已在 currencyservice 和 cartservice 两处被证实为节点 veth 的 tc 规则所致，优先级高于 CPU 配额假设。"
+   }
+  ],
+  "prompt_chars": 9037,
+  "tokens": 7439,
+  "entries_total": 6,
+  "truth": "checkoutservice 的环境变量 CURRENCY_SERVICE_ADDR 被改成 currencyservice:7001（应为 currencyservice:7000），调不到 currencyservice；currencyservice 自身没有问题。"
+ },
+ {
+  "scenario": "BH04",
+  "mode": "D",
+  "lesson": "页面整体变慢且无 5xx、Pod 健康时，先按“某下游每次往返叠加固定 200–300ms 台阶”锁定，再到各候选 Pod 所在节点清 veth 上的 tc netem 规则，本环境两次都是这么治好的；不要再把“重启 Pod”当手段——本次没重启任何 Pod 就恢复，且只清被证实的两条 veth 后，被时间戳“指向”的 recommendationservice、adservice 也自动回落，说明它们只是继承了下游延迟。",
+  "changes": [
+   {
+    "change": {
+     "op": "modify",
+     "sop": "boutique-triage-overview",
+     "id": "E1",
+     "text": "【已证实】多个症状不要并成一个根因，按症状分组验证，每修一项重看全部用户侧数字（曾见 500 修好后中位数 404→407ms 不变）。定位“页面整体变慢、无 5xx、Pod 健康”：把各 handler 耗时与它调用某下游的次数对照，耗时随次数呈 200–300ms 整数台阶增长（不调它的 /_healthz、POST /cart 仍 0–2ms）就锁定该下游，本次中位数 2405ms≈8×300ms、86.1% 请求超 180ms。下一步到该 Pod 所在节点 `tc qdisc show dev <veth>` 查 netem 延时/丢包并清除恢复默认队列；页面依赖多个下游时把所有候选 Pod 的 veth 一起查清（本次清 productcatalogservice、redis-cart 两个 veth 后中位数 2405→10ms、>180ms 86.1%→0%、p99 76ms，500 与下单失败保持 0）。【已排除】CPU 配额/CFS 节流，以及“必须重建 Pod 才能清掉延迟”——本次未重启任何 Pod 即恢复。"
+    },
+    "applied": true,
+    "before": "【已证实】多个症状同时出现时不要合并成一个根因，按症状分组验证，每修完一项重看全部用户侧数字：本次把 checkoutservice 的 CURRENCY_SERVICE_ADDR 改回 7000 后 500 与下单失败归零，但中位数 404→407ms、>180ms 占比 65.4%→67.4% 不变，证明 500 与变慢是两个独立故障。定位变慢：把各 handler 耗时与它调用某下游的次数对照，耗时随调用次数成比例增长（不调用它的 handler 仍 0–2ms）就锁定该下游；/product 与 /cart 页慢时也要看它是否调用 recommendationservice，别默认归到 cartservice。若耗时呈 200ms 整数台阶，到该 Pod 所在节点 `tc qdisc show dev <veth>` 查 netem 延时/丢包规则，清除恢复默认队列。此模式已在 currencyservice、cartservice、recommendationservice 三处证实为节点 veth tc 规则所致（本次清后 407ms→8ms、>180ms 67.4%→0%"
+   },
+   {
+    "change": {
+     "op": "add",
+     "sop": "boutique-productcatalogservice",
+     "text": "【已证实】首页、商品页、购物车、下单页一起变慢但无 5xx、Pod 无重启且配置正常时，若耗时随对 productcatalogservice 的往返次数以 ~300ms 台阶增长（首页≈2×300ms、加购≈3×300ms、商品页≈8×300ms），到该 Pod 所在节点 `tc qdisc show dev <veth>` 查 netem 延时/丢包并清除恢复默认队列；本次与 redis-cart 的 veth 一起清除后中位数 2405→10ms、>180ms 86.1%→0%。它的 veth 延时会让调用方看起来也慢（内部再调 ListProducts 的 recommendationservice、依赖它的 checkout），修好后这些调用方耗时自动回落，别把它们各自判成源头；adservice 本次也被判为源头，但它未被动过、商品页已 <180ms，故其自身注入【已排除】。同时【已排除】CPU/CFS 与配置漂移（env/resources 为默认、Pod 无重启），以及“需重建 Pod”——未重启任何 Pod 即恢复。"
+    },
+    "applied": true,
+    "id": "E1"
+   },
+   {
+    "change": {
+     "op": "add",
+     "sop": "boutique-recommendationservice",
+     "text": "【已排除】ListRecommendations 变慢不等于源头在本服务：它内部还会调 productcatalogservice.ListProducts，上游 productcatalogservice 的 veth 被注入 ~300ms 延时会让它的耗时同步抬升。判别方法：看 productcatalogservice 的 GetProduct/ListProducts 是否也是 ~300ms/次、其调用方是否同样呈台阶；是则先清 productcatalogservice 的 tc 规则再复测。本次只清 productcatalogservice、redis-cart 的 veth、完全没动本服务，商品页即从 ~2400ms 回落到 10ms 级、0% 请求超 180ms；只有上游正常而本服务自身仍慢时，才按 E1 查自己的 veth。"
+    },
+    "applied": true,
+    "id": "E2"
+   }
+  ],
+  "prompt_chars": 9713,
+  "tokens": 9805,
+  "entries_total": 8,
+  "truth": "productcatalogservice 的 Pod 网络被加了约 300ms 延迟；它自身处理不慢，调用它的服务跟着变慢。"
+ },
+ {
+  "scenario": "BH05",
+  "mode": "D",
+  "lesson": "页面整体变慢但 0 报错、Pod 全健康时，先用“各 handler 耗时随某个下游调用次数以 ~200ms 台阶增长”锁定那个下游，再用服务端 handler 入口日志与调用方请求起始时刻的恒定偏移（~190–210ms）证明延迟在入方向而非处理慢；修复是到 Pod 所在节点清对应 veth 的 tc/netem 规则恢复默认队列（本次清后中位数 420→9ms、>180ms 75.2%→0%、500 与下单失败保持 0），全程无需重建 Pod——并注意一次只清一个 veth 才能归因。",
+  "changes": [
+   {
+    "change": {
+     "op": "modify",
+     "sop": "boutique-currencyservice",
+     "id": "E1",
+     "text": "（BH01、BH05）【已证实】出现“页面整体变慢、但 currencyservice 自身日志无错误”时，先看 frontend 各 handler 耗时是否与调用 currencyservice 的次数成比例：首页（约 11 次 Convert/GetSupportedCurrencies）稳定 ~2s、商品页（2 次）~400ms、购物车每多一件 +~200ms，而 POST /cart、/_healthz 等不调 currency 的请求仍 0–2ms，据此把慢定位到该服务。交叉验证：把调用方页面起始时刻与服务端入口日志（Getting supported currencies）逐条对齐，偏移恒定 ~190–210ms 而 handler 返回仅 +8ms，说明延迟在入方向；另一独立调用方 checkoutservice 也慢（PlaceOrder→payment 前置 >1s，与转换次数×200ms 吻合），可排除“只是 frontend 慢”。下一步到该 Pod 所在节点 `tc qdisc show dev <veth>` 查 netem 延时/丢包并清除恢复默认队列；两次清除后均见 0% 请求超 180ms、中位数 9ms、500 与下单失败为 0。 【已排除】200m CPU 上限/CFS 节流：未改任何配额，清 tc 即恢复。 【未解决】“重建 Pod 才能清延迟”未被验证——两次都是清 tc 治好、从未重启 Pod。"
+    },
+    "applied": true,
+    "before": "【已证实】出现“页面整体变慢、但 currencyservice 自身日志无错误”时，先看 frontend 各 handler 的耗时是否与调用 currencyservice 的次数成比例：首页（约 11 次 Convert/GetSupportedCurrencies）稳定在 ~2s、商品页（2 次）~400ms、购物车每多一件 +~200ms，而 POST /cart、/_healthz 等不调用 currency 的请求仍是 0–2ms，据此即可把慢定位到该服务。下一步到它 Pod 所在节点执行 `tc qdisc show dev <veth>`，检查是否有 netem 等延时、丢包规则，清除后恢复默认队列；本次清除后 0% 的请求超过 180ms、中位数 9ms。 【已排除】200m CPU 上限或 CFS 节流：全程没有改动 CPU 配额，延迟却被清除 tc 规则治好，因此不要把“每次 ~200ms”归因于 CPU 配额不足。"
+   },
+   {
+    "change": {
+     "op": "modify",
+     "sop": "boutique-triage-overview",
+     "id": "E1",
+     "text": "（BH01、BH02、BH03、BH04、BH05）【已证实】多个症状不要并成一个根因，按症状分组验证，每修一项重看全部用户侧数字（曾见 500 修好后中位数 404→407ms 不变）。定位“页面整体变慢、无 5xx、Pod 健康”：把各 handler 耗时与它调用某下游的次数对照，耗时随次数呈 200–300ms 整数台阶增长（不调它的 /_healthz、POST /cart 仍 0–2ms）就锁定该下游；若两个互不相干的调用方（frontend 与 checkoutservice）同时变慢，源头几乎必然是它们共同依赖的那一个下游，别把各调用方分别判成源头。下一步到该 Pod 所在节点 `tc qdisc show dev <veth>` 查 netem 延时/丢包并清除恢复默认队列；一次清多个 veth 时先记下清除前后数字、必要时逐个复测，否则无法归因（曾同时清两个，事后分不清另一个是否也有规则）。【已排除】CPU 配额/CFS 节流，以及“必须重建 Pod 才能清掉延迟”——两次均未重启任何 Pod，清 tc 即恢复。"
+    },
+    "applied": true,
+    "before": "【已证实】多个症状不要并成一个根因，按症状分组验证，每修一项重看全部用户侧数字（曾见 500 修好后中位数 404→407ms 不变）。定位“页面整体变慢、无 5xx、Pod 健康”：把各 handler 耗时与它调用某下游的次数对照，耗时随次数呈 200–300ms 整数台阶增长（不调它的 /_healthz、POST /cart 仍 0–2ms）就锁定该下游，本次中位数 2405ms≈8×300ms、86.1% 请求超 180ms。下一步到该 Pod 所在节点 `tc qdisc show dev <veth>` 查 netem 延时/丢包并清除恢复默认队列；页面依赖多个下游时把所有候选 Pod 的 veth 一起查清（本次清 productcatalogservice、redis-cart 两个 veth 后中位数 2405→10ms、>180ms 86.1%→0%、p99 76ms，500 与下单失败保持 0）。【已排除】CPU 配额/CFS 节流，以及“必须重建 Pod 才能清掉延迟”——本次未重启任何 Pod 即恢复。"
+   },
+   {
+    "change": {
+     "op": "add",
+     "sop": "boutique-shippingservice",
+     "text": "（BH05）【未解决】本次“页面整体变慢、0 报错”的耗时已被 currencyservice 的 ~200ms/次入向延迟完全解释（台阶随货币转换次数增长），shippingservice 没有独立症状；但工程师清 tc 时把它与 currencyservice 的 veth 一并清了，事后无法判断它上面是否也有 netem 规则。下次遇到同样形态：先只清 currencyservice 的 veth 并复测用户侧数字，仍有台阶再查别的下游；若要清多个，逐个清除、每次重看中位数与 >180ms 占比，避免归因不清。"
+    },
+    "applied": true,
+    "id": "E1"
+   }
+  ],
+  "prompt_chars": 10099,
+  "tokens": 10144,
+  "entries_total": 9,
+  "truth": "currencyservice 的 Pod 网络被加了约 200ms 延迟；它自身处理不慢，调用它的服务跟着变慢。"
+ },
+ {
+  "scenario": "BH06",
+  "mode": "D",
+  "lesson": "无 5xx 的整体变慢，先看耗时是否随调用某下游的次数呈 ~200ms 台阶——是则去该 Pod 的节点查 veth 上 netem 并清 tc（本次中位数 416→8ms、>180ms 74.6%→0%）；同期把被缩容到 0 的服务扩容、以及 agent 建议的重启 Pod，都没有让数字变动，别把它们当修复手段。",
+  "changes": [
+   {
+    "change": {
+     "op": "modify",
+     "sop": "boutique-currencyservice",
+     "id": "E1",
+     "text": "（BH01、BH05）【已证实】页面整体变慢、无 5xx、currencyservice 自身日志无错误时，先看 frontend 各 handler 耗时是否与调用 currencyservice 次数成比例：首页 ~2s（约 10 次 Convert/GetSupportedCurrencies）、商品页 ~400ms（2 次）、/cart 每多一件 +~200ms，而 POST /cart、/_healthz 等不调它的请求仍 0–2ms，据此锁定该服务。交叉验证：服务端入口日志（Getting supported currencies）与前端请求起始时刻偏移恒定 ~200ms、而 handler 返回仅 +8ms（延迟在入方向）；独立调用方 checkoutservice 的 PlaceOrder→payment 也 >1s，可排除只是 frontend 慢。下一步到该 Pod 所在节点 `tc qdisc show dev <veth>` 查 netem 延时/丢包并清除恢复默认队列；本次清除后中位数 416ms→8ms、>180ms 74.6%→0%，500 与下单失败保持 0。【已排除】CPU 限额与 Pod 异常（未重启、spec 原版、restartCount 0），也【已排除】改副本/重启 Pod——本次没重启，只清 tc 即恢复。"
+    },
+    "applied": true,
+    "before": "（BH01、BH05）【已证实】出现“页面整体变慢、但 currencyservice 自身日志无错误”时，先看 frontend 各 handler 耗时是否与调用 currencyservice 的次数成比例：首页（约 11 次 Convert/GetSupportedCurrencies）稳定 ~2s、商品页（2 次）~400ms、购物车每多一件 +~200ms，而 POST /cart、/_healthz 等不调 currency 的请求仍 0–2ms，据此把慢定位到该服务。交叉验证：把调用方页面起始时刻与服务端入口日志（Getting supported currencies）逐条对齐，偏移恒定 ~190–210ms 而 handler 返回仅 +8ms，说明延迟在入方向；另一独立调用方 checkoutservice 也慢（PlaceOrder→payment 前置 >1s，与转换次数×200ms 吻合），可排除“只是 frontend 慢”。下一步到该 Pod 所在节点 `tc qdisc show dev <veth>` 查 netem 延时/丢包并清除恢复默认队列；两"
+   },
+   {
+    "change": {
+     "op": "add",
+     "sop": "boutique-adservice",
+     "text": "【已证实】frontend 日志每个首页/商品页都打 `failed to retrieve ads: ... dial tcp <ClusterIP>:9555: connect: connection refused`、页面无广告时，查 adservice Deployment 副本数（可能被缩到 0）、`kubectl get endpoints adservice`（subsets 为空）以及 Pod 的 Killing/SuccessfulDelete 事件；把副本恢复为 1 后确认报错日志停止、页面重新出广告。但本次恢复副本后用户侧完全不变（中位数仍 416ms、>180ms 74.6%），【已排除】它是页面变慢的原因——广告调用毫秒级失败，不计入延迟；变慢要继续按“耗时随调用某下游次数呈 ~200ms 台阶”查别的下游（本次是 currencyservice 的 veth 延时，清 tc 后 416→8ms）。"
+    },
+    "applied": true,
+    "id": "E1"
+   },
+   {
+    "change": {
+     "op": "modify",
+     "sop": "boutique-triage-overview",
+     "id": "E1",
+     "text": "（BH01–BH05）【已证实】多个症状不要并成一个根因，按症状分组验证，每修一项重看全部用户侧数字（曾见 500 修好后中位数 404→407ms 不变；也见把被缩容到 0 的服务扩容后中位数 416ms、>180ms 74.6% 均不变）。定位“页面整体变慢、无 5xx、Pod 健康”：把各 handler 耗时与它调用某下游的次数对照，随次数呈 200–300ms 整数台阶增长（不调它的 /_healthz、POST /cart 仍 0–2ms）就锁定该下游；两个互不相干的调用方（frontend、checkoutservice）同时变慢，源头几乎必然是它们共同依赖的那一个下游。下一步到该 Pod 所在节点 `tc qdisc show dev <veth>` 查 netem 延时/丢包并清除恢复默认队列；一次清多个 veth 要逐个清、每次复测，否则无法归因。【已排除】CPU 配额/CFS 节流，以及“必须重建 Pod/重启服务才能清掉延迟”——三次均未重启 Pod，清 tc 即恢复（本次中位数 416→8ms、>180ms 74.6%→0%）。"
+    },
+    "applied": true,
+    "before": "（BH01、BH02、BH03、BH04、BH05）【已证实】多个症状不要并成一个根因，按症状分组验证，每修一项重看全部用户侧数字（曾见 500 修好后中位数 404→407ms 不变）。定位“页面整体变慢、无 5xx、Pod 健康”：把各 handler 耗时与它调用某下游的次数对照，耗时随次数呈 200–300ms 整数台阶增长（不调它的 /_healthz、POST /cart 仍 0–2ms）就锁定该下游；若两个互不相干的调用方（frontend 与 checkoutservice）同时变慢，源头几乎必然是它们共同依赖的那一个下游，别把各调用方分别判成源头。下一步到该 Pod 所在节点 `tc qdisc show dev <veth>` 查 netem 延时/丢包并清除恢复默认队列；一次清多个 veth 时先记下清除前后数字、必要时逐个复测，否则无法归因（曾同时清两个，事后分不清另一个是否也有规则）。【已排除】CPU 配额/CFS 节流，以及“必须重建 Pod 才能清掉延迟”——两次均未重启任何 Pod，清 tc 即恢复。"
+   }
+  ],
+  "prompt_chars": 11039,
+  "tokens": 9462,
+  "entries_total": 10,
+  "truth": "currencyservice 的 Pod 网络被加了约 200ms 延迟；它自身处理不慢，调用它的服务跟着变慢。"
+ },
+ {
+  "scenario": "BH07",
+  "mode": "D",
+  "lesson": "下单 100% 失败但延迟指标完全正常（中位数 6–8ms、无 >180ms）时属于配置类错误，不要去查 veth/tc 台阶：从 frontend 错误日志定位卡在哪个下游（shipping quote→shippingservice、charge card→paymentservice、convert price→currencyservice），核对该下游的地址与端口。先修“无关异常”（如扩回副本为 0 的 recommendationservice）只会让 500 和下单失败数字原地不动，正好用来排除它。",
+  "changes": [
+   {
+    "change": {
+     "op": "modify",
+     "sop": "boutique-checkoutservice",
+     "id": "E1",
+     "text": "【已证实】/cart/checkout 返回 500、下单全失败而其它页面正常时，先用 frontend 日志判断失败卡在哪个下游步骤（`failed to charge card`→paymentservice、`shipping quote failure`→shippingservice、`failed to convert price`→currencyservice），再核对 checkoutservice 里对应的 `<SVC>_SERVICE_ADDR` 端口与目标 Service 的 port/targetPort、Pod 实际监听口是否一致。两种形态：(a) `i/o timeout`→地址或端口写错（本环境 shippingservice 只监听 50051，写成 50052 即超时；currencyservice 只监听 7000；paymentservice 只监听 50051）；(b) `connection refused`→查该服务 Service selector 与 Pod 标签是否匹配，`kubectl get endpoints <svc>` subsets 为空即命中。都用 ReplicaSet 历史与 last-applied 确认是否最近被 patch（新 RS 带错值、旧 RS 正确）。本次改回 SHIPPING_SERVICE_ADDR=shippingservice:50051 后 500 8→0、下单失败 8→0，中位数 8ms 不变——【已排除】这类配置错误会导致变慢，别把下单失败和延迟并成一个根因。"
+    },
+    "applied": true,
+    "before": "（BH01）【已证实】/cart/checkout 返回 500、用户反馈下单失败时，先看 frontend 日志里 `failed to charge card ... dial tcp <ClusterIP>:<port>` 的报错形态，分两种查法：(a) `i/o timeout` → 核对 checkoutservice Deployment 的 PAYMENT_SERVICE_ADDR 端口与 paymentservice 实际监听端口是否一致（本环境只监听 50051，50052 无监听会丢包）；（b) `connection refused` → 核对 paymentservice 的 Service selector 与 Pod 标签是否对得上，`kubectl get endpoints paymentservice` 若 subsets 为空即命中（selector 被改成不存在的标签），此时连 ClusterIP 直接被拒。两种都用 ReplicaSet 历史确认是否最近被改过；改回 paymentservice:50051 或 app=paymentservic"
+   },
+   {
+    "change": {
+     "op": "add",
+     "sop": "boutique-recommendationservice",
+     "text": "【已排除】商品页/购物车页仍返回 200、但 frontend 日志每个页面都打 `failed to get product recommendations ... dial tcp <ClusterIP>:8080: connect: connection refused` 时，查该 Deployment 的 replicas（可能被缩到 0）和 `kubectl get endpoints recommendationservice`（subsets 为空），扩回 1 即可消除此报错；这是 frontend 降级处理的非致命路径。本次扩回后 500 仍 8 个、下单 8 次仍全失败、中位数 8ms 不变，【已排除】它是下单 500 的原因，不要与 checkout 链路的下游地址错误合并成同一个根因。"
+    },
+    "applied": true,
+    "id": "E3"
+   },
+   {
+    "change": {
+     "op": "add",
+     "sop": "boutique-triage-overview",
+     "text": "【已证实】“下单全失败/500 占比高”但延迟指标完全正常（中位数 6–8ms、几乎无 >180ms）时，不要按“耗时台阶→veth netem”去查，这是配置类错误：从 frontend 错误日志定位失败在下游的哪个调用，核对该下游的地址/端口/selector（见 checkoutservice 条目）。判别方法：先修那些无关的异常（扩回被缩到 0 的 recommendationservice/adservice），若 500 与下单失败数字不变，说明它被降级处理、不是根因——本次扩回推荐服务后仍是 500 8 个、下单 8/8 失败，改对 SHIPPING_SERVICE_ADDR 后 500→0、下单 8/8 成功。"
+    },
+    "applied": true,
+    "id": "E2"
+   }
+  ],
+  "prompt_chars": 11369,
+  "tokens": 9616,
+  "entries_total": 12,
+  "truth": "checkoutservice 的环境变量 SHIPPING_SERVICE_ADDR 被改成 shippingservice:50052（应为 shippingservice:50051），调不到 shippingservice；shippingservice 自身没有问题。"
+ },
+ {
+  "scenario": "BH08",
+  "mode": "D",
+  "lesson": "页面整体变慢、无 5xx 时，按“每次下游往返固定多花多少毫秒”拆耗时：本次每次 cartservice→redis-cart 的 Redis 往返固定多 ~285ms（1 次≈300ms、2 次≈600ms），而首页其余 12 个 RPC 合计仅 ~30ms，说明延时挂在这一跳、且实际落在 redis-cart Pod 的 veth 上——清其 tc 规则后中位数 313→8ms、>180ms 85.6%→0%。删 cartservice 的额外 env（滚动更新）后数字不变，即排除配置/发布；也没必要重启 redis-cart 或加 CPU 限额。",
+  "changes": [
+   {
+    "change": {
+     "op": "add",
+     "sop": "boutique-redis-cart",
+     "text": "【已证实】页面整体变慢、无 5xx、Pod 全 Running/Ready，且耗时随 cartservice→redis-cart 的往返次数呈固定台阶（GET /cart=1 次 Redis 操作≈285–340ms、POST /cart=2 次≈565–630ms、/cart/checkout=2 次≈580–645ms，而首页其余 12 个 RPC 合计仅 ~30ms、不调 Redis 的 /setCurrency 仍 0ms）时，延时挂在这一跳：到 redis-cart Pod 所在节点 `tc qdisc show dev <veth>` 查 netem 延时/丢包，清除恢复默认队列；本次清除后中位数 313→8ms、>180ms 85.6%→0%，500 与下单失败保持 0。【已排除】cartservice 的额外 env/滚动更新（删 RELEASE_TAG 触发滚动后中位数 313ms、85.6% 不变）与 redis-cart 的 125m CPU 限流（未改配额、未重启 Pod 延迟即消失）；不要按“重启 redis-cart / 加 CPU 限额”处理，先清 veth 上的 tc。"
+    },
+    "applied": true,
+    "id": "E1"
+   },
+   {
+    "change": {
+     "op": "modify",
+     "sop": "boutique-cartservice",
+     "id": "E1",
+     "text": "【已证实】页面整体变慢、耗时呈 200ms 级整数台阶且随 cartservice→redis 往返次数成比例（GetCart≈400ms、AddItem≈600ms，比 GetCart 多约 200ms），而同 Pod /_healthz 仍 0ms 时，把范围锁到 cartservice↔redis-cart 这一跳：分别到 cartservice Pod 和 redis-cart Pod 所在节点 `tc qdisc show dev <veth>` 查 netem，清除恢复默认队列。本次根因在 redis-cart 一侧——只清 redis-cart 的 veth 后中位数 313→8ms、>180ms 85.6%→0%，下单失败保持 0，故两端都要查，别默认在调用方 Pod。【已排除】redis-cart/cartservice 自身处理慢（redis 无 slowlog/报错、BGSAVE 毫秒级、Pod 无重启且 Readiness 正常，延迟随网络往返次数成比例）和 CPU 配额/CFS 节流（全程未改配额延迟即消失）。"
+    },
+    "applied": true,
+    "before": "（BH01）【已证实】页面整体变慢（中位数 400ms 级）、其它下游日志无错时，逐跳对时：若耗时呈 200ms 整数台阶、且随 cartservice 的 redis 往返次数成比例增长（GetCart≈400ms、AddItem≈600ms，比 GetCart 多约 200ms），而同 Pod 的 /_healthz 仍 0ms、其它服务毫秒级，就把范围锁到 cartservice Pod 的网络：到其所在节点 `tc qdisc show dev <veth>` 查 netem 等延时/丢包规则，清除恢复默认队列。本次清除后中位数 415ms→10ms、>180ms 占比 85.2%→0.5%，下单失败保持 0。 【已排除】redis-cart 或 cartservice 自身处理慢：redis 无 slowlog/报错、BGSAVE 毫秒级完成，cartservice 无重启且 Readiness 正常，而延迟随网络往返次数成比例增加；也【已排除】CPU 配额/CFS 节流——全程未改配额延迟即消失，不要把固定台阶归因于 CPU 不足。"
+   }
+  ],
+  "prompt_chars": 12506,
+  "tokens": 8865,
+  "entries_total": 13,
+  "truth": "redis-cart 的 Pod 网络被加了约 300ms 延迟；它自身处理不慢，调用它的服务跟着变慢。"
+ },
+ {
+  "scenario": "BH09",
+  "mode": "D",
+  "lesson": "页面变慢但无 5xx 时，日志对齐可区分“请求晚到”与“服务端慢”；本次 shippingservice 入向 veth 的 netem ~300ms 由清 tc 证实（>180ms 29.1%→0），不要先重建 Pod。emailservice selector 类告警不影响延迟/下单成功率，必须用邮件自身日志验证。",
+  "changes": [
+   {
+    "change": {
+     "op": "modify",
+     "sop": "boutique-shippingservice",
+     "id": "E1",
+     "text": "【已证实】页面整体变慢但无 5xx、Pod 全 Ready，且 frontend 日志显示 GET /cart 约 300ms、/cart/checkout 约 600ms、商品页/首页正常（耗时随调用 shippingservice 的 GetQuote/ShipOrder 次数呈 ~300ms 台阶）时，对齐日志可见请求到达 shippingservice 比发出晚约 300ms、服务端处理 <1ms、响应仅 1–2ms，延迟在入方向。下一步到该 Pod 所在节点 `tc qdisc show dev <veth>` 查 netem 并清除恢复默认队列；本次清除后 >180ms 29.1%→0%、中位数 9→8ms、p90 328→13ms、p99 658→37ms，500/下单失败保持 0，未重启 Pod 即恢复，故先清 tc、不要先按重建 Pod 处理。【已排除】服务端处理慢或 CPU 限额（handler 亚毫秒、探针 1s 内通过）。"
+    },
+    "applied": true,
+    "before": "（BH05）【未解决】本次“页面整体变慢、0 报错”的耗时已被 currencyservice 的 ~200ms/次入向延迟完全解释（台阶随货币转换次数增长），shippingservice 没有独立症状；但工程师清 tc 时把它与 currencyservice 的 veth 一并清了，事后无法判断它上面是否也有 netem 规则。下次遇到同样形态：先只清 currencyservice 的 veth 并复测用户侧数字，仍有台阶再查别的下游；若要清多个，逐个清除、每次重看中位数与 >180ms 占比，避免归因不清。"
+   },
+   {
+    "change": {
+     "op": "add",
+     "sop": "boutique-emailservice",
+     "text": "【已排除】checkoutservice 日志反复出现 `failed to send order confirmation ... connect: connection refused` 而订单仍成功时，可查 emailservice 的 Service selector 是否与 Pod 标签不一致、`kubectl get endpoints emailservice` 是否为空并修正；但本次修正后中位数 10→9ms、>180ms 22.8%→29.1%、500 与下单失败均 0 不变，故它不是页面变慢或下单失败的原因。邮件是否恢复不能看前端延迟/下单成功率，需查 emailservice 收到 SendOrderConfirmation 或 checkout 不再打该 warning；缺此证据前不要把邮件链路标为已恢复。"
+    },
+    "applied": true,
+    "id": "E1"
+   }
+  ],
+  "prompt_chars": 12663,
+  "tokens": 11812,
+  "entries_total": 14,
+  "truth": "shippingservice 的 Pod 网络被加了约 300ms 延迟；它自身处理不慢，调用它的服务跟着变慢。"
+ },
+ {
+  "scenario": "BH10",
+  "mode": "D",
+  "lesson": "500 高但延迟正常、失败在毫秒级立即返回，属于“连接被拒”类配置错误，别按 veth netem 延时查：connection refused 既可能来自 selector 与 Pod 标签不匹配（Endpoints 为空），也可能来自 targetPort 指向无人监听的端口（Endpoints 非空但端口是错的）。每改一项就复测一次用户侧数字，数字没变的当场排除。",
+  "changes": [
+   {
+    "change": {
+     "op": "modify",
+     "sop": "boutique-triage-overview",
+     "id": "E2",
+     "text": "【已证实】“下单全失败/500 占比高”但延迟完全正常（中位数 6–9ms、几乎无 >180ms）时，不要按“耗时台阶→veth netem”查，这是配置/连接类错误：从 frontend 错误日志定位失败卡在下游哪个调用（`could not retrieve cart`→cartservice、`failed to charge card`→paymentservice），再核对三处：Service selector 是否匹配 Pod 标签、targetPort 是否等于容器实际监听端口、`<SVC>_SERVICE_ADDR` 的地址端口（见 checkoutservice 条目）。注意 `connect: connection refused` 既可能是 Endpoints 为空（selector 错），也可能是 targetPort 指向无人监听端口——后者 Endpoints 非空、端口却是错的，必须把 `kubectl get endpoints` 里的端口与容器 containerPort/Pod 启动日志的监听口逐个比对。判别根因靠逐步修+每次复测：先修无关异常（扩回被缩到 0 的 recommendationservice/adservice），500 与下单失败不变说明它是被降级处理的非根因——本次扩回推荐服务后仍 500 8 个、改对 SHIPPING_SERVICE_ADDR 后 500→0、下单 8/8 成功；另一次改 adservice selector 后 500 仍 169 个、下单仍全失败、中位数 1ms 不变，改对 cartservice targetPort 7071→7070 后 500→0、下单 7/7 成功。"
+    },
+    "applied": true,
+    "before": "【已证实】“下单全失败/500 占比高”但延迟指标完全正常（中位数 6–8ms、几乎无 >180ms）时，不要按“耗时台阶→veth netem”去查，这是配置类错误：从 frontend 错误日志定位失败在下游的哪个调用，核对该下游的地址/端口/selector（见 checkoutservice 条目）。判别方法：先修那些无关的异常（扩回被缩到 0 的 recommendationservice/adservice），若 500 与下单失败数字不变，说明它被降级处理、不是根因——本次扩回推荐服务后仍是 500 8 个、下单 8/8 失败，改对 SHIPPING_SERVICE_ADDR 后 500→0、下单 8/8 成功。"
+   },
+   {
+    "change": {
+     "op": "add",
+     "sop": "boutique-cartservice",
+     "text": "【已证实】大面积 500、下单全失败，但延迟完全正常（中位数 1–9ms、0% >180ms、失败是毫秒级立即返回而非超时）时，先看 frontend 日志是否全是 `could not retrieve cart` / `failed to add to cart` / `cart failure: ... dial tcp <cartservice ClusterIP>:7070: connect: connection refused`——这表示调用方到 cartservice 的 100% 连接被拒，不是延时问题，别去清 veth。下一步：`kubectl get svc cartservice -o yaml` 看 port/targetPort、`kubectl get endpoints cartservice` 看转发端口、Pod 启动日志（`Now listening on: ...:7070`）或 Pod 内 `ss -lntp` 看实际监听口。若 targetPort 被改成 7071 而 Pod 只听 7070，Endpoints 看似有地址但端口错，改回 7070 后本次 500 169→0、下单 6/6 失败→7/7 成功；selector 不匹配则会让 Endpoints 直接为空，两种都要核对。"
+    },
+    "applied": true,
+    "id": "E2"
+   }
+  ],
+  "prompt_chars": 11900,
+  "tokens": 9541,
+  "entries_total": 15,
+  "truth": "Service cartservice 的 targetPort 被改成 7071（容器监听 7070），Pod 正常但流量到不了。"
+ },
+ {
+  "scenario": "BH11",
+  "mode": "D",
+  "lesson": "“时快时慢、中位数正常但尾部差、无报错”且慢请求占比随每个请求调用后端的次数上升（不调后端端点恒 0ms），说明某条跨 Pod RPC 被周期性地加延时，是下游 Pod veth netem 的特征而非 CPU 节流；直接到嫌疑 Pod 所在节点查 tc，清一处后立刻复测归因。",
+  "changes": [
+   {
+    "change": {
+     "op": "modify",
+     "sop": "boutique-triage-overview",
+     "id": "E1",
+     "text": "（BH01–BH06、本次）【已证实】多个症状不要并成一个根因，按症状分组验证，每修一项重看全部用户侧数字（曾见 500 修好后中位数 404→407ms 不变；扩回被缩容服务后 74.6% 不变）。定位“页面变慢、无 5xx、Pod 健康”：把各 handler 耗时或慢请求占比与它调用某下游的次数对照，两种形态都指向某个下游 Pod 的 veth netem 延时：(a) 整体台阶——耗时随调用次数以 200–300ms 台阶增长；(b) 尾部弥散——中位数正常、仅 ~15% 请求偶发 +~200ms，慢占比随调用次数上升（不调后端的端点 0%、调 1 次 ~5%、调 6 次 22–28%），同一请求可叠加两跳。别只看中位数（本次仅 10ms），看 p90/p99 与 >180ms 占比。下一步到嫌疑 Pod 所在节点 `tc qdisc show dev <veth>` 查 netem，逐个清除、每次复测；本次只清 productcatalogservice 的 veth 即 >180ms 15.9%→0%、p90 217→15ms、p99 428→50ms。【已排除】CPU 配额/CFS 节流与单节点 CPU 争用（全程未改 limit、未重启 Pod 即恢复）；“调用次数越多越慢”只说明链路更长，不是某服务 CPU 不足的证据。"
+    },
+    "applied": true,
+    "before": "（BH01–BH05）【已证实】多个症状不要并成一个根因，按症状分组验证，每修一项重看全部用户侧数字（曾见 500 修好后中位数 404→407ms 不变；也见把被缩容到 0 的服务扩容后中位数 416ms、>180ms 74.6% 均不变）。定位“页面整体变慢、无 5xx、Pod 健康”：把各 handler 耗时与它调用某下游的次数对照，随次数呈 200–300ms 整数台阶增长（不调它的 /_healthz、POST /cart 仍 0–2ms）就锁定该下游；两个互不相干的调用方（frontend、checkoutservice）同时变慢，源头几乎必然是它们共同依赖的那一个下游。下一步到该 Pod 所在节点 `tc qdisc show dev <veth>` 查 netem 延时/丢包并清除恢复默认队列；一次清多个 veth 要逐个清、每次复测，否则无法归因。【已排除】CPU 配额/CFS 节流，以及“必须重建 Pod/重启服务才能清掉延迟”——三次均未重启 Pod，清 tc 即恢复（本次中位数 416→8ms、>180ms 74.6%→0%）。"
+   },
+   {
+    "change": {
+     "op": "modify",
+     "sop": "boutique-productcatalogservice",
+     "id": "E1",
+     "text": "（BH04、本次）【已证实】首页、商品页、购物车、下单页一起变慢但无 5xx、Pod 无重启且配置正常时，若耗时随对 productcatalogservice 的往返次数增长，到该 Pod 所在节点 `tc qdisc show dev <veth>` 查 netem 延时/丢包并清除恢复默认队列。两种形态：整体台阶（首页≈2×300ms、商品页≈8×300ms），或尾部弥散（中位数正常、仅 ~15% 请求偶发 +200ms、慢占比随调用次数上升）；本次只清它（及 redis-cart）的 veth 即恢复：2405→10ms、>180ms 86.1%→0%；本次 >180ms 15.9%→0%、p90 217→15ms、p99 428→50ms。它的 veth 延时会让调用方（recommendationservice、checkout、frontend）看起来也慢，修好后自动回落，别把它们判成源头。【已排除】CPU/CFS 节流、配置漂移、需重建 Pod（未改 limit、未重启 Pod 即恢复）；一次 Liveness probe >1s 超时不等于 CPU 不足。"
+    },
+    "applied": true,
+    "before": "【已证实】首页、商品页、购物车、下单页一起变慢但无 5xx、Pod 无重启且配置正常时，若耗时随对 productcatalogservice 的往返次数以 ~300ms 台阶增长（首页≈2×300ms、加购≈3×300ms、商品页≈8×300ms），到该 Pod 所在节点 `tc qdisc show dev <veth>` 查 netem 延时/丢包并清除恢复默认队列；本次与 redis-cart 的 veth 一起清除后中位数 2405→10ms、>180ms 86.1%→0%。它的 veth 延时会让调用方看起来也慢（内部再调 ListProducts 的 recommendationservice、依赖它的 checkout），修好后这些调用方耗时自动回落，别把它们各自判成源头；adservice 本次也被判为源头，但它未被动过、商品页已 <180ms，故其自身注入【已排除】。同时【已排除】CPU/CFS 与配置漂移（env/resources 为默认、Pod 无重启），以及“需重建 Pod”——未重启任何 Pod 即恢复。"
+   },
+   {
+    "change": {
+     "op": "add",
+     "sop": "boutique-frontend",
+     "text": "【已证实】用户反馈“时快时慢、无报错”而中位数正常时，先从 frontend 日志按端点统计 http.resp.took_ms 的耗时分布与慢请求（>180ms）占比，并列出每个端点的后端调用次数：不调任何后端的端点（POST /setCurrency 只写 Cookie+302）恒 0ms → 前端进程本身不慢；慢占比随后端调用次数单调上升（0 次 0%、1 次 ~5%、~6 次 22–28%），延迟集中在 ~215ms、可叠加成 2–3 倍 → 是跨 Pod RPC 被周期性加延时，不是某个 handler 慢。据此不要再查 frontend 自身，直接到嫌疑下游 Pod 所在节点 `tc qdisc show dev <veth>` 查 netem（见 triage-overview）。【已排除】前端 CPU/GC 慢，以及“偶发慢 = 某一个服务处理慢”（多端点、多下游同时偶发，调用次数越多越易中招）。"
+    },
+    "applied": true,
+    "id": "E1"
+   }
+  ],
+  "prompt_chars": 14220,
+  "tokens": 11052,
+  "entries_total": 16,
+  "truth": "productcatalogservice 的 Pod 网络有约 6% 的丢包；被丢的包要等重传，所以只有一部分请求变慢，它自身处理不慢。"
+ },
+ {
+  "scenario": "BH12",
+  "mode": "D",
+  "lesson": "“大部分正常、偶发慢、无报错”的尾部弥散（中位数 10ms、约 10% 请求 >180ms、p90/p99 抬高）同样是某个下游 Pod 的 veth netem 延时，本次源头是被每页调用十几次的 currencyservice；耗时看似 100ms 整数倍、偶发 Readiness 探针超时都不足以判定 CPU/CFS 限流，必须先清 tc 并用用户侧数字验证，而不是先改 CPU limit。",
+  "changes": [
+   {
+    "change": {
+     "op": "modify",
+     "sop": "boutique-currencyservice",
+     "id": "E1",
+     "text": "【已证实】页面变慢但无 5xx、currencyservice 自身日志无错误时，延迟常挂在它这一跳的 veth netem，两种形态都要认：(a) 台阶——耗时与调用次数成比例（首页 ~2s≈10 次 Convert、商品页 ~400ms≈2 次、/cart 每多一件 +200ms，而 POST /cart、/_healthz 仍 0–2ms）；(b) 尾部弥散——中位数正常（~10ms）、仅约 10% 请求 >180ms、p90 121ms/p99 426ms，首页因调用次数最多最明显，checkoutservice PlaceOrder→payment 段偶发 +200ms 可作旁证。下一步到该 Pod 所在节点 `tc qdisc show dev <veth>` 查 netem 并清除恢复默认队列；本次清除后 >180ms 9.6%→0%、p90 121→14ms、p99 426→42ms，500 与下单失败保持 0。【已排除】CPU/CFS 限流：未改任何 CPU limit（曾怀疑 200m 配额被冻结、并有一次 `Readiness probe failed: failed to connect ... within 1s`），清 tc 即恢复；耗时落在 100ms 整数倍、探针偶发超时都不足以判定 CFS 限流，先清 tc 复测。"
+    },
+    "applied": true,
+    "before": "（BH01、BH05）【已证实】页面整体变慢、无 5xx、currencyservice 自身日志无错误时，先看 frontend 各 handler 耗时是否与调用 currencyservice 次数成比例：首页 ~2s（约 10 次 Convert/GetSupportedCurrencies）、商品页 ~400ms（2 次）、/cart 每多一件 +~200ms，而 POST /cart、/_healthz 等不调它的请求仍 0–2ms，据此锁定该服务。交叉验证：服务端入口日志（Getting supported currencies）与前端请求起始时刻偏移恒定 ~200ms、而 handler 返回仅 +8ms（延迟在入方向）；独立调用方 checkoutservice 的 PlaceOrder→payment 也 >1s，可排除只是 frontend 慢。下一步到该 Pod 所在节点 `tc qdisc show dev <veth>` 查 netem 延时/丢包并清除恢复默认队列；本次清除后中位数 416ms→8ms、>180ms 74.6%→0%，500 与下单失败保持"
+   },
+   {
+    "change": {
+     "op": "modify",
+     "sop": "boutique-triage-overview",
+     "id": "E1",
+     "text": "【已证实】多个症状不要并成一个根因，按症状分组验证，每修一项重看全部用户侧数字（曾见 500 修好后中位数不变；扩回被缩容服务后慢占比不变）。定位“页面变慢、无 5xx、Pod 健康”：把各 handler 耗时或慢请求占比与它调用某下游的次数对照，两种形态都指向某下游 Pod 的 veth netem：(a) 整体台阶——耗时随调用次数以 200–300ms 台阶增长；(b) 尾部弥散——中位数正常、约 10% 请求 >180ms、p90/p99 明显抬高，慢占比随调用次数上升（0 次 0%、1 次 ~5%、6 次 22–28%），同一请求可叠加两跳。除 productcatalogservice 外，被每页调用 1–12 次的 currencyservice 也是常见源头：本次首页最慢、商品页偶发，清其 veth 后 >180ms 9.6%→0%、p90 121→14ms、p99 426→42ms。别只看中位数，看 p90/p99 与 >180ms 占比；下一步到嫌疑 Pod 所在节点 `tc qdisc show dev <veth>` 查 netem，逐个清除、每次复测。耗时像 100ms 整数倍、偶发探针超时都不等于 CFS 限流，先清 tc 用数字验证，别先改 CPU limit。"
+    },
+    "applied": true,
+    "before": "（BH01–BH06、本次）【已证实】多个症状不要并成一个根因，按症状分组验证，每修一项重看全部用户侧数字（曾见 500 修好后中位数 404→407ms 不变；扩回被缩容服务后 74.6% 不变）。定位“页面变慢、无 5xx、Pod 健康”：把各 handler 耗时或慢请求占比与它调用某下游的次数对照，两种形态都指向某个下游 Pod 的 veth netem 延时：(a) 整体台阶——耗时随调用次数以 200–300ms 台阶增长；(b) 尾部弥散——中位数正常、仅 ~15% 请求偶发 +~200ms，慢占比随调用次数上升（不调后端的端点 0%、调 1 次 ~5%、调 6 次 22–28%），同一请求可叠加两跳。别只看中位数（本次仅 10ms），看 p90/p99 与 >180ms 占比。下一步到嫌疑 Pod 所在节点 `tc qdisc show dev <veth>` 查 netem，逐个清除、每次复测；本次只清 productcatalogservice 的 veth 即 >180ms 15.9%→0%、p90 217→15ms、p99 428→50ms。【已排除】CPU 配"
+   }
+  ],
+  "prompt_chars": 14071,
+  "tokens": 10059,
+  "entries_total": 16,
+  "truth": "currencyservice 的 Pod 网络有约 6% 的丢包；被丢的包要等重传，所以只有一部分请求变慢，它自身处理不慢。"
+ },
+ {
+  "scenario": "BH13",
+  "mode": "D",
+  "lesson": "无报错的偶发尾部延迟（中位数正常、~6% 请求 >180ms、p99 200ms 级）加上某 Pod 的探针 `dial tcp i/o timeout`，指向的是那个 Pod 的 veth netem 丢包/延时，而非 CPU 限流——本次只清 redis-cart 的 tc 规则就恢复（>180ms 6.3%→0%、p99 222→38ms），agent 建议的「升 CPU limit + 重建 Pod」从未执行也不需要。",
+  "changes": [
+   {
+    "change": {
+     "op": "add",
+     "sop": "boutique-redis-cart",
+     "text": "（本次）【已证实】尾部弥散型也可能是 redis-cart 的 veth netem，别只认 E1 的固定台阶：中位数正常（10ms）、仅 ~6% 请求 >180ms、p90 31ms、p99 222ms，慢值集中在「正常耗时 +~200ms」，无 5xx、下单全成功、Pod 全 Ready。因为每个页面渲染都要调 cartservice.GetCart 查购物车数量，慢请求会散布在首页/商品页/购物车/结算各端点（结算里 payment→email 之间空转 ~200ms 就是 EmptyCart）。判别：按端点统计慢请求是否都含至少一次 cartservice→redis 调用；redis-cart 的 Liveness/Readiness 出现 `dial tcp <podIP>:6379: i/o timeout` 是同一 Pod veth 丢包/延时的旁证。下一步到 redis-cart Pod 所在节点 `tc qdisc show dev <veth>` 查 netem 并清除；本次只清 tc 后 >180ms 6.3%→0%、p99 222→38ms、中位数 10→9ms、500 与下单失败保持 0。【已排除】redis-cart 125m CPU 被 CFS 限流、以及需要重建 Pod（升 limit 和重启都没做即恢复）；cartservice 自身 GC/线程池停顿（全程未动 cartservice、其 gRPC 探针零失败）。"
+    },
+    "applied": true,
+    "id": "E2"
+   },
+   {
+    "change": {
+     "op": "add",
+     "sop": "boutique-triage-overview",
+     "text": "（本次）【已证实】用户侧只是偶发尾部延迟（中位数正常、~6% >180ms、p90 数十 ms、p99 200ms 级、无 5xx、下单成功）而某 Pod 的 Liveness/Readiness 报 `dial tcp <podIP>:<port>: i/o timeout` 时，把这个「命名空间里唯一探针失败的 Pod」当作嫌疑源头：kubelet 探针直连该 Pod、绕开调用方，说明问题在该 Pod 的 veth 而非整节点普遍丢包，也说明不是调用方自身慢。下一步到该 Pod 所在节点 `tc qdisc show dev <veth>` 查 netem 延时/丢包并清除恢复默认队列；本次清 redis-cart 的 veth 后探针失败与 >180ms 6.3%→0%、p99 222→38ms 同时消失。【已排除】把探针 i/o timeout 当 CPU/内存不足的证据（升 CPU、重建 Pod 都未执行即恢复）。"
+    },
+    "applied": true,
+    "id": "E3"
+   }
+  ],
+  "prompt_chars": 14241,
+  "tokens": 11020,
+  "entries_total": 18,
+  "truth": "redis-cart 的 Pod 网络有约 6% 的丢包；被丢的包要等重传，所以只有一部分请求变慢，它自身处理不慢。"
+ },
+ {
+  "scenario": "BH14",
+  "mode": "D",
+  "lesson": "偶发尾部延迟（中位数正常、约 6–8% 请求 >180ms、p99 约 200ms 级、无 5xx）时，先在事件里找“唯一探针连接超时的 Pod”——问题就在该 Pod 的 veth，清它的 tc 规则即可，不必重启 Pod；同时存在的 replicas=0、connection refused 等配置缺失是独立问题，修它不会改善延迟，别合并成同一根因。",
+  "changes": [
+   {
+    "change": {
+     "op": "modify",
+     "sop": "boutique-cartservice",
+     "id": "E1",
+     "text": "[E1]（BH02、BH08、本次）【已证实】页面变慢且随 cartservice↔redis 往返次数呈 200ms 台阶（GetCart≈400ms、AddItem≈600ms），或呈尾部弥散（中位数正常、~7% >180ms、p99 200ms 级、慢值≈正常+200ms）而 /_healthz 仍 0ms 时，源头可能是这条链路任一端：cartservice Pod 自己的 veth 或 redis-cart 的 veth。到两端所在节点 `tc qdisc show dev <veth>` 查 netem 并清除，别默认只在调用方。前次根因在 redis-cart 侧（只清它 313→8ms、85.6%→0%）；本次根因在 cartservice 侧——只清它的 veth 后 >180ms 7.5%→0%、p90 41→20ms、p99 259→46ms、500 与下单失败仍 0，未重启 Pod，旁证是 kubelet 对 cartservice 报 `failed to connect service <podIP>:7070 within 1s` 而 redis-cart、frontend 探针 0 失败。【已排除】redis/cartservice 自身处理慢、CPU 配额/CFS 限流（未改配额即恢复）。【未解决】重启 Pod、上调 CPU 上限均未被验证。"
+    },
+    "applied": true,
+    "before": "【已证实】页面整体变慢、耗时呈 200ms 级整数台阶且随 cartservice→redis 往返次数成比例（GetCart≈400ms、AddItem≈600ms，比 GetCart 多约 200ms），而同 Pod /_healthz 仍 0ms 时，把范围锁到 cartservice↔redis-cart 这一跳：分别到 cartservice Pod 和 redis-cart Pod 所在节点 `tc qdisc show dev <veth>` 查 netem，清除恢复默认队列。本次根因在 redis-cart 一侧——只清 redis-cart 的 veth 后中位数 313→8ms、>180ms 85.6%→0%，下单失败保持 0，故两端都要查，别默认在调用方 Pod。【已排除】redis-cart/cartservice 自身处理慢（redis 无 slowlog/报错、BGSAVE 毫秒级、Pod 无重启且 Readiness 正常，延迟随网络往返次数成比例）和 CPU 配额/CFS 节流（全程未改配额延迟即消失）。"
+   },
+   {
+    "change": {
+     "op": "modify",
+     "sop": "boutique-recommendationservice",
+     "id": "E3",
+     "text": "[E3]（BH07、本次）【已排除】商品页/购物车页仍 200、但每个页面都打 `failed to get product recommendations ... dial tcp <ClusterIP>:8080: connect: connection refused` 时，查 Deployment replicas（可能被缩到 0）与 `kubectl get endpoints recommendationservice`（subsets 为空），扩回 1 可消除该报错、恢复推荐位。但它是独立问题：上次扩回后 500 仍 8、下单仍全失败、中位数 8ms 不变；本次扩回后尾部延迟不降反升（>180ms 7.5%→15.3%、p90 217ms、p99 436ms、下单失败仍 0），随后清 cartservice 的 veth 才归零。判断恢复要看推荐请求是否成功/该 warning 是否消失，不看前端延迟。"
+    },
+    "applied": true,
+    "before": "【已排除】商品页/购物车页仍返回 200、但 frontend 日志每个页面都打 `failed to get product recommendations ... dial tcp <ClusterIP>:8080: connect: connection refused` 时，查该 Deployment 的 replicas（可能被缩到 0）和 `kubectl get endpoints recommendationservice`（subsets 为空），扩回 1 即可消除此报错；这是 frontend 降级处理的非致命路径。本次扩回后 500 仍 8 个、下单 8 次仍全失败、中位数 8ms 不变，【已排除】它是下单 500 的原因，不要与 checkout 链路的下游地址错误合并成同一个根因。"
+   },
+   {
+    "change": {
+     "op": "modify",
+     "sop": "boutique-triage-overview",
+     "id": "E3",
+     "text": "[E3]（BH13、本次）【已证实】用户侧只是偶发尾部延迟（中位数正常、~6–8% >180ms、p90 数十 ms、p99 200ms 级、无 5xx、下单成功）而某 Pod 的 Liveness/Readiness 报连接超时（tcpSocket 的 `dial tcp <podIP>:<port>: i/o timeout` 或 grpc 的 `failed to connect service <podIP>:<port> within 1s`）时，把这个「命名空间里唯一探针失败的 Pod」当作嫌疑源头：kubelet 直连该 Pod 探针、绕开调用方，说明问题在该 Pod 的 veth 而非整节点或调用方。下一步到该 Pod 所在节点 `tc qdisc show dev <veth>` 查 netem 并清除恢复默认队列；本次清 redis-cart 的 veth 后探针失败与 >180ms 6.3%→0%、p99 222→38ms 同时消失，同类故障清 cartservice 的 veth 后 >180ms 7.5%→0%。【已排除】CPU/内存不足（升 CPU、重建 Pod 均未执行即恢复）；同时存在的 replicas=0/connection refused 是独立配置问题，修它不会改变延迟数字。【未解决】重启 Pod 能否清除延迟未被验证。"
+    },
+    "applied": true,
+    "before": "（本次）【已证实】用户侧只是偶发尾部延迟（中位数正常、~6% >180ms、p90 数十 ms、p99 200ms 级、无 5xx、下单成功）而某 Pod 的 Liveness/Readiness 报 `dial tcp <podIP>:<port>: i/o timeout` 时，把这个「命名空间里唯一探针失败的 Pod」当作嫌疑源头：kubelet 探针直连该 Pod、绕开调用方，说明问题在该 Pod 的 veth 而非整节点普遍丢包，也说明不是调用方自身慢。下一步到该 Pod 所在节点 `tc qdisc show dev <veth>` 查 netem 延时/丢包并清除恢复默认队列；本次清 redis-cart 的 veth 后探针失败与 >180ms 6.3%→0%、p99 222→38ms 同时消失。【已排除】把探针 i/o timeout 当 CPU/内存不足的证据（升 CPU、重建 Pod 都未执行即恢复）。"
+   }
+  ],
+  "prompt_chars": 15390,
+  "tokens": 12977,
+  "entries_total": 18,
+  "truth": "cartservice 的 Pod 网络有约 6% 的丢包；被丢的包要等重传，所以只有一部分请求变慢，它自身处理不慢。"
+ },
+ {
+  "scenario": "BH15",
+  "mode": "D",
+  "lesson": "一次故障可同时有配置类（500/下单失败）和网络延时类（尾部变慢）两个独立根因；修好前者后必须重看延迟。下单全失败且延迟正常时先查 checkoutservice 的 CART_SERVICE_ADDR 等下游端口；尾部弥散型延迟则去清嫌疑 Pod 的 veth tc，扩回被缩容服务通常既不修 500 也不修延迟。",
+  "changes": [
+   {
+    "change": {
+     "op": "modify",
+     "sop": "boutique-checkoutservice",
+     "id": "E1",
+     "text": "【已证实】/cart/checkout 返回 500、下单全失败而其它页面正常时，先用 frontend 日志判断失败卡在哪个下游步骤（`cart failure: failed to get user cart`→checkoutservice 的 CART_SERVICE_ADDR/cartservice、`failed to charge card`→paymentservice、`shipping quote failure`→shippingservice、`failed to convert price`→currencyservice），再核对 checkoutservice 里对应的 `<SVC>_SERVICE_ADDR` 端口与目标 Service 的 port/targetPort、Pod 实际监听口是否一致。两种形态：(a) `i/o timeout`→地址或端口写错（本环境 cartservice 只监听 7070，写成 7071 即超时；shippingservice 只监听 50051，写成 50052 即超时；currencyservice 只监听 7000；paymentservice 只监听 50051）；(b) `connection refused`→查该服务 Service selector 与 Pod 标签是否匹配、`kubectl get endpoints <svc>` 是否为空。改回正确端口后 500 8→0、下单失败 8→0，但中位数 11ms、>180ms 仍 23.3%——【已排除】该端口错误是变慢的原因，两者独立；延迟后来清 productcatalogservice 的 veth 才归零。"
+    },
+    "applied": true,
+    "before": "【已证实】/cart/checkout 返回 500、下单全失败而其它页面正常时，先用 frontend 日志判断失败卡在哪个下游步骤（`failed to charge card`→paymentservice、`shipping quote failure`→shippingservice、`failed to convert price`→currencyservice），再核对 checkoutservice 里对应的 `<SVC>_SERVICE_ADDR` 端口与目标 Service 的 port/targetPort、Pod 实际监听口是否一致。两种形态：(a) `i/o timeout`→地址或端口写错（本环境 shippingservice 只监听 50051，写成 50052 即超时；currencyservice 只监听 7000；paymentservice 只监听 50051）；(b) `connection refused`→查该服务 Service selector 与 Pod 标签是否匹配，`kubectl get endpoints <svc>` su"
+   },
+   {
+    "change": {
+     "op": "modify",
+     "sop": "boutique-adservice",
+     "id": "E1",
+     "text": "【已证实】frontend 日志每个首页/商品页都打 `failed to retrieve ads: ... dial tcp <ClusterIP>:9555: connect: connection refused`、页面无广告时，查 adservice Deployment 副本数（可能被缩到 0）、`kubectl get endpoints adservice`（subsets 为空）以及 Pod 的 Killing/SuccessfulDelete 事件；把副本恢复为 1 后确认报错日志停止、页面重新出广告。历史两次恢复副本后用户侧均无改善（一次中位数仍 416ms、>180ms 74.6%；本次 500 仍 5、下单 5/5 失败、>180ms 13.6%→20.7%，直到修 checkoutservice 的 CART_SERVICE_ADDR 才归零）——【已排除】它是页面变慢、500 或下单失败的原因；广告调用毫秒级失败，不计入延迟，继续按延迟形态查别的下游 veth。"
+    },
+    "applied": true,
+    "before": "【已证实】frontend 日志每个首页/商品页都打 `failed to retrieve ads: ... dial tcp <ClusterIP>:9555: connect: connection refused`、页面无广告时，查 adservice Deployment 副本数（可能被缩到 0）、`kubectl get endpoints adservice`（subsets 为空）以及 Pod 的 Killing/SuccessfulDelete 事件；把副本恢复为 1 后确认报错日志停止、页面重新出广告。但本次恢复副本后用户侧完全不变（中位数仍 416ms、>180ms 74.6%），【已排除】它是页面变慢的原因——广告调用毫秒级失败，不计入延迟；变慢要继续按“耗时随调用某下游次数呈 ~200ms 台阶”查别的下游（本次是 currencyservice 的 veth 延时，清 tc 后 416→8ms）。"
+   }
+  ],
+  "prompt_chars": 15951,
+  "tokens": 16964,
+  "entries_total": 18,
+  "truth": "checkoutservice 的环境变量 CART_SERVICE_ADDR 被改成 cartservice:7071（应为 cartservice:7070），调不到 cartservice；cartservice 自身没有问题。"
+ }
+]
