@@ -18,12 +18,33 @@ from pathlib import Path
 REPO = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO))
 
+from triage import remediate  # noqa: E402
 from triage.kube import KubectlRunner  # noqa: E402
 from triage.lifecycle import StepLog, load_noises, load_scenarios, make_lifecycle  # noqa: E402
 from triage.runner import cfg, load_dotenv, path_cfg  # noqa: E402
 
 HOLMES = os.environ.get("HOLMES_BIN", "holmes")
 OUT = REPO / "results" / "holmes_pilot"
+
+# The default since 2026-11-17 (see scripts/holmes_loop.py, which uses the same words): the agent is told this is a real
+# production incident and to judge from evidence only. Without it the agent reasons about "what a test would inject".
+PROD_FRAME = ("这是线上生产环境里正在发生的真实故障，不是演练、测试或练习题，没有“出题人”，也没有预设的标准答案。"
+              "只根据你在这个集群里实际观察到的证据下结论；不要推测“可能被注入了什么故障”，也不要因为某种原因更常见就选它。"
+              "如果两个解释都说得通而你无法区分，就把两个都写出来，并说明还缺什么证据。\n\n")
+# Online Boutique scenarios: diagnosis only, with the same user-side numbers the fix-and-verify loop gives in its first
+# round, and the root causes repeated in a JSON block so that grading does not depend on reading free text.
+FORMAT = """回答的最后必须是一个 ```json 代码块，格式如下（root_causes 写你认为的全部根因）：
+```json
+{"root_causes": [{"object": "<服务或对象>", "cause": "<原因>"}], "explanation": "<一两句话>"}
+```"""
+
+
+def build_prompt(sc: dict, ns: str, frame: str, first_obs: dict | None) -> str:
+    head = (PROD_FRAME if frame == "prod" else "") + f"命名空间 {ns} 里出了问题。用户反馈：{sc['symptom']}\n"
+    if first_obs is None:   # the lab application: no user-side measurement
+        return head + "请排查根因。"
+    return (head + f"监控看到的用户侧情况：{remediate.describe(first_obs)}\n\n"
+            f"请排查根因。你只有只读权限；这次只需要定位原因，不需要提出或执行修复。\n\n{FORMAT}")
 
 
 def main() -> int:
@@ -34,6 +55,7 @@ def main() -> int:
     ap.add_argument("--noise", default="", help="comma-separated ids from scenarios/noise.yaml to apply before the fault")
     ap.add_argument("--skills", default="", help="comma-separated skill directories (relative to the repo), e.g. "
                     "holmes/skills/sop,holmes/skills/cases; empty = HolmesGPT without any SOP")
+    ap.add_argument("--frame", default="prod", choices=["prod", "none"], help="prod (default) = say this is a real production incident; none = the bare prompt")
     ap.add_argument("--out", default=None, help="where to write HolmesGPT's JSON answer (default: results/holmes_pilot/<id>-<time>.json)")
     args = ap.parse_args()
     load_dotenv()
@@ -66,7 +88,6 @@ def main() -> int:
         if missing:
             sys.exit(f"skill directories not found: {missing}")
         env["CUSTOM_SKILL_PATHS"] = ",".join(dirs)
-    prompt = f"命名空间 {ns} 里出了问题。用户反馈：{sc['symptom']}\n请排查根因。"
     noises = load_noises([i for i in args.noise.split(",") if i]) if args.noise else []
     lc.verify_healthy(log)
     try:
@@ -77,6 +98,8 @@ def main() -> int:
     started = time.monotonic()
     try:
         lc.confirm(sc, log)
+        first_obs = remediate.observe(lc, lc.confirm_since, min_seconds=45, max_seconds=120) if sc.get("app") == "boutique" else None
+        prompt = build_prompt(sc, ns, args.frame, first_obs)
         cmd = [HOLMES, "ask", prompt, "--model", f"openai/{model}", "--config", str(REPO / "holmes" / "config.yaml"),
                "--max-steps", str(args.max_steps), "--no-interactive", "--no-echo", "--log-costs",
                "--json-output-file", str(json_out)]
@@ -85,6 +108,10 @@ def main() -> int:
         print(res.stdout[-6000:])
         if res.returncode:
             print("stderr:", res.stderr[-3000:])
+        if json_out.exists():   # keep what the agent was told next to what it answered
+            data = json.loads(json_out.read_text(encoding="utf-8"))
+            data.update({"prompt": prompt, "frame": args.frame, "before": first_obs})
+            json_out.write_text(json.dumps(data, ensure_ascii=False, indent=1), encoding="utf-8")
     finally:
         print(f"diagnosis wall time {time.monotonic() - started:.0f}s")
         lc.reset(sc, log, noises)

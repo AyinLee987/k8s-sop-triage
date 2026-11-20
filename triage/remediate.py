@@ -42,7 +42,7 @@ def parse_plan(text: str) -> tuple[dict | None, str]:
                 obj, end = decoder.raw_decode(text, start)
             except json.JSONDecodeError:
                 continue
-            if isinstance(obj, dict) and "actions" in obj:
+            if isinstance(obj, dict) and ("actions" in obj or "root_causes" in obj):
                 candidates = [text[start:end]]
                 break
     for raw in candidates:
