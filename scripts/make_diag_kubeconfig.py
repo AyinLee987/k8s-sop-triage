@@ -14,6 +14,8 @@ import subprocess
 import sys
 from pathlib import Path
 
+import yaml
+
 REPO = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO))
 from triage.runner import load_dotenv, path_cfg  # noqa: E402
@@ -21,12 +23,30 @@ from triage.runner import load_dotenv, path_cfg  # noqa: E402
 CONTEXT: str | None = None
 
 
-def kubectl(admin: str | None, *args: str) -> str:
+def kubectl(admin: str | None, *args: str, stdin: str | None = None, check: bool = True) -> str | None:
     cmd = ["kubectl", *(["--kubeconfig", admin] if admin else []), *(["--context", CONTEXT] if CONTEXT else []), *args]
-    proc = subprocess.run(cmd, capture_output=True, text=True, timeout=60)
+    proc = subprocess.run(cmd, capture_output=True, text=True, timeout=60, input=stdin)
     if proc.returncode != 0:
+        if not check:
+            return None
         sys.exit(f"kubectl {' '.join(args[:3])} failed: {proc.stderr.strip()}")
     return proc.stdout
+
+
+def apply_existing(admin: str | None, path: Path) -> None:
+    """Apply a manifest, leaving out namespaced objects whose namespace is neither on the cluster nor created by
+    the same file. rbac-diag.yaml grants read access in tiktok-k8s-lab; a cluster with only Online Boutique (the
+    desktop) has no such namespace, and a plain apply would fail on those objects."""
+    docs = [d for d in yaml.safe_load_all(path.read_text(encoding="utf-8")) if d]
+    created = {d["metadata"]["name"] for d in docs if d.get("kind") == "Namespace"}
+    keep = []
+    for d in docs:
+        ns = (d.get("metadata") or {}).get("namespace")
+        if ns and ns not in created and kubectl(admin, "get", "namespace", ns, check=False) is None:
+            print(f"skipping {d.get('kind')} {d['metadata'].get('name')} in namespace {ns} (not on this cluster)")
+            continue
+        keep.append(d)
+    kubectl(admin, "apply", "-f", "-", stdin=yaml.safe_dump_all(keep, sort_keys=False))
 
 
 def main() -> None:
@@ -40,7 +60,7 @@ def main() -> None:
     a = p.parse_args()
     CONTEXT = a.context
 
-    kubectl(a.admin_kubeconfig, "apply", "-f", str(REPO / "k8s" / "rbac-diag.yaml"))
+    apply_existing(a.admin_kubeconfig, REPO / "k8s" / "rbac-diag.yaml")
     token = kubectl(a.admin_kubeconfig, "-n", "diag-system", "create", "token", "diag-agent", f"--duration={a.hours}h").strip()
     view = json.loads(kubectl(a.admin_kubeconfig, "config", "view", "--raw", "--minify", "-o", "json"))
     cluster = view["clusters"][0]["cluster"]

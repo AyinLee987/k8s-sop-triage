@@ -9,7 +9,8 @@ cd /work
 
 # Container paths win over the Windows paths in .env (load_dotenv never overrides the environment).
 export ADMIN_KUBECONFIG=/work/.local/admin-internal.kubeconfig
-export ADMIN_CONTEXT=kind-tiktok-k8s-lab
+# Run-Laptop.ps1 passes ADMIN_CONTEXT=kind-<cluster>; the fallback is the laptop's original cluster.
+export ADMIN_CONTEXT=${ADMIN_CONTEXT:-kind-tiktok-k8s-lab}
 export LAB_K8S_DIR=/lab/k8s
 export DIAG_KUBECONFIG=/work/.local/diag-laptop.kubeconfig
 export HOLMES_BIN=holmes
@@ -22,10 +23,17 @@ cmd=${1:-check}; shift || true
 case "$cmd" in
   check)
     kubectl --kubeconfig "$ADMIN_KUBECONFIG" --context "$ADMIN_CONTEXT" get nodes
-    kubectl --kubeconfig "$ADMIN_KUBECONFIG" --context "$ADMIN_CONTEXT" -n tiktok-k8s-lab get pods
     python -m pytest -q -p no:cacheprovider
     mint_diag
-    python -m triage.runner check-env
+    if [ -d /lab/k8s ]; then
+      kubectl --kubeconfig "$ADMIN_KUBECONFIG" --context "$ADMIN_CONTEXT" -n tiktok-k8s-lab get pods
+      python -m triage.runner check-env
+    else
+      # No lab folder mounted (e.g. the desktop): check-env is about the lab app, so only show Online Boutique.
+      echo "no lab app mounted at /lab: skipping the lab checks"
+      kubectl --kubeconfig "$ADMIN_KUBECONFIG" --context "$ADMIN_CONTEXT" -n boutique get pods \
+        || echo "namespace boutique not deployed yet: run scripts\\Setup-Boutique.ps1"
+    fi
     holmes version
     ;;
   pilot)    mint_diag; python scripts/holmes_pilot.py "$@" ;;
