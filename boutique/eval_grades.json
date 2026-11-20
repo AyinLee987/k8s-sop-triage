@@ -1,0 +1,125 @@
+{
+ "graded": "2026-11-20, by reading root_causes and the answers; one run per scenario; rule fixed before the runs",
+ "rule": {
+  "对": "所有真实原因都找到且机制正确；低把握的“不能排除”不扣分，单独记数；干扰项被列出但明确说不是症状原因不扣分",
+  "部分对": "服务找对但机制错或没定；两个原因只找对一个；或把干扰项/不存在的问题当成确定的原因",
+  "错": "其余"
+ },
+ "eval-S0": {
+  "skills": "holmes/skills/svc-sop-v0 (base SOPs, no experience entries)",
+  "tokens_M": 18.3,
+  "grades": {
+   "BT01": [
+    "错",
+    "主因判给 recommendationservice(1.5s) 和 cartservice(300ms)；productcatalogservice 只作为弱怀疑(50-160ms)"
+   ],
+   "BT02": [
+    "错",
+    "主因写成全部 Pod 的 CPU 调度饥饿；网络丢包只是无法区分的替代解释，且没定位到 frontend"
+   ],
+   "BT03": [
+    "部分对",
+    "recommendationservice 被点名，但机制写成 CPU 压力；主因判给 frontend 自身卡顿"
+   ],
+   "BT04": [
+    "对",
+    "cartservice Pod 网络路径每段约 200ms；emailservice 列为独立故障、不是延迟原因（结尾对网络栈还是容器内部有保留）"
+   ],
+   "BT05": [
+    "对",
+    "地址 3551 + shippingservice 入向约 290ms"
+   ],
+   "BT06": [
+    "部分对",
+    "paymentservice targetPort 正确；丢包判为命名空间/节点级，没定位到 currencyservice，另留 CPU 备选"
+   ],
+   "BT07": [
+    "对",
+    "EXTRA_LATENCY=300ms"
+   ],
+   "BT08": [
+    "对",
+    "EXTRA_LATENCY；adservice selector 列为独立故障"
+   ],
+   "BT09": [
+    "对",
+    ""
+   ],
+   "BT10": [
+    "对",
+    "recommendationservice 的发布没有被当成原因"
+   ],
+   "BT11": [
+    "部分对",
+    "recommendationservice 每次多约 400ms，但网络还是 Pod 内阻塞没有定；adservice 列为独立故障"
+   ],
+   "BT12": [
+    "部分对",
+    "currencyservice、cartservice 都找到，机制写成 CPU 限流/节点 CPU 饱和"
+   ]
+  },
+  "count": {
+   "错": 2,
+   "部分对": 4,
+   "对": 6
+  }
+ },
+ "eval-B": {
+  "skills": "holmes/skills/xinc-B",
+  "tokens_M": 14.1,
+  "grades": {
+   "BT01": [
+    "部分对",
+    "productcatalogservice 入向网络延迟正确；另把 recommendationservice 入向也当成确定的第二处延迟（不存在）"
+   ],
+   "BT02": [
+    "对",
+    "frontend Pod 网络路径间歇丢包；注明无法排除节点级"
+   ],
+   "BT03": [
+    "对",
+    "recommendationservice 入向丢包/延迟，用探针失败排除节点和调用方"
+   ],
+   "BT04": [
+    "对",
+    "cartservice 网络延迟约 200ms；emailservice 独立缺陷"
+   ],
+   "BT05": [
+    "对",
+    ""
+   ],
+   "BT06": [
+    "部分对",
+    "paymentservice 正确；currencyservice 定位正确，但网络停顿和 CFS 限流并列、没有定"
+   ],
+   "BT07": [
+    "对",
+    ""
+   ],
+   "BT08": [
+    "对",
+    ""
+   ],
+   "BT09": [
+    "对",
+    ""
+   ],
+   "BT10": [
+    "对",
+    ""
+   ],
+   "BT11": [
+    "对",
+    "recommendationservice 入向固定约 400ms；adservice 独立故障"
+   ],
+   "BT12": [
+    "对",
+    "currencyservice、cartservice 各约 200ms 的网络路径延迟；CPU 停顿被列出并用耗时均匀排除"
+   ]
+  },
+  "count": {
+   "部分对": 2,
+   "对": 10
+  }
+ }
+}
