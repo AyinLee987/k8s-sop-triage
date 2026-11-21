@@ -30,8 +30,8 @@ def cadvisor(usage, periods, throttled, thr_s, rx, ts):
     ])
 
 
-PODS = [{"name": "currencyservice-abc", "host": "172.18.0.2", "cpu_limit_m": 200.0, "mem_limit_mi": 128.0},
-        {"name": "frontend-new", "host": "172.18.0.2", "cpu_limit_m": 200.0, "mem_limit_mi": 128.0}]
+PODS = [{"name": "currencyservice-abc", "host": "172.18.0.2", "age_s": 240, "cpu_limit_m": 200.0, "mem_limit_mi": 128.0},
+        {"name": "frontend-new", "host": "172.18.0.2", "age_s": 9000, "cpu_limit_m": 200.0, "mem_limit_mi": 128.0}]
 
 
 def test_table_shows_usage_throttling_and_network_for_the_namespace_only():
@@ -42,7 +42,8 @@ def test_table_shows_usage_throttling_and_network_for_the_namespace_only():
     row = next(line for line in t.splitlines() if line.startswith("| currencyservice-abc"))
     cells = [c.strip() for c in row.strip("|").split("|")]
     # 3 CPU-seconds in 15 s = 200m against a 200m limit; 120 of 150 periods throttled in the window, 220 of 1150 since start
-    assert cells[1:6] == ["200", "200", "80%", "19%", "17.5"] and cells[6] == "64 / 128" and cells[7] == "600/600" and cells[8] == "0/0"
+    assert cells[1:6] == ["4 分钟", "200", "200", "80%", "19%"] and cells[6] == "64 / 128" and cells[7] == "600/600" and cells[8] == "0/0"
+    assert "2.5 小时" in t and "累计被限流" not in t and "包含刚启动的那段时间" in t
     assert "net-injector" not in t and "infra-tools" not in t and "777777" not in t
     # a pod the kubelet has not reported yet gets dashes, not zeros
     assert next(line for line in t.splitlines() if line.startswith("| frontend-new")).count("-") >= 6
@@ -54,7 +55,9 @@ def test_a_counter_the_kubelet_did_not_refresh_is_not_reported_as_zero_activity(
     a = pm.parse(cadvisor(10.0, 1000, 100, 8.0, 5000, 1_000_000), "boutique")
     t = pm.table(PODS[:1], a, a, 15)                       # same timestamps twice
     cells = [c.strip() for c in t.splitlines()[2].strip("|").split("|")]
-    assert cells[1] == "-" and cells[3] == "-" and cells[4] == "10%"      # the since-start share is still there
+    assert cells[2] == "-" and cells[4] == "-" and cells[5] == "10%"      # the since-start share is still there
+    assert pm.stale(PODS, a, a) == ["currencyservice-abc"]
+    assert pm.stale(PODS, a, pm.parse(cadvisor(13.0, 1150, 220, 17.5, 5600, 1_015_000), "boutique")) == []
 
 
 def test_limits_are_read_in_any_unit():
@@ -76,12 +79,15 @@ def test_end_to_end_with_a_fake_kubelet_never_prints_the_token(monkeypatch, caps
     monkeypatch.setenv("METRICS_TOKEN_FILE", str(token))
     monkeypatch.setattr(sys, "argv", ["pod_metrics.py", "--window", "0"])
     monkeypatch.setattr(pm, "list_pods", lambda ns: PODS)
-    samples = iter([cadvisor(10.0, 1000, 100, 8.0, 5000, 1_000_000), cadvisor(13.0, 1150, 220, 17.5, 5600, 1_015_000)])
+    monkeypatch.setattr(sys, "argv", ["pod_metrics.py", "--window", "0", "--extra", "0"])
+    # the second reading is not fresh yet (same timestamp): the tool reads once more instead of printing dashes
+    samples = iter([cadvisor(10.0, 1000, 100, 8.0, 5000, 1_000_000), cadvisor(10.0, 1000, 100, 8.0, 5000, 1_000_000),
+                    cadvisor(13.0, 1150, 220, 17.5, 5600, 1_015_000)])
     seen = []
     monkeypatch.setattr(pm, "scrape", lambda host, tok, timeout=20: (seen.append((host, tok)), next(samples))[1])
     assert pm.main() == 0
     out = capsys.readouterr().out
-    assert "80%" in out and "SECRET" not in out and seen == [("172.18.0.2", "SECRET-TOKEN-VALUE")] * 2
+    assert "80%" in out and "SECRET" not in out and seen == [("172.18.0.2", "SECRET-TOKEN-VALUE")] * 3
     monkeypatch.setattr(pm, "scrape", lambda *a, **k: (_ for _ in ()).throw(PermissionError("HTTP Error 403: Forbidden")))
     assert pm.main() == 1 and "SECRET" not in capsys.readouterr().out
 

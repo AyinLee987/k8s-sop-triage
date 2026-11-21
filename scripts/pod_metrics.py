@@ -15,6 +15,7 @@ inside Docker's private network. The token is never printed.
 from __future__ import annotations
 
 import argparse
+import calendar
 import json
 import os
 import re
@@ -96,7 +97,12 @@ def table(pods: list[dict], first: dict, second: dict, window: float) -> str:
     def num(x, fmt="{:.0f}"):
         return "-" if x is None else fmt.format(x)
 
-    rows = ["| Pod | CPU 用量(m) | CPU 上限(m) | 被限流周期占比(窗口) | 被限流周期占比(启动以来) | 累计被限流(秒) | 内存(Mi) / 上限 | "
+    def age(seconds):
+        if seconds is None:
+            return "-"
+        return f"{seconds / 60:.0f} 分钟" if seconds < 7200 else f"{seconds / 3600:.1f} 小时"
+
+    rows = ["| Pod | 已运行 | CPU 用量(m, 窗口) | CPU 上限(m) | 被限流周期占比(窗口) | 被限流周期占比(启动以来) | 内存(Mi) / 上限 | "
             "收包/发包(窗口) | 收丢包/发丢包(启动以来) | 收错误/发错误(启动以来) |", "|---|---|---|---|---|---|---|---|---|---|"]
     for p in sorted(pods, key=lambda p: p["name"]):
         pod = p["name"]
@@ -105,20 +111,27 @@ def table(pods: list[dict], first: dict, second: dict, window: float) -> str:
         d_thr, _ = delta(pod, "container_cpu_cfs_throttled_periods_total")
         periods, _ = val(second, pod, "container_cpu_cfs_periods_total")
         throttled, _ = val(second, pod, "container_cpu_cfs_throttled_periods_total")
-        thr_s, _ = val(second, pod, "container_cpu_cfs_throttled_seconds_total")
         mem, _ = val(second, pod, "container_memory_working_set_bytes")
         rx, _ = delta(pod, "container_network_receive_packets_total")
         tx, _ = delta(pod, "container_network_transmit_packets_total")
         g = lambda name: val(second, pod, name)[0]  # noqa: E731
-        rows.append(f"| {pod} | {num(1000 * d_cpu / s_cpu if d_cpu is not None and s_cpu else None)} | {num(p['cpu_limit_m'])} | "
-                    f"{pct(d_thr, d_per)} | {pct(throttled, periods)} | {num(thr_s, '{:.1f}')} | "
+        rows.append(f"| {pod} | {age(p.get('age_s'))} | {num(1000 * d_cpu / s_cpu if d_cpu is not None and s_cpu else None)} | {num(p['cpu_limit_m'])} | "
+                    f"{pct(d_thr, d_per)} | {pct(throttled, periods)} | "
                     f"{num(mem / 1048576 if mem is not None else None)} / {num(p['mem_limit_mi'])} | {num(rx)}/{num(tx)} | "
                     f"{num(g('container_network_receive_packets_dropped_total'))}/{num(g('container_network_transmit_packets_dropped_total'))} | "
                     f"{num(g('container_network_receive_errors_total'))}/{num(g('container_network_transmit_errors_total'))} |")
     notes = (f"\n说明：窗口 = 最近约 {window:.0f} 秒；“-” = 这段时间内 kubelet 没有刷新该计数。"
-             "被限流周期占比 = 容器有任务可运行的 CFS 调度周期（100 毫秒一个）里，因为用完 CPU 配额而被暂停的周期所占比例。"
+             "被限流周期占比 = 容器有任务可运行的 CFS 调度周期（100 毫秒一个）里，因为用完 CPU 配额而被暂停的周期所占比例；"
+             "“启动以来”从容器启动算起，包含刚启动的那段时间。"
              "网络计数取自 Pod 自己的网卡（eth0），只统计到达这块网卡或由它发出的包。数据来源：节点 kubelet 的 cAdvisor。")
     return "\n".join(rows) + notes
+
+
+def stale(pods: list[dict], first: dict, second: dict) -> list[str]:
+    """Pods whose CPU counter the kubelet has not refreshed between the two readings."""
+    name = "container_cpu_usage_seconds_total"
+    return [p["name"] for p in pods
+            if name in first.get(p["name"], {}) and first[p["name"]][name][1] and second.get(p["name"], {}).get(name, (0, 0))[1] <= first[p["name"]][name][1]]
 
 
 def list_pods(namespace: str) -> list[dict]:
@@ -130,7 +143,12 @@ def list_pods(namespace: str) -> list[dict]:
         limits = [(c.get("resources") or {}).get("limits") or {} for c in item["spec"]["containers"]]
         cpu = [cpu_m(l.get("cpu")) for l in limits]
         mem = [mem_mi(l.get("memory")) for l in limits]
-        pods.append({"name": item["metadata"]["name"], "host": (item.get("status") or {}).get("hostIP"),
+        started = (item.get("status") or {}).get("startTime")
+        try:
+            age_s = time.time() - calendar.timegm(time.strptime(started, "%Y-%m-%dT%H:%M:%SZ")) if started else None
+        except ValueError:
+            age_s = None
+        pods.append({"name": item["metadata"]["name"], "host": (item.get("status") or {}).get("hostIP"), "age_s": age_s,
                      "cpu_limit_m": sum(cpu) if cpu and all(c is not None for c in cpu) else None,
                      "mem_limit_mi": sum(mem) if mem and all(m is not None for m in mem) else None})
     return pods
@@ -150,6 +168,7 @@ def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--namespace", default="boutique")
     ap.add_argument("--window", type=float, default=15)
+    ap.add_argument("--extra", type=float, default=6, help="seconds to wait before reading again when a pod has no fresh reading (at most twice)")
     args = ap.parse_args()
     token_file = os.environ.get("METRICS_TOKEN_FILE", "")
     if not token_file or not os.path.exists(token_file):
@@ -166,14 +185,20 @@ def main() -> int:
         for h in hosts:
             first.update(parse(scrape(h, token), args.namespace))
         time.sleep(args.window)
-        second: dict = {}
-        for h in hosts:
-            second.update(parse(scrape(h, token), args.namespace))
+        waited = args.window
+        for attempt in range(3):   # the kubelet refreshes each container on its own schedule (about every 10-15 s)
+            second: dict = {}
+            for h in hosts:
+                second.update(parse(scrape(h, token), args.namespace))
+            if attempt == 2 or not stale(pods, first, second):
+                break
+            time.sleep(args.extra)
+            waited += args.extra
     except Exception as exc:   # an HTTP 401/403 or an unreachable kubelet: say so, without the token or a traceback
         print(f"指标不可用：读取节点 kubelet 失败（{type(exc).__name__}: {str(exc)[:160]}）。")
         return 1
     print(f"命名空间 {args.namespace} 各 Pod 的资源指标\n")
-    print(table(pods, first, second, args.window))
+    print(table(pods, first, second, waited))
     return 0
 
 
