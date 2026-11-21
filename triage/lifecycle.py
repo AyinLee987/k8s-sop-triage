@@ -30,6 +30,12 @@ def load_boutique(generated: bool = False, hard: bool = False) -> list[dict]:
     return items
 
 
+def load_boutique_v2() -> list[dict]:
+    """The second bank (boutique/make_hard_scenarios.py): CL = learning, CV = validation, CT = test. Told apart by `pool`."""
+    path = BOUTIQUE_FILE.with_name("boutique_v2.yaml")
+    return yaml.safe_load(path.read_text(encoding="utf-8"))["scenarios"] if path.exists() else []
+
+
 def load_noises(ids: list[str] | None = None, path: Path | None = None) -> list[dict]:
     """Ambient noise definitions (scenarios/noise.yaml), in the order asked for; unknown ids are an error."""
     items = {n["id"]: n for n in yaml.safe_load((path or REPO / "scenarios" / "noise.yaml").read_text(encoding="utf-8"))["noises"]}
@@ -51,7 +57,7 @@ def load_scenarios(path: Path = SCENARIO_FILE, split: str | None = None, ids: li
         from triage.generator import expand
         items += expand(max_per_template=max_per_template)
     if source == "all":
-        items += load_boutique() + load_boutique(generated=True) + load_boutique(hard=True)
+        items += load_boutique() + load_boutique(generated=True) + load_boutique(hard=True) + load_boutique_v2()
     if ids:
         source_ids = {s["id"] for s in items}
         missing = set(ids) - source_ids
@@ -426,7 +432,8 @@ class BoutiqueLifecycle(Lifecycle):
             return {"selector": spec.get("selector"), "targetPorts": [p.get("targetPort", p.get("port")) for p in spec.get("ports", []) or []]}
         c = ((spec.get("template") or {}).get("spec", {}).get("containers") or [{}])[0]
         return {"replicas": spec.get("replicas", 1), "env": {e.get("name"): e.get("value") or "" for e in c.get("env", []) or []},   # the API drops empty values
-                "cpu_limit": ((c.get("resources") or {}).get("limits") or {}).get("cpu")}
+                "cpu_limit": ((c.get("resources") or {}).get("limits") or {}).get("cpu"),
+                "cpu_request": ((c.get("resources") or {}).get("requests") or {}).get("cpu")}
 
     def _baseline(self) -> dict:
         if not hasattr(self, "_baseline_cache"):

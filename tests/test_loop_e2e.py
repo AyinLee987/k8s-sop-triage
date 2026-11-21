@@ -23,7 +23,7 @@ class Sim:
         if kind == "Service":
             return {"kind": kind, "metadata": {"name": name}, "spec": {"selector": sh["selector"], "ports": [{"port": 1, "targetPort": p} for p in sh["targetPorts"]]}}
         return {"kind": kind, "metadata": {"name": name}, "status": {"readyReplicas": sh["replicas"]}, "spec": {"replicas": sh["replicas"], "template": {"metadata": {}, "spec": {"containers": [
-            {"env": [{"name": k, "value": v} for k, v in sh["env"].items()], "resources": {"limits": {"cpu": sh["cpu_limit"]}}}]}}}}
+            {"env": [{"name": k, "value": v} for k, v in sh["env"].items()], "resources": {"limits": {"cpu": sh["cpu_limit"]}, "requests": {"cpu": sh.get("cpu_request")}}}]}}}}
     def run(self, args, timeout=30.0):
         a = [str(x) for x in args]; self.calls.append(" ".join(a)); j = " ".join(a)
         ok = lambda out="": KubeResult(True, out)
@@ -50,7 +50,11 @@ class Sim:
                 else: k, v = kv.split("=", 1); self.state[("Deployment", d)]["env"][k] = v
             return ok()
         if "set" in a and "resources" in a:
-            d = a[a.index("resources") + 1].split("/")[1]; self.state[("Deployment", d)]["cpu_limit"] = a[-1].split("cpu=")[1]; return ok()
+            d = a[a.index("resources") + 1].split("/")[1]
+            for x in a:
+                if x.startswith("--limits=cpu="): self.state[("Deployment", d)]["cpu_limit"] = x.split("cpu=")[1]
+                if x.startswith("--requests=cpu="): self.state[("Deployment", d)]["cpu_request"] = x.split("cpu=")[1]
+            return ok()
         if "scale" in a:
             d = a[a.index("scale") + 1].split("/")[1]; self.state[("Deployment", d)]["replicas"] = int(a[-1].split("=")[1]); return ok()
         if "patch" in a and "service" in a and "managedFields" not in j:

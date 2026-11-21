@@ -24,6 +24,10 @@ REPO = Path(__file__).resolve().parents[1]
 MANIFEST = REPO / "boutique" / "kubernetes-manifests-v0.10.3.yaml"
 NETEM = REPO / "scenarios" / "netem"
 GO = {"productcatalogservice", "checkoutservice", "shippingservice", "frontend"}
+POOL = {"BH": "learn", "BT": "test", "CL": "learn", "CV": "val", "CT": "test"}
+# CPU limits for the throttling scenarios of the second bank. PROVISIONAL: not measured yet. Find the real values with
+# scripts/sweep_cpu_limit.py (slow, but the pod still becomes Ready and does not restart), put them here and regenerate.
+CPU_LIMIT = {"productcatalogservice": "5m", "currencyservice": "10m", "cartservice": "20m", "recommendationservice": "10m", "redis-cart": "3m"}
 LOSS = "loss 6%"   # kubelet probes cross the same interface: 6% keeps three failed probes in a row rare
 SLOW = "商城页面明显变慢了，但没有报错；Pod 看起来都是正常的。"
 FLAKY = "商城时快时慢：大部分请求正常，偶尔有页面要等很久，没有报错。"
@@ -209,7 +213,7 @@ def main() -> None:
             answer["also"] = causes[1:]   # every one of these must be named too
         if decoys:
             answer["not_cause"] = [{"name": name, "why": why} for _, name, why in decoys]
-        out.append({"id": sid, "pool": "learn" if prefix[0] == "BH" else "test", "app": "boutique", "split": "dev", "kind": "cross_service", "mechanism": kind, "hard": kind,
+        out.append({"id": sid, "pool": POOL[prefix[0]], "app": "boutique", "split": "dev", "kind": "cross_service", "mechanism": kind, "hard": kind,
                     "root_causes": len(causes), "symptom": symptom,
                     "realism": {"pattern": note, "sources": ["Cloud-OpsBench", "k8s.af"], "validated": False,
                                 "validate_note": "确认每个故障都生效；延迟和丢包场景确认被注入的 Pod 仍是 Ready、重启次数为 0（丢包会影响探针，留意 Unhealthy 事件）。"},
@@ -296,6 +300,129 @@ def main() -> None:
     add("double", SLOW, "两个互不调用的服务的 Pod 网络同时有延迟：cartservice 和 currencyservice。",
         [], [("cartservice", delay("cartservice")), ("currencyservice", delay("currencyservice"))], [], [slow_check(15)])
 
+    # ---- second bank (2026-11-21). CL: added to the learning set; CV: validation (decides which entries are kept);
+    # CT: test (not looked at until the method is fixed). What changed and why (docs/NEXT.md, items 1-8):
+    #   - "slow" now has more than one cause: CPU throttling (a legal but too small CPU limit) next to the network faults
+    #   - configuration faults no longer show an obviously broken value: the address or selector points at another
+    #     service that really exists, so endpoints are not empty and the name resolves
+    #   - network delays are 130 / 270 ms instead of 200 / 300 ms (200 ms is a multiple of the 100 ms CFS period)
+    #   - a service that is the only cause of a test scenario is not the only cause of a learning scenario with the same mechanism
+    resources = {n: d["spec"]["template"]["spec"]["containers"][0]["resources"] for n, d in deps.items()}
+    addr = {v.split(":")[0]: v for e in env.values() for k, v in e.items() if k.endswith("_ADDR") and v}
+
+    def cpu_limit(t):
+        lim, good = CPU_LIMIT[t], resources[t]
+        return ([K("-n", "{ns}", "set", "resources", f"deployment/{t}", f"--limits=cpu={lim}", f"--requests=cpu={lim}"),
+                 K("-n", "{ns}", "rollout", "status", f"deployment/{t}", "--timeout=140s")],
+                [K("-n", "{ns}", "set", "resources", f"deployment/{t}", f"--limits=cpu={good['limits']['cpu']}", f"--requests=cpu={good['requests']['cpu']}")],
+                {"object": {"kind": "Deployment", "name": t}, "mechanism": "cpu",
+                 "explanation": f"Deployment {t} 的 CPU 上限被调到 {lim}（应为 {good['limits']['cpu']}），容器被限流，请求要排队等 CPU 才能被处理；网络没有问题。",
+                 "key_evidence": [lim], "accept_cause_keywords": ["cpu", "限流", "throttl", "上限", "limit"]})
+
+    def addr_other(caller, var, other):
+        good, bad = env[caller][var], addr[other]
+        return ([K("-n", "{ns}", "set", "env", f"deployment/{caller}", f"{var}={bad}"), K("-n", "{ns}", "rollout", "status", f"deployment/{caller}", "--timeout=140s")],
+                [K("-n", "{ns}", "set", "env", f"deployment/{caller}", f"{var}={good}")],
+                {"object": {"kind": "Deployment", "name": caller}, "mechanism": "config",
+                 "explanation": f"{caller} 的环境变量 {var} 被改成 {bad}（应为 {good}）：地址能解析、端口也是通的，但对面是 {other}，不提供这个接口；{good.split(':')[0]} 和 {other} 自身都没有问题。",
+                 "key_evidence": [bad], "accept_cause_keywords": [var.lower(), "环境变量", "env"]})
+
+    def selector_other(t, other):
+        patch = lambda v: json.dumps({"spec": {"selector": {"app": v}}})  # noqa: E731
+        return ([K("-n", "{ns}", "patch", "service", t, "--type=merge", "-p", patch(other)), *recreate(t)],
+                [K("-n", "{ns}", "patch", "service", t, "--type=merge", "-p", patch(t))],
+                {"object": {"kind": "Service", "name": t}, "mechanism": "config",
+                 "explanation": f"Service {t} 的 selector 被改成 app={other}：端点不为空，但选中的是 {other} 的 Pod，流量被送错了地方；{t} 和 {other} 的 Pod 自身都没有问题。",
+                 "key_evidence": [f"app={other}"], "accept_cause_keywords": ["selector", "选择器", "endpoint", "端点"]})
+
+    def delay2(t):
+        return "delay 270ms 30ms" if t in GO or t == "redis-cart" else "delay 130ms 15ms"
+
+    def slow2(count, min_ms=180):
+        return {**slow_check(count), "min_ms": min_ms}
+
+    def mechanisms(a):
+        return sorted({c.get("mechanism") or ("app_delay" if "EXTRA_LATENCY" in c["key_evidence"] else "config" if c["object"]["kind"] != "Pod"
+                                              else "net_loss" if "丢包" in c["explanation"] else "net_delay") for c in [a, *a.get("also", [])]})
+
+    first_v2 = len(out)
+    prefix[0] = "CL"
+    add("cpu", SLOW, "不是网络：currencyservice 的 CPU 上限被调得很低，容器被限流。配置本身是合法的，看不出错；要看容器的限流指标才能确定。",
+        [cpu_limit("currencyservice")], [], [], [slow2(15)])
+    add("cpu", SLOW, "不是网络：redis-cart 的 CPU 上限被调得很低。变慢出现在调用它的 cartservice 和再上一层的 frontend 上，离故障点隔了两层。",
+        [cpu_limit("redis-cart")], [], [], [slow2(15)])
+    add("cpu+decoy", SLOW, "真正的原因是 recommendationservice 的 CPU 上限过低。同时 adservice 被缩到 0 副本，是和症状无关的真实异常。",
+        [cpu_limit("recommendationservice")], [], [(replicas0("adservice"), "adservice", swallowed)], [slow2(15, 120)])
+    add("double", SLOW, "两个互不相关、机制也不同的故障：currencyservice 的 CPU 上限过低，加上 cartservice 的 Pod 网络延迟。只用一种解释说不通全部的额外耗时。",
+        [cpu_limit("currencyservice")], [("cartservice", delay2("cartservice"))], [], [slow2(15)])
+    add("double", SLOW, "两个互不相关、机制也不同的故障：redis-cart 的 CPU 上限过低，加上 productcatalogservice 的 Pod 网络延迟。",
+        [cpu_limit("redis-cart")], [("productcatalogservice", delay2("productcatalogservice"))], [], [slow2(15)])
+    add("config", ORDER, "checkoutservice 的支付服务地址被指到了另一个真实存在的服务（emailservice）上：名字能解析、端口是通的，只是对面不认识这个接口。",
+        [addr_other("checkoutservice", "PAYMENT_SERVICE_ADDR", "emailservice")], [], [], [order_check])
+    add("config", ERR, "shippingservice 的 Service 选中了别的服务（paymentservice）的 Pod：端点不为空，Pod 都正常，流量被送错了地方。",
+        [selector_other("shippingservice", "paymentservice")], [], [], [err_check])
+
+    prefix[0] = "CV"
+    add("delay", SLOW, "recommendationservice 的 Pod 网络有固定延迟，只有这一个故障。延迟比第一版题库小（约 130 毫秒）。",
+        [], [("recommendationservice", delay2("recommendationservice"))], [], [slow2(15, 120)])
+    add("cpu", SLOW, "不是网络：recommendationservice 的 CPU 上限过低，只有这一个故障。",
+        [cpu_limit("recommendationservice")], [], [], [slow2(15, 120)])
+    add("cpu+decoy", SLOW, "真正的原因是 currencyservice 的 CPU 上限过低。同时 emailservice 的 Service 选不到 Pod，是和症状无关的真实异常。",
+        [cpu_limit("currencyservice")], [], [(selector("emailservice"), "emailservice", swallowed)], [slow2(15)])
+    add("intermittent+decoy", FLAKY, "真正的原因是 redis-cart 的 Pod 网络丢包。同时它的直接调用方 cartservice 刚做了一次无害的发布。",
+        [], [("redis-cart", LOSS)], [(release_tag("cartservice"), "cartservice", "只是多了一个不起作用的环境变量，发布前后它自身的处理时间没有变化")], [slow2(8)])
+    add("double", SLOW, "两个互不相关、机制也不同的故障：redis-cart 的 CPU 上限过低，加上 currencyservice 的 Pod 网络延迟。",
+        [cpu_limit("redis-cart")], [("currencyservice", delay2("currencyservice"))], [], [slow2(15)])
+    add("config", ERR, "frontend 的运费服务地址被指到了另一个真实存在的服务（cartservice）上。",
+        [addr_other("frontend", "SHIPPING_SERVICE_ADDR", "cartservice")], [], [], [err_check])
+    add("config+decoy", ERR, "currencyservice 的 Service 选中了 cartservice 的 Pod。同时 recommendationservice 刚做了一次无害的发布。",
+        [selector_other("currencyservice", "cartservice")], [], [(release_tag("recommendationservice"), "recommendationservice", "只是多了一个不起作用的环境变量")], [err_check])
+    add("double", BOTH, "两个互不相关的故障：recommendationservice 的 CPU 上限过低，加上 checkoutservice 的购物车服务地址配置错误。",
+        [cpu_limit("recommendationservice"), env_addr("checkoutservice", "CART_SERVICE_ADDR")], [], [], [slow2(10, 120), order_check])
+
+    prefix[0] = "CT"
+    add("delay", SLOW, "cartservice 的 Pod 网络有固定延迟（约 130 毫秒），只有这一个故障。", [], [("cartservice", delay2("cartservice"))], [], [slow2(15, 120)])
+    add("decoy", SLOW, "真正的原因是 productcatalogservice 的 Pod 网络延迟。同时 adservice 的 Service 选不到 Pod，是和症状无关的真实异常。",
+        [], [("productcatalogservice", delay2("productcatalogservice"))], [(selector("adservice"), "adservice", swallowed)], [slow2(15)])
+    add("intermittent", FLAKY, "recommendationservice 的 Pod 网络有少量丢包。", [], [("recommendationservice", LOSS)], [], [slow2(8)])
+    add("intermittent+decoy", FLAKY, "真正的原因是 frontend 自己的 Pod 网络有少量丢包。同时 emailservice 被缩到 0 副本，是和症状无关的真实异常。",
+        [], [("frontend", "loss 3%")], [(replicas0("emailservice"), "emailservice", swallowed)], [slow2(8)])
+    add("cpu", SLOW, "不是网络：productcatalogservice 的 CPU 上限过低，只有这一个故障。", [cpu_limit("productcatalogservice")], [], [], [slow2(15)])
+    add("cpu+decoy", SLOW, "真正的原因是 cartservice 的 CPU 上限过低。同时 adservice 被缩到 0 副本，是和症状无关的真实异常。",
+        [cpu_limit("cartservice")], [], [(replicas0("adservice"), "adservice", swallowed)], [slow2(15, 120)])
+    add("double+intermittent", FLAKY, "两个互不相关、机制也不同的故障：redis-cart 的 CPU 上限过低，加上 currencyservice 的 Pod 网络丢包。",
+        [cpu_limit("redis-cart")], [("currencyservice", LOSS)], [], [slow2(8)])
+    add("double", SLOW, "两个互不相关、机制也不同的故障：productcatalogservice 的 CPU 上限过低，加上 currencyservice 的 Pod 网络延迟。",
+        [cpu_limit("productcatalogservice")], [("currencyservice", delay2("currencyservice"))], [], [slow2(15)])
+    add("double", SLOW, "两个互不相关、机制也不同的故障：recommendationservice 的 CPU 上限过低，加上 cartservice 的 Pod 网络延迟。",
+        [cpu_limit("recommendationservice")], [("cartservice", delay2("cartservice"))], [], [slow2(15, 120)])
+    add("double", BOTH, "两个互不相关的故障：cartservice 的 CPU 上限过低，加上 checkoutservice 的运费服务地址配置错误。",
+        [cpu_limit("cartservice"), env_addr("checkoutservice", "SHIPPING_SERVICE_ADDR")], [], [], [slow2(10, 120), order_check])
+    add("double", BOTH, "两个互不相关的故障：recommendationservice 的 Pod 网络延迟，加上 paymentservice 的 Service 选中了 emailservice 的 Pod。",
+        [selector_other("paymentservice", "emailservice")], [("recommendationservice", delay2("recommendationservice"))], [], [slow2(10, 120), order_check])
+    add("config", ORDER, "checkoutservice 的货币服务地址被指到了另一个真实存在的服务（productcatalogservice）上。",
+        [addr_other("checkoutservice", "CURRENCY_SERVICE_ADDR", "productcatalogservice")], [], [], [order_check])
+    add("config", ERR, "cartservice 的 Service 选中了 redis-cart 的 Pod：端点不为空，但那不是 cartservice。",
+        [selector_other("cartservice", "redis-cart")], [], [], [err_check])
+    add("config+decoy", ERR, "frontend 的购物车服务地址被指到了 currencyservice 上。同时 emailservice 的 Service 选不到 Pod，是和症状无关的真实异常。",
+        [addr_other("frontend", "CART_SERVICE_ADDR", "currencyservice")], [], [(selector("emailservice"), "emailservice", swallowed)], [err_check])
+    add("double", SLOW, "两个机制不同的故障：productcatalogservice 被配置了人为延迟（环境变量 EXTRA_LATENCY），加上 cartservice 的 Pod 网络延迟。",
+        [extra_latency()], [("cartservice", delay2("cartservice"))], [], [slow2(15)])
+    add("double", SLOW, "两个服务的 CPU 上限同时过低：currencyservice 和 redis-cart。没有任何网络故障。",
+        [cpu_limit("currencyservice"), cpu_limit("redis-cart")], [], [], [slow2(15)])
+
+    v2, out = out[first_v2:], out[:first_v2]
+    for s in v2:
+        s["bank"] = 2
+        s["mechanisms"] = mechanisms(s["answer"])
+        if "cpu" in s["mechanisms"]:
+            s["realism"]["validate_note"] = ("CPU 上限的数值是暂定的：先用 scripts/sweep_cpu_limit.py 找到“明显变慢、但 Pod 仍然 Ready 且不重启”的值。"
+                                             "再确认限流指标（scripts/pod_metrics.py）在故障期间不为 0。") + s["realism"]["validate_note"]
+    (REPO / "scenarios" / "boutique_v2.yaml").write_text(
+        "# Generated by boutique/make_hard_scenarios.py — do not edit by hand. Second bank: CL = learning (added to BH), "
+        "CV = validation, CT = test.\n# CT is not run or looked at until the method is fixed. Nothing here has been validated on a cluster yet.\n"
+        + yaml.safe_dump({"scenarios": v2}, allow_unicode=True, sort_keys=False, width=200), encoding="utf-8")
+    print(len(v2), {p: sum(1 for s in v2 if s["id"].startswith(p)) for p in ("CL", "CV", "CT")})
     test = [o for o in out if o["pool"] == "test"]
     out = [o for o in out if o["pool"] == "learn"]
     (REPO / "scenarios" / "boutique_test.yaml").write_text(

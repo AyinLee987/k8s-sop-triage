@@ -209,3 +209,81 @@ def test_the_test_set_is_separate_and_not_all_network():
     network = lambda s: any("网络" in c["accept_cause_keywords"] for c in [s["answer"], *s["answer"].get("also", [])])  # noqa: E731
     assert sum(1 for s in T.values() if not network(s)) >= 4
     assert sum(1 for s in T.values() if "EXTRA_LATENCY" in s["answer"]["key_evidence"]) == 2
+
+
+# ---------------- second bank: CL (learning), CV (validation), CT (test) ----------------
+from triage.lifecycle import BOUTIQUE_DEPLOYMENTS, load_boutique_v2  # noqa: E402
+
+V2 = {s["id"]: s for s in load_boutique_v2()}
+
+
+def test_second_bank_is_split_three_ways_and_slow_is_not_always_the_network():
+    pools = {p: [s for s in V2.values() if s["pool"] == p] for p in ("learn", "val", "test")}
+    assert [len(pools[p]) for p in ("learn", "val", "test")] == [7, 8, 16] and len(V2) == 31
+    assert all(s["id"][:2] == {"learn": "CL", "val": "CV", "test": "CT"}[s["pool"]] and s["bank"] == 2 for s in V2.values())
+    assert set(V2) <= {s["id"] for s in load_scenarios(split="all", source="all")} and not set(V2) & set(ALL_H)
+    for name, group in pools.items():
+        slow = [s for s in group if "变慢" in s["symptom"] or "时快时慢" in s["symptom"]]
+        net = [s for s in slow if set(s["mechanisms"]) <= {"net_delay", "net_loss"}]
+        assert slow and len(net) <= len(slow) / 2, name      # "slow, so it is the network" is wrong at least half the time
+        assert any("cpu" in s["mechanisms"] for s in group) and any(s["mechanisms"] == ["config"] for s in group), name
+    # a service that is the only cause of a test scenario is not the only cause of a learning scenario with the same mechanism
+    mech = lambda s: s["mechanisms"][0] if "mechanisms" in s else ("config" if s["answer"]["object"]["kind"] != "Pod" else  # noqa: E731
+                                                                    "net_loss" if "丢包" in s["answer"]["explanation"] else "net_delay")
+    # for configuration faults the field that is wrong counts too (a port on the same Service is not its selector)
+    single = lambda group: {(s["answer"]["object"]["name"], mech(s), s["answer"]["accept_cause_keywords"][0] if mech(s) == "config" else "")  # noqa: E731
+                            for s in group if s["root_causes"] == 1}
+    assert not single(pools["test"]) & single(pools["learn"] + list(H.values()))
+
+
+def test_second_bank_is_safe_to_run_and_every_change_is_undone():
+    for s in V2.values():
+        a = s["answer"]
+        causes = [a, *a.get("also", [])]
+        assert s["root_causes"] == len(causes) and (len(causes) > 1) == ("double" in s["hard"]) and ("decoy" in s["hard"]) == bool(a.get("not_cause"))
+        named = {c["object"]["name"] for c in causes}
+        assert len(named) == len(causes) and not named & {d["name"] for d in a.get("not_cause", [])}, s["id"]
+        for c in causes:
+            assert all(kw.lower() not in s["symptom"].lower() for kw in c["key_evidence"])
+        steps = [st["kubectl"] for st in s["inject"] + s["reset"] if "kubectl" in st]
+        for args in steps:
+            if "-n" in args:
+                assert args[args.index("-n") + 1] in ("{ns}", "infra-tools"), (s["id"], args)
+            assert "delete" not in args or args[args.index("delete") + 1] == "pod", (s["id"], args)
+            assert all((REPO / arg.split("{repo}/")[1]).exists() for arg in args if "{repo}/" in arg)
+        inject = [st.get("kubectl", []) for st in s["inject"]]
+        applied = [i for i, args in enumerate(inject) if "apply" in args]
+        if applied:   # nothing may recreate pods after the network injector starts
+            assert not any({"set", "scale", "patch", "rollout"} & set(args) for args in inject[applied[0]:]), s["id"]
+        # (verb, what is set, object): -n {ns} set env|resources deployment/x ... | scale deployment/x ... | patch service x ...
+        key = lambda args: (args[2], args[3] if args[2] == "set" else "", args[3] if args[2] == "scale" else args[4])  # noqa: E731
+        changed = {key(args) for args in inject if {"set", "scale", "patch"} & set(args)}
+        undone = {key(st["kubectl"]) for st in s["reset"] if {"set", "scale", "patch"} & set(st["kubectl"])}
+        assert changed == undone, (s["id"], changed, undone)
+
+
+def test_cpu_scenarios_lower_limit_and_request_together_and_put_both_back():
+    lc = BoutiqueLifecycle(FakeRunner(lambda a: KubeResult(True, "{}")), "/lab/k8s")
+    base = lc._baseline()
+    assert base[("Deployment", "redis-cart")]["cpu_request"] == "70m"
+    seen = 0
+    for s in V2.values():
+        for st in s["inject"]:
+            args = st.get("kubectl", [])
+            if "resources" in args:
+                seen += 1
+                dep = args[args.index("resources") + 1].split("/")[1]
+                low = args[-1].split("=")[-1]
+                assert args[-2:] == [f"--limits=cpu={low}", f"--requests=cpu={low}"] and low.endswith("m") and int(low[:-1]) < 50
+                want = base[("Deployment", dep)]
+                assert {"kubectl": ["-n", "{ns}", "set", "resources", f"deployment/{dep}", f"--limits=cpu={want['cpu_limit']}", f"--requests=cpu={want['cpu_request']}"]} in s["reset"]
+    assert seen >= 12
+
+
+def test_misdirected_config_points_at_a_service_that_exists():
+    for s in V2.values():
+        for c in [s["answer"], *s["answer"].get("also", [])]:
+            if c.get("mechanism") == "config":
+                ev = c["key_evidence"][0]
+                other = ev.split("=")[1] if ev.startswith("app=") else ev.split(":")[0]
+                assert other in BOUTIQUE_DEPLOYMENTS and other != c["object"]["name"], (s["id"], ev)

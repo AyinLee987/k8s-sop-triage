@@ -58,6 +58,11 @@ def describe_step(args: list[str], sc: dict) -> str:
             return f"删除了 Deployment {dep} 的环境变量 {kv[:-1]}（Pod 随之滚动更新）"
         name, value = kv.split("=", 1)
         return f"把 Deployment {dep} 的环境变量 {name} 设为 {value}（Pod 随之滚动更新）"
+    if "set" in a and "resources" in a:
+        dep = a[a.index("resources") + 1].split("/")[-1]
+        value = {x.split("=")[0].lstrip("-"): x.split("=")[-1] for x in a if x.startswith("--")}
+        parts = [f"CPU 上限设为 {value['limits']}"] + ([f"CPU 请求设为 {value['requests']}"] if "requests" in value else [])
+        return f"把 Deployment {dep} 的 {'、'.join(parts)}（Pod 随之滚动更新）"
     if "scale" in a:
         dep = a[a.index("scale") + 1].split("/")[-1]
         return f"把 Deployment {dep} 的副本数设为 {a[-1].split('=')[1]}"

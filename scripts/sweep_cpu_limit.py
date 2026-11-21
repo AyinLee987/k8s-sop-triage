@@ -1,4 +1,4 @@
-"""Find a CPU limit that makes a Boutique service slow without making its pod unready (tuning for B06/B07).
+"""Find a CPU limit that makes a Boutique service slow without making its pod unready (tuning for the cpu scenarios).
 
   python scripts/sweep_cpu_limit.py [--limits 8m,4m,2m,1m] [--services productcatalogservice,redis-cart]
 
@@ -20,7 +20,11 @@ from triage.kube import KubectlRunner  # noqa: E402
 from triage.runner import cfg, load_dotenv, path_cfg  # noqa: E402
 
 NS = "boutique"
-BASE = {"productcatalogservice": ("200m", "100m"), "redis-cart": ("125m", "70m")}
+import yaml  # noqa: E402
+
+BASE = {d["metadata"]["name"]: (r["limits"]["cpu"], r["requests"]["cpu"])
+        for d in yaml.safe_load_all((REPO / "boutique" / "kubernetes-manifests-v0.10.3.yaml").read_text(encoding="utf-8")) if d and d["kind"] == "Deployment"
+        for r in [d["spec"]["template"]["spec"]["containers"][0]["resources"]]}
 HOME = f"/api/v1/namespaces/{NS}/services/frontend:80/proxy/"
 
 

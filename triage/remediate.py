@@ -214,8 +214,9 @@ def restore_to(lc, target: dict) -> list[str]:
             env = [f"{k}-" for k in got["env"] if k not in want["env"]] + [f"{k}={v}" for k, v in want["env"].items() if got["env"].get(k) != v]
             if env:
                 cmds.append(["-n", NS, "set", "env", f"deployment/{name}", *env])
-            if got["cpu_limit"] != want["cpu_limit"] and want["cpu_limit"]:
-                cmds.append(["-n", NS, "set", "resources", f"deployment/{name}", f"--limits=cpu={want['cpu_limit']}"])
+            if want["cpu_limit"] and (got["cpu_limit"] != want["cpu_limit"] or got.get("cpu_request") != want.get("cpu_request")):
+                cmds.append(["-n", NS, "set", "resources", f"deployment/{name}", f"--limits=cpu={want['cpu_limit']}",
+                             *([f"--requests=cpu={want['cpu_request']}"] if want.get("cpu_request") else [])])
             if got["replicas"] != want["replicas"]:
                 cmds.append(["-n", NS, "scale", f"deployment/{name}", f"--replicas={want['replicas']}"])
         else:

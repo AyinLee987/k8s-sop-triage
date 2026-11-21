@@ -200,7 +200,8 @@ def main() -> None:
     from openai import OpenAI
     import make_experience as me
     runs, out, base = REPO / args.runs, REPO / args.out, REPO / args.base
-    scenarios = {s["id"]: s for s in yaml.safe_load((REPO / "scenarios" / "boutique_hard.yaml").read_text(encoding="utf-8"))["scenarios"]}
+    scenarios = {s["id"]: s for f in ("boutique_hard.yaml", "boutique_v2.yaml") if (REPO / "scenarios" / f).exists()
+                 for s in yaml.safe_load((REPO / "scenarios" / f).read_text(encoding="utf-8"))["scenarios"]}
     log_path = out.with_suffix(".log.json")
     log = json.loads(log_path.read_text(encoding="utf-8")) if log_path.exists() else []
     if not out.exists():

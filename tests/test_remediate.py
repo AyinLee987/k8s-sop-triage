@@ -76,7 +76,7 @@ def test_restore_puts_back_what_differs_from_the_manifest():
         if kind == "Service":
             return {"kind": kind, "metadata": {"name": name}, "spec": {"selector": shape["selector"], "ports": [{"port": 1, "targetPort": p} for p in shape["targetPorts"]]}}
         return {"kind": kind, "metadata": {"name": name}, "spec": {"replicas": shape["replicas"], "template": {"spec": {"containers": [
-            {"env": [{"name": k, "value": v} for k, v in shape["env"].items()], "resources": {"limits": {"cpu": shape["cpu_limit"]}}}]}}}}
+            {"env": [{"name": k, "value": v} for k, v in shape["env"].items()], "resources": {"limits": {"cpu": shape["cpu_limit"]}, "requests": {"cpu": shape["cpu_request"]}}}]}}}}
     items = [obj(k, n, s) for (k, n), s in base.items()]
     for it in items:
         name = it["metadata"]["name"]
@@ -85,6 +85,10 @@ def test_restore_puts_back_what_differs_from_the_manifest():
             it["spec"]["template"]["spec"]["containers"][0]["env"].append({"name": "RELEASE_TAG", "value": "x"})
         if it["kind"] == "Deployment" and name == "adservice":
             it["spec"]["replicas"] = 0
+        if it["kind"] == "Deployment" and name == "redis-cart":      # a throttling scenario lowers limit and request together
+            it["spec"]["template"]["spec"]["containers"][0]["resources"] = {"limits": {"cpu": "3m"}, "requests": {"cpu": "3m"}}
+        if it["kind"] == "Deployment" and name == "shippingservice":  # only the request drifted
+            it["spec"]["template"]["spec"]["containers"][0]["resources"]["requests"]["cpu"] = "5m"
         if it["kind"] == "Service" and name == "cartservice":
             it["spec"]["ports"][0]["targetPort"] = 7071
     lc = lifecycle(lambda a: KubeResult(True, json.dumps({"items": items})))
@@ -93,7 +97,9 @@ def test_restore_puts_back_what_differs_from_the_manifest():
     assert any("set env deployment/currencyservice RELEASE_TAG-" in c for c in flat)
     assert any("set resources deployment/currencyservice --limits=cpu=" + base[("Deployment", "currencyservice")]["cpu_limit"] in c for c in flat)
     assert any("scale deployment/adservice --replicas=1" in c for c in flat) and any("patch service cartservice" in c and "7070" in c for c in flat)
-    assert len(done) == 4   # nothing else is touched
+    assert any("set resources deployment/redis-cart --limits=cpu=125m --requests=cpu=70m" in c for c in flat)
+    assert any("set resources deployment/shippingservice --limits=cpu=200m --requests=cpu=100m" in c for c in flat)
+    assert len(done) == 6   # nothing else is touched
 
 
 def test_a_round_counts_as_helpful_only_beyond_the_noise():
@@ -116,7 +122,7 @@ def test_a_failed_round_is_rolled_back_to_the_state_before_it():
         else:
             cpu = "1" if name == "currencyservice" else shape["cpu_limit"]          # what the round changed
             items.append({"kind": kind, "metadata": {"name": name}, "spec": {"replicas": shape["replicas"], "template": {"spec": {"containers": [
-                {"env": [{"name": k, "value": v} for k, v in shape["env"].items()], "resources": {"limits": {"cpu": cpu}}}]}}}})
+                {"env": [{"name": k, "value": v} for k, v in shape["env"].items()], "resources": {"limits": {"cpu": cpu}, "requests": {"cpu": shape["cpu_request"]}}}]}}}})
     lc = lifecycle(lambda a: KubeResult(True, json.dumps({"items": items})))
     assert remediate.snapshot(lc)[("Deployment", "currencyservice")]["cpu_limit"] == "1"
     done = remediate.restore_to(lc, before)

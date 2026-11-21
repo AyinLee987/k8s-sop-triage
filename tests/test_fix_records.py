@@ -69,3 +69,9 @@ def test_fix_record_end_to_end_on_a_simulated_cluster(tmp_path, monkeypatch):
     for leak in ("网络路径延迟", "第二轮", "改动已撤销", "预期：", "50052", "应为", "网络被加了"):
         assert leak not in d, leak
     assert "已证实" in rf.ENGINEER and "没有写原因" in rf.ENGINEER
+
+
+def test_a_cpu_change_is_logged_as_what_was_set():
+    args = ["-n", "{ns}", "set", "resources", "deployment/redis-cart", "--limits=cpu=125m", "--requests=cpu=70m"]
+    text = fr.describe_step(args, {})
+    assert text == "把 Deployment redis-cart 的 CPU 上限设为 125m、CPU 请求设为 70m（Pod 随之滚动更新）" and "3m" not in text
