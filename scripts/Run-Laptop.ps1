@@ -62,6 +62,11 @@ if ($LASTEXITCODE -ne 0) {
     Need ($LASTEXITCODE -eq 0) 'Docker engine is not reachable. Open Docker Desktop normally, wait until it says Engine running, then retry (do not force-kill it).'
 }
 
+# `docker info` can succeed while the engine cannot list containers (2026-11-21: the drive holding Docker's data was
+# full; every listing returned HTTP 500 and the next check reported "cluster not found" and suggested rebuilding it).
+& docker ps -q 2>&1 | Out-Null
+Need ($LASTEXITCODE -eq 0) "Docker is running but cannot list containers (docker ps failed). The cluster is probably still there. Check free space on the drive that holds Docker's data, then restart Docker Desktop normally. Do not reset or purge Docker's data and do not rebuild the cluster."
+
 Step "kind cluster '$Cluster'"
 $clusters = & $Kind get clusters 2>&1 | Where-Object { $_ -is [string] }
 Need ($clusters -contains $Cluster) "kind cluster '$Cluster' not found. In tiktok-k8s-lab run: .\scripts\Setup.ps1; .\scripts\Build.ps1 -Version v1; .\scripts\Build.ps1 -Version v2"

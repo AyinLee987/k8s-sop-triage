@@ -377,6 +377,233 @@
     "对",
     ""
    ]
+  },
+  "eval-B r3": {
+   "BT01": [
+    "部分对",
+    "productcatalogservice 正确；另把 recommendationservice 入口也当成确定多出约 300ms（不存在）"
+   ],
+   "BT02": [
+    "对",
+    "frontend Pod 网络路径丢包/延迟"
+   ],
+   "BT03": [
+    "对",
+    "recommendationservice 入向网络停顿；CFS 限流列为备选并说明不如前者吻合（严判：部分对）"
+   ],
+   "BT04": [
+    "对",
+    ""
+   ],
+   "BT06": [
+    "部分对",
+    "paymentservice 正确；currencyservice 定位正确，网络丢包与 CFS 冻结明确说无法区分"
+   ],
+   "BT11": [
+    "部分对",
+    "recommendationservice 入向约 400ms；网络注入还是 Pod 内调度停顿，明确说无法区分"
+   ],
+   "BT12": [
+    "部分对",
+    "写成命名空间内七个服务的调用路径都被加了约 200ms（含不存在的 shipping、productcatalog、recommendation、payment、email）"
+   ]
+  },
+  "eval-D r3": {
+   "BT01": [
+    "对",
+    "productcatalogservice 每次 RPC 固定延迟，最可能是 Pod 网卡上的延迟；进程内注入未排除（严判：部分对）"
+   ],
+   "BT02": [
+    "对",
+    "frontend Pod 网卡丢包/延迟，用“其它调用方访问同一批后端正常”排除后端"
+   ],
+   "BT03": [
+    "对",
+    "recommendationservice Pod 网络（写成约 200ms 延迟而不是丢包）；CPU 限流未排除但证据偏向网络（严判：部分对）"
+   ],
+   "BT04": [
+    "对",
+    "只判给 cartservice"
+   ],
+   "BT06": [
+    "对",
+    "paymentservice 正确；currencyservice Pod 网络延时/丢包，CPU 限流列为未排除的备选（严判：部分对）"
+   ],
+   "BT11": [
+    "对",
+    ""
+   ],
+   "BT12": [
+    "对",
+    "currencyservice、cartservice；redis-cart 标为待确认，并说明若只有一处则并入 cartservice（严判：部分对，机制写的是“最可能”）"
+   ]
+  },
+  "strict_differs": {
+   "eval-B r2": [
+    "BT03"
+   ],
+   "eval-B r3": [
+    "BT03"
+   ],
+   "eval-C r2": [],
+   "eval-C r3": [
+    "BT01"
+   ],
+   "eval-D r2": [
+    "BT03",
+    "BT06"
+   ],
+   "eval-D r3": [
+    "BT01",
+    "BT03",
+    "BT06",
+    "BT12"
+   ]
+  }
+ },
+ "summary_7_scenarios": {
+  "B": {
+   "runs": 3,
+   "correct_per_run": [
+    6,
+    4,
+    3
+   ],
+   "mean_pass_rate": 0.619,
+   "strict_correct_per_run": [
+    5,
+    3,
+    2
+   ],
+   "strict_mean": 0.476,
+   "all_runs_correct": [
+    "BT02",
+    "BT03",
+    "BT04"
+   ],
+   "at_least_once": [
+    "BT02",
+    "BT03",
+    "BT04",
+    "BT06",
+    "BT11",
+    "BT12"
+   ],
+   "wrong_runs": 0,
+   "by_scenario": {
+    "BT01": "△△△",
+    "BT02": "✓✓✓",
+    "BT03": "✓✓✓",
+    "BT04": "✓✓✓",
+    "BT06": "✓△△",
+    "BT11": "✓✓△",
+    "BT12": "✓△△"
+   }
+  },
+  "C": {
+   "runs": 3,
+   "correct_per_run": [
+    4,
+    4,
+    4
+   ],
+   "mean_pass_rate": 0.571,
+   "strict_correct_per_run": [
+    3,
+    4,
+    3
+   ],
+   "strict_mean": 0.476,
+   "all_runs_correct": [
+    "BT03",
+    "BT04"
+   ],
+   "at_least_once": [
+    "BT01",
+    "BT02",
+    "BT03",
+    "BT04",
+    "BT06",
+    "BT11",
+    "BT12"
+   ],
+   "wrong_runs": 2,
+   "by_scenario": {
+    "BT01": "△△✓",
+    "BT02": "✗✓✗",
+    "BT03": "✓✓✓",
+    "BT04": "✓✓✓",
+    "BT06": "△△✓",
+    "BT11": "✓✓△",
+    "BT12": "✓△△"
+   }
+  },
+  "D": {
+   "runs": 3,
+   "correct_per_run": [
+    6,
+    5,
+    7
+   ],
+   "mean_pass_rate": 0.857,
+   "strict_correct_per_run": [
+    5,
+    3,
+    3
+   ],
+   "strict_mean": 0.524,
+   "all_runs_correct": [
+    "BT03",
+    "BT06",
+    "BT11",
+    "BT12"
+   ],
+   "at_least_once": [
+    "BT01",
+    "BT02",
+    "BT03",
+    "BT04",
+    "BT06",
+    "BT11",
+    "BT12"
+   ],
+   "wrong_runs": 2,
+   "by_scenario": {
+    "BT01": "✓✗✓",
+    "BT02": "✓✗✓",
+    "BT03": "✓✓✓",
+    "BT04": "△✓✓",
+    "BT06": "✓✓✓",
+    "BT11": "✓✓✓",
+    "BT12": "✓✓✓"
+   }
+  },
+  "S0": {
+   "runs": 1,
+   "correct_per_run": [
+    1
+   ],
+   "mean_pass_rate": 0.143,
+   "strict_correct_per_run": [
+    1
+   ],
+   "strict_mean": 0.143,
+   "all_runs_correct": [
+    "BT04"
+   ],
+   "at_least_once": [
+    "BT04"
+   ],
+   "wrong_runs": 2,
+   "by_scenario": {
+    "BT01": "✗",
+    "BT02": "✗",
+    "BT03": "△",
+    "BT04": "✓",
+    "BT06": "△",
+    "BT11": "△",
+    "BT12": "△"
+   }
   }
  }
 }
