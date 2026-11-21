@@ -1,0 +1,31 @@
+# Read access to the kubelet's metrics endpoints (/metrics, /metrics/cadvisor), the same permission Prometheus uses to
+# scrape container CPU, CPU-throttling, memory and pod-network counters. Nothing else: no node objects, no pods of other
+# namespaces, no exec, no logs. The token of this account is used only by scripts/pod_metrics.py (no model-chosen
+# arguments); the diagnosing agent's own account (rbac-diag*.yaml) is unchanged.
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: metrics-reader
+  namespace: diag-system
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: kubelet-metrics-reader
+rules:
+  - apiGroups: [""]
+    resources: ["nodes/metrics"]
+    verbs: ["get"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: kubelet-metrics-reader
+subjects:
+  - kind: ServiceAccount
+    name: metrics-reader
+    namespace: diag-system
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: kubelet-metrics-reader

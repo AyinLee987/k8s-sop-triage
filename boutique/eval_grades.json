@@ -4,7 +4,8 @@
   "对": "所有真实原因都找到且机制正确；低把握的“不能排除”不扣分，单独记数；干扰项被列出但明确说不是症状原因不扣分",
   "部分对": "服务找对但机制错或没定；两个原因只找对一个；或把干扰项/不存在的问题当成确定的原因",
   "错": "其余",
-  "边界": "主判：结论把网络（或正确的配置）作为首要/最可能原因即算机制正确，备选解释不扣分；并列两个解释且不表态算“没定”。严判：只要并列了网络与 CPU/进程内停顿就算“没定”。"
+  "边界": "主判：结论把网络（或正确的配置）作为首要/最可能原因即算机制正确，备选解释不扣分；并列两个解释且不表态算“没定”。严判：只要并列了网络与 CPU/进程内停顿就算“没定”。",
+  "BT11": "点名 recommendationservice 且写明是它网络路径上的延迟（哪个方向没定不扣分）算对；在网络与进程内/CPU 之间明确说无法区分算部分对"
  },
  "eval-S0": {
   "skills": "holmes/skills/svc-sop-v0 (base SOPs, no experience entries)",
@@ -174,8 +175,8 @@
     ""
    ],
    "BT11": [
-    "部分对",
-    "recommendationservice 每次多约 400ms；是进入它的请求方向还是它调用 productcatalogservice 那一跳，没有定"
+    "对",
+    "recommendationservice 每次多约 400ms；没定的只是哪一个方向（进入它的请求，还是它调 productcatalogservice 的回包），两段都经过它自己的网卡。2026-11-21 复核时由部分对改为对：与 D 第 2 遍同样的写法判法一致"
    ],
    "BT12": [
     "对",
@@ -183,9 +184,9 @@
    ]
   },
   "count": {
-   "部分对": 3,
+   "部分对": 2,
    "错": 1,
-   "对": 8
+   "对": 9
   },
   "strict_correct": 7,
   "strict_differs": [
@@ -254,5 +255,128 @@
   "strict_differs": [
    "BT12"
   ]
+ },
+ "repeats": {
+  "note": "repeats on the 7 scenarios that separate the groups (BT01,02,03,04,06,11,12); graded 2026-11-21 with the same rule; 'strict' = a stated lean to network with CPU/in-process listed as possible counts as undecided",
+  "eval-B r2": {
+   "BT01": [
+    "部分对",
+    "productcatalogservice 每次约 300ms 找到，但网络延迟还是容器内 CPU 抢占明确说无法区分"
+   ],
+   "BT02": [
+    "对",
+    "frontend Pod 网络路径间歇延迟/丢包"
+   ],
+   "BT03": [
+    "对",
+    "recommendationservice 链路丢包最可能，CFS 限流列为无法排除的备选（严判：部分对）"
+   ],
+   "BT04": [
+    "对",
+    ""
+   ],
+   "BT06": [
+    "部分对",
+    "paymentservice 正确；currencyservice 定位正确，网络丢包与进程冻结无法区分"
+   ],
+   "BT11": [
+    "对",
+    ""
+   ],
+   "BT12": [
+    "部分对",
+    "currencyservice 正确；cartservice 的延迟归给了 redis-cart，另把 productcatalogservice、shippingservice 也当成被加了延迟（不存在）"
+   ]
+  },
+  "eval-C r2": {
+   "BT01": [
+    "部分对",
+    "productcatalogservice 约 300ms 找到；另把 recommendationservice 每次约 1.8s 当成独立的主因"
+   ],
+   "BT02": [
+    "对",
+    "frontend Pod 网络路径丢包；CPU 限流列为备选并说明与证据不符"
+   ],
+   "BT03": [
+    "对",
+    ""
+   ],
+   "BT04": [
+    "对",
+    ""
+   ],
+   "BT06": [
+    "部分对",
+    "paymentservice 正确；丢包判为节点上的 Pod 网络整体劣化，没有定位到 currencyservice"
+   ],
+   "BT11": [
+    "对",
+    ""
+   ],
+   "BT12": [
+    "部分对",
+    "currencyservice、购物车路径都找到；另把 recommendationservice/productcatalogservice 链路也当成被加了延迟（不存在）"
+   ]
+  },
+  "eval-C r3": {
+   "BT01": [
+    "对",
+    "productcatalogservice 每次约 300ms；网络路径“证据最吻合”，进程内列为可能（严判：部分对）"
+   ],
+   "BT02": [
+    "错",
+    "判给 recommendationservice、adservice 的回程和 frontend 的一个 5 秒超时，没有定位到 frontend 的网络"
+   ],
+   "BT03": [
+    "对",
+    "另注明不能排除节点级"
+   ],
+   "BT04": [
+    "对",
+    ""
+   ],
+   "BT06": [
+    "对",
+    ""
+   ],
+   "BT11": [
+    "部分对",
+    "recommendationservice 每次约 400ms；入向网络延迟还是它内部串行调用变慢，明确说无法区分"
+   ],
+   "BT12": [
+    "部分对",
+    "写成命名空间内多条链路都被加了约 200ms（含不存在的 productcatalogservice、recommendationservice、emailservice）"
+   ]
+  },
+  "eval-D r2": {
+   "BT01": [
+    "错",
+    "主因判给 recommendationservice（1.4–1.8s）和购物车路径；没有把 productcatalogservice 列为原因"
+   ],
+   "BT02": [
+    "错",
+    "判成 productcatalogservice Pod 的间歇网络延迟"
+   ],
+   "BT03": [
+    "对",
+    "网络延迟/丢包最可能，CPU 节流不能排除（严判：部分对）"
+   ],
+   "BT04": [
+    "对",
+    ""
+   ],
+   "BT06": [
+    "对",
+    "paymentservice 正确；currencyservice Pod 网络路径丢包/延迟，结尾提到也可能是 CPU 限流（严判：部分对）"
+   ],
+   "BT11": [
+    "对",
+    "哪个方向没定"
+   ],
+   "BT12": [
+    "对",
+    ""
+   ]
+  }
  }
 }

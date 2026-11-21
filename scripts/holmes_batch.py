@@ -67,11 +67,11 @@ def grade(answer_text: str, expected: dict, noise_ids: list[str] | None = None) 
     return out
 
 
-def run_one(sc_id: str, out: Path, max_steps: int, noise_ids: list[str], skills: str = "", frame: str = "prod") -> dict:
+def run_one(sc_id: str, out: Path, max_steps: int, noise_ids: list[str], skills: str = "", frame: str = "prod", metrics: bool = False) -> dict:
     started = time.monotonic()
     proc = subprocess.run([sys.executable, str(REPO / "scripts" / "holmes_pilot.py"), sc_id,
                            "--max-steps", str(max_steps), "--out", str(out), "--noise", ",".join(noise_ids),
-                           "--skills", skills, "--frame", frame],
+                           "--skills", skills, "--frame", frame, *(["--metrics"] if metrics else [])],
                           capture_output=True, text=True, timeout=2400)
     rec = {"scenario": sc_id, "noise": noise_ids, "exit": proc.returncode, "wall_s": round(time.monotonic() - started),
            "answer_file": str(out.relative_to(REPO))}
@@ -86,7 +86,8 @@ def run_one(sc_id: str, out: Path, max_steps: int, noise_ids: list[str], skills:
     rec["skills_fetched"] = [str(t.get("description") or "") for t in data.get("tool_calls") or []
                              if t.get("tool_name") == "fetch_skill"]
     rec["answer"] = data.get("result") or ""
-    rec["frame"], rec["before"] = data.get("frame"), data.get("before")
+    rec["frame"], rec["before"], rec["metrics"] = data.get("frame"), data.get("before"), data.get("metrics")
+    rec["metrics_calls"] = sum(1 for t in data.get("tool_calls") or [] if t.get("tool_name") == "boutique_pod_metrics")
     plan, _ = remediate.parse_plan(rec["answer"])   # the JSON block the Online Boutique prompt asks for
     rec["root_causes"] = (plan or {}).get("root_causes")
     return rec
@@ -128,6 +129,7 @@ def main() -> int:
     ap.add_argument("--skills", default="", help="comma-separated skill directories relative to the repo; empty = no SOP")
     ap.add_argument("--source", default="handwritten", choices=["handwritten", "generated", "all"])
     ap.add_argument("--frame", default="prod", choices=["prod", "none"])
+    ap.add_argument("--metrics", action="store_true", help="give the agent the boutique_pod_metrics tool")
     ap.add_argument("--tag", default=time.strftime("%Y%m%d-%H%M%S"))
     ap.add_argument("--finalize", action="store_true", help="required to run holdout scenarios")
     args = ap.parse_args()
@@ -154,7 +156,7 @@ def main() -> int:
         print(f"[{n}/{len(plan)}] {sc_id} repeat {rep} ...", flush=True)
         noise_ids = pick_noise(args.noise, sc_id, rep)
         print(f"    noise: {noise_ids or 'none'}", flush=True)
-        rec = run_one(sc_id, out_dir / f"{sc_id}-r{rep}.json", args.max_steps, noise_ids, args.skills, args.frame)
+        rec = run_one(sc_id, out_dir / f"{sc_id}-r{rep}.json", args.max_steps, noise_ids, args.skills, args.frame, args.metrics)
         rec["repeat"] = rep
         rec["grade"] = grade(rec.get("answer", ""), all_sc[sc_id]["answer"], noise_ids) if not rec.get("error") else None
         status = "ERROR" if rec.get("error") else ("ok" if rec["grade"]["auto_correct"] else "WRONG?")

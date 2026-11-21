@@ -56,6 +56,8 @@ def main() -> int:
     ap.add_argument("--skills", default="", help="comma-separated skill directories (relative to the repo), e.g. "
                     "holmes/skills/sop,holmes/skills/cases; empty = HolmesGPT without any SOP")
     ap.add_argument("--frame", default="prod", choices=["prod", "none"], help="prod (default) = say this is a real production incident; none = the bare prompt")
+    ap.add_argument("--metrics", action="store_true", help="also give the agent the boutique_pod_metrics tool (holmes/toolsets-metrics.yaml): "
+                    "CPU usage, CPU throttling, memory and pod network counters from the kubelet")
     ap.add_argument("--out", default=None, help="where to write HolmesGPT's JSON answer (default: results/holmes_pilot/<id>-<time>.json)")
     args = ap.parse_args()
     load_dotenv()
@@ -88,6 +90,14 @@ def main() -> int:
         if missing:
             sys.exit(f"skill directories not found: {missing}")
         env["CUSTOM_SKILL_PATHS"] = ",".join(dirs)
+    toolsets = REPO / "holmes" / "toolsets-metrics.yaml"
+    if args.metrics:
+        token_file = os.environ.get("METRICS_TOKEN_FILE") or str(REPO / ".local" / "metrics.token")
+        if not Path(token_file).is_file():
+            sys.exit(f"--metrics needs the metrics token ({token_file}); the laptop entry script mints it")
+        env["METRICS_TOKEN_FILE"] = token_file
+    else:
+        env.pop("METRICS_TOKEN_FILE", None)   # without the flag the agent's tools cannot reach the kubelet
     noises = load_noises([i for i in args.noise.split(",") if i]) if args.noise else []
     lc.verify_healthy(log)
     try:
@@ -103,6 +113,8 @@ def main() -> int:
         cmd = [HOLMES, "ask", prompt, "--model", f"openai/{model}", "--config", str(REPO / "holmes" / "config.yaml"),
                "--max-steps", str(args.max_steps), "--no-interactive", "--no-echo", "--log-costs",
                "--json-output-file", str(json_out)]
+        if args.metrics:
+            cmd += ["--custom-toolsets", str(toolsets)]
         # stdin must be closed: with an open stdin HolmesGPT can wait for input forever
         res = subprocess.run(cmd, env=env, capture_output=True, text=True, timeout=1500, stdin=subprocess.DEVNULL)
         print(res.stdout[-6000:])
@@ -110,7 +122,7 @@ def main() -> int:
             print("stderr:", res.stderr[-3000:])
         if json_out.exists():   # keep what the agent was told next to what it answered
             data = json.loads(json_out.read_text(encoding="utf-8"))
-            data.update({"prompt": prompt, "frame": args.frame, "before": first_obs})
+            data.update({"prompt": prompt, "frame": args.frame, "before": first_obs, "metrics": args.metrics})
             json_out.write_text(json.dumps(data, ensure_ascii=False, indent=1), encoding="utf-8")
     finally:
         print(f"diagnosis wall time {time.monotonic() - started:.0f}s")
