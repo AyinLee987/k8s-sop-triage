@@ -42,7 +42,7 @@ scenarios:
       field: http.resp.took_ms
       match:
         message: request complete
-      min_ms: 180
+      min_ms: 110
       count: 15
       since_confirm: true
     debug_on_fail:
@@ -132,7 +132,7 @@ scenarios:
       field: http.resp.took_ms
       match:
         message: request complete
-      min_ms: 180
+      min_ms: 110
       count: 15
       since_confirm: true
     debug_on_fail:
@@ -228,7 +228,7 @@ scenarios:
       field: http.resp.took_ms
       match:
         message: request complete
-      min_ms: 120
+      min_ms: 110
       count: 15
       since_confirm: true
     debug_on_fail:
@@ -347,7 +347,7 @@ scenarios:
       field: http.resp.took_ms
       match:
         message: request complete
-      min_ms: 180
+      min_ms: 110
       count: 15
       since_confirm: true
     - type: logs_contain
@@ -412,7 +412,7 @@ scenarios:
         name: cartservice
       accept_objects:
       - cartservice
-      explanation: cartservice 的 Pod 网络被加了约 130ms 延迟；它自身处理不慢，调用它的服务跟着变慢。
+      explanation: cartservice 的 Pod 网络被加了延迟：每个包延迟 119 到 221 毫秒之间的随机值（中心 170 毫秒）；它自身处理不慢，调用它的服务跟着变慢。
       key_evidence:
       - cartservice
       accept_cause_keywords:
@@ -486,7 +486,7 @@ scenarios:
       field: http.resp.took_ms
       match:
         message: request complete
-      min_ms: 180
+      min_ms: 110
       count: 15
       since_confirm: true
     - type: logs_contain
@@ -551,7 +551,7 @@ scenarios:
         name: productcatalogservice
       accept_objects:
       - productcatalogservice
-      explanation: productcatalogservice 的 Pod 网络被加了约 270ms 延迟；它自身处理不慢，调用它的服务跟着变慢。
+      explanation: productcatalogservice 的 Pod 网络被加了延迟：每个包延迟 203 到 377 毫秒之间的随机值（中心 290 毫秒）；它自身处理不慢，调用它的服务跟着变慢。
       key_evidence:
       - productcatalogservice
       accept_cause_keywords:
@@ -752,7 +752,7 @@ scenarios:
   root_causes: 1
   symptom: 商城页面明显变慢了，但没有报错；Pod 看起来都是正常的。
   realism:
-    pattern: recommendationservice 的 Pod 网络有固定延迟，只有这一个故障。延迟比第一版题库小（约 130 毫秒）。
+    pattern: recommendationservice 的 Pod 网络有固定延迟，只有这一个故障。每个包的延迟是“固定值加随机值”。
     sources:
     - Cloud-OpsBench
     - k8s.af
@@ -787,7 +787,7 @@ scenarios:
       field: http.resp.took_ms
       match:
         message: request complete
-      min_ms: 120
+      min_ms: 110
       count: 15
       since_confirm: true
     - type: logs_contain
@@ -830,7 +830,7 @@ scenarios:
       name: recommendationservice
     accept_objects:
     - recommendationservice
-    explanation: recommendationservice 的 Pod 网络被加了约 130ms 延迟；它自身处理不慢，调用它的服务跟着变慢。
+    explanation: recommendationservice 的 Pod 网络被加了延迟：每个包延迟 133 到 247 毫秒之间的随机值（中心 190 毫秒）；它自身处理不慢，调用它的服务跟着变慢。
     key_evidence:
     - recommendationservice
     accept_cause_keywords:
@@ -883,7 +883,7 @@ scenarios:
       field: http.resp.took_ms
       match:
         message: request complete
-      min_ms: 120
+      min_ms: 110
       count: 15
       since_confirm: true
     debug_on_fail:
@@ -998,7 +998,7 @@ scenarios:
       field: http.resp.took_ms
       match:
         message: request complete
-      min_ms: 180
+      min_ms: 110
       count: 15
       since_confirm: true
     debug_on_fail:
@@ -1249,7 +1249,7 @@ scenarios:
       field: http.resp.took_ms
       match:
         message: request complete
-      min_ms: 180
+      min_ms: 110
       count: 15
       since_confirm: true
     - type: logs_contain
@@ -1314,7 +1314,7 @@ scenarios:
         name: currencyservice
       accept_objects:
       - currencyservice
-      explanation: currencyservice 的 Pod 网络被加了约 130ms 延迟；它自身处理不慢，调用它的服务跟着变慢。
+      explanation: currencyservice 的 Pod 网络被加了延迟：每个包延迟 182 到 338 毫秒之间的随机值（中心 260 毫秒）；它自身处理不慢，调用它的服务跟着变慢。
       key_evidence:
       - currencyservice
       accept_cause_keywords:
@@ -1578,7 +1578,7 @@ scenarios:
       field: http.resp.took_ms
       match:
         message: request complete
-      min_ms: 120
+      min_ms: 110
       count: 10
       since_confirm: true
     - *id002
@@ -1657,7 +1657,7 @@ scenarios:
   root_causes: 1
   symptom: 商城页面明显变慢了，但没有报错；Pod 看起来都是正常的。
   realism:
-    pattern: cartservice 的 Pod 网络有固定延迟（约 130 毫秒），只有这一个故障。
+    pattern: cartservice 的 Pod 网络有延迟（固定值加随机值），只有这一个故障。
     sources:
     - Cloud-OpsBench
     - k8s.af
@@ -1692,7 +1692,7 @@ scenarios:
       field: http.resp.took_ms
       match:
         message: request complete
-      min_ms: 120
+      min_ms: 110
       count: 15
       since_confirm: true
     - type: logs_contain
@@ -1735,7 +1735,7 @@ scenarios:
       name: cartservice
     accept_objects:
     - cartservice
-    explanation: cartservice 的 Pod 网络被加了约 130ms 延迟；它自身处理不慢，调用它的服务跟着变慢。
+    explanation: cartservice 的 Pod 网络被加了延迟：每个包延迟 147 到 273 毫秒之间的随机值（中心 210 毫秒）；它自身处理不慢，调用它的服务跟着变慢。
     key_evidence:
     - cartservice
     accept_cause_keywords:
@@ -1818,7 +1818,7 @@ scenarios:
       field: http.resp.took_ms
       match:
         message: request complete
-      min_ms: 180
+      min_ms: 110
       count: 15
       since_confirm: true
     - type: logs_contain
@@ -1870,7 +1870,7 @@ scenarios:
       name: productcatalogservice
     accept_objects:
     - productcatalogservice
-    explanation: productcatalogservice 的 Pod 网络被加了约 270ms 延迟；它自身处理不慢，调用它的服务跟着变慢。
+    explanation: productcatalogservice 的 Pod 网络被加了延迟：每个包延迟 217 到 403 毫秒之间的随机值（中心 310 毫秒）；它自身处理不慢，调用它的服务跟着变慢。
     key_evidence:
     - productcatalogservice
     accept_cause_keywords:
@@ -2150,7 +2150,7 @@ scenarios:
       field: http.resp.took_ms
       match:
         message: request complete
-      min_ms: 180
+      min_ms: 110
       count: 15
       since_confirm: true
     debug_on_fail:
@@ -2246,7 +2246,7 @@ scenarios:
       field: http.resp.took_ms
       match:
         message: request complete
-      min_ms: 120
+      min_ms: 110
       count: 15
       since_confirm: true
     debug_on_fail:
@@ -2508,7 +2508,7 @@ scenarios:
       field: http.resp.took_ms
       match:
         message: request complete
-      min_ms: 180
+      min_ms: 110
       count: 15
       since_confirm: true
     - type: logs_contain
@@ -2573,7 +2573,7 @@ scenarios:
         name: currencyservice
       accept_objects:
       - currencyservice
-      explanation: currencyservice 的 Pod 网络被加了约 130ms 延迟；它自身处理不慢，调用它的服务跟着变慢。
+      explanation: currencyservice 的 Pod 网络被加了延迟：每个包延迟 126 到 234 毫秒之间的随机值（中心 180 毫秒）；它自身处理不慢，调用它的服务跟着变慢。
       key_evidence:
       - currencyservice
       accept_cause_keywords:
@@ -2647,7 +2647,7 @@ scenarios:
       field: http.resp.took_ms
       match:
         message: request complete
-      min_ms: 120
+      min_ms: 110
       count: 15
       since_confirm: true
     - type: logs_contain
@@ -2712,7 +2712,7 @@ scenarios:
         name: cartservice
       accept_objects:
       - cartservice
-      explanation: cartservice 的 Pod 网络被加了约 130ms 延迟；它自身处理不慢，调用它的服务跟着变慢。
+      explanation: cartservice 的 Pod 网络被加了延迟：每个包延迟 189 到 351 毫秒之间的随机值（中心 270 毫秒）；它自身处理不慢，调用它的服务跟着变慢。
       key_evidence:
       - cartservice
       accept_cause_keywords:
@@ -2780,7 +2780,7 @@ scenarios:
       field: http.resp.took_ms
       match:
         message: request complete
-      min_ms: 120
+      min_ms: 110
       count: 10
       since_confirm: true
     - *id002
@@ -2920,7 +2920,7 @@ scenarios:
       field: http.resp.took_ms
       match:
         message: request complete
-      min_ms: 120
+      min_ms: 110
       count: 10
       since_confirm: true
     - *id002
@@ -2986,7 +2986,7 @@ scenarios:
         name: recommendationservice
       accept_objects:
       - recommendationservice
-      explanation: recommendationservice 的 Pod 网络被加了约 130ms 延迟；它自身处理不慢，调用它的服务跟着变慢。
+      explanation: recommendationservice 的 Pod 网络被加了延迟：每个包延迟 154 到 286 毫秒之间的随机值（中心 220 毫秒）；它自身处理不慢，调用它的服务跟着变慢。
       key_evidence:
       - recommendationservice
       accept_cause_keywords:
@@ -3348,7 +3348,7 @@ scenarios:
       field: http.resp.took_ms
       match:
         message: request complete
-      min_ms: 180
+      min_ms: 110
       count: 15
       since_confirm: true
     - type: logs_contain
@@ -3409,7 +3409,7 @@ scenarios:
         name: cartservice
       accept_objects:
       - cartservice
-      explanation: cartservice 的 Pod 网络被加了约 130ms 延迟；它自身处理不慢，调用它的服务跟着变慢。
+      explanation: cartservice 的 Pod 网络被加了延迟：每个包延迟 112 到 208 毫秒之间的随机值（中心 160 毫秒）；它自身处理不慢，调用它的服务跟着变慢。
       key_evidence:
       - cartservice
       accept_cause_keywords:
@@ -3478,7 +3478,7 @@ scenarios:
       field: http.resp.took_ms
       match:
         message: request complete
-      min_ms: 180
+      min_ms: 110
       count: 15
       since_confirm: true
     debug_on_fail:

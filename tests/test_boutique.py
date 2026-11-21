@@ -1,4 +1,6 @@
 """Online Boutique scenarios: spec completeness, isolation from the lab scenario set, lifecycle selection, http_probe."""
+import re
+
 from triage.kube import FakeRunner, KubeResult
 from triage.lifecycle import (REPO, BoutiqueLifecycle, Lifecycle, StepLog, load_boutique, load_scenarios, make_lifecycle)
 
@@ -287,3 +289,22 @@ def test_misdirected_config_points_at_a_service_that_exists():
                 ev = c["key_evidence"][0]
                 other = ev.split("=")[1] if ev.startswith("app=") else ev.split(":")[0]
                 assert other in BOUTIQUE_DEPLOYMENTS and other != c["object"]["name"], (s["id"], ev)
+
+
+def test_network_delays_are_a_fixed_part_plus_a_random_part_and_differ_between_scenarios():
+    seen = []
+    for s in V2.values():
+        if not any(m == "net_delay" for m in s["mechanisms"]):
+            continue
+        manifest = (REPO / "scenarios" / "netem" / f"injector-boutique-hard-{s['id']}.yaml").read_text(encoding="utf-8")
+        specs = re.findall(r'"([a-z-]+)\|delay (\d+)ms (\d+)ms"', manifest)
+        assert specs, s["id"]
+        for _svc, centre, jitter in specs:
+            centre, jitter = int(centre), int(jitter)
+            assert jitter == round(centre * 0.3) and centre % 100 and centre - jitter >= 110
+            seen.append(centre)
+            text = " ".join(c["explanation"] for c in [s["answer"], *s["answer"].get("also", [])])
+            assert f"{centre - jitter} 到 {centre + jitter} 毫秒" in text, s["id"]
+        slow = [c for c in s["confirm"]["checks"] if c["type"] == "slow_requests"]
+        assert slow and slow[0]["min_ms"] == 110
+    assert len(seen) >= 10 and len(set(seen)) >= 8

@@ -16,6 +16,7 @@ tc netem). Nothing here has been validated yet: run scripts/validate_injection.p
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
 
 import yaml
@@ -305,7 +306,7 @@ def main() -> None:
     #   - "slow" now has more than one cause: CPU throttling (a legal but too small CPU limit) next to the network faults
     #   - configuration faults no longer show an obviously broken value: the address or selector points at another
     #     service that really exists, so endpoints are not empty and the name resolves
-    #   - network delays are 130 / 270 ms instead of 200 / 300 ms (200 ms is a multiple of the 100 ms CFS period)
+    #   - network delays are a centre that differs per scenario (160-340 ms) with 30% random jitter, instead of 200 / 300 ms +/- 10%
     #   - a service that is the only cause of a test scenario is not the only cause of a learning scenario with the same mechanism
     resources = {n: d["spec"]["template"]["spec"]["containers"][0]["resources"] for n, d in deps.items()}
     addr = {v.split(":")[0]: v for e in env.values() for k, v in e.items() if k.endswith("_ADDR") and v}
@@ -335,10 +336,17 @@ def main() -> None:
                  "explanation": f"Service {t} 的 selector 被改成 app={other}：端点不为空，但选中的是 {other} 的 Pod，流量被送错了地方；{t} 和 {other} 的 Pod 自身都没有问题。",
                  "key_evidence": [f"app={other}"], "accept_cause_keywords": ["selector", "选择器", "endpoint", "端点"]})
 
-    def delay2(t):
-        return "delay 270ms 30ms" if t in GO or t == "redis-cart" else "delay 130ms 15ms"
+    # A fixed part plus a random part, as on a real congested path: netem's second number is the jitter, each packet is
+    # delayed by a value drawn uniformly from centre +/- jitter (no distribution table needed on the node). The centre
+    # differs from scenario to scenario, so an entry cannot recognise the fault by its number, and the jitter is 30% of it,
+    # so the extra time per call is not a constant (and not a multiple of the 100 ms CFS period).
+    centres = iter([170, 230, 190, 260, 210, 250, 180, 270, 220, 160, 280, 175] * 3)   # none is a multiple of 100, with or without the +60
 
-    def slow2(count, min_ms=180):
+    def delay2(t):
+        c = next(centres) + (60 if t in GO or t == "redis-cart" else 0)
+        return f"delay {c}ms {round(c * 0.3)}ms"
+
+    def slow2(count, min_ms=110):   # 110: just under the smallest possible delay of one call (160 - 30%)
         return {**slow_check(count), "min_ms": min_ms}
 
     def mechanisms(a):
@@ -352,7 +360,7 @@ def main() -> None:
     add("cpu", SLOW, "不是网络：redis-cart 的 CPU 上限被调得很低。变慢出现在调用它的 cartservice 和再上一层的 frontend 上，离故障点隔了两层。",
         [cpu_limit("redis-cart")], [], [], [slow2(15)])
     add("cpu+decoy", SLOW, "真正的原因是 recommendationservice 的 CPU 上限过低。同时 adservice 被缩到 0 副本，是和症状无关的真实异常。",
-        [cpu_limit("recommendationservice")], [], [(replicas0("adservice"), "adservice", swallowed)], [slow2(15, 120)])
+        [cpu_limit("recommendationservice")], [], [(replicas0("adservice"), "adservice", swallowed)], [slow2(15)])
     add("double", SLOW, "两个互不相关、机制也不同的故障：currencyservice 的 CPU 上限过低，加上 cartservice 的 Pod 网络延迟。只用一种解释说不通全部的额外耗时。",
         [cpu_limit("currencyservice")], [("cartservice", delay2("cartservice"))], [], [slow2(15)])
     add("double", SLOW, "两个互不相关、机制也不同的故障：redis-cart 的 CPU 上限过低，加上 productcatalogservice 的 Pod 网络延迟。",
@@ -363,14 +371,14 @@ def main() -> None:
         [selector_other("shippingservice", "paymentservice")], [], [], [err_check])
 
     prefix[0] = "CV"
-    add("delay", SLOW, "recommendationservice 的 Pod 网络有固定延迟，只有这一个故障。延迟比第一版题库小（约 130 毫秒）。",
-        [], [("recommendationservice", delay2("recommendationservice"))], [], [slow2(15, 120)])
+    add("delay", SLOW, "recommendationservice 的 Pod 网络有固定延迟，只有这一个故障。每个包的延迟是“固定值加随机值”。",
+        [], [("recommendationservice", delay2("recommendationservice"))], [], [slow2(15)])
     add("cpu", SLOW, "不是网络：recommendationservice 的 CPU 上限过低，只有这一个故障。",
-        [cpu_limit("recommendationservice")], [], [], [slow2(15, 120)])
+        [cpu_limit("recommendationservice")], [], [], [slow2(15)])
     add("cpu+decoy", SLOW, "真正的原因是 currencyservice 的 CPU 上限过低。同时 emailservice 的 Service 选不到 Pod，是和症状无关的真实异常。",
         [cpu_limit("currencyservice")], [], [(selector("emailservice"), "emailservice", swallowed)], [slow2(15)])
     add("intermittent+decoy", FLAKY, "真正的原因是 redis-cart 的 Pod 网络丢包。同时它的直接调用方 cartservice 刚做了一次无害的发布。",
-        [], [("redis-cart", LOSS)], [(release_tag("cartservice"), "cartservice", "只是多了一个不起作用的环境变量，发布前后它自身的处理时间没有变化")], [slow2(8)])
+        [], [("redis-cart", LOSS)], [(release_tag("cartservice"), "cartservice", "只是多了一个不起作用的环境变量，发布前后它自身的处理时间没有变化")], [slow2(8, 180)])
     add("double", SLOW, "两个互不相关、机制也不同的故障：redis-cart 的 CPU 上限过低，加上 currencyservice 的 Pod 网络延迟。",
         [cpu_limit("redis-cart")], [("currencyservice", delay2("currencyservice"))], [], [slow2(15)])
     add("config", ERR, "frontend 的运费服务地址被指到了另一个真实存在的服务（cartservice）上。",
@@ -378,28 +386,28 @@ def main() -> None:
     add("config+decoy", ERR, "currencyservice 的 Service 选中了 cartservice 的 Pod。同时 recommendationservice 刚做了一次无害的发布。",
         [selector_other("currencyservice", "cartservice")], [], [(release_tag("recommendationservice"), "recommendationservice", "只是多了一个不起作用的环境变量")], [err_check])
     add("double", BOTH, "两个互不相关的故障：recommendationservice 的 CPU 上限过低，加上 checkoutservice 的购物车服务地址配置错误。",
-        [cpu_limit("recommendationservice"), env_addr("checkoutservice", "CART_SERVICE_ADDR")], [], [], [slow2(10, 120), order_check])
+        [cpu_limit("recommendationservice"), env_addr("checkoutservice", "CART_SERVICE_ADDR")], [], [], [slow2(10), order_check])
 
     prefix[0] = "CT"
-    add("delay", SLOW, "cartservice 的 Pod 网络有固定延迟（约 130 毫秒），只有这一个故障。", [], [("cartservice", delay2("cartservice"))], [], [slow2(15, 120)])
+    add("delay", SLOW, "cartservice 的 Pod 网络有延迟（固定值加随机值），只有这一个故障。", [], [("cartservice", delay2("cartservice"))], [], [slow2(15)])
     add("decoy", SLOW, "真正的原因是 productcatalogservice 的 Pod 网络延迟。同时 adservice 的 Service 选不到 Pod，是和症状无关的真实异常。",
         [], [("productcatalogservice", delay2("productcatalogservice"))], [(selector("adservice"), "adservice", swallowed)], [slow2(15)])
-    add("intermittent", FLAKY, "recommendationservice 的 Pod 网络有少量丢包。", [], [("recommendationservice", LOSS)], [], [slow2(8)])
+    add("intermittent", FLAKY, "recommendationservice 的 Pod 网络有少量丢包。", [], [("recommendationservice", LOSS)], [], [slow2(8, 180)])
     add("intermittent+decoy", FLAKY, "真正的原因是 frontend 自己的 Pod 网络有少量丢包。同时 emailservice 被缩到 0 副本，是和症状无关的真实异常。",
-        [], [("frontend", "loss 3%")], [(replicas0("emailservice"), "emailservice", swallowed)], [slow2(8)])
+        [], [("frontend", "loss 3%")], [(replicas0("emailservice"), "emailservice", swallowed)], [slow2(8, 180)])
     add("cpu", SLOW, "不是网络：productcatalogservice 的 CPU 上限过低，只有这一个故障。", [cpu_limit("productcatalogservice")], [], [], [slow2(15)])
     add("cpu+decoy", SLOW, "真正的原因是 cartservice 的 CPU 上限过低。同时 adservice 被缩到 0 副本，是和症状无关的真实异常。",
-        [cpu_limit("cartservice")], [], [(replicas0("adservice"), "adservice", swallowed)], [slow2(15, 120)])
+        [cpu_limit("cartservice")], [], [(replicas0("adservice"), "adservice", swallowed)], [slow2(15)])
     add("double+intermittent", FLAKY, "两个互不相关、机制也不同的故障：redis-cart 的 CPU 上限过低，加上 currencyservice 的 Pod 网络丢包。",
-        [cpu_limit("redis-cart")], [("currencyservice", LOSS)], [], [slow2(8)])
+        [cpu_limit("redis-cart")], [("currencyservice", LOSS)], [], [slow2(8, 180)])
     add("double", SLOW, "两个互不相关、机制也不同的故障：productcatalogservice 的 CPU 上限过低，加上 currencyservice 的 Pod 网络延迟。",
         [cpu_limit("productcatalogservice")], [("currencyservice", delay2("currencyservice"))], [], [slow2(15)])
     add("double", SLOW, "两个互不相关、机制也不同的故障：recommendationservice 的 CPU 上限过低，加上 cartservice 的 Pod 网络延迟。",
-        [cpu_limit("recommendationservice")], [("cartservice", delay2("cartservice"))], [], [slow2(15, 120)])
+        [cpu_limit("recommendationservice")], [("cartservice", delay2("cartservice"))], [], [slow2(15)])
     add("double", BOTH, "两个互不相关的故障：cartservice 的 CPU 上限过低，加上 checkoutservice 的运费服务地址配置错误。",
-        [cpu_limit("cartservice"), env_addr("checkoutservice", "SHIPPING_SERVICE_ADDR")], [], [], [slow2(10, 120), order_check])
+        [cpu_limit("cartservice"), env_addr("checkoutservice", "SHIPPING_SERVICE_ADDR")], [], [], [slow2(10), order_check])
     add("double", BOTH, "两个互不相关的故障：recommendationservice 的 Pod 网络延迟，加上 paymentservice 的 Service 选中了 emailservice 的 Pod。",
-        [selector_other("paymentservice", "emailservice")], [("recommendationservice", delay2("recommendationservice"))], [], [slow2(10, 120), order_check])
+        [selector_other("paymentservice", "emailservice")], [("recommendationservice", delay2("recommendationservice"))], [], [slow2(10), order_check])
     add("config", ORDER, "checkoutservice 的货币服务地址被指到了另一个真实存在的服务（productcatalogservice）上。",
         [addr_other("checkoutservice", "CURRENCY_SERVICE_ADDR", "productcatalogservice")], [], [], [order_check])
     add("config", ERR, "cartservice 的 Service 选中了 redis-cart 的 Pod：端点不为空，但那不是 cartservice。",
@@ -415,6 +423,11 @@ def main() -> None:
     for s in v2:
         s["bank"] = 2
         s["mechanisms"] = mechanisms(s["answer"])
+        for c in [s["answer"], *s["answer"].get("also", [])]:   # say what was really injected: a range, not one number
+            m = re.search(r"被加了约 (\d+)ms 延迟", c["explanation"])
+            if m:
+                centre = int(m.group(1)); j = round(centre * 0.3)
+                c["explanation"] = c["explanation"].replace(m.group(0), f"被加了延迟：每个包延迟 {centre - j} 到 {centre + j} 毫秒之间的随机值（中心 {centre} 毫秒）")
         if "cpu" in s["mechanisms"]:
             s["realism"]["validate_note"] = ("CPU 上限的数值是暂定的：先用 scripts/sweep_cpu_limit.py 找到“明显变慢、但 Pod 仍然 Ready 且不重启”的值。"
                                              "再确认限流指标（scripts/pod_metrics.py）在故障期间不为 0。") + s["realism"]["validate_note"]
