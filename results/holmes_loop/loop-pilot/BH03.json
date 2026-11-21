@@ -1,0 +1,328 @@
+{
+ "scenario": "BH03",
+ "model": "deepseek-flash",
+ "max_rounds": 3,
+ "rounds": [
+  {
+   "round": 1,
+   "wall_s": 186,
+   "exit": 0,
+   "total_tokens": 737238,
+   "tool_calls": 28,
+   "answer": "## 排查结果\n\n### 1. 下单 100% 失败 — 已确认根因（配置错误）\n\n`checkoutservice` 的 `CURRENCY_SERVICE_ADDR` 被改成了 **`currencyservice:7001`**，而 `currencyservice` 实际监听 `7000`（Service `currencyservice: 7000 -> 7000`，容器 `PORT=7000`）。证据：\n\n- 部署当前的 env 与 `last-applied-configuration` 不一致（后者是 `currencyservice:7000`），说明是模板之外被 `kubectl set env` 类操作改的：\n  - 当前: `CURRENCY_SERVICE_ADDR=currencyservice:7001`\n  - 清单: `CURRENCY_SERVICE_ADDR=currencyservice:7000`\n- frontend 日志（近 15 分钟, 56 条过滤日志）每一个结账都失败：\n  `failed to complete the order: rpc error: code = Internal desc = failed to prepare order: failed to convert price of \"2ZYFJ3GM2N\" to USD` → `POST /cart/checkout 500`，共 5 次，与\"下单 5 次失败 5 次\"、500 数量 5 完全对应。\n- checkoutservice 自身日志无错误（只有 12 行），失败发生在它对 currencyservice 的 gRPC 调用上，且 2–3ms 就返回（7001 端口无人监听，连接被立即拒绝）。\n\n### 2. 变慢 — 已定位到 `recommendationservice`（~400ms/次）\n\n`GET /` 只有 **13–46ms**（含 productcatalog、currency、cart、ads 全部依赖），而 `GET /product/*` 与 `GET /cart` 全部 **379–445ms**。两者共同的额外依赖只有 `recommendationservice`（首页不调用推荐）：\n\n- 首页 `GET /` 20ms → productcatalog / currency / cart / adservice 都是快的（cartservice 也快：checkout 在失败前的取购物车步骤只花 2–3ms）。\n- 商品页/购物车页 `serving product page` / `view user cart` 之后到 `request complete` 之间耗时 405–438ms，而 recommendationservice 的 `[Recv ListRecommendations] ...`（在 ListProducts 之后、返回前打印）恰好出现在请求完成前 **~5ms**，说明这 400ms 全部花在 recommendationservice 的这次调用里。\n- 购物车页无论 1 件还是多件商品都稳定 ~410ms（16KB 与 22KB 响应同耗时），排除\"按条目逐次货币换算\"的线性放大；稳定的 ~400ms 是单次 RPC 的固定延迟。\n- `recommendationservice` 的 CPU 上限仅 **200m**（requests 100m，Python + gRPC），是整条链路的瓶颈，典型的 CPU 配额用尽（CFS 节流）导致每次 `ListRecommendations` 被推迟 ~400ms。\n\n### 其它核查（未发现异常）\n- 12 个 Deployment 的 env/resources 除 checkoutservice 外与 last-applied 完全一致；12 个 Service 的 selector/targetPort 均与清单一致、且指向正确端口。\n- 所有 Pod `Running`、`ready=true`、`restarts=0`；无 OOMKilled/Evicted/BackOff 事件。\n- 事件里 16:55:42 cartservice `i/o timeout`、16:56:05 前 adservice `connection refused` 只是全环境 16:55 同时重建时的启动瞬时现象（adservice 16:55:28 已 `listening on 9555`），非当前故障；checkoutservice 16:56:26 的 Pod 更替来自它自己的 ReplicaSet 滚动（`SuccessfulCreate`/`ScalingReplicaSet`），不是崩溃。\n\n### 申请的修复（第 1 轮）\n1. 把 checkoutservice 的 `CURRENCY_SERVICE_ADDR` 改回 `currencyservice:7000` → 恢复下单。\n2. 把 recommendationservice 的 CPU 上限从 200m 提升到 1 → 消除节流导致的 ~400ms 延迟。\n   若第 2 轮延迟仍无改善，下一轮再试 restart（可能是进程内到 productcatalogservice 的 gRPC 通道异常）或加副本。\n\n```json\n{\"root_causes\": [{\"object\": \"checkoutservice (Deployment, boutique)\", \"cause\": \"环境变量 CURRENCY_SERVICE_ADDR 被改成 currencyservice:7001，而 currencyservice 只监听 7000（Service 7000->7000、容器 PORT=7000），每次下单在 prepareOrder 的货币换算处即 gRPC 连接被拒，返回 Internal 'failed to prepare order: failed to convert price ... '，导致 5/5 下单失败与 5 个 500\"}, {\"object\": \"recommendationservice (Deployment, boutique)\", \"cause\": \"CPU 上限仅 200m（requests 100m，Python+gRPC），CPU 配额耗尽被 CFS 节流，每次 ListRecommendations 固定多出约 400ms；该服务只被商品页和购物车页调用，因此这两类请求稳定 379-445ms（占 60.4% 超 180ms），而首页 GET / 仅 13-46ms\"}], \"actions\": [{\"op\": \"set_env\", \"deployment\": \"checkoutservice\", \"name\": \"CURRENCY_SERVICE_ADDR\", \"value\": \"currencyservice:7000\"}, {\"op\": \"set_cpu_limit\", \"deployment\": \"recommendationservice\", \"cpu\": \"1\"}], \"explanation\": \"第一处修复恢复下单（端口写错 7001->7000）；第二处提升 recommendationservice 的 CPU 上限以消除其 400ms 节流延迟，改完请回传用户侧延迟与下单成功率，若延迟未降下一轮改用重启/扩容该服务验证。\"}\n```",
+   "plan": {
+    "root_causes": [
+     {
+      "object": "checkoutservice (Deployment, boutique)",
+      "cause": "环境变量 CURRENCY_SERVICE_ADDR 被改成 currencyservice:7001，而 currencyservice 只监听 7000（Service 7000->7000、容器 PORT=7000），每次下单在 prepareOrder 的货币换算处即 gRPC 连接被拒，返回 Internal 'failed to prepare order: failed to convert price ... '，导致 5/5 下单失败与 5 个 500"
+     },
+     {
+      "object": "recommendationservice (Deployment, boutique)",
+      "cause": "CPU 上限仅 200m（requests 100m，Python+gRPC），CPU 配额耗尽被 CFS 节流，每次 ListRecommendations 固定多出约 400ms；该服务只被商品页和购物车页调用，因此这两类请求稳定 379-445ms（占 60.4% 超 180ms），而首页 GET / 仅 13-46ms"
+     }
+    ],
+    "actions": [
+     {
+      "op": "set_env",
+      "deployment": "checkoutservice",
+      "name": "CURRENCY_SERVICE_ADDR",
+      "value": "currencyservice:7000"
+     },
+     {
+      "op": "set_cpu_limit",
+      "deployment": "recommendationservice",
+      "cpu": "1"
+     }
+    ],
+    "explanation": "第一处修复恢复下单（端口写错 7001->7000）；第二处提升 recommendationservice 的 CPU 上限以消除其 400ms 节流延迟，改完请回传用户侧延迟与下单成功率，若延迟未降下一轮改用重启/扩容该服务验证。"
+   },
+   "plan_error": "",
+   "actions": [
+    {
+     "action": {
+      "op": "set_env",
+      "deployment": "checkoutservice",
+      "name": "CURRENCY_SERVICE_ADDR",
+      "value": "currencyservice:7000"
+     },
+     "accepted": true,
+     "ok": true,
+     "result": "ok: deployment.apps/checkoutservice env updated | ok: sh: 1 old replicas are pending termination...\nWaiting for deployment \"checkoutservice\" rollout to finish: 1 old replicas are pending termination...\ndeployment \"checkoutservice\" successfully rolled out"
+    },
+    {
+     "action": {
+      "op": "set_cpu_limit",
+      "deployment": "recommendationservice",
+      "cpu": "1"
+     },
+     "accepted": true,
+     "ok": true,
+     "result": "ok: deployment.apps/recommendationservice resource requirements updated | ok: plicas are pending termination...\nWaiting for deployment \"recommendationservice\" rollout to finish: 1 old replicas are pending termination...\ndeployment \"recommendationservice\" successfully rolled out"
+    }
+   ],
+   "observation": {
+    "since": "2026-11-16T17:01:31Z",
+    "seconds": 75.0,
+    "requests": 216,
+    "slow_180ms": 140,
+    "share_slow": 0.648,
+    "p50_ms": 404,
+    "p90_ms": 432,
+    "p99_ms": 445,
+    "http_500": 0,
+    "checkout_attempts": 6,
+    "checkout_failed": 0,
+    "resolved": false
+   }
+  },
+  {
+   "round": 2,
+   "wall_s": 548,
+   "exit": 0,
+   "total_tokens": 2013850,
+   "tool_calls": 49,
+   "answer": "## 一、上一轮的判断：证实 / 推翻\n\n**被证实（下单失败的根因）**\n- checkoutservice 的 `CURRENCY_SERVICE_ADDR` 原为 `currencyservice:7001`（currencyservice Service 和容器的 PORT 都只监听 7000），改成 7000 后下单恢复正常：\n  - frontend 日志里最后一条 `failed to prepare order: failed to convert price ...` 是 `17:00:59`，即旧 Pod（checkoutservice-5d5f4589c5，17:01:00 前）处理的最后一批请求；\n  - 新 Pod `checkoutservice-5d5f4589c5-g98w4`（17:01:00 启动）至今 0 条 checkout 报错；执行后用户侧 0 个 500、6/6 下单成功。**这一条已结案。**\n\n**被推翻（recommendationservice CPU 节流）**\n- CPU 上限 200m→1 核后 Pod 已重建（`recommendationservice-56ddd97fb4-xjgsf`，启动 17:01:04），延迟**完全没变**（中位数 402→404ms，>180ms 占比 60.4%→64.8%）。所以“CFS 节流”这个机制/这个修复被否掉。它现在 `limits.cpu=1`，且它的 requests/limits 之外的配置与上游 v0.10.3 完全一致。\n\n## 二、还没解释的现象已经定位到具体一跳\n\n用 frontend 自己的 `http.resp.took_ms` 和 shippingservice 的收/发日志做了“路标法”定位（shippingservice 每条 GetQuote 都有 received/completed 时间戳，且自身处理 <1ms）：\n\n| 端点 | frontend 实测耗时 |\n|---|---|\n| `GET /` | 11–38ms |\n| `POST /cart`（addToCart：GetProduct+AddItem） | 1–2ms |\n| `POST /setCurrency` | 0ms |\n| `GET /product/*` | 382–435ms |\n| `GET /cart` | 408–440ms |\n\n- 购物车页 16 组配对：页面开始 → shippingservice 收到 GetQuote = **+373…+438ms**，而 GetQuote 本身 <1ms。shipping 在 `getRecommendations` 之后调用 ⇒ **这 ~410ms 花在 recommendationservice 调用上**，且与购物车条目数无关（固定成本，±20ms），说明是单次 RPC。\n- 同一跳以外的依赖全部健康：首页 11–38ms 说明 productcatalog/currency/cart/ad 正常；POST /cart 1–2ms 说明 GetProduct+AddItem 正常；currencyservice 每次 conversion 都是毫秒级。\n- recommendationservice 侧：Pod Ready、0 重启、端点正确（`recommendationservice-kt4r4` → 10.244.0.38:8080）、约 1.7 次/秒 `[Recv ListRecommendations]`（正好等于购物车页+商品页速率），**它几乎在页面开始的同一刻（±6ms 内）就收到了请求**，且没有 \"failed to retrieve recommendations\" 之类错误 ⇒ 它下游的 productcatalogservice 调用没报错，慢点不在“请求进来之前”。\n- 因此：**请求立刻到达 → 约 400ms 后前端才拿到响应**。既然 CPU 已不是约束、Pod 是新的（17:01:04）、env/端口/selector/Endpoints 全部正确且已与 `kubectl.kubernetes.io/last-applied-configuration` 逐项对齐（唯一差异就是我改的 CPU），剩下的可能就只有“recommendationservice 这一跳被注入了固定 ~400ms 网络延迟”（响应方向；请求方向未受影响），或者该 Pod 每次请求解析 `productcatalogservice` 的名字解析异常慢。这两者都不是 7 个可申请操作能改的。\n- 顺带核过的旧现象：16:55:53–16:56:05 有 `adservice 10.96.18.53:9555 connection refused`（Java 冷启动期间），16:56:05 之后没有；不影响当前延迟。\n\n## 三、修复申请（第 2 轮）\n\n只剩一个能“重置这一跳”的动作值得试（期望值不高，因为 17:01:04 已因改 CPU 重建过一次 Pod 而延迟未变；但它能彻底排除 Pod 内运行时/连接状态）：\n\n```json\n{\"root_causes\": [{\"object\": \"recommendationservice (Deployment, boutique) 的 ListRecommendations 调用路径\", \"cause\": \"每次 ListRecommendations 固定增加约 400-440ms（与购物车条目数无关）：frontend 日志 /cart=408-440ms、/product/*=382-435ms，而 GET /=11-38ms、POST /cart=1-2ms；shippingservice 时间戳证明该 410ms 全部发生在 recommendationservice 调用上（页面开始→GetQuote 收到 +373~+438ms，GetQuote 自身<1ms）。该 Pod 立刻收到请求（±6ms）、Ready、0 重启、无报错，CPU 上限已从 200m 提到 1 核且重建 Pod 后延迟不变（故不是 CFS 节流，第 1 轮该机制被推翻），env/PORT/Service/Endpoints/last-applied 配置全部与上游 v0.10.3 一致 —— 剩余最可能是 recommendationservice 这一跳被注入了固定约 400ms 的网络延迟（响应方向），或该 Pod 对 productcatalogservice 的每请求名字解析异常慢，属于 7 个可申请操作之外的基础设施层问题。\"}, {\"object\": \"checkoutservice (Deployment, boutique)（已修复并验证）\", \"cause\": \"CURRENCY_SERVICE_ADDR 曾为 currencyservice:7001（实际 7000），导致 prepareOrder 货币换算失败、下单 5/5 失败与 500；改为 7000 后 6/6 下单成功、0 个 500、新 Pod 无任何 checkout 报错。\"}], \"actions\": [{\"op\": \"restart\", \"deployment\": \"recommendationservice\"}], \"explanation\": \"下单链路已确认修好；剩余延迟唯一未排除的是 recommendationservice Pod 内运行时/连接状态，故申请重启它做最后一次重置验证。若重启后 /cart 与 /product 仍稳定 ~400ms，则该 400ms 属基础设施层的网络延迟注入或集群 DNS 解析慢（我无 kube-system/节点权限，无法核对 CoreDNS 与该 Pod netns 上的 tc/chaos 规则），需运维检查并移除 recommendationservice 期间的网络延迟规则，或临时让 frontend 降级不调用推荐服务以恢复用户侧 P90。\"}\n```",
+   "plan": {
+    "root_causes": [
+     {
+      "object": "recommendationservice (Deployment, boutique) 的 ListRecommendations 调用路径",
+      "cause": "每次 ListRecommendations 固定增加约 400-440ms（与购物车条目数无关）：frontend 日志 /cart=408-440ms、/product/*=382-435ms，而 GET /=11-38ms、POST /cart=1-2ms；shippingservice 时间戳证明该 410ms 全部发生在 recommendationservice 调用上（页面开始→GetQuote 收到 +373~+438ms，GetQuote 自身<1ms）。该 Pod 立刻收到请求（±6ms）、Ready、0 重启、无报错，CPU 上限已从 200m 提到 1 核且重建 Pod 后延迟不变（故不是 CFS 节流，第 1 轮该机制被推翻），env/PORT/Service/Endpoints/last-applied 配置全部与上游 v0.10.3 一致 —— 剩余最可能是 recommendationservice 这一跳被注入了固定约 400ms 的网络延迟（响应方向），或该 Pod 对 productcatalogservice 的每请求名字解析异常慢，属于 7 个可申请操作之外的基础设施层问题。"
+     },
+     {
+      "object": "checkoutservice (Deployment, boutique)（已修复并验证）",
+      "cause": "CURRENCY_SERVICE_ADDR 曾为 currencyservice:7001（实际 7000），导致 prepareOrder 货币换算失败、下单 5/5 失败与 500；改为 7000 后 6/6 下单成功、0 个 500、新 Pod 无任何 checkout 报错。"
+     }
+    ],
+    "actions": [
+     {
+      "op": "restart",
+      "deployment": "recommendationservice"
+     }
+    ],
+    "explanation": "下单链路已确认修好；剩余延迟唯一未排除的是 recommendationservice Pod 内运行时/连接状态，故申请重启它做最后一次重置验证。若重启后 /cart 与 /product 仍稳定 ~400ms，则该 400ms 属基础设施层的网络延迟注入或集群 DNS 解析慢（我无 kube-system/节点权限，无法核对 CoreDNS 与该 Pod netns 上的 tc/chaos 规则），需运维检查并移除 recommendationservice 期间的网络延迟规则，或临时让 frontend 降级不调用推荐服务以恢复用户侧 P90。"
+   },
+   "plan_error": "",
+   "actions": [
+    {
+     "action": {
+      "op": "restart",
+      "deployment": "recommendationservice"
+     },
+     "accepted": true,
+     "ok": true,
+     "result": "ok: pod \"recommendationservice-56ddd97fb4-xjgsf\" deleted from boutique namespace | ok: deployment \"recommendationservice\" successfully rolled out"
+    }
+   ],
+   "observation": {
+    "since": "2026-11-16T17:12:22Z",
+    "seconds": 75.0,
+    "requests": 200,
+    "slow_180ms": 132,
+    "share_slow": 0.66,
+    "p50_ms": 402,
+    "p90_ms": 432,
+    "p99_ms": 442,
+    "http_500": 0,
+    "checkout_attempts": 3,
+    "checkout_failed": 0,
+    "resolved": false
+   }
+  },
+  {
+   "round": 3,
+   "wall_s": 445,
+   "exit": 0,
+   "total_tokens": 1427787,
+   "tool_calls": 35,
+   "answer": "## 第 3 轮排查结果\n\n### 被证实的\n1. **下单链路确实已修复**：`/cart/checkout` 全部 200（本轮抓到的 4 次 checkout 都是 200，checkoutservice `[PlaceOrder]` → `order confirmation email sent` 均成功，无任何 error 行）；用户侧 0 个 500、下单 0 失败。根因就是 `checkoutservice` 的 `CURRENCY_SERVICE_ADDR=currencyservice:7001`，现值 `currencyservice:7000`。\n2. **慢页面的集合没变，且精确锁定在 `ListRecommendations` 这一跳**（本轮新证据）：\n   - 11 秒窗口内 frontend 共 26 个\"调推荐服务\"的页面（`/product/*`、`GET /cart`、`POST /cart/checkout`），**全部** 374–446ms；同一窗口 `/` 10–40ms、`POST /cart` 1ms、`POST /setCurrency` 0ms。\n   - 26 个慢页面 ↔ recommendationservice `[Recv ListRecommendations]` 日志 **恰好 26 条，一一对应，偏移恒定**（见下）。\n   - checkout 页面拆解最干净：`request started 36.4687` → checkoutservice `[PlaceOrder] 36.4692` → `order placed 36.4805`（+11.8ms）→ 但 `request complete 36.8943`（+425ms）。即**下单本身只用 ~11ms，剩下 ~413ms 全发生在下单之后渲染页时的 `getRecommendations`**。\n   - 其他所有跳均快：checkoutservice 内部走完 cart/productcatalog/currency/shipping/payment/email 只用 11ms；shippingservice `[GetQuote]` 收到→完成 <1ms；cartservice、currencyservice 5 分钟无一条 error。\n\n### 被推翻的\n3. **reco 的 CPU/CFS 节流**：限制 200m→1 核、Pod 重建后延迟完全不变（本轮窗口仍 402/432/442ms），且页面延迟与 reco 所在容器 CPU 无关。\n4. **reco 进程/连接状态**：第 2 轮重启（新 Pod `…-kfzvc`，0 重启、Ready、无异常日志）后延迟不变 → 不是进程内状态、不是残留连接。\n5. **配置层**：reco 的 env（`PORT=8080`、`PRODUCT_CATALOG_SERVICE_ADDR=productcatalogservice:3550`、`DISABLE_PROFILER=1`）、Service（8080→8080）、Endpoints（单一正确地址 10.244.0.39:8080）、dnsPolicy、探针、frontend 的 `RECOMMENDATION_SERVICE_ADDR=recommendationservice:8080` 全部与上游 v0.10.3 一致；全部 12 个 Deployment 的 last-applied 也都是原版模板（除我们改过的两处）。frontend 200m CPU 也排除：`POST /cart` 1ms、`/` 10–40ms 说明它没被节流。\n\n### 尚未解释（本轮新增关键证据）\nreco 日志里的 `[Recv ListRecommendations]` 是**处理结束时**打的（在 `return` 前），它的时间戳与 frontend 请求完成时间呈**严格恒定偏移 754ms（26/26，抖动 <10ms）**。恒定偏移 = 固定延迟路径，而不是排队/GC/CPU 抖动。因此：\n- 属于**注入的固定网络延迟**，在 `frontend→recommendationservice` 或 `recommendationservice→productcatalogservice` 这两跳之一，而且是**按方向过滤**的（否则 reco→catalog 也会连带把响应拖慢到 ~800ms，实测只有 ~400ms）。\n- 为什么重启 reco 没用：若 tc/chaos 规则挂在 frontend 或 productcatalogservice 一侧的 netns/veth（或由 NetworkChaos CR 按 label 持续 re-inject），重建 reco Pod 不会清除。\n- 另：frontend 日志每 ~3.8s 一条 `env platform is either empty or invalid`（与慢请求无相关性，启动即存在，属无害告警）。\n\n### 本轮申请\n把还没被重置过的两端都重建一次（覆盖\"延迟规则挂在 frontend 或 catalog 侧 netns/veth\"的情形）：重建 frontend 与 productcatalogservice 的 Pod。\n\n```json\n{\"root_causes\": [{\"object\": \"frontend ↔ recommendationservice 的 ListRecommendations 调用路径（boutique）\", \"cause\": \"该跳存在约 400ms 的固定延迟：26 个调推荐服务的页面（/product/*、GET /cart、POST /cart/checkout）在 11 秒窗口内 100% 落在 374–446ms，而同一窗口不调推荐服务的 / 为 10–40ms、POST /cart 为 1ms；checkout 拆解显示下单本身仅 11ms，下单后渲染页时的 getRecommendations 占掉 ~413ms；reco 已排除 CPU（200m→1核无变化）、进程/Pod 状态（重启无变化）、env/Service/Endpoints（均为上游原版且单一正确端点），且 reco 处理结束日志与 frontend 完成时间的偏移恒定 754ms（26/26），说明是固定延迟而非排队——即注入在 frontend→recommendationservice 或 recommendationservice→productcatalogservice 其中一跳上的定向网络延迟（tc netem / NetworkChaos delay ~400ms），且只作用于一个方向（否则总延迟会到 ~800ms）。\"}, {\"object\": \"checkoutservice (Deployment, boutique)（已修复并验证）\", \"cause\": \"CURRENCY_SERVICE_ADDR 曾为 currencyservice:7001（实际监听 7000），导致 prepareOrder 货币换算失败、下单 5/5 失败并返回 500；改为 7000 后本轮观测 0 个 500、下单 4/4 成功、日志无任何 checkout 报错。\"}], \"actions\": [{\"op\": \"restart\", \"deployment\": \"frontend\"}, {\"op\": \"restart\", \"deployment\": \"productcatalogservice\"}], \"explanation\": \"下单链路已确认修好（0 个 500、0 失败）；剩余 400ms 只剩 recommendationservice 这一跳，而 reco 已被重启/升 CPU 证明无效、配置也全是原版，故重建尚未重置过的链路两端（frontend 与 productcatalogservice）以清除挂在其 netns/veth 上的定向延迟规则。若重建后 /cart、/product/*、/cart/checkout 仍稳定 ~400ms，则该 400ms 是持续注入的网络延迟（NetworkChaos delay 或 tc netem，方向为 frontend→reco 或 reco→productcatalog），7 个可申请操作均无法移除，需由故障注入/平台侧执行 kubectl get networkchaos -A 并删除对应 CR，或在两个 Pod 的 netns 内 tc qdisc/filter show 去掉该规则。\"}\n```",
+   "plan": {
+    "root_causes": [
+     {
+      "object": "frontend ↔ recommendationservice 的 ListRecommendations 调用路径（boutique）",
+      "cause": "该跳存在约 400ms 的固定延迟：26 个调推荐服务的页面（/product/*、GET /cart、POST /cart/checkout）在 11 秒窗口内 100% 落在 374–446ms，而同一窗口不调推荐服务的 / 为 10–40ms、POST /cart 为 1ms；checkout 拆解显示下单本身仅 11ms，下单后渲染页时的 getRecommendations 占掉 ~413ms；reco 已排除 CPU（200m→1核无变化）、进程/Pod 状态（重启无变化）、env/Service/Endpoints（均为上游原版且单一正确端点），且 reco 处理结束日志与 frontend 完成时间的偏移恒定 754ms（26/26），说明是固定延迟而非排队——即注入在 frontend→recommendationservice 或 recommendationservice→productcatalogservice 其中一跳上的定向网络延迟（tc netem / NetworkChaos delay ~400ms），且只作用于一个方向（否则总延迟会到 ~800ms）。"
+     },
+     {
+      "object": "checkoutservice (Deployment, boutique)（已修复并验证）",
+      "cause": "CURRENCY_SERVICE_ADDR 曾为 currencyservice:7001（实际监听 7000），导致 prepareOrder 货币换算失败、下单 5/5 失败并返回 500；改为 7000 后本轮观测 0 个 500、下单 4/4 成功、日志无任何 checkout 报错。"
+     }
+    ],
+    "actions": [
+     {
+      "op": "restart",
+      "deployment": "frontend"
+     },
+     {
+      "op": "restart",
+      "deployment": "productcatalogservice"
+     }
+    ],
+    "explanation": "下单链路已确认修好（0 个 500、0 失败）；剩余 400ms 只剩 recommendationservice 这一跳，而 reco 已被重启/升 CPU 证明无效、配置也全是原版，故重建尚未重置过的链路两端（frontend 与 productcatalogservice）以清除挂在其 netns/veth 上的定向延迟规则。若重建后 /cart、/product/*、/cart/checkout 仍稳定 ~400ms，则该 400ms 是持续注入的网络延迟（NetworkChaos delay 或 tc netem，方向为 frontend→reco 或 reco→productcatalog），7 个可申请操作均无法移除，需由故障注入/平台侧执行 kubectl get networkchaos -A 并删除对应 CR，或在两个 Pod 的 netns 内 tc qdisc/filter show 去掉该规则。"
+   },
+   "plan_error": "",
+   "actions": [
+    {
+     "action": {
+      "op": "restart",
+      "deployment": "frontend"
+     },
+     "accepted": true,
+     "ok": true,
+     "result": "ok: pod \"frontend-fd686dbb-7czx5\" deleted from boutique namespace | ok: Waiting for deployment \"frontend\" rollout to finish: 0 of 1 updated replicas are available...\ndeployment \"frontend\" successfully rolled out"
+    },
+    {
+     "action": {
+      "op": "restart",
+      "deployment": "productcatalogservice"
+     },
+     "accepted": true,
+     "ok": true,
+     "result": "ok: pod \"productcatalogservice-7457c7c77f-dm7wk\" deleted from boutique namespace | ok: Waiting for deployment \"productcatalogservice\" rollout to finish: 0 of 1 updated replicas are available...\ndeployment \"productcatalogservice\" successfully rolled out"
+    }
+   ],
+   "observation": {
+    "since": "2026-11-16T17:21:35Z",
+    "seconds": 75.0,
+    "requests": 187,
+    "slow_180ms": 121,
+    "share_slow": 0.647,
+    "p50_ms": 407,
+    "p90_ms": 433,
+    "p99_ms": 447,
+    "http_500": 0,
+    "checkout_attempts": 5,
+    "checkout_failed": 0,
+    "resolved": false
+   }
+  }
+ ],
+ "outcome": "rounds_exhausted",
+ "before": {
+  "since": "2026-11-16T16:56:56Z",
+  "seconds": 45.0,
+  "requests": 144,
+  "slow_180ms": 87,
+  "share_slow": 0.604,
+  "p50_ms": 402,
+  "p90_ms": 434,
+  "p99_ms": 443,
+  "http_500": 5,
+  "checkout_attempts": 5,
+  "checkout_failed": 5,
+  "resolved": false
+ },
+ "injector_log": "netem on veth6b7c3576 (recommendationservice-6c88b5fb59-rvlxn 10.244.0.33): delay 200ms 20ms\nqdisc netem 8019: root refcnt 17 limit 1000 delay 200ms  20ms seed 12645442707208231506\nnetem applied: 1\nnetem re-applied on veth6f020ada (recommendationservice 10.244.0.38): delay 200ms 20ms\nnetem re-applied on vethcb181fa7 (recommendationservice 10.244.0.39): delay 200ms 20ms\n",
+ "restored": [
+  "Deployment/recommendationservice: set resources deployment/recommendationservice -> ok"
+ ],
+ "steps": [
+  {
+   "phase": "verify_healthy",
+   "ok": true,
+   "detail": "healthy",
+   "seconds": 0.29
+  },
+  {
+   "phase": "home_latency",
+   "ok": true,
+   "detail": "GET / ok=True median=0.05s of [0.05] (need >= 0s)",
+   "seconds": 0.0
+  },
+  {
+   "phase": "clean_slate",
+   "ok": true,
+   "detail": "fresh pods",
+   "seconds": 34.7
+  },
+  {
+   "phase": "verify_fresh",
+   "ok": true,
+   "detail": "healthy",
+   "seconds": 0.23
+  },
+  {
+   "phase": "home_latency",
+   "ok": true,
+   "detail": "GET / ok=True median=0.05s of [0.05] (need >= 0s)",
+   "seconds": 0.0
+  },
+  {
+   "phase": "clear_events",
+   "ok": true,
+   "detail": "",
+   "seconds": 0.0
+  },
+  {
+   "phase": "prune_history",
+   "ok": true,
+   "detail": "3 old replicasets",
+   "seconds": 0.0
+  },
+  {
+   "phase": "inject",
+   "ok": true,
+   "detail": "-n boutique set env deployment/checkoutservice CURRENCY_SERVICE_ADDR=currencyservice:7001",
+   "seconds": 0.06
+  },
+  {
+   "phase": "inject",
+   "ok": true,
+   "detail": "-n boutique rollout status deployment/checkoutservice --timeout=140s",
+   "seconds": 2.32
+  },
+  {
+   "phase": "inject",
+   "ok": true,
+   "detail": "-n infra-tools delete pod net-injector --ignore-not-found",
+   "seconds": 0.05
+  },
+  {
+   "phase": "inject",
+   "ok": true,
+   "detail": "apply -f /work/scenarios/netem/injector-boutique-hard-BH03.yaml",
+   "seconds": 1.61
+  },
+  {
+   "phase": "inject",
+   "ok": true,
+   "detail": "-n infra-tools wait --for=condition=Ready pod/net-injector --timeout=180s",
+   "seconds": 1.05
+  },
+  {
+   "phase": "confirm",
+   "ok": true,
+   "detail": "23/42 requests >= 180 ms since 2026-11-16T16:56:56Z; logs(app=frontend) contain 'failed to complete the order': True; logs(app=net-injector) contain 'netem applied: 1': True",
+   "seconds": 12.82
+  },
+  {
+   "phase": "reset",
+   "ok": true,
+   "detail": "-n infra-tools delete pod net-injector --ignore-not-found",
+   "seconds": 3.6
+  },
+  {
+   "phase": "reset",
+   "ok": true,
+   "detail": "-n boutique set env deployment/checkoutservice CURRENCY_SERVICE_ADDR=currencyservice:7000",
+   "seconds": 0.05
+  },
+  {
+   "phase": "reset",
+   "ok": true,
+   "detail": "reset steps applied",
+   "seconds": 6.76
+  },
+  {
+   "phase": "verify_recovered",
+   "ok": true,
+   "detail": "healthy",
+   "seconds": 6.61
+  },
+  {
+   "phase": "home_latency",
+   "ok": true,
+   "detail": "GET / ok=True median=0.05s of [0.05] (need >= 0s)",
+   "seconds": 0.0
+  }
+ ],
+ "total_tokens": 4178875
+}

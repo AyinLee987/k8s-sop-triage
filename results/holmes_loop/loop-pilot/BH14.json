@@ -1,0 +1,329 @@
+{
+ "scenario": "BH14",
+ "model": "deepseek-flash",
+ "max_rounds": 3,
+ "rounds": [
+  {
+   "round": 1,
+   "wall_s": 255,
+   "exit": 0,
+   "total_tokens": 653346,
+   "tool_calls": 28,
+   "answer": "## 排查结论\n\n**已确认的两个问题**\n\n### 1. `recommendationservice` 被缩到 0 副本（直接故障）\n- Deployment `recommendationservice`:`replicas: 0`,ready `<none>`;唯一的 Pod `recommendationservice-6c88b5fb59-5fdhf` 于 `19:37:41` 被删除(事件 `ScalingReplicaSet: Scaled down replica set recommendationservice-6c88b5fb59 from 1 to 0`,自 14:26 起共 6 次)。\n- Service `recommendationservice` (10.96.63.235:8080) 因此没有后端,frontend 每次调用都失败:\n  `{\"message\":\"failed to get product recommendations\",\"severity\":\"warning\",\"error\":\"rpc error: code = Unavailable ... dial tcp 10.96.63.235:8080: connect: connection refused\"}`(近 5 分钟 566 条)。\n- 由于 frontend 对该失败做了降级(返回 200 + 空推荐区),所以**没有 500**——这正好对应\"不报错但偶尔很慢\"。\n- 慢请求的耗时几乎全部来自这次失败的 gRPC 调用,且呈双峰:\n  - 快:`GET /product/1YMWWN1N4O` 失败出现在 +4 ms,总耗时 5 ms;\n  - 慢:`GET /product/9SIQT8TOJO` 失败出现在 +430 ms,总耗时 **431 ms**;`GET /cart` 总 422 ms、`/product/0PUK6V6EV0` 总 422 ms。\n- 商品页 + 购物车页约占流量 70%,其 200–436 ms 长尾与 9% 超 180 ms 完全吻合;loadgenerator 侧也是 0 失败、max 436 ms。\n\n### 2. `cartservice` 间歇性失去响应(~200 ms–1 s),影响所有读购物车的页面\n- 事件(kubelet 发出,同一 45 秒窗口内):\n  - `Readiness probe failed: timeout: failed to connect service \"10.244.0.162:7070\" within 1s: context deadline exceeded`(19:38:25、19:38:45)\n  - `Liveness probe failed: timeout: ... within 1s`(19:38:34)\n  连 TCP 连接都在 1 s 内建不起来,说明是 cartservice 运行时(而非 redis 报错)被打停——容器无重启、日志无任何 redis 异常。\n- frontend 服务端耗时里能定位到这段空档(与推荐失败无关的路径):\n  - `GET /`:`\"home\"` → `\"ENV_PLATFORM is: local\"` 间隔 **227 ms / 222 ms / 221 ms**(正常时 43 ms),最长一次 `took_ms=742`;\n  - `POST /cart`(只做 getProduct + insertCart)208–212 ms;`POST /cart/checkout` 203–225 ms。\n- 旁证:同窗口 redis 侧无错误,但 cartservice 的 `/cart` 读异常仅为重试后的偶发(其余请求 1–6 ms),符合 CPU/GC 打停后恢复的形态(limit 仅 300m / 128Mi,容器启动 5 分钟内)。\n\n**已排除**:各 Deployment 的 CPU/内存 request/limit 都是 microservices-demo 默认值(未被改小);Service selector/targetPort 全部正确(仅 `emailservice 5000→8080`、`frontend 80→8080` 等 demo 正常配置);productcatalogservice、currencyservice、adservice、redis-cart 日志无错误,商品页里的 product/catalog/currency 调用实测 ~1–2 ms。\n\n**未确认/无法验证**:节点级 CPU 争抢(无权限 list nodes/pods、无 metrics 工具集),以及 `shoppingassistantservice:80` 在命名空间中不存在对应的 Service(仅影响 `/assistant`,与本次现象无关)。\n\n## 本轮申请执行的操作\n1. `scale recommendationservice → 1`:恢复被缩容的推荐服务(直接消除 connection refused 与 200–430 ms 长尾)。\n2. `set_cpu_limit cartservice → 1`:给 .NET 运行时足够配额以消除 1 s 级别的打停(该变更会滚动重建 Pod)。若下一轮长尾仍在,下一步会转向 `redis-cart` CPU(当前 limit 仅 125m)与 frontend 侧。\n\n```json\n{\"root_causes\": [{\"object\": \"recommendationservice (Deployment/Service)\", \"cause\": \"Deployment 被缩容到 0 副本(replicas: 0,Pod 于 19:37:41 被删除),Service 10.96.63.235:8080 无后端;frontend 每次 ListRecommendations 都 connection refused,失败调用耗时 200–430 ms 并触发重试,导致商品页/购物车页偶发 200–436 ms 长尾;因 frontend 降级返回 200,所以无 500/错误\"}, {\"object\": \"cartservice\", \"cause\": \"间歇性失去响应(数十毫秒到 >1 秒):kubelet readiness/liveness 探针 19:38:25–19:38:45 报 'failed to connect service 10.244.0.162:7070 within 1s';同期 frontend 服务端在 home/POST /cart/checkout 等读购物车路径出现 200–742 ms 空档,疑为 CPU 配额(300m)下的运行时/GC 打停\"}], \"actions\": [{\"op\": \"scale\", \"deployment\": \"recommendationservice\", \"replicas\": 1}, {\"op\": \"set_cpu_limit\", \"deployment\": \"cartservice\", \"cpu\": \"1\"}], \"explanation\": \"先恢复被缩容到 0 的 recommendationservice(直接原因,消除 connection refused 与绝大部分 200–430 ms 长尾),同时提高 cartservice CPU 上限以消除其被探针证实的 1 秒级打停;执行后请提供新的用户侧统计,若长尾仍存在将转向 redis-cart CPU 与 frontend。\"}\n```",
+   "plan": {
+    "root_causes": [
+     {
+      "object": "recommendationservice (Deployment/Service)",
+      "cause": "Deployment 被缩容到 0 副本(replicas: 0,Pod 于 19:37:41 被删除),Service 10.96.63.235:8080 无后端;frontend 每次 ListRecommendations 都 connection refused,失败调用耗时 200–430 ms 并触发重试,导致商品页/购物车页偶发 200–436 ms 长尾;因 frontend 降级返回 200,所以无 500/错误"
+     },
+     {
+      "object": "cartservice",
+      "cause": "间歇性失去响应(数十毫秒到 >1 秒):kubelet readiness/liveness 探针 19:38:25–19:38:45 报 'failed to connect service 10.244.0.162:7070 within 1s';同期 frontend 服务端在 home/POST /cart/checkout 等读购物车路径出现 200–742 ms 空档,疑为 CPU 配额(300m)下的运行时/GC 打停"
+     }
+    ],
+    "actions": [
+     {
+      "op": "scale",
+      "deployment": "recommendationservice",
+      "replicas": 1
+     },
+     {
+      "op": "set_cpu_limit",
+      "deployment": "cartservice",
+      "cpu": "1"
+     }
+    ],
+    "explanation": "先恢复被缩容到 0 的 recommendationservice(直接原因,消除 connection refused 与绝大部分 200–430 ms 长尾),同时提高 cartservice CPU 上限以消除其被探针证实的 1 秒级打停;执行后请提供新的用户侧统计,若长尾仍存在将转向 redis-cart CPU 与 frontend。"
+   },
+   "plan_error": "",
+   "actions": [
+    {
+     "action": {
+      "op": "scale",
+      "deployment": "recommendationservice",
+      "replicas": 1
+     },
+     "accepted": true,
+     "ok": true,
+     "result": "ok: deployment.apps/recommendationservice scaled | ok: Waiting for deployment \"recommendationservice\" rollout to finish: 0 of 1 updated replicas are available...\ndeployment \"recommendationservice\" successfully rolled out"
+    },
+    {
+     "action": {
+      "op": "set_cpu_limit",
+      "deployment": "cartservice",
+      "cpu": "1"
+     },
+     "accepted": true,
+     "ok": true,
+     "result": "ok: deployment.apps/cartservice resource requirements updated | ok:  to finish: 1 old replicas are pending termination...\nWaiting for deployment \"cartservice\" rollout to finish: 1 old replicas are pending termination...\ndeployment \"cartservice\" successfully rolled out"
+    }
+   ],
+   "observation": {
+    "since": "2026-11-16T19:44:28Z",
+    "seconds": 75.0,
+    "requests": 215,
+    "slow_180ms": 12,
+    "share_slow": 0.056,
+    "p50_ms": 8,
+    "p90_ms": 29,
+    "p99_ms": 243,
+    "http_500": 0,
+    "checkout_attempts": 4,
+    "checkout_failed": 0,
+    "resolved": false
+   }
+  },
+  {
+   "round": 2,
+   "wall_s": 313,
+   "exit": 0,
+   "total_tokens": 1137695,
+   "tool_calls": 34,
+   "answer": "## 本轮结论\n\n### 已证实（第 1 轮的判断成立）\n- **recommendationservice 被缩容到 0 确实是真因之一**。恢复后 frontend 的 `failed to get product recommendations ... dial tcp 10.96.63.235:8080: connect: connection refused` 告警从 19:44:03 持续到 **19:44:36**（新 Pod 19:43:40 创建、启动期间 Service 无可用后端），之后完全消失；Endpoints 里已有 `10.244.0.173:8080`。这也解释 p99 从 422ms → 243ms、>180ms 从 9.0% → 5.6%。\n- 12 个 Deployment 均 1/1 Ready、restartCount=0、所有 Service Endpoints 均非空。\n\n### 已被推翻\n- **cartservice 的卡顿不是它自己的 CPU 配额造成的**。CPU 上限已从 300m 提到 1，但**新 Pod（19:43:47 创建）在 19:45:29 仍然报** `Readiness probe failed: timeout: failed to connect service \"10.244.0.174:7070\" within 1s`（gRPC 探针在容器内执行，1s 内连健康检查都拿不到响应）。所以 CPU 上限不是根因。\n\n### 仍然存在、且已定位到具体一跳\n未解释的长尾其实全部落在**购物车调用**上（日志覆盖最近 10 分钟，frontend 共 6,404 行，其中 129 条完成日志 took_ms ≥ 100ms；示例：`/` 243/246/247ms、`/product/*` 211–227、若干 424–440ms、`/cart` 201–227、`POST /cart` 199–300、`POST /cart/checkout` 214/239）——**所有页面类型都慢，唯一共同依赖是 cartservice**。\n\n用 currencyservice 的时间戳可以把延迟夹逼出来（product 页顺序是 getProduct → getCurrencies → **getCart** → convert → recommendations → ads）：\n\n| frontend 请求 | GetSupportedCurrencies | Convert 完成 | 间隔 |\n|---|---|---|---|\n| 27a98575（223ms） | 19:45:46.259（+1ms） | 19:45:46.476 | **217ms 落在 getCart** |\n| 1b05dcfa（214ms） | 19:45:48.676 | 19:45:48.884 | **208ms** |\n| 4f1d8b65（161ms） | 19:45:49.513 | 19:45:49.665 | **152ms** |\n| 2263059d（8ms，正常） | 19:45:46.867 | 19:45:46.869 | 2ms |\n\n且卡顿结束后 recommendations（46.478）和 ads（46.480）都在 2–4ms 内返回 → **不是 ads/currency/recommendation/productcatalog**；同期多个请求会在同一毫秒一起完成（如 19:44:09.814041265 与 …365、19:46:26.0535/0548、19:41:15.0070/0087），是\"一个共享阻塞点同时放行所有请求\"的特征，延迟呈 ~210ms / ~430ms 量化（≈100ms CFS 周期的 2–4 倍）。\n\n### 仍未确定的部分（如实说明）\n卡点位于 **cartservice ↔ redis-cart** 之间：要么 redis-cart 的 **125m CPU 上限**（本命名空间最低，Redis 8 + RedisSearch/TimeSeries 模块后台线程的突发很容易撞上 12.5ms/100ms 配额，正好产生 200–440ms 的量化延迟），要么 cartservice 在 **128Mi 内存上限**下 .NET 的 GC 暂停。没有 metrics 工具集、且 nodes/其他命名空间无权读取，无法直接看 cgroup 的 throttling 或内存用量，因此两者无法百分百区分。\n\n### 本轮申请的操作（针对性 + 零风险排除）\n- `set_cpu_limit redis-cart 1`：消除唯一可疑的 CPU 节流点（只提高上限，不降任何东西）。\n- `set_cpu_limit frontend 1`：把\"frontend 自身被 200m 节流\"这条分支也排除掉（延迟点夹在两个 frontend 动作之间，无法只靠日志排除）。\n\n如果这轮之后仍有 ~200ms 长尾，则剩下的解释只有 cartservice 的内存上限（128Mi → 建议 512Mi）或单节点 CPU 争抢——**这两项不在本轮可申请的操作清单里，需要运维直接处理**。\n\n```json\n{\"root_causes\": [{\"object\": \"cartservice / redis-cart\", \"cause\": \"购物车调用（cartservice GetCart/AddItem）仍间歇性阻塞 ~200–430ms、偶发 >1s：所有剩余慢请求都落在需要读购物车的路径（/、/product/*、/cart、POST /cart、POST /cart/checkout）；以 currencyservice 日志逐请求夹逼可见 GetSupportedCurrencies 在 +1ms 到达而 Convert 在 +217ms 才发生，延迟全在 getCart。cartservice 自身 gRPC 探针在新 Pod（CPU 上限已提至 1）上仍于 19:45:29 报 1s 超时，故排除其 CPU 配额；卡点在 cartservice↔redis-cart：最可能是 redis-cart 的 125m CPU 上限导致命令被节流（延迟呈 100ms 周期的 2–4 倍量化，且多请求同毫秒一起完成），其次是 cartservice 在 128Mi 内存上限下的 .NET GC 暂停（需 metrics/cgroup 才能区分，当前无权读取）\"}, {\"object\": \"recommendationservice\", \"cause\": \"第 1 轮已修复：Deployment 曾被缩容到 0 副本，frontend 每次 ListRecommendations 都 connection refused（19:44:36 之后告警消失，p99 422ms→243ms）\"}], \"actions\": [{\"op\": \"set_cpu_limit\", \"deployment\": \"redis-cart\", \"cpu\": \"1\"}, {\"op\": \"set_cpu_limit\", \"deployment\": \"frontend\", \"cpu\": \"1\"}], \"explanation\": \"提高 redis-cart 的 CPU 上限消除购物车路径上唯一可疑的 CPU 节流点，并把 frontend 上限放宽以排除前端自身被 200m 节流的可能；若下轮仍存在 ~200ms 长尾，则需运维提升 cartservice 内存上限(128Mi)或排查单节点 CPU 争抢，这两项不在可申请操作内。\"}\n```",
+   "plan": {
+    "root_causes": [
+     {
+      "object": "cartservice / redis-cart",
+      "cause": "购物车调用（cartservice GetCart/AddItem）仍间歇性阻塞 ~200–430ms、偶发 >1s：所有剩余慢请求都落在需要读购物车的路径（/、/product/*、/cart、POST /cart、POST /cart/checkout）；以 currencyservice 日志逐请求夹逼可见 GetSupportedCurrencies 在 +1ms 到达而 Convert 在 +217ms 才发生，延迟全在 getCart。cartservice 自身 gRPC 探针在新 Pod（CPU 上限已提至 1）上仍于 19:45:29 报 1s 超时，故排除其 CPU 配额；卡点在 cartservice↔redis-cart：最可能是 redis-cart 的 125m CPU 上限导致命令被节流（延迟呈 100ms 周期的 2–4 倍量化，且多请求同毫秒一起完成），其次是 cartservice 在 128Mi 内存上限下的 .NET GC 暂停（需 metrics/cgroup 才能区分，当前无权读取）"
+     },
+     {
+      "object": "recommendationservice",
+      "cause": "第 1 轮已修复：Deployment 曾被缩容到 0 副本，frontend 每次 ListRecommendations 都 connection refused（19:44:36 之后告警消失，p99 422ms→243ms）"
+     }
+    ],
+    "actions": [
+     {
+      "op": "set_cpu_limit",
+      "deployment": "redis-cart",
+      "cpu": "1"
+     },
+     {
+      "op": "set_cpu_limit",
+      "deployment": "frontend",
+      "cpu": "1"
+     }
+    ],
+    "explanation": "提高 redis-cart 的 CPU 上限消除购物车路径上唯一可疑的 CPU 节流点，并把 frontend 上限放宽以排除前端自身被 200m 节流的可能；若下轮仍存在 ~200ms 长尾，则需运维提升 cartservice 内存上限(128Mi)或排查单节点 CPU 争抢，这两项不在可申请操作内。"
+   },
+   "plan_error": "",
+   "actions": [
+    {
+     "action": {
+      "op": "set_cpu_limit",
+      "deployment": "redis-cart",
+      "cpu": "1"
+     },
+     "accepted": true,
+     "ok": true,
+     "result": "ok: deployment.apps/redis-cart resource requirements updated | ok: ut to finish: 1 old replicas are pending termination...\nWaiting for deployment \"redis-cart\" rollout to finish: 1 old replicas are pending termination...\ndeployment \"redis-cart\" successfully rolled out"
+    },
+    {
+     "action": {
+      "op": "set_cpu_limit",
+      "deployment": "frontend",
+      "cpu": "1"
+     },
+     "accepted": true,
+     "ok": true,
+     "result": "ok: deployment.apps/frontend resource requirements updated | ok: ollout to finish: 1 old replicas are pending termination...\nWaiting for deployment \"frontend\" rollout to finish: 1 old replicas are pending termination...\ndeployment \"frontend\" successfully rolled out"
+    }
+   ],
+   "observation": {
+    "since": "2026-11-16T19:51:29Z",
+    "seconds": 75.0,
+    "requests": 194,
+    "slow_180ms": 15,
+    "share_slow": 0.077,
+    "p50_ms": 7,
+    "p90_ms": 35,
+    "p99_ms": 245,
+    "http_500": 0,
+    "checkout_attempts": 10,
+    "checkout_failed": 0,
+    "resolved": false
+   }
+  },
+  {
+   "round": 3,
+   "wall_s": 313,
+   "exit": 0,
+   "total_tokens": 715334,
+   "tool_calls": 24,
+   "answer": "## 结论概览\n\n| 之前的判断 | 本轮结果 |\n|---|---|\n| recommendationservice 被缩容到 0（第 1 轮） | **确认成立且已修复**：19:44:36 后不再出现 connection refused，p99 从 422ms 降到 243ms。但它从来不是剩余长尾的原因。 |\n| cartservice CPU 300m 被打停（第 2 轮） | **推翻**。已把 limit 提到 1 个 CPU（Pod 19:43:47 重建），仍有 7.7% 的请求慢于 180ms，且新 Pod 上探针继续超时。 |\n| redis-cart 125m 节流（第 2 轮） | **推翻**。已把 limit 提到 1（Redis 19:50:56 重建），p99 从 243ms 变为 245ms，无变化。 |\n| frontend 200m 节流（第 2 轮） | **推翻**。已把 limit 提到 1，无变化；frontend `/_healthz` 一直是 0ms。 |\n| （新）资源配额本来就不是故障 | cartservice/redis-cart 的 `last-applied-configuration` 就是 300m/128Mi 与 125m/256Mi，与上游 demo 默认值一致，说明资源从未被改动；两次调 CPU 因此必然无效。 |\n\n## 关键新证据\n\n**1. 慢请求的耗时是按 TCP 重传超时量化的，不是 GC 或调度抖动**\n\n近 30 分钟 frontend 共 61 个耗时不少于 40ms 的请求（除 `/_healthz` 外）：\n\n- 45 个落在 **206–247ms**\n- 4 个落在 **393–431ms**\n- 10 个落在 47/66/70/77/78/79/109/113/134/152/186ms\n\n`+200ms / +400ms` 整数跳变正好是 Linux `TCP_RTO_MIN=200ms`（重传一次、两次）的特征。GC 或 CPU 节流造成的停顿会呈连续分布，而且会同时拖慢当时的**所有**并发请求；这里并没有出现这种情况。\n\n**2. 慢请求只出现在经过 cartservice 的路径上**\n\n`GET /`、`/product/*`、`/cart`、`POST /cart`、`POST /cart/checkout` 全部变慢；`POST /setCurrency`（不发 RPC）始终为 0ms。`POST /cart` 只调用 cartservice 的 AddItem，`POST /cart/checkout` 是 frontend→checkoutservice→cartservice 的另一条链路；两者都慢，说明卡点在 **cartservice 侧**，而不是 frontend 的拨号、DNS 或 Service VIP 上。\n\n**3. cartservice 自己的 kubelet gRPC 探针在直连 Pod IP（不经过 Service VIP）时反复超时**\n\n- 旧 Pod `cartservice-896c89968-qlc6t`：readiness 19:38:25–19:42:35 失败 4 次、liveness 19:38:34–19:42:34 失败 3 次\n- 新 Pod `cartservice-66fd8d4fff-8xfdf`（19:43:47 新建，CPU 已提高到 1）：readiness 19:44:29–19:45:29 失败 4 次、liveness 19:47:18–19:53:18 失败 4 次\n- 报错都是 `failed to connect service \"10.244.0.174:7070\" within 1s`，即建立连接本身就要 1s；这正好等于**丢 SYN 后 1s 首次重传**。同期 Redis 的 TCP 探针只在启动瞬间失败过一次，frontend 的 HTTP 探针从未失败。\n\n**4. 估算与比率吻合**\n\n每个 frontend 请求新建一次 gRPC 连接（约 8–10 个包）。观测到 7.7%–9.0% 的请求变慢，反推丢包率约为 0.5%–1%。cartservice 日志仍显示 159 条 `Checking CartService Health`（近似 1:1，探活基本都在应答），只是偶发无法在 1s 内完成。\n\n因此，剩余的 200ms 长尾最可能是 **cartservice Pod（10.244.0.174）网络链路上的持续丢包，也就是 tc/netem 类网络故障注入**；它表现为 TCP 重传 RTO 约 200ms（偶发约 400ms），没有错误码（TCP 自行恢复），并且只影响这一个 Pod 的流量（这也解释了为什么其他服务完全正常、为什么重建 Pod 和调整 CPU 都无效）。\n\n尚未解释或无法验证的部分（如实说明）：我只有只读权限，无法读取 Pod 的 CPU 节流计数、cgroup 内存和 socket 重传计数（`ss -ti`），也看不到 daemonsets/networkpolicies（已被 RBAC 拒绝），因此无法确认丢包是注入在 Pod veth 上还是 CNI 层。另外，19:52:38 和 19:53:40 各有一对请求在同一微秒完成（一对分别为 70ms 和 218ms，另一对为 393ms 和 220ms），说明共享的 cartservice↔redis 长连接也会被同一丢包拖住（置信度中低）。\n\n## 修复建议\n\n1. **主要修复（不在我的操作集内，需运维/故障注入平台处理）**：在 cartservice Pod 的网络命名空间确认并移除丢包规则：\n   `tc -s qdisc show dev eth0`（应看到 netem loss）、`ss -ti dst 10.96.137.241 or sport = :7070`（看 `retrans` 增长），或重置针对 `app=cartservice` 的网络故障实验。\n2. **止血（可申请）**：把 cartservice 扩到 3 副本，属于低风险验证兼缓解：如果丢包只挂在现有单个 Pod 上，尾部会降到约 1/3；如果注入按 Deployment/标签下发（现有证据更倾向这种可能），则不会有变化，那就必须走第 1 项。\n3. 后续平台侧改进：cartservice 的 gRPC 探针 `timeoutSeconds: 1` 太短，建议改为 3–5s，以免 1s 重传窗口误判；同时把 cartservice 内存上限从 128Mi 放宽（.NET GC 余量），排除次要干扰因素。\n\n```json\n{\"root_causes\": [{\"object\": \"cartservice (Pod cartservice-66fd8d4fff-8xfdf, 10.244.0.174)\", \"cause\": \"该 Pod 网络路径持续丢包(约 0.5%-1%)，表现为 TCP 重传 RTO 量化延迟：61 个慢请求中 45 个落在 206-247ms、4 个落在 393-431ms(+200ms/+400ms 整数跳变)，且 kubelet 直连 Pod IP 的 gRPC 探针反复 'failed to connect within 1s'(旧 Pod 7 次、新 Pod 8 次)，导致 7.7%-9% 的购物车相关请求(遍布 /、/product/*、/cart、POST /cart、POST /cart/checkout)出现 200-430ms 长尾，因 TCP 自动重传故无 500、无失败\"}, {\"object\": \"recommendationservice\", \"cause\": \"第 1 轮已修复：曾被缩容到 0 副本，frontend ListRecommendations 全部 connection refused，p99 422ms→243ms；与本轮剩余长尾无关\"}], \"actions\": [{\"op\": \"scale\", \"deployment\": \"cartservice\", \"replicas\": 3}], \"explanation\": \"CPU/副本/重启均已被数据排除(cartservice 与 redis-cart 的资源就是 demo 默认值，两次提额后慢请求占比 9.0%→5.6%→7.7% 在噪声内)，剩余长尾是 cartservice Pod 网络层丢包(TCP RTO 200ms 量化 + 探针 1s 建连超时)，属于 tc/netem 类注入，六个可用操作都删不掉该规则——重启 cartservice 已验证无效，因为新 Pod 19:44 起照样失败；这里只把 cartservice 扩到 3 副本作为低风险缓解/判别(若丢包只挂在单个 Pod 上，尾部降至约 1/3；若按 Deployment 下发则无变化)。真正的修复需要运维或故障注入平台在 cartservice 的网络命名空间用 tc -s qdisc show dev eth0 确认并移除 netem loss 规则，并建议把 cartservice 的 gRPC 探针 timeoutSeconds 从 1s 放宽到 3-5s。\"}\n```",
+   "plan": {
+    "root_causes": [
+     {
+      "object": "cartservice (Pod cartservice-66fd8d4fff-8xfdf, 10.244.0.174)",
+      "cause": "该 Pod 网络路径持续丢包(约 0.5%-1%)，表现为 TCP 重传 RTO 量化延迟：61 个慢请求中 45 个落在 206-247ms、4 个落在 393-431ms(+200ms/+400ms 整数跳变)，且 kubelet 直连 Pod IP 的 gRPC 探针反复 'failed to connect within 1s'(旧 Pod 7 次、新 Pod 8 次)，导致 7.7%-9% 的购物车相关请求(遍布 /、/product/*、/cart、POST /cart、POST /cart/checkout)出现 200-430ms 长尾，因 TCP 自动重传故无 500、无失败"
+     },
+     {
+      "object": "recommendationservice",
+      "cause": "第 1 轮已修复：曾被缩容到 0 副本，frontend ListRecommendations 全部 connection refused，p99 422ms→243ms；与本轮剩余长尾无关"
+     }
+    ],
+    "actions": [
+     {
+      "op": "scale",
+      "deployment": "cartservice",
+      "replicas": 3
+     }
+    ],
+    "explanation": "CPU/副本/重启均已被数据排除(cartservice 与 redis-cart 的资源就是 demo 默认值，两次提额后慢请求占比 9.0%→5.6%→7.7% 在噪声内)，剩余长尾是 cartservice Pod 网络层丢包(TCP RTO 200ms 量化 + 探针 1s 建连超时)，属于 tc/netem 类注入，六个可用操作都删不掉该规则——重启 cartservice 已验证无效，因为新 Pod 19:44 起照样失败；这里只把 cartservice 扩到 3 副本作为低风险缓解/判别(若丢包只挂在单个 Pod 上，尾部降至约 1/3；若按 Deployment 下发则无变化)。真正的修复需要运维或故障注入平台在 cartservice 的网络命名空间用 tc -s qdisc show dev eth0 确认并移除 netem loss 规则，并建议把 cartservice 的 gRPC 探针 timeoutSeconds 从 1s 放宽到 3-5s。"
+   },
+   "plan_error": "",
+   "actions": [
+    {
+     "action": {
+      "op": "scale",
+      "deployment": "cartservice",
+      "replicas": 3
+     },
+     "accepted": true,
+     "ok": true,
+     "result": "ok: deployment.apps/cartservice scaled | ok: ut to finish: 1 of 3 updated replicas are available...\nWaiting for deployment \"cartservice\" rollout to finish: 2 of 3 updated replicas are available...\ndeployment \"cartservice\" successfully rolled out"
+    }
+   ],
+   "observation": {
+    "since": "2026-11-16T19:58:38Z",
+    "seconds": 75.0,
+    "requests": 217,
+    "slow_180ms": 13,
+    "share_slow": 0.06,
+    "p50_ms": 7,
+    "p90_ms": 31,
+    "p99_ms": 425,
+    "http_500": 0,
+    "checkout_attempts": 9,
+    "checkout_failed": 0,
+    "resolved": false
+   }
+  }
+ ],
+ "outcome": "rounds_exhausted",
+ "before": {
+  "since": "2026-11-16T19:38:09Z",
+  "seconds": 45.0,
+  "requests": 233,
+  "slow_180ms": 21,
+  "share_slow": 0.09,
+  "p50_ms": 6,
+  "p90_ms": 44,
+  "p99_ms": 422,
+  "http_500": 0,
+  "checkout_attempts": 5,
+  "checkout_failed": 0,
+  "resolved": false
+ },
+ "injector_log": "netem on vethdc86a584 (cartservice-896c89968-qlc6t 10.244.0.162): loss 6%\nqdisc netem 802e: root refcnt 17 limit 1000 loss 6% seed 7878716327668547028\nnetem applied: 1\nnetem re-applied on veth4a0ce651 (cartservice 10.244.0.174): loss 6%\nnetem re-applied on veth7791fcca (cartservice 10.244.0.177): loss 6%\nnetem re-applied on vethc1a8b7db (cartservice 10.244.0.178): loss 6%\n",
+ "restored": [
+  "Deployment/frontend: set resources deployment/frontend -> ok",
+  "Deployment/cartservice: set resources deployment/cartservice -> ok",
+  "Deployment/cartservice: scale deployment/cartservice --replicas=1 -> ok",
+  "Deployment/redis-cart: set resources deployment/redis-cart -> ok"
+ ],
+ "steps": [
+  {
+   "phase": "verify_healthy",
+   "ok": true,
+   "detail": "healthy",
+   "seconds": 0.25
+  },
+  {
+   "phase": "home_latency",
+   "ok": true,
+   "detail": "GET / ok=True median=0.06s of [0.06] (need >= 0s)",
+   "seconds": 0.0
+  },
+  {
+   "phase": "clean_slate",
+   "ok": true,
+   "detail": "fresh pods",
+   "seconds": 36.15
+  },
+  {
+   "phase": "verify_fresh",
+   "ok": true,
+   "detail": "healthy",
+   "seconds": 0.24
+  },
+  {
+   "phase": "home_latency",
+   "ok": true,
+   "detail": "GET / ok=True median=0.06s of [0.06] (need >= 0s)",
+   "seconds": 0.0
+  },
+  {
+   "phase": "clear_events",
+   "ok": true,
+   "detail": "",
+   "seconds": 0.0
+  },
+  {
+   "phase": "prune_history",
+   "ok": true,
+   "detail": "1 old replicasets",
+   "seconds": 0.0
+  },
+  {
+   "phase": "inject",
+   "ok": true,
+   "detail": "-n boutique scale deployment/recommendationservice --replicas=0",
+   "seconds": 0.05
+  },
+  {
+   "phase": "inject",
+   "ok": true,
+   "detail": "-n infra-tools delete pod net-injector --ignore-not-found",
+   "seconds": 0.05
+  },
+  {
+   "phase": "inject",
+   "ok": true,
+   "detail": "apply -f /work/scenarios/netem/injector-boutique-hard-BH14.yaml",
+   "seconds": 0.18
+  },
+  {
+   "phase": "inject",
+   "ok": true,
+   "detail": "-n infra-tools wait --for=condition=Ready pod/net-injector --timeout=180s",
+   "seconds": 2.57
+  },
+  {
+   "phase": "confirm",
+   "ok": true,
+   "detail": "9/101 requests >= 180 ms since 2026-11-16T19:38:09Z; logs(app=net-injector) contain 'netem applied: 1': True",
+   "seconds": 31.15
+  },
+  {
+   "phase": "reset",
+   "ok": true,
+   "detail": "-n infra-tools delete pod net-injector --ignore-not-found",
+   "seconds": 2.64
+  },
+  {
+   "phase": "reset",
+   "ok": true,
+   "detail": "-n boutique scale deployment/recommendationservice --replicas=1",
+   "seconds": 0.05
+  },
+  {
+   "phase": "reset",
+   "ok": true,
+   "detail": "reset steps applied",
+   "seconds": 21.61
+  },
+  {
+   "phase": "verify_recovered",
+   "ok": true,
+   "detail": "healthy",
+   "seconds": 3.41
+  },
+  {
+   "phase": "home_latency",
+   "ok": true,
+   "detail": "GET / ok=True median=0.06s of [0.06] (need >= 0s)",
+   "seconds": 0.0
+  }
+ ],
+ "total_tokens": 2506375
+}

@@ -1,0 +1,209 @@
+{
+ "scenario": "BH06",
+ "model": "deepseek-flash",
+ "max_rounds": 1,
+ "frame": "prod",
+ "rounds": [
+  {
+   "round": 1,
+   "wall_s": 200,
+   "exit": 0,
+   "total_tokens": 899585,
+   "tool_calls": 36,
+   "answer": "## 结论：瓶颈在 `currencyservice`（每次 gRPC 调用固定多出约 200 ms）\n\n### 直接证据（boutique / frontend 日志，01:22:00–01:27:00，共取到 1975 条，过滤 `http.resp.took_ms` 匹配 541 条，展示最新 120 条）\n\n页面耗时与「该页面调用 currency 服务的次数」严格成线性关系：\n\n| 页面 | 观测 took_ms | currency RPC 次数 | 计算 |\n|---|---|---|---|\n| `GET /`（首页，非 USD 币种） | 2041 / 2043 / 2075 / 2085 / 2089 / 2104 / 2112 / 2134 / 2165 | 1×GetSupportedCurrencies + 9×Convert = 10 | 10×≈205 ms |\n| `GET /product/*` | 385–445（几乎全部） | 2 | 2×≈205 ms |\n| `GET /cart` 16.4 KB | 609 / 627 / 638 / 645 / 649 | 3 | 3×≈210 ms |\n| `GET /cart` 17.9 KB | 778–879 | 4 | 4×≈210 ms |\n| `GET /cart` 19.3 KB | 977–1063 | 5 | 5×≈210 ms |\n| `GET /cart` 20.7 KB | 1224 / 1276 | 6 | 6×≈210 ms |\n| `POST /cart`（只调 cartservice） | **1–2 ms** | 0 | — |\n| `POST /setCurrency` | 0 ms | 0 | — |\n\n关键对照：`POST /cart` 只经 frontend→cartservice，只用 1–2 ms；product/recommendation 的调用耗时可忽略（product 页扣掉 2 次 currency 调用后只剩约 10–26 ms）。所以 frontend 自身、cartservice、productcatalogservice、recommendationservice 都不是瓶颈，慢的是**每一条到 currencyservice 的 RPC**，且对所有调用方一致（checkoutservice 的 `/cart/checkout` 也随购物车件数每件 +200 ms：645→1179/1242 ms）。\n\n响应无错误、无超时、无重试，Pod 全部 Running/0 restart，adservice 之外无异常事件；这解释了「变慢但不报错、500 为 0、下单成功」。\n\n### 根因判定与不确定性\n`currencyservice-6df4cccbb9-pb29t` 的清单是完全标准的上游 v0.10.3 配置（单容器、无 sidecar/initContainer、无额外注解、env 仅 `PORT=7000`/`DISABLE_PROFILER=1`、limit 200m）。也就是说延迟**不来自 deployment 配置**，是运行时施加的。两种机制我无法在本轮彻底区分：\n\n1. **（更可能）在 currencyservice Pod 流量上施加了约 200 ms 的固定网络延迟**：延迟极度稳定（数百次请求波动 ±20 ms），且与调用方无关；而 CPU 争抢/限流会给出长尾抖动而非固定值。\n2. **（次可能）currencyservice 进程被 CFS 限流（limit 200m）或事件循环阻塞**，形成排队约 200 ms/请求。\n\n缺少的证据：metrics 工具未启用（无 `container_cpu_cfs_throttled_seconds`/`containerCPU`），我没有 exec/节点权限，RBAC 只允许 boutique 的 pod/deployment/service/log（`nodes`、`pods`（他 ns）、`namespaces`、`networkpolicies`、`hpa` 均 Forbidden），因此无法查看 netns 里的 tc 规则或限流计数——也就无法最终判定是 1 还是 2。\n\n### 影响范围（按证据归类）\n- **受影响**：`currencyservice`（每次 RPC ≈200 ms，所有客户端一致）；`frontend`（首页 2.0–2.2 s、商品页约 0.4 s、购物车 0.6–1.3 s，与告警的中位 415 ms / P90 1062 ms / P99 2105 ms 吻合）；`checkoutservice`（下单链路按件数叠加 200 ms/件，但成功）。\n- **已检查、正常**：`cartservice`（AddItem 1–2 ms）、`productcatalogservice`（请求间隔无异常，仅启动日志）、`recommendationservice`（连续接收请求无错误）、`shippingservice`（6 分钟内 357 条日志，0 条 err/fail）、`checkoutservice`（仅 2 条正常「邮件已发送」日志）、`redis-cart`。\n- **另一个独立问题（非本次延迟原因）**：`adservice` 被从 1 缩到 0（事件 `ScalingReplicaSet` 1→0，01:23:15，count 6），frontend 每个请求都记 `failed to get ads: … dial tcp 10.96.18.53:9555: connect: connection refused`（warning），但立即失败、页面照常 200，只丢广告，不产生延迟。\n- **无关错误（已排除）**：01:26:21 一条 `/cart/checkout` 500，原因是 `Only VISA or MasterCard is accepted`（visa_electron 测试卡被支付服务拒绝），业务校验，不是故障。\n\n### 建议修复（按优先级）\n1. `restart currencyservice`：新 Pod = 新 netns，若 200 ms 是打在当前 Pod 网络命名空间上的 tc/netem 规则（最可能情形），重启即清除。\n2. `set_cpu_limit currencyservice 1`：对冲第二种可能（200m CFS 限流；该服务当前承载约 150 req/s，200m 上限偏紧）。\n3. 若运维侧能找到针对 `app=currencyservice` 的延迟注入（NetworkChaos/tc）规则，请直接删除该规则——按标签注入的方案下，重启无法恢复，必须由有集群权限的人移除。\n4. （可选，与本次延迟无关）把 `adservice` 恢复 1 副本，消除持续的广告获取告警。\n\n```json\n{\"root_causes\": [{\"object\": \"currencyservice\", \"cause\": \"每一次 gRPC 调用（GetSupportedCurrencies / Convert）固定多出约 200 ms（对 frontend 和 checkoutservice 一致），导致 frontend 页面耗时严格随 currency 调用次数线性放大：首页 10 次≈2.05 s、商品页 2 次≈0.41 s、购物车每多一件商品多约 200 ms。其 deployment 为原样上游 v0.10.3 配置，延迟来自运行时：最可能是在该 Pod 流量上施加的约 200 ms 固定网络延迟（延迟极稳定、与调用方无关）；次可能是该进程被其 200m CPU limit CFS 限流/事件循环阻塞。无错误、无重试，故只变慢不报错。\"}, {\"object\": \"adservice\", \"cause\": \"副本数被缩到 0（01:23:15 ScalingReplicaSet 1→0，count 6），frontend 每次请求都报 failed to get ads: connect: connection refused（warning）。该调用立即失败，只导致页面无广告，不构成本次延迟，属独立的次要问题。\"}], \"actions\": [{\"op\": \"restart\", \"deployment\": \"currencyservice\"}, {\"op\": \"set_cpu_limit\", \"deployment\": \"currencyservice\", \"cpu\": \"1\"}, {\"op\": \"scale\", \"deployment\": \"adservice\", \"replicas\": 1}], \"explanation\": \"已用日志定量证明延迟全部集中在 currencyservice 的每次 RPC（约 200 ms），其它依赖均为毫秒级；先重启 currencyservice（清除可能施加在 Pod 网络命名空间上的延迟规则并重建进程）并把 CPU limit 提到 1 核以排除 200m 限流，同时顺手恢复 adservice 副本。若重启后延迟不变，则说明是按标签持续注入的网络延迟，需要集群管理员删除该注入规则（我的只读权限无法查看 chaos/tc 或 CFS 限流指标来进一步区分）。\"}\n```",
+   "plan": {
+    "root_causes": [
+     {
+      "object": "currencyservice",
+      "cause": "每一次 gRPC 调用（GetSupportedCurrencies / Convert）固定多出约 200 ms（对 frontend 和 checkoutservice 一致），导致 frontend 页面耗时严格随 currency 调用次数线性放大：首页 10 次≈2.05 s、商品页 2 次≈0.41 s、购物车每多一件商品多约 200 ms。其 deployment 为原样上游 v0.10.3 配置，延迟来自运行时：最可能是在该 Pod 流量上施加的约 200 ms 固定网络延迟（延迟极稳定、与调用方无关）；次可能是该进程被其 200m CPU limit CFS 限流/事件循环阻塞。无错误、无重试，故只变慢不报错。"
+     },
+     {
+      "object": "adservice",
+      "cause": "副本数被缩到 0（01:23:15 ScalingReplicaSet 1→0，count 6），frontend 每次请求都报 failed to get ads: connect: connection refused（warning）。该调用立即失败，只导致页面无广告，不构成本次延迟，属独立的次要问题。"
+     }
+    ],
+    "actions": [
+     {
+      "op": "restart",
+      "deployment": "currencyservice"
+     },
+     {
+      "op": "set_cpu_limit",
+      "deployment": "currencyservice",
+      "cpu": "1"
+     },
+     {
+      "op": "scale",
+      "deployment": "adservice",
+      "replicas": 1
+     }
+    ],
+    "explanation": "已用日志定量证明延迟全部集中在 currencyservice 的每次 RPC（约 200 ms），其它依赖均为毫秒级；先重启 currencyservice（清除可能施加在 Pod 网络命名空间上的延迟规则并重建进程）并把 CPU limit 提到 1 核以排除 200m 限流，同时顺手恢复 adservice 副本。若重启后延迟不变，则说明是按标签持续注入的网络延迟，需要集群管理员删除该注入规则（我的只读权限无法查看 chaos/tc 或 CFS 限流指标来进一步区分）。"
+   },
+   "plan_error": "",
+   "actions": [
+    {
+     "action": {
+      "op": "restart",
+      "deployment": "currencyservice"
+     },
+     "accepted": true,
+     "ok": true,
+     "result": "ok: pod \"currencyservice-6df4cccbb9-pb29t\" deleted from boutique namespace | ok: Waiting for deployment \"currencyservice\" rollout to finish: 0 of 1 updated replicas are available...\ndeployment \"currencyservice\" successfully rolled out"
+    },
+    {
+     "action": {
+      "op": "set_cpu_limit",
+      "deployment": "currencyservice",
+      "cpu": "1"
+     },
+     "accepted": true,
+     "ok": true,
+     "result": "ok: deployment.apps/currencyservice resource requirements updated | ok: sh: 1 old replicas are pending termination...\nWaiting for deployment \"currencyservice\" rollout to finish: 1 old replicas are pending termination...\ndeployment \"currencyservice\" successfully rolled out"
+    },
+    {
+     "action": {
+      "op": "scale",
+      "deployment": "adservice",
+      "replicas": 1
+     },
+     "accepted": true,
+     "ok": true,
+     "result": "ok: deployment.apps/adservice scaled | ok: Waiting for deployment \"adservice\" rollout to finish: 0 of 1 updated replicas are available...\ndeployment \"adservice\" successfully rolled out"
+    }
+   ],
+   "observation": {
+    "since": "2026-11-17T01:29:02Z",
+    "seconds": 75.0,
+    "requests": 181,
+    "slow_180ms": 137,
+    "share_slow": 0.757,
+    "p50_ms": 416,
+    "p90_ms": 2048,
+    "p99_ms": 2114,
+    "http_500": 0,
+    "checkout_attempts": 5,
+    "checkout_failed": 0,
+    "resolved": false
+   }
+  }
+ ],
+ "outcome": "rounds_exhausted",
+ "before": {
+  "since": "2026-11-17T01:23:41Z",
+  "seconds": 45.0,
+  "requests": 126,
+  "slow_180ms": 94,
+  "share_slow": 0.746,
+  "p50_ms": 415,
+  "p90_ms": 1062,
+  "p99_ms": 2105,
+  "http_500": 0,
+  "checkout_attempts": 5,
+  "checkout_failed": 0,
+  "resolved": false
+ },
+ "injector_log": "netem on vethed28f0ac (currencyservice-6df4cccbb9-pb29t 10.244.0.245): delay 200ms 20ms\nqdisc netem 803b: root refcnt 17 limit 1000 delay 200ms  20ms seed 7996895561118533535\nnetem applied: 1\nnetem re-applied on veth3786c202 (currencyservice 10.244.0.248): delay 200ms 20ms\nnetem re-applied on veth3cbf7f94 (currencyservice 10.244.0.249): delay 200ms 20ms\n",
+ "restored": [
+  "Deployment/currencyservice: set resources deployment/currencyservice -> ok"
+ ],
+ "steps": [
+  {
+   "phase": "verify_healthy",
+   "ok": true,
+   "detail": "healthy",
+   "seconds": 0.32
+  },
+  {
+   "phase": "home_latency",
+   "ok": true,
+   "detail": "GET / ok=True median=0.07s of [0.07] (need >= 0s)",
+   "seconds": 0.0
+  },
+  {
+   "phase": "clean_slate",
+   "ok": true,
+   "detail": "fresh pods",
+   "seconds": 36.26
+  },
+  {
+   "phase": "verify_fresh",
+   "ok": true,
+   "detail": "healthy",
+   "seconds": 0.26
+  },
+  {
+   "phase": "home_latency",
+   "ok": true,
+   "detail": "GET / ok=True median=0.06s of [0.06] (need >= 0s)",
+   "seconds": 0.0
+  },
+  {
+   "phase": "clear_events",
+   "ok": true,
+   "detail": "",
+   "seconds": 0.0
+  },
+  {
+   "phase": "inject",
+   "ok": true,
+   "detail": "-n boutique scale deployment/adservice --replicas=0",
+   "seconds": 0.07
+  },
+  {
+   "phase": "inject",
+   "ok": true,
+   "detail": "-n infra-tools delete pod net-injector --ignore-not-found",
+   "seconds": 0.05
+  },
+  {
+   "phase": "inject",
+   "ok": true,
+   "detail": "apply -f /work/scenarios/netem/injector-boutique-hard-BH06.yaml",
+   "seconds": 0.19
+  },
+  {
+   "phase": "inject",
+   "ok": true,
+   "detail": "-n infra-tools wait --for=condition=Ready pod/net-injector --timeout=180s",
+   "seconds": 1.15
+  },
+  {
+   "phase": "confirm",
+   "ok": true,
+   "detail": "16/29 requests >= 180 ms since 2026-11-17T01:23:41Z; logs(app=net-injector) contain 'netem applied: 1': True",
+   "seconds": 9.46
+  },
+  {
+   "phase": "reset",
+   "ok": true,
+   "detail": "-n infra-tools delete pod net-injector --ignore-not-found",
+   "seconds": 1.1
+  },
+  {
+   "phase": "reset",
+   "ok": true,
+   "detail": "-n boutique scale deployment/adservice --replicas=1",
+   "seconds": 0.04
+  },
+  {
+   "phase": "reset",
+   "ok": true,
+   "detail": "reset steps applied",
+   "seconds": 12.2
+  },
+  {
+   "phase": "verify_recovered",
+   "ok": true,
+   "detail": "healthy",
+   "seconds": 6.63
+  },
+  {
+   "phase": "home_latency",
+   "ok": true,
+   "detail": "GET / ok=True median=0.06s of [0.06] (need >= 0s)",
+   "seconds": 0.0
+  }
+ ],
+ "total_tokens": 899585
+}

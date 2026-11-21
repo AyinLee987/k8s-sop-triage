@@ -1,0 +1,199 @@
+{
+ "scenario": "BH05",
+ "model": "deepseek-flash",
+ "max_rounds": 1,
+ "frame": "prod",
+ "rounds": [
+  {
+   "round": 1,
+   "wall_s": 379,
+   "exit": 0,
+   "total_tokens": 1706365,
+   "tool_calls": 44,
+   "answer": "## 排查结论\n\n**已确认的事实（来自日志与 API 的实际观测）**\n\n1. **Pod/Service 全都正常**，不是资源或配置问题：boutique 的 12 个 Deployment 各 1 副本，12 个 Pod 全部 `Running/Ready`、**restartCount=0**，全部在 `tiktok-k8s-lab-control-plane` 一个节点上；12 个 Service 的 selector 与 Endpoints **一一对应、端口全部匹配**（`emailservice 5000→8080`、`frontend 80→8080` 等均正确）；命名空间内无事件、无 NetworkPolicy/LimitRange；**所有 Pod 的应用日志零 error/异常**，与\"没有报错\"一致。\n\n2. **慢的规律：按\"串行下游 RPC 次数\"线性放大**（frontend 日志 `http.resp.took_ms`，取 01:14:00–01:15:00 共 127 条请求）：\n\n| 路径 | 耗时 | 说明 |\n|---|---|---|\n| `GET /product/*` | **377–444 ms**（约 30 个样本，非常集中） | 2 次 currency 调用 |\n| `GET /cart` 6.9KB / 16.4KB / 20.7KB | **687–704 / 877–949 / 1326–1589 ms** | 逐件转换 + 运费报价 |\n| `GET /` | **2059–2192 ms** | 首页 ~10 次 currency 转换 |\n| `POST /cart`(302) / `POST /setCurrency` | **0–4 ms** | 无下游渲染 |\n| `/_healthz` | **0 ms** | |\n\n`POST /cart` 只花 1ms，说明 frontend 自身 CPU 未被限流（200m）、`frontend→cartservice` 往返 <1ms。\n\n3. **下游服务\"处理\"都是微秒级，但请求/响应\"在路上\"要 200–290ms**。以 01:14:24 与 01:13:58 两笔下单为例（两个完全独立的样本，数值高度一致）：\n\n```\ncheckout: [PlaceOrder] user_id=...           24.5869\nshipping: [GetQuote] received 24/25.129   completed +0.0001s   → 处理 0.1ms\ncheckout: payment went through               25.3335   (+204ms，Charge 到 paymentservice 才被收到)\npayment : Charge invoked                     25.332    → 响应 1.5ms 后 checkout 记到日志\nshipping: [ShipOrder] received               25.6200   (+287ms)\nshipping: [ShipOrder] completed              +0.00006s\nemail   : 邮件服务收到请求                    25.6232   (ShipOrder 返回后 2.7ms 内完成 emptyCart+email)\n```\n第二笔（01:13:58）：quote 完成 59.066 → Charge 收到 59.270（**+204ms**）→ ShipOrder 收到 59.558（**+287ms**）→ email 完成 +2.7ms。**同样的 204ms / 287ms。**\n\n4. **哪些边快、哪些边慢**：`cartservice`（AddItem 1ms）、`emailservice`（0.6ms）、`adservice`（收到即回）、`recommendationservice`（其内部对 `productcatalogservice` 的 ListProducts 也算在内 ≤2ms，证明 catalog 也快）、frontend 模板渲染（ad 请求到响应结束仅 2ms）——**全部正常**。\n   **慢的只有三条边：`frontend/checkout → currencyservice`、`checkout → shippingservice`、`checkout → paymentservice`**，每条 RPC 凭空多 ~200–290ms，且是\"每次调用\"而非\"首次建连\"（product 页恰好 2 次 currency 调用 = ~400ms；首页 ~10 次 = ~2000ms，与用户侧 p90 2040ms、中位数 422ms 完全对得上）。\n\n**根因定位**：延迟不在应用代码、不在 Pod 资源、不在 Service/端口配置，而是存在于 `currencyservice` / `shippingservice` / `paymentservice` 这三个 Pod 的**网络收发路径上**（请求到达处理函数前/响应离开前被推迟 ~100ms 级别，两笔订单稳定复现 204ms、287ms）。currencyservice 是用户可感知延迟的主要贡献者（每个页面 1–10 次调用）。\n\n**机制上仍无法二选一（缺证据，需说明）**：\n- 可能 A：这三个 Pod 的网络命名空间/NIC 上被加了 tc/netem 类似的固定延迟（对 Pod IP 限速/延迟）。我这里只有只读 K8s API 权限、无节点与 coredns 权限（`nodes`、`kube-system/pods` 均返回 Forbidden），无法直接读取 qdisc 或 CPU 节流统计来确认。\n- 可能 B：这些 gRPC 通道每次调用需重新建连/解析（DNS 或连接抖动），建连开销 ~200–290ms。log 上区分不了 A 与 B。\n- 可排除：节点级 CPU 饥饿/应用层 CPU 限流（同为 200m 的 catalog/email/rec 都很快，frontend 重渲染只要 2ms）、Service/Endpoint 错误（endpoints 正确且无 5xx/连接错误）、应用 bug（handler 微秒级）。\n\n**修复申请**：重建这三个 Pod。若是 Pod netns/按 Pod IP 的 tc 规则（可能 A），新 Pod = 新 netns + 新 IP，规则立即失效；若是连接/DNS 抖动（可能 B），重建也能清掉当前通道状态。其余 9 个服务有证据显示健康，不动。\n\n```json\n{\"root_causes\": [{\"object\": \"currencyservice (boutique)\", \"cause\": \"每次 RPC 额外约 200ms 网络/建连延迟：GetSupportedCurrencies/Convert 的处理时间仅微秒级，但 frontend 侧 product 页(2次调用)稳定 ~400ms、首页(~10次)~2060ms；是用户侧 p50 422ms / p90 2040ms 的主要来源\"}, {\"object\": \"shippingservice (boutique)\", \"cause\": \"每次 RPC 额外约 200–290ms 延迟：GetQuote/ShipOrder 处理仅 0.1ms，但两笔独立订单中 checkout 发出请求到 shipping 收到分别稳定延迟 204ms、287ms（响应本身很快）\"}, {\"object\": \"paymentservice (boutique)\", \"cause\": \"Charge 请求到达延迟约 204ms（两笔订单一致：quote 完成→Charge 收到 +204ms；Charge 处理与响应仅 1.5ms）\"}, {\"object\": \"延迟机制（未确认，需节点层证据）\", \"cause\": \"上述三条边表现为 Pod 网络路径上的固定延迟（tc/netem 类，或被按 Pod IP 限速），也可能为每次调用重新建连/DNS 解析开销；只读权限下无法读取节点 qdisc / CoreDNS / 节流统计，故未能二选一\"}], \"actions\": [{\"op\": \"restart\", \"deployment\": \"currencyservice\"}, {\"op\": \"restart\", \"deployment\": \"shippingservice\"}, {\"op\": \"restart\", \"deployment\": \"paymentservice\"}], \"explanation\": \"延迟只出现在 currencyservice/shippingservice/paymentservice 三条边的每次 RPC 上（+200~290ms），而三者 handler 均为微秒级、其余 9 个服务与 frontend 自身渲染都正常，重建这三个 Pod 可清掉 Pod netns/IP 级别的 tc 延迟或通道抖动状态。若重建后仍无改善，则说明延迟施加在节点 CNI/网络层或 DNS 上，需运维在节点侧检查 tc/netem 与 CoreDNS（我没有 nodes/kube-system 的读取权限），那时再另行处理，不能靠这组操作解决。\"}\n```",
+   "plan": {
+    "root_causes": [
+     {
+      "object": "currencyservice (boutique)",
+      "cause": "每次 RPC 额外约 200ms 网络/建连延迟：GetSupportedCurrencies/Convert 的处理时间仅微秒级，但 frontend 侧 product 页(2次调用)稳定 ~400ms、首页(~10次)~2060ms；是用户侧 p50 422ms / p90 2040ms 的主要来源"
+     },
+     {
+      "object": "shippingservice (boutique)",
+      "cause": "每次 RPC 额外约 200–290ms 延迟：GetQuote/ShipOrder 处理仅 0.1ms，但两笔独立订单中 checkout 发出请求到 shipping 收到分别稳定延迟 204ms、287ms（响应本身很快）"
+     },
+     {
+      "object": "paymentservice (boutique)",
+      "cause": "Charge 请求到达延迟约 204ms（两笔订单一致：quote 完成→Charge 收到 +204ms；Charge 处理与响应仅 1.5ms）"
+     },
+     {
+      "object": "延迟机制（未确认，需节点层证据）",
+      "cause": "上述三条边表现为 Pod 网络路径上的固定延迟（tc/netem 类，或被按 Pod IP 限速），也可能为每次调用重新建连/DNS 解析开销；只读权限下无法读取节点 qdisc / CoreDNS / 节流统计，故未能二选一"
+     }
+    ],
+    "actions": [
+     {
+      "op": "restart",
+      "deployment": "currencyservice"
+     },
+     {
+      "op": "restart",
+      "deployment": "shippingservice"
+     },
+     {
+      "op": "restart",
+      "deployment": "paymentservice"
+     }
+    ],
+    "explanation": "延迟只出现在 currencyservice/shippingservice/paymentservice 三条边的每次 RPC 上（+200~290ms），而三者 handler 均为微秒级、其余 9 个服务与 frontend 自身渲染都正常，重建这三个 Pod 可清掉 Pod netns/IP 级别的 tc 延迟或通道抖动状态。若重建后仍无改善，则说明延迟施加在节点 CNI/网络层或 DNS 上，需运维在节点侧检查 tc/netem 与 CoreDNS（我没有 nodes/kube-system 的读取权限），那时再另行处理，不能靠这组操作解决。"
+   },
+   "plan_error": "",
+   "actions": [
+    {
+     "action": {
+      "op": "restart",
+      "deployment": "currencyservice"
+     },
+     "accepted": true,
+     "ok": true,
+     "result": "ok: pod \"currencyservice-6df4cccbb9-7qnvv\" deleted from boutique namespace | ok: Waiting for deployment \"currencyservice\" rollout to finish: 0 of 1 updated replicas are available...\ndeployment \"currencyservice\" successfully rolled out"
+    },
+    {
+     "action": {
+      "op": "restart",
+      "deployment": "shippingservice"
+     },
+     "accepted": true,
+     "ok": true,
+     "result": "ok: pod \"shippingservice-78969f44cf-rpklx\" deleted from boutique namespace | ok: Waiting for deployment \"shippingservice\" rollout to finish: 0 of 1 updated replicas are available...\ndeployment \"shippingservice\" successfully rolled out"
+    },
+    {
+     "action": {
+      "op": "restart",
+      "deployment": "paymentservice"
+     },
+     "accepted": true,
+     "ok": true,
+     "result": "ok: pod \"paymentservice-78f6cfdf7f-c2pzc\" deleted from boutique namespace | ok: Waiting for deployment \"paymentservice\" rollout to finish: 0 of 1 updated replicas are available...\ndeployment \"paymentservice\" successfully rolled out"
+    }
+   ],
+   "observation": {
+    "since": "2026-11-17T01:20:59Z",
+    "seconds": 75.0,
+    "requests": 189,
+    "slow_180ms": 143,
+    "share_slow": 0.757,
+    "p50_ms": 418,
+    "p90_ms": 2009,
+    "p99_ms": 2142,
+    "http_500": 0,
+    "checkout_attempts": 5,
+    "checkout_failed": 0,
+    "resolved": false
+   }
+  }
+ ],
+ "outcome": "rounds_exhausted",
+ "before": {
+  "since": "2026-11-17T01:12:43Z",
+  "seconds": 60.0,
+  "requests": 173,
+  "slow_180ms": 128,
+  "share_slow": 0.74,
+  "p50_ms": 422,
+  "p90_ms": 2040,
+  "p99_ms": 2134,
+  "http_500": 0,
+  "checkout_attempts": 4,
+  "checkout_failed": 0,
+  "resolved": false
+ },
+ "injector_log": "netem on veth5b18d00a (currencyservice-6df4cccbb9-7qnvv 10.244.0.224): delay 200ms 20ms\nqdisc netem 8037: root refcnt 17 limit 1000 delay 200ms  20ms seed 8012372310064011658\nnetem on vethce31efda (shippingservice-78969f44cf-rpklx 10.244.0.232): delay 300ms 30ms\nqdisc netem 8038: root refcnt 17 limit 1000 delay 300ms  30ms seed 3746901434292062854\nnetem applied: 2\nnetem re-applied on veth67607431 (currencyservice 10.244.0.233): delay 200ms 20ms\nnetem re-applied on veth5dd8d8aa (shippingservice 10.244.0.234): delay 300ms 30ms\n",
+ "restored": [],
+ "steps": [
+  {
+   "phase": "verify_healthy",
+   "ok": true,
+   "detail": "healthy",
+   "seconds": 0.28
+  },
+  {
+   "phase": "home_latency",
+   "ok": true,
+   "detail": "GET / ok=True median=0.05s of [0.05] (need >= 0s)",
+   "seconds": 0.0
+  },
+  {
+   "phase": "clean_slate",
+   "ok": true,
+   "detail": "fresh pods",
+   "seconds": 35.27
+  },
+  {
+   "phase": "verify_fresh",
+   "ok": true,
+   "detail": "healthy",
+   "seconds": 0.24
+  },
+  {
+   "phase": "home_latency",
+   "ok": true,
+   "detail": "GET / ok=True median=0.06s of [0.06] (need >= 0s)",
+   "seconds": 0.0
+  },
+  {
+   "phase": "clear_events",
+   "ok": true,
+   "detail": "",
+   "seconds": 0.0
+  },
+  {
+   "phase": "inject",
+   "ok": true,
+   "detail": "-n infra-tools delete pod net-injector --ignore-not-found",
+   "seconds": 0.04
+  },
+  {
+   "phase": "inject",
+   "ok": true,
+   "detail": "apply -f /work/scenarios/netem/injector-boutique-hard-BH05.yaml",
+   "seconds": 0.17
+  },
+  {
+   "phase": "inject",
+   "ok": true,
+   "detail": "-n infra-tools wait --for=condition=Ready pod/net-injector --timeout=180s",
+   "seconds": 1.51
+  },
+  {
+   "phase": "confirm",
+   "ok": true,
+   "detail": "19/29 requests >= 180 ms since 2026-11-17T01:12:43Z; logs(app=net-injector) contain 'netem applied: 2': True",
+   "seconds": 12.52
+  },
+  {
+   "phase": "reset",
+   "ok": true,
+   "detail": "-n infra-tools delete pod net-injector --ignore-not-found",
+   "seconds": 1.98
+  },
+  {
+   "phase": "reset",
+   "ok": true,
+   "detail": "reset steps applied",
+   "seconds": 2.65
+  },
+  {
+   "phase": "verify_recovered",
+   "ok": true,
+   "detail": "healthy",
+   "seconds": 0.29
+  },
+  {
+   "phase": "home_latency",
+   "ok": true,
+   "detail": "GET / ok=True median=0.07s of [0.07] (need >= 0s)",
+   "seconds": 0.0
+  }
+ ],
+ "total_tokens": 1706365
+}

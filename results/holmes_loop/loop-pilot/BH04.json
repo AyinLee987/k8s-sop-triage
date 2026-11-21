@@ -1,0 +1,394 @@
+{
+ "scenario": "BH04",
+ "model": "deepseek-flash",
+ "max_rounds": 3,
+ "rounds": [
+  {
+   "round": 1,
+   "wall_s": 422,
+   "exit": 0,
+   "total_tokens": 1078758,
+   "tool_calls": 31,
+   "answer": "## 已获取的数据\n\n- **Pod/Deployment/Service/Endpoints/Events**（boutique 全量）：12 个服务全部 Ready、0 重启、镜像 v0.10.3、各 1 副本，env/端口/selector 全部标准；无 LimitRange/ResourceQuota；无异常事件。\n- **frontend 日志**（17:23–17:28，按路径统计 took_ms）：`GET /` 566–692ms（很稳定）、`GET /product/*` 2350–2537ms、`GET /cart` 2054–3462ms（随购物车件数增长，约 150–215ms/件）、`POST /cart` 877–942ms、`POST /setCurrency` 0ms。除 17:23:26–17:23:51（Pod 刚 17:23:05 创建、adservice 尚未起来）的 `connection refused` 外无任何错误，0 个 5xx。\n- **adservice / shippingservice / currencyservice / redis / checkout 日志** 用于标定链路各段耗时。\n- **recommendationservice 日志**：约 1.16 req/s，与 /product + /cart 页面流量吻合，无报错。\n- **确认各服务端自身处理是快的**：shippingservice `[GetQuote] received→completed` 约 40µs；currencyservice 12 次 conversion 在 5ms 内全部完成；adservice 收到请求到前端写响应约 2ms。\n\n## 定位过程（每跳耗时拆解）\n\n1. 用 adservice 日志做锚点：商品页 `chooseAd` 在 handler 末尾调用，`ENV_PLATFORM` 日志→adservice 收到→前端写响应只差 ~2ms，而**该次请求进入 chooseAd 之前已经花掉 ~2.4s**。\n2. 用 shippingservice 日志做锚点：购物车页的 `[GetQuote]` 通常出现在页面完成前 **2ms**，即 quote 之前已耗 **~2.0–2.3s**，quote 之后按件数另有 150–215ms/件。\n3. 两个锚点交集：商品页/购物车页共同多出来、而 `/`（566–629ms）没有的那一段，就是 `getRecommendations` —— **约 1.5–1.8s/次**，正好是用户侧中位数 2141ms 的主要来源（/product 与 /cart 占约 70% 流量）。\n4. 剩下 `GET /` 的 ~600ms、`POST /cart` 的 ~900ms 属于第二层现象：每跳约 100–200ms 的排队（服务端处理本身是 µs–ms 级），且 Locust 统计 min=7–15ms、失败 0 —— 典型是 **Pod CPU 配额/节流下的排队（闭式负载稳定在饱和点）**，prefront 单副本 200m + 每页 10~14 次串行 RPC 把它放大。\n5. recommendationservice 是 Python 单进程、CPU limit 200m、1 副本，在 ~1.16 req/s 下正好卡在配额饱和点（延迟稳定而不发散，符合闭式负载）。\n\n## 本轮修复申请\n\n针对推荐服务（主要耗时）与前端（每跳排队）提高 CPU 上限，并给推荐服务加一个副本分摊 Python 单线程压力。\n\n```json\n{\"root_causes\": [{\"object\": \"recommendationservice\", \"cause\": \"每次 ListRecommendations 约耗时 1.5–1.8s（Python 单副本 + CPU limit 200m 已饱和，日志显示 ~1.16 req/s 到达即到产能上限），使 /product 与 /cart 页面（约 70% 用户流量）整体多出 1.5s 以上，是用户侧中位数 2141ms 的主要来源\"}, {\"object\": \"frontend\", \"cause\": \"单副本、CPU limit 200m，每页需串行发起 10–14 次下游 RPC；服务端自身处理均在 µs–ms 级，但每跳出现 ~100–200ms 排队（min 7ms 证明可瞬时完成），导致即使不含推荐的 /（566–692ms）、POST /cart（约 900ms）也远超 180ms 基线\"}, {\"object\": \"boutique 节点 CPU 争用（待验证）\", \"cause\": \"所有 12 个 Pod 都调度在同一节点 tiktok-k8s-lab-control-plane 上，若无限制调整后仍未恢复，则瓶颈在节点 CPU 容量/争用层面；当前账号无权读取 nodes，无法直接验证\"}], \"actions\": [{\"op\": \"set_cpu_limit\", \"deployment\": \"recommendationservice\", \"cpu\": \"1\"}, {\"op\": \"scale\", \"deployment\": \"recommendationservice\", \"replicas\": 2}, {\"op\": \"set_cpu_limit\", \"deployment\": \"frontend\", \"cpu\": \"1\"}], \"explanation\": \"先把耗时最集中的 recommendationservice 从 200m/1 副本提升到 1 核且 2 副本，同时放开 frontend 的 CPU 上限以消除每跳约 100–200ms 的排队；执行后看用户侧新数据，若中位数降到 600ms 左右仍有残差，下一轮再处理其余热路径或判定为节点 CPU 容量问题需运维扩容。\"}\n```",
+   "plan": {
+    "root_causes": [
+     {
+      "object": "recommendationservice",
+      "cause": "每次 ListRecommendations 约耗时 1.5–1.8s（Python 单副本 + CPU limit 200m 已饱和，日志显示 ~1.16 req/s 到达即到产能上限），使 /product 与 /cart 页面（约 70% 用户流量）整体多出 1.5s 以上，是用户侧中位数 2141ms 的主要来源"
+     },
+     {
+      "object": "frontend",
+      "cause": "单副本、CPU limit 200m，每页需串行发起 10–14 次下游 RPC；服务端自身处理均在 µs–ms 级，但每跳出现 ~100–200ms 排队（min 7ms 证明可瞬时完成），导致即使不含推荐的 /（566–692ms）、POST /cart（约 900ms）也远超 180ms 基线"
+     },
+     {
+      "object": "boutique 节点 CPU 争用（待验证）",
+      "cause": "所有 12 个 Pod 都调度在同一节点 tiktok-k8s-lab-control-plane 上，若无限制调整后仍未恢复，则瓶颈在节点 CPU 容量/争用层面；当前账号无权读取 nodes，无法直接验证"
+     }
+    ],
+    "actions": [
+     {
+      "op": "set_cpu_limit",
+      "deployment": "recommendationservice",
+      "cpu": "1"
+     },
+     {
+      "op": "scale",
+      "deployment": "recommendationservice",
+      "replicas": 2
+     },
+     {
+      "op": "set_cpu_limit",
+      "deployment": "frontend",
+      "cpu": "1"
+     }
+    ],
+    "explanation": "先把耗时最集中的 recommendationservice 从 200m/1 副本提升到 1 核且 2 副本，同时放开 frontend 的 CPU 上限以消除每跳约 100–200ms 的排队；执行后看用户侧新数据，若中位数降到 600ms 左右仍有残差，下一轮再处理其余热路径或判定为节点 CPU 容量问题需运维扩容。"
+   },
+   "plan_error": "",
+   "actions": [
+    {
+     "action": {
+      "op": "set_cpu_limit",
+      "deployment": "recommendationservice",
+      "cpu": "1"
+     },
+     "accepted": true,
+     "ok": true,
+     "result": "ok: deployment.apps/recommendationservice resource requirements updated | ok: plicas are pending termination...\nWaiting for deployment \"recommendationservice\" rollout to finish: 1 old replicas are pending termination...\ndeployment \"recommendationservice\" successfully rolled out"
+    },
+    {
+     "action": {
+      "op": "scale",
+      "deployment": "recommendationservice",
+      "replicas": 2
+     },
+     "accepted": true,
+     "ok": true,
+     "result": "ok: deployment.apps/recommendationservice scaled | ok: Waiting for deployment \"recommendationservice\" rollout to finish: 1 of 2 updated replicas are available...\ndeployment \"recommendationservice\" successfully rolled out"
+    },
+    {
+     "action": {
+      "op": "set_cpu_limit",
+      "deployment": "frontend",
+      "cpu": "1"
+     },
+     "accepted": true,
+     "ok": true,
+     "result": "ok: deployment.apps/frontend resource requirements updated | ok: ollout to finish: 1 old replicas are pending termination...\nWaiting for deployment \"frontend\" rollout to finish: 1 old replicas are pending termination...\ndeployment \"frontend\" successfully rolled out"
+    }
+   ],
+   "observation": {
+    "since": "2026-11-16T17:32:42Z",
+    "seconds": 75.0,
+    "requests": 131,
+    "slow_180ms": 108,
+    "share_slow": 0.824,
+    "p50_ms": 2388,
+    "p90_ms": 2797,
+    "p99_ms": 3437,
+    "http_500": 0,
+    "checkout_attempts": 3,
+    "checkout_failed": 0,
+    "resolved": false
+   }
+  },
+  {
+   "round": 2,
+   "wall_s": 428,
+   "exit": 0,
+   "total_tokens": 781634,
+   "tool_calls": 30,
+   "answer": "已收集完本轮证据（frontend/cart/catalog/currency/ad/shipping/payment/email/redis/checkout 日志，pod/service/endpoints/deployment 全量配置，events）。结论如下。\n\n## 一、上一轮判断的验证结果\n\n**被推翻的**\n- “CPU limit 200m 打满”是根因：**推翻**。`frontend` 已放到 1 核、`recommendationservice` 1 核 + 2 副本，用户侧反而从 2141ms 变 2388ms（-12% 变差）。更关键的是：按 1.75 req/s 的实际负载，200m 配额（20ms CPU/100ms）在利用率上根本不可能被 CFS 限流；而且本轮测得**大量单跳 RPC 往返只要 0.3–1.9ms**（见下），说明没有全局 CPU 饥饿。\n- “提升 recommendationservice 副本数能分担压力”：**推翻**。gRPC 默认 pick_first，`frontend` 只钉在一个 pod 上：`recommendationservice-gw6zd` 在 120s 内收到 185 次 `ListRecommendations`，`-2hcql` 仅 12 次/47s。第 2 个副本基本空转，只多占了内存/CPU。\n\n**被证实的**\n- recommendationservice 路径确实是页面级最大单一贡献者（product/cart 页 ≈2.1–2.5s，home 页 ≈0.59s，差值即 rec + getProduct）。\n\n## 二、本轮新测得的关键事实（服务端处理是快的，慢在少数跳）\n\n用跨服务日志对齐（同一请求）：\n- `frontend`“serving product page” → `adservice` 收到 ad 请求 = **2497ms**，而 ad 收到→响应仅 **1.9ms** ⇒ 时间全耗在 ad 之前的几跳。\n- `checkoutservice` PlaceOrder(00.3074) → shipping `GetQuote`(01.6306) = **1.32s**；此后 shipping `GetQuote` 处理 **40µs**，`ShipOrder` 往返 **0.3ms**。\n- checkout→payment：`Charge invoked` 与 checkout 记的“payment went through”差 **1.2ms**；checkout→email 差 **0.4ms**。\n- `frontend`→currencyservice 到达延迟 **0.2ms**，10 次换算在 **6ms** 内完成。\n- 但 `POST /cart`（整条处理只有一次 insertCart）耗时 **911ms / 937ms**；home 页 3 次调用（currency 即刻到达）却要 **589 / 630ms**。\n\n⇒ 网络与调用方都没问题，**慢的是少数被调方的处理/返回**，约 150–900ms/跳（正常应 ≈1–10ms），再由“每页 3–14 次串行 RPC”放大成 0.6–3.6s。这解释了“无报错、Pod 全 Ready、0 个 500”。\n\n## 三、配置侧已排除的项\n\n12 个 Deployment/Service/Endpoints 全部是官方清单：selector 全部匹配、targetPort 全部正确、endpoints 全部 ready（rec 有 2 个地址）、无 ConfigMap 注入、无 envFrom、无 dnsConfig/dnsPolicy 异常、无 sidecar、0 次重启、QoS 全 Burstable、events 只有本轮 rollout（rec 的 2 次 Unhealthy 是启动期 1s 探针超时，非故障）。**没有任何 Service/端口/环境变量层面的错误配置。**\n\n## 四、仍然无法解释/无法验证的部分\n\n1. 慢跳为什么慢：`productcatalogservice`（Go，内存查表）单次 GetProduct/ListProducts ≈300–600ms，`cartservice`（.NET）单次 ≈300–900ms——它们自身逻辑是 µs 级，说明是**逐跳排队/调度延迟**，而不是应用逻辑。\n2. 根因层级：`system:serviceaccount:diag-system:diag-agent` 无权限读 nodes（`nodes is forbidden`），无法确认节点 `tiktok-k8s-lab-control-plane` 的 CPU 容量/steal/邻居负载——这是目前唯一没有证据覆盖的一层。第 1 轮加一个 pod 就让延迟变差 12%，也提示节点侧容量偏紧。\n\n## 五、本轮申请的操作\n\n针对“每页必经、且单位调用最慢”的三处：放开 `productcatalogservice`、`cartservice` 的 CPU 上限（会触发重建，同时清掉 .NET/Go 进程可能的线程池/连接挂起状态），给 `productcatalogservice` 加副本分摊（它是 frontend、checkout、recommendation 三方共同依赖，加副本能真正分流；不像 rec 那样被 pick_first 钉死），并把空转的 rec 第 2 副本缩回 1。\n\n```json\n{\"root_causes\": [{\"object\": \"productcatalogservice\", \"cause\": \"单次 GetProduct/ListProducts 约 300–600ms（自身逻辑仅 µs 级），是 home 页 0.59s、product 页 2.4s、checkout 下单前 0.56–1.85s 以及 recommendationservice 内部调用的共同耗时来源；同一时刻从 frontend→currency/ad、checkout→payment/email/shipping 的单跳往返仅 0.3–1.9ms，可排除网络与调用方问题\"}, {\"object\": \"recommendationservice\", \"cause\": \"单次 ListRecommendations 约 1.5–1.8s（其内部只有一次 catalog 调用，剩余约 1.2s 仍无法归因），并且 frontend 用 gRPC pick_first，2 副本中 gw6zd 承担 185 次/120s、2hcql 仅 12 次/47s，扩副本无效；第 1 轮的 1 核/2 副本改动因此未带来收益\"}, {\"object\": \"cartservice\", \"cause\": \"单次写/读 cart 约 300–900ms（POST /cart 只做一次 insertCart 就用 911/937ms），.NET 运行时在低配额窗口下的线程调度延迟是主要嫌疑\"}, {\"object\": \"boutique 节点 tiktok-k8s-lab-control-plane（未验证）\", \"cause\": \"12 个 Pod 全在同一节点，逐跳 150–900ms 的排队/调度延迟不像应用逻辑（被调方处理仅 µs 级、部分单跳仍能 0.3–1.9ms 完成），第 1 轮新增 1 个 pod 后整体变慢 12%，指向节点侧 CPU 容量/争用；当前账号无权读取 nodes（Forbidden），无法证实\"}], \"actions\": [{\"op\": \"set_cpu_limit\", \"deployment\": \"productcatalogservice\", \"cpu\": \"1\"}, {\"op\": \"scale\", \"deployment\": \"productcatalogservice\", \"replicas\": 2}, {\"op\": \"set_cpu_limit\", \"deployment\": \"cartservice\", \"cpu\": \"1\"}, {\"op\": \"scale\", \"deployment\": \"recommendationservice\", \"replicas\": 1}], \"explanation\": \"把最热且最慢的两跳（productcatalogservice、cartservice）的 CPU 上限放开到 1 核（同时触发重建、清掉挂起状态），并给 productcatalogservice 加一个副本真正分流（它是前端/结算/推荐三方共用的瓶颈），同时把空转的 recommendationservice 第 2 副本缩回 1 以减少节点压力；若下一轮中位数仍停在 2s 附近，则瓶颈在节点 CPU 容量/争用层面，需要运维扩容或把 Pod 分散到其他节点。\"}\n```",
+   "plan": {
+    "root_causes": [
+     {
+      "object": "productcatalogservice",
+      "cause": "单次 GetProduct/ListProducts 约 300–600ms（自身逻辑仅 µs 级），是 home 页 0.59s、product 页 2.4s、checkout 下单前 0.56–1.85s 以及 recommendationservice 内部调用的共同耗时来源；同一时刻从 frontend→currency/ad、checkout→payment/email/shipping 的单跳往返仅 0.3–1.9ms，可排除网络与调用方问题"
+     },
+     {
+      "object": "recommendationservice",
+      "cause": "单次 ListRecommendations 约 1.5–1.8s（其内部只有一次 catalog 调用，剩余约 1.2s 仍无法归因），并且 frontend 用 gRPC pick_first，2 副本中 gw6zd 承担 185 次/120s、2hcql 仅 12 次/47s，扩副本无效；第 1 轮的 1 核/2 副本改动因此未带来收益"
+     },
+     {
+      "object": "cartservice",
+      "cause": "单次写/读 cart 约 300–900ms（POST /cart 只做一次 insertCart 就用 911/937ms），.NET 运行时在低配额窗口下的线程调度延迟是主要嫌疑"
+     },
+     {
+      "object": "boutique 节点 tiktok-k8s-lab-control-plane（未验证）",
+      "cause": "12 个 Pod 全在同一节点，逐跳 150–900ms 的排队/调度延迟不像应用逻辑（被调方处理仅 µs 级、部分单跳仍能 0.3–1.9ms 完成），第 1 轮新增 1 个 pod 后整体变慢 12%，指向节点侧 CPU 容量/争用；当前账号无权读取 nodes（Forbidden），无法证实"
+     }
+    ],
+    "actions": [
+     {
+      "op": "set_cpu_limit",
+      "deployment": "productcatalogservice",
+      "cpu": "1"
+     },
+     {
+      "op": "scale",
+      "deployment": "productcatalogservice",
+      "replicas": 2
+     },
+     {
+      "op": "set_cpu_limit",
+      "deployment": "cartservice",
+      "cpu": "1"
+     },
+     {
+      "op": "scale",
+      "deployment": "recommendationservice",
+      "replicas": 1
+     }
+    ],
+    "explanation": "把最热且最慢的两跳（productcatalogservice、cartservice）的 CPU 上限放开到 1 核（同时触发重建、清掉挂起状态），并给 productcatalogservice 加一个副本真正分流（它是前端/结算/推荐三方共用的瓶颈），同时把空转的 recommendationservice 第 2 副本缩回 1 以减少节点压力；若下一轮中位数仍停在 2s 附近，则瓶颈在节点 CPU 容量/争用层面，需要运维扩容或把 Pod 分散到其他节点。"
+   },
+   "plan_error": "",
+   "actions": [
+    {
+     "action": {
+      "op": "set_cpu_limit",
+      "deployment": "productcatalogservice",
+      "cpu": "1"
+     },
+     "accepted": true,
+     "ok": true,
+     "result": "ok: deployment.apps/productcatalogservice resource requirements updated | ok: plicas are pending termination...\nWaiting for deployment \"productcatalogservice\" rollout to finish: 1 old replicas are pending termination...\ndeployment \"productcatalogservice\" successfully rolled out"
+    },
+    {
+     "action": {
+      "op": "scale",
+      "deployment": "productcatalogservice",
+      "replicas": 2
+     },
+     "accepted": true,
+     "ok": true,
+     "result": "ok: deployment.apps/productcatalogservice scaled | ok:  updated replicas are available...\nWaiting for deployment \"productcatalogservice\" rollout to finish: 1 of 2 updated replicas are available...\ndeployment \"productcatalogservice\" successfully rolled out"
+    },
+    {
+     "action": {
+      "op": "set_cpu_limit",
+      "deployment": "cartservice",
+      "cpu": "1"
+     },
+     "accepted": true,
+     "ok": true,
+     "result": "ok: deployment.apps/cartservice resource requirements updated | ok:  to finish: 1 old replicas are pending termination...\nWaiting for deployment \"cartservice\" rollout to finish: 1 old replicas are pending termination...\ndeployment \"cartservice\" successfully rolled out"
+    },
+    {
+     "action": {
+      "op": "scale",
+      "deployment": "recommendationservice",
+      "replicas": 1
+     },
+     "accepted": true,
+     "ok": true,
+     "result": "ok: deployment.apps/recommendationservice scaled | ok: deployment \"recommendationservice\" successfully rolled out"
+    }
+   ],
+   "observation": {
+    "since": "2026-11-16T17:41:51Z",
+    "seconds": 75.0,
+    "requests": 149,
+    "slow_180ms": 123,
+    "share_slow": 0.826,
+    "p50_ms": 2381,
+    "p90_ms": 2706,
+    "p99_ms": 3118,
+    "http_500": 0,
+    "checkout_attempts": 6,
+    "checkout_failed": 0,
+    "resolved": false
+   }
+  },
+  {
+   "round": 3,
+   "wall_s": 404,
+   "exit": 0,
+   "total_tokens": 869144,
+   "tool_calls": 27,
+   "answer": "## 结论先行\n\n这一轮我拿到了**明确的逐跳（hop）计时数据**，它推翻了我前两轮的两个主要假设，同时把耗时归因缩小到一个点：`recommendationservice` 每次 `ListRecommendations` 约 **1.5–1.9s**。\n\n## 这轮新测到的硬数据（同节点、同一时间段）\n\n| 调用 | 实测 | 证据 |\n|---|---|---|\n| checkout → paymentservice | **≈1ms** | payment `Charge invoked` 17:43:15.078 → checkout `payment went through` 17:43:15.079 |\n| checkout → emailservice | **<0.4ms**（服务端到客户端收到响应） | email 收到 17:43:15.3708 → checkout `email sent` 17:43:15.3712 |\n| frontend → adservice | **≈1.7ms** | ad `received ad request` 17:43:19.896 → frontend `request complete` 17:43:19.897 |\n| checkout 内 shipOrder+emptyCart（shipping+cart 两次 RPC） | **279–334ms（19 单一致）** | `payment went through` → email 收到 |\n| checkout 下单前段（getCart + n×GetProduct + n×Convert + GetQuote + Charge） | 607/616/607/635/910/1189/1204/1237ms | PlaceOrder 日志 → `payment went through` |\n| **不含推荐** 的首页 `/` | **626ms**（约 13 次 RPC） | `request started` 19.271 → `complete` 19.897 |\n| **含推荐** 的 `/product/*` | 2376–2504ms（约 10 个样本） | frontend `took_ms` |\n| **含推荐** 的 `/cart` | 2069–2729ms | frontend `took_ms` |\n| recommendationservice 自身耗时 | **≈1.5–1.6s** | rec `[Recv ListRecommendations]` 17:43:22.98 → 该 cart 页完成 17:43:24.587（中间只剩一次很快的 shipping quote） |\n\n## 哪些判断被证实、哪些被推翻\n\n**被证实**\n- `recommendationservice` 是最大单项贡献者：**含推荐的页面 2.0–2.7s，不含推荐的首页 626ms**，差额 ≈ 1.5–1.9s 与 rec 的单次耗时完全对上；它承担约 70% 以上用户请求（product/cart 页）。\n- `productcatalogservice` 是共享热点（前端 6 次、rec 内部、checkout 都在调），单次约 **50–160ms**。\n- frontend 单副本 + 每页 10–16 次**串行**下游 RPC，把任何单跳延迟成倍放大。\n- 清单本身没有错误：12 个 Deployment/Service、selector 与 targetPort 全部正确、endpoint 每个服务 1 个（catalog 2 个，均 ready，无陈旧 IP）、env 全为官方默认值、无重启/OOM/异常状态。\n\n**被推翻**\n- ❌ “rec 的 CPU limit 200m 是瓶颈”：第 1 轮把它提到 1 核 + 2 副本，中位数反而从 2141→2388ms；第 2 轮缩回 1 副本仍 2381ms。rec 现在独占 1 核，单次仍是 ~1.5s。\n- ❌ “catalog / cart 的 CPU limit 太低”：第 2 轮都提到 1 核（catalog 还加到 2 副本），首页 566–692ms → 626ms 无变化，catalog 单次仍 50–160ms、cart 单次仍数百 ms。\n- ❌ “节点 CPU 争用让所有跳变慢”：同一节点、同一秒内 adservice 1.7ms、paymentservice 1ms、emailservice <0.4ms 返回，节点不是整体被压死；节点假设不能解释这种差异。\n- ⚠️ “pick_first 导致 2 副本无效”——只解释了**分流不均**，不能解释 rec 单次 1.5s。\n\n**仍未解释（如实说明）**\n1. rec 的逻辑只是“一次 catalog ListProducts + 字典过滤/抽样”，catalog 单次 50–300ms，剩下约 **1.2–1.4s 找不到应用层解释**（rec 启动日志正常：`Tracing disabled`/`Profiler disabled`/catalog 地址正确）。\n2. 为什么**高频跳**（catalog ~50–125ms、currency ~45ms、cart ~125ms）比**低频跳**（ad/payment/email <2ms）慢 1–2 个数量级——同一节点、同一 CNI 路径。\n3. 节点侧是否有 CPU 节流/CNI 延迟：`diag-agent` 无权限（`nodes is forbidden`、`namespaces is forbidden`、`networkpolicies is forbidden`），无法验证。\n4. 17:41:09–17:41:29 出现的 `EOF` / `Connection reset by peer` / `dial tcp 10.96.32.253:3550: i/o timeout` 是我第 2 轮重建 catalog Pod 造成的瞬时错误（之后 15 分钟零 error），**不是当前故障**。\n\n## 修复\n\n应用层唯一还没试过、且与“rec 单次 1.5s 但零报错、与 CPU/副本无关”相符的解释，是 rec（17:32 创建）和 frontend（17:32 创建）这两个客户端进程持有的、指向**已被删除的旧 catalog / rec Pod** 的 gRPC 长连接处于退化状态（catalog Pod 在 17:41 全部被重建，这两个客户端此后从未重启）。因此申请对这两个进程做重启，强制重建连接：\n\n```json\n{\"root_causes\": [{\"object\": \"recommendationservice\", \"cause\": \"单次 ListRecommendations 约 1.5–1.9s（rec 收到请求 17:43:22.98 → 前端页面完成 17:43:24.587），使其承担 70%+ 流量（product/cart 页 2.0–2.7s，不含推荐的首页仅 626ms）整体多出 1.5s 以上；把 CPU 200m→1 核、副本 1↔2、重建 Pod 均无效，说明不是 CPU 配额问题，而是其持有的下游 gRPC 连接/内部线程状态退化（前端自 17:41 catalog Pod 重建后与其连接已失效过：EOF / Connection reset by peer）\"}, {\"object\": \"productcatalogservice / cartservice / currencyservice（节点内高频跳）\", \"cause\": \"高频 pod-to-pod 调用单次 45–160ms（catalog ~50–160ms，每张 product 页 6 次），而同一节点同一时刻 adservice 1.7ms、paymentservice 1ms、emailservice <0.4ms 返回；第 2 轮把 catalog/cart 提到 1 核并加副本后完全无改善（首页 566–692ms→626ms），故不是 Pod CPU 限制，而是该节点（13 个 Pod 全在 tiktok-k8s-lab-control-plane）上这些高频路径的调度/网络路径额外延迟，需运维从节点侧核实\"}, {\"object\": \"frontend\", \"cause\": \"单副本，每页串行发起 10–16 次下游 RPC（首页约 13 次即 626ms，product/cart 页 16+ 次即 2.4s），把上述单跳延迟线性放大；且 gRPC pick_first 使第 2 副本无法分流，第 1/2 轮的加副本与放 CPU 限额因此都没有收益\"}, {\"object\": \"节点 tiktok-k8s-lab-control-plane（未验证）\", \"cause\": \"12 个以上 Pod 全部同节点，节点 CPU/CNI 层面的延迟无法用现有权限读取（nodes/namespaces/networkpolicies 均 Forbidden），若重启客户端后仍无改善，则必须由运维查看节点 CPU 节流（nr_throttled）、CNI/MTU 与是否存在跨租户噪声邻居\"}], \"actions\": [{\"op\": \"restart\", \"deployment\": \"recommendationservice\"}, {\"op\": \"restart\", \"deployment\": \"frontend\"}], \"explanation\": \"rec 与 frontend 两个进程都创建于 17:32，而它们依赖的 catalog Pod 在 17:41 被整体重建（日志中出现 EOF / Connection reset by peer / dial i/o timeout），此后这两个客户端从未重建过连接；重启它们可清掉退化的 gRPC 连接状态，也是对占 70% 页面耗时来源的最后一次应用层尝试。若重启后中位数仍停在 2s 附近，则剩余延迟只能落在节点/CNI 层（13 个 Pod 同节点、高频跳 45–160ms 而低频跳 <2ms），需要运维核实节点 CPU 节流与网络路径，或把 Pod 调度到第二个节点——现有 6 类只读可申请操作均无法覆盖。\"}\n```",
+   "plan": {
+    "root_causes": [
+     {
+      "object": "recommendationservice",
+      "cause": "单次 ListRecommendations 约 1.5–1.9s（rec 收到请求 17:43:22.98 → 前端页面完成 17:43:24.587），使其承担 70%+ 流量（product/cart 页 2.0–2.7s，不含推荐的首页仅 626ms）整体多出 1.5s 以上；把 CPU 200m→1 核、副本 1↔2、重建 Pod 均无效，说明不是 CPU 配额问题，而是其持有的下游 gRPC 连接/内部线程状态退化（前端自 17:41 catalog Pod 重建后与其连接已失效过：EOF / Connection reset by peer）"
+     },
+     {
+      "object": "productcatalogservice / cartservice / currencyservice（节点内高频跳）",
+      "cause": "高频 pod-to-pod 调用单次 45–160ms（catalog ~50–160ms，每张 product 页 6 次），而同一节点同一时刻 adservice 1.7ms、paymentservice 1ms、emailservice <0.4ms 返回；第 2 轮把 catalog/cart 提到 1 核并加副本后完全无改善（首页 566–692ms→626ms），故不是 Pod CPU 限制，而是该节点（13 个 Pod 全在 tiktok-k8s-lab-control-plane）上这些高频路径的调度/网络路径额外延迟，需运维从节点侧核实"
+     },
+     {
+      "object": "frontend",
+      "cause": "单副本，每页串行发起 10–16 次下游 RPC（首页约 13 次即 626ms，product/cart 页 16+ 次即 2.4s），把上述单跳延迟线性放大；且 gRPC pick_first 使第 2 副本无法分流，第 1/2 轮的加副本与放 CPU 限额因此都没有收益"
+     },
+     {
+      "object": "节点 tiktok-k8s-lab-control-plane（未验证）",
+      "cause": "12 个以上 Pod 全部同节点，节点 CPU/CNI 层面的延迟无法用现有权限读取（nodes/namespaces/networkpolicies 均 Forbidden），若重启客户端后仍无改善，则必须由运维查看节点 CPU 节流（nr_throttled）、CNI/MTU 与是否存在跨租户噪声邻居"
+     }
+    ],
+    "actions": [
+     {
+      "op": "restart",
+      "deployment": "recommendationservice"
+     },
+     {
+      "op": "restart",
+      "deployment": "frontend"
+     }
+    ],
+    "explanation": "rec 与 frontend 两个进程都创建于 17:32，而它们依赖的 catalog Pod 在 17:41 被整体重建（日志中出现 EOF / Connection reset by peer / dial i/o timeout），此后这两个客户端从未重建过连接；重启它们可清掉退化的 gRPC 连接状态，也是对占 70% 页面耗时来源的最后一次应用层尝试。若重启后中位数仍停在 2s 附近，则剩余延迟只能落在节点/CNI 层（13 个 Pod 同节点、高频跳 45–160ms 而低频跳 <2ms），需要运维核实节点 CPU 节流与网络路径，或把 Pod 调度到第二个节点——现有 6 类只读可申请操作均无法覆盖。"
+   },
+   "plan_error": "",
+   "actions": [
+    {
+     "action": {
+      "op": "restart",
+      "deployment": "recommendationservice"
+     },
+     "accepted": true,
+     "ok": true,
+     "result": "ok: pod \"recommendationservice-56ddd97fb4-2hcql\" deleted from boutique namespace | ok: deployment \"recommendationservice\" successfully rolled out"
+    },
+    {
+     "action": {
+      "op": "restart",
+      "deployment": "frontend"
+     },
+     "accepted": true,
+     "ok": true,
+     "result": "ok: pod \"frontend-77cb6d74c5-mjs5h\" deleted from boutique namespace | ok: Waiting for deployment \"frontend\" rollout to finish: 0 of 1 updated replicas are available...\ndeployment \"frontend\" successfully rolled out"
+    }
+   ],
+   "observation": {
+    "since": "2026-11-16T17:50:27Z",
+    "seconds": 75.0,
+    "requests": 162,
+    "slow_180ms": 135,
+    "share_slow": 0.833,
+    "p50_ms": 2383,
+    "p90_ms": 3044,
+    "p99_ms": 3729,
+    "http_500": 0,
+    "checkout_attempts": 7,
+    "checkout_failed": 0,
+    "resolved": false
+   }
+  }
+ ],
+ "outcome": "rounds_exhausted",
+ "before": {
+  "since": "2026-11-16T17:24:08Z",
+  "seconds": 45.0,
+  "requests": 114,
+  "slow_180ms": 92,
+  "share_slow": 0.807,
+  "p50_ms": 2141,
+  "p90_ms": 2500,
+  "p99_ms": 3060,
+  "http_500": 0,
+  "checkout_attempts": 3,
+  "checkout_failed": 0,
+  "resolved": false
+ },
+ "injector_log": "netem on vethe66cc71b (productcatalogservice-7457c7c77f-sxvvl 10.244.0.51): delay 300ms 30ms\nqdisc netem 801c: root refcnt 17 limit 1000 delay 300ms  30ms seed 6218788106818988840\nnetem on veth51796b42 (redis-cart-788fbddc7-kr2mn 10.244.0.53): delay 300ms 30ms\nqdisc netem 801d: root refcnt 17 limit 1000 delay 300ms  30ms seed 14243511340544940166\nnetem applied: 2\nnetem re-applied on veth177a1cfd (productcatalogservice 10.244.0.58): delay 300ms 30ms\nnetem re-applied on veth2a0166fa (productcatalogservice 10.244.0.59): delay 300ms 30ms\n",
+ "restored": [
+  "Deployment/recommendationservice: set resources deployment/recommendationservice -> ok",
+  "Deployment/frontend: set resources deployment/frontend -> ok",
+  "Deployment/productcatalogservice: set resources deployment/productcatalogservice -> ok",
+  "Deployment/productcatalogservice: scale deployment/productcatalogservice --replicas=1 -> ok",
+  "Deployment/cartservice: set resources deployment/cartservice -> ok"
+ ],
+ "steps": [
+  {
+   "phase": "verify_healthy",
+   "ok": true,
+   "detail": "healthy",
+   "seconds": 0.28
+  },
+  {
+   "phase": "home_latency",
+   "ok": true,
+   "detail": "GET / ok=True median=0.05s of [0.05] (need >= 0s)",
+   "seconds": 0.0
+  },
+  {
+   "phase": "clean_slate",
+   "ok": true,
+   "detail": "fresh pods",
+   "seconds": 33.86
+  },
+  {
+   "phase": "verify_fresh",
+   "ok": true,
+   "detail": "healthy",
+   "seconds": 0.25
+  },
+  {
+   "phase": "home_latency",
+   "ok": true,
+   "detail": "GET / ok=True median=0.08s of [0.08] (need >= 0s)",
+   "seconds": 0.0
+  },
+  {
+   "phase": "clear_events",
+   "ok": true,
+   "detail": "",
+   "seconds": 0.0
+  },
+  {
+   "phase": "prune_history",
+   "ok": true,
+   "detail": "2 old replicasets",
+   "seconds": 0.0
+  },
+  {
+   "phase": "inject",
+   "ok": true,
+   "detail": "-n infra-tools delete pod net-injector --ignore-not-found",
+   "seconds": 0.04
+  },
+  {
+   "phase": "inject",
+   "ok": true,
+   "detail": "apply -f /work/scenarios/netem/injector-boutique-hard-BH04.yaml",
+   "seconds": 0.18
+  },
+  {
+   "phase": "inject",
+   "ok": true,
+   "detail": "-n infra-tools wait --for=condition=Ready pod/net-injector --timeout=180s",
+   "seconds": 1.0
+  },
+  {
+   "phase": "confirm",
+   "ok": true,
+   "detail": "18/22 requests >= 180 ms since 2026-11-16T17:24:08Z; logs(app=net-injector) contain 'netem applied: 2': True",
+   "seconds": 12.51
+  },
+  {
+   "phase": "reset",
+   "ok": true,
+   "detail": "-n infra-tools delete pod net-injector --ignore-not-found",
+   "seconds": 0.6
+  },
+  {
+   "phase": "reset",
+   "ok": true,
+   "detail": "reset steps applied",
+   "seconds": 23.55
+  },
+  {
+   "phase": "verify_recovered",
+   "ok": true,
+   "detail": "healthy",
+   "seconds": 3.45
+  },
+  {
+   "phase": "home_latency",
+   "ok": true,
+   "detail": "GET / ok=True median=0.05s of [0.05] (need >= 0s)",
+   "seconds": 0.0
+  }
+ ],
+ "total_tokens": 2729536
+}

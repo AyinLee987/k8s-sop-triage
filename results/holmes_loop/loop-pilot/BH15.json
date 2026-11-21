@@ -1,0 +1,388 @@
+{
+ "scenario": "BH15",
+ "model": "deepseek-flash",
+ "max_rounds": 3,
+ "rounds": [
+  {
+   "round": 1,
+   "wall_s": 103,
+   "exit": 0,
+   "total_tokens": 550874,
+   "tool_calls": 23,
+   "answer": "## 排查结论\n\n### 根因 1：下单 100% 失败 —— checkoutservice 指向了 cartservice 不存在的端口 7071\n\n证据链：\n\n1. frontend 日志（最近 30 分钟，共 1346 条，过滤 `err|fail|500|timeout` 命中 459 条，展示最新 200 条）里 8 次 `/cart/checkout` 全部 500，错误一致：\n```\nfailed to complete the order: rpc error: code = Internal desc = cart failure:\nfailed to get user cart during checkout: rpc error: code = Unavailable desc =\ntransport: Error while dialing: dial tcp 10.96.234.227:7071: i/o timeout\n```\n2. `10.96.234.227` 就是 `cartservice` 的 ClusterIP。但 `cartservice` Service 只暴露 **7070**（targetPort 7070），容器也只监听 `containerPort: 7070`，Endpoints 为 `10.244.0.183:7070`。\n3. checkoutservice 自身启动日志直接打出了配置：`cartSvcAddr:cartservice:7071`（deployment env `CART_SERVICE_ADDR=cartservice:7071`）。\n4. checkoutservice 的 ReplicaSet 在 **20:01:29** 刚新建（rev 62，旧 rev 61 缩到 0），说明这个 env 是最近才被改坏的。7071 上没有任何 kube-proxy 规则，SYN 被丢弃，所以报的是 `i/o timeout` 而不是 `connection refused`。PlaceOrder 在第一步 “GetCart” 就挂了，所以 8 单 8 失败。\n\n### 根因 2：请求时快时慢（19.4% > 180ms）—— adservice 副本数为 0，广告 RPC 间歇性卡 ~200ms\n\n证据链：\n\n1. `adservice` Deployment `replicas: 0`，RS `adservice-6bfc5fc46c` 为 0，Service `adservice` **没有任何 Endpoints**。\n2. frontend 每个页面都打出：`failed to get ads: ... dial tcp 10.96.18.53:9555: connect: connection refused`。\n3. 逐条对齐日志可见整页耗时 ≈ 广告调用耗时：\n   - 广告瞬间失败时：`serving product page 20:02:16.042` → `failed to retrieve ads 20:02:16.072`，`took_ms: 30`；最快 7ms（中位数 8ms 的来源）。\n   - 广告调用卡住时：`20:02:17.292 → 20:02:17.505`（213ms，`took_ms: 212`）、`20:02:28.363 → 28.576`（212ms）、`20:02:54.196`（435ms ≈ 2×215）、`20:03:11.108`（426ms）——正好解释 p90 219ms / p99 487ms 的 ~215ms 台阶。\n4. 反证：不走广告的路径 `POST /cart`（302）、`POST /setCurrency` 在全部样本里都是 0–7ms，从不超 180ms；而首页/商品页/购物车页（都会调 GetAds）才有长尾。\n\n### 已检查且正常\ncartservice（GetCart/AddItem 正常，日志无错）、redis-cart（仅启动告警，无错误）、currencyservice、productcatalogservice、recommendationservice、paymentservice、shippingservice、emailservice 均无错误日志；所有 Service 的 port/targetPort 除上面两处外都匹配。\n\n### 未能检查\n节点级资源（`nodes is forbidden`）、NetworkPolicy（`networkpolicies ... is forbidden`），当前 SA 无权限；因此无法证实/排除节点 CPU 争抢，但现有日志已能完整解释全部症状。\n\n### 建议修复（由运维执行）\n1. `scale adservice → 1`：恢复广告服务，消除 ~215ms 长尾（时快时慢）。\n2. `set_env checkoutservice CART_SERVICE_ADDR=cartservice:7070`：修正端口，恢复下单。\n\n```json\n{\"root_causes\": [{\"object\": \"checkoutservice\", \"cause\": \"环境变量 CART_SERVICE_ADDR 被改成 cartservice:7071（rev 62 于 20:01:29 生效），而 cartservice 只在 7070 监听/暴露，7071 无 kube-proxy 规则导致 SYN 被丢（i/o timeout）；PlaceOrder 第一步 GetCart 即失败，导致 8/8 下单返回 500\"}, {\"object\": \"adservice\", \"cause\": \"Deployment 副本数被缩到 0，Service 无 Endpoints，frontend 每次广告 RPC 都 connection refused，且该 RPC 间歇性阻塞约 215ms（观测到 212/215/426/435ms 的倍数台阶，占请求 19.4%），造成项目页/商品页/购物车页时快时慢（中位 8ms，p90 219ms）\"}], \"actions\": [{\"op\": \"scale\", \"deployment\": \"adservice\", \"replicas\": 1}, {\"op\": \"set_env\", \"deployment\": \"checkoutservice\", \"name\": \"CART_SERVICE_ADDR\", \"value\": \"cartservice:7070\"}], \"explanation\": \"先恢复 adservice 副本消除广告调用造成的 ~200ms 长尾，再把 checkoutservice 的购物车地址端口从错误的 7071 改回 cartservice 实际监听的 7070，两者分别对应“时快时慢”和“下单全失败”。\"}\n```",
+   "plan": {
+    "root_causes": [
+     {
+      "object": "checkoutservice",
+      "cause": "环境变量 CART_SERVICE_ADDR 被改成 cartservice:7071（rev 62 于 20:01:29 生效），而 cartservice 只在 7070 监听/暴露，7071 无 kube-proxy 规则导致 SYN 被丢（i/o timeout）；PlaceOrder 第一步 GetCart 即失败，导致 8/8 下单返回 500"
+     },
+     {
+      "object": "adservice",
+      "cause": "Deployment 副本数被缩到 0，Service 无 Endpoints，frontend 每次广告 RPC 都 connection refused，且该 RPC 间歇性阻塞约 215ms（观测到 212/215/426/435ms 的倍数台阶，占请求 19.4%），造成项目页/商品页/购物车页时快时慢（中位 8ms，p90 219ms）"
+     }
+    ],
+    "actions": [
+     {
+      "op": "scale",
+      "deployment": "adservice",
+      "replicas": 1
+     },
+     {
+      "op": "set_env",
+      "deployment": "checkoutservice",
+      "name": "CART_SERVICE_ADDR",
+      "value": "cartservice:7070"
+     }
+    ],
+    "explanation": "先恢复 adservice 副本消除广告调用造成的 ~200ms 长尾，再把 checkoutservice 的购物车地址端口从错误的 7071 改回 cartservice 实际监听的 7070，两者分别对应“时快时慢”和“下单全失败”。"
+   },
+   "plan_error": "",
+   "actions": [
+    {
+     "action": {
+      "op": "scale",
+      "deployment": "adservice",
+      "replicas": 1
+     },
+     "accepted": true,
+     "ok": true,
+     "result": "ok: deployment.apps/adservice scaled | ok: Waiting for deployment \"adservice\" rollout to finish: 0 of 1 updated replicas are available...\ndeployment \"adservice\" successfully rolled out"
+    },
+    {
+     "action": {
+      "op": "set_env",
+      "deployment": "checkoutservice",
+      "name": "CART_SERVICE_ADDR",
+      "value": "cartservice:7070"
+     },
+     "accepted": true,
+     "ok": true,
+     "result": "ok: deployment.apps/checkoutservice env updated | ok: sh: 1 old replicas are pending termination...\nWaiting for deployment \"checkoutservice\" rollout to finish: 1 old replicas are pending termination...\ndeployment \"checkoutservice\" successfully rolled out"
+    }
+   ],
+   "observation": {
+    "since": "2026-11-16T20:05:27Z",
+    "seconds": 75.0,
+    "requests": 218,
+    "slow_180ms": 52,
+    "share_slow": 0.239,
+    "p50_ms": 10,
+    "p90_ms": 222,
+    "p99_ms": 516,
+    "http_500": 0,
+    "checkout_attempts": 9,
+    "checkout_failed": 0,
+    "resolved": false
+   }
+  },
+  {
+   "round": 2,
+   "wall_s": 275,
+   "exit": 0,
+   "total_tokens": 1912692,
+   "tool_calls": 40,
+   "answer": "## 第 2 轮结论\n\n### 被证实的判断\n1. **checkoutservice 端口修复确实有效（已确认解决下单失败）**\n   `CART_SERVICE_ADDR=cartservice:7070` 已生效；当前 `checkoutservice-5d5f4589c5-mgqpw`（20:05:07 启动）最近 10 分钟日志中 0 条 error/fail/timeout，用户侧下单 9 次 0 失败、500 归零（此前 i/o timeout 的 8/8 失败消失）。\n2. **adservice 扩容确实恢复了广告链路**\n   `adservice-6bfc5fc46c-mnv26` 20:04:36 启动、Ready，正在持续打印 `received ad request`；frontend 最后一条 `connection refused` 是 **20:06:31**，之后 2 分钟内再无一条（frontend 日志最新时间 20:10 仍在增长）。即广告调用恢复，只是端点/连接传播用了约 2 分钟（Go gRPC 退避 + endpoint 生效），这一延迟本身仍属“未完全解释的异常”，但影响已消失。\n\n### 被推翻的判断\n**“adservice 副本=0 造成了 19.4% 请求 >180ms 的长尾”——被推翻。**\n- 第 0 轮时 adservice 是 0 副本，广告调用是 `connection refused` 的**快速失败**（不耗时），当时就已经有 19.4% 请求 >180ms；\n- 第 2 轮 adservice 已在正常服务，长尾仍有 23.9%（p50 10ms / p90 222ms / p99 516ms）。\n→ 长尾与广告无关，是**另一个独立根因**，第 1 轮我把它归给 adservice 是错的。\n\n### 目前唯一未解释、且仍在持续的现象\n`productcatalogservice-7457c7c77f-2frfg` 间歇性“卡死 >1 秒”（这是长尾的真凶候选）：\n- Readiness probe 失败 **8 次**，首次 20:00:23、最近 **20:09:04**；Liveness probe 失败 **4 次**，首次 20:04:52、最近 **20:09:12**\n- 消息：`timeout: failed to connect service \"10.244.0.190:3550\" within 1s: context deadline exceeded`\n- 该 Pod 本身 Ready、restartCount=0、从 20:00:22 一直运行；日志只有启动 5 行、无任何应用错误；frontend / recommendationservice / checkoutservice 日志里也没有 productcatalog 的 RPC 报错（说明调用**能成功但慢**）。\n\n为什么它足以解释整体长尾：几乎每个页面都依赖它（frontend 对 `/`、`/product/*`、`/cart` 调 GetProduct/ListProducts；recommendationservice 每页再扇出约 5 次 GetProduct；checkoutservice 也要 GetProduct）。一个约 15–20% 时间会停顿 100–500ms 的实例，正好复现“中位 8–10ms、p90 ~220ms、p99 ~490ms、约 20% 超过 180ms”的双峰分布，也解释了 1 秒的探针连接超时（被 CPU 饿死的 Go listener 在 1s 内 accept 不了新连接）。\n\n为什么怀疑 CPU 限流：该 Deployment 配置与上游参考值一致（仅 `PORT=3550`、`DISABLE_PROFILER=1`，limits 200m/128Mi），环境变量、Service selector（app=productcatalogservice）、targetPort 3550、Endpoints（10.244.0.190）都正确，没有可指认的配置错误；200m 意味着每 100ms 只有 20ms 配额，突发时请求会排到下一个周期，形成“卡 100ms 级”的台阶，与观测吻合。**注意：这是强推断**，我读不到容器的 CPU 用量/`container_cpu_cfs_throttled_seconds` 指标（本环境无 metrics-server/Prometheus 访问），无法直接给出限流数据。\n\n### 影响面分类\n- **受影响**：`productcatalogservice-7457c7c77f-2frfg` —— 自身事件 `Unhealthy`（readiness 8 次、liveness 4 次，最近 20:09:12，探针 >1s 超时）；`frontend` —— 自身日志 `failed to get ads ... connection refused` 至 20:06:31（已停止）。\n- **已复查、健康**：checkoutservice（新 Pod 0 错误日志）、cartservice、currencyservice、recommendationservice、paymentservice、shippingservice、emailservice、redis-cart、loadgenerator（无 error/warn 日志）、adservice（正常接收广告请求）；11 个 Service 的 selector/targetPort/Endpoints 全部正确，无 500、无重启、无 Pending。\n\n### 这轮的修复申请（1 个动作，同时达到两个目的）\n把 productcatalogservice 的 CPU 上限从 200m 提到 1：既解除 CFS 限流（主假设），又因模板变更滚动出新 Pod（顺带排除进程内劣化状态）。若长尾仍在，下一轮再考虑 `scale productcatalogservice 2` 或提高其它热点服务（frontend/currencyservice）的上限，并请运维同时抓取 `rate(container_cpu_cfs_throttled_seconds_total[5m])` 用于确认限流假设。\n\n```json\n{\"root_causes\": [{\"object\": \"productcatalogservice\", \"cause\": \"Pod productcatalogservice-7457c7c77f-2frfg 自 20:00:22 起间歇性停顿（readiness 探针失败 8 次、liveness 4 次，最近 20:09:12，报 failed to connect 10.244.0.190:3550 within 1s），应用日志与 RPC 报错均为空，说明调用能成功但被拖慢；它是所有页面（frontend GetProduct/ListProducts、recommendationservice 每页约 5 次 GetProduct、checkoutservice）的共同依赖，因此造成中位 8ms、p90 222ms、p99 516ms、约 20% 请求 >180ms 的时快时慢长尾。最可能原因是 CPU 上限 200m 导致 CFS 限流（每 100ms 仅 20ms 配额），无法读取限流指标，属强推断而非实测\"}, {\"object\": \"adservice\", \"cause\": \"已修复但恢复延迟约 2 分钟：副本 0→1 后 Pod 20:04:36 已就绪并开始接收广告请求，frontend 的 connection refused 直到 20:06:31 才停止（endpoint 传播 + Go gRPC 连接退避），导致第 2 轮那 75 秒统计窗口内广告调用仍基本全部失败\"}], \"actions\": [{\"op\": \"set_cpu_limit\", \"deployment\": \"productcatalogservice\", \"cpu\": \"1\"}], \"explanation\": \"下单失败已确认由 checkoutservice 的 cartservice 端口错误导致并已修复（0 失败、0 个 500）；剩余时快时慢与广告无关，是 productcatalogservice 因 CPU 上限 200m 被限流导致间歇停顿 >1s，因此把它的 CPU 上限提到 1（同时滚动出新 Pod），请运维同时采集 container_cpu_cfs_throttled_seconds 以确认限流假设。\"}\n```",
+   "plan": {
+    "root_causes": [
+     {
+      "object": "productcatalogservice",
+      "cause": "Pod productcatalogservice-7457c7c77f-2frfg 自 20:00:22 起间歇性停顿（readiness 探针失败 8 次、liveness 4 次，最近 20:09:12，报 failed to connect 10.244.0.190:3550 within 1s），应用日志与 RPC 报错均为空，说明调用能成功但被拖慢；它是所有页面（frontend GetProduct/ListProducts、recommendationservice 每页约 5 次 GetProduct、checkoutservice）的共同依赖，因此造成中位 8ms、p90 222ms、p99 516ms、约 20% 请求 >180ms 的时快时慢长尾。最可能原因是 CPU 上限 200m 导致 CFS 限流（每 100ms 仅 20ms 配额），无法读取限流指标，属强推断而非实测"
+     },
+     {
+      "object": "adservice",
+      "cause": "已修复但恢复延迟约 2 分钟：副本 0→1 后 Pod 20:04:36 已就绪并开始接收广告请求，frontend 的 connection refused 直到 20:06:31 才停止（endpoint 传播 + Go gRPC 连接退避），导致第 2 轮那 75 秒统计窗口内广告调用仍基本全部失败"
+     }
+    ],
+    "actions": [
+     {
+      "op": "set_cpu_limit",
+      "deployment": "productcatalogservice",
+      "cpu": "1"
+     }
+    ],
+    "explanation": "下单失败已确认由 checkoutservice 的 cartservice 端口错误导致并已修复（0 失败、0 个 500）；剩余时快时慢与广告无关，是 productcatalogservice 因 CPU 上限 200m 被限流导致间歇停顿 >1s，因此把它的 CPU 上限提到 1（同时滚动出新 Pod），请运维同时采集 container_cpu_cfs_throttled_seconds 以确认限流假设。"
+   },
+   "plan_error": "",
+   "actions": [
+    {
+     "action": {
+      "op": "set_cpu_limit",
+      "deployment": "productcatalogservice",
+      "cpu": "1"
+     },
+     "accepted": true,
+     "ok": true,
+     "result": "ok: deployment.apps/productcatalogservice resource requirements updated | ok: plicas are pending termination...\nWaiting for deployment \"productcatalogservice\" rollout to finish: 1 old replicas are pending termination...\ndeployment \"productcatalogservice\" successfully rolled out"
+    }
+   ],
+   "observation": {
+    "since": "2026-11-16T20:11:39Z",
+    "seconds": 75.0,
+    "requests": 214,
+    "slow_180ms": 29,
+    "share_slow": 0.136,
+    "p50_ms": 9,
+    "p90_ms": 216,
+    "p99_ms": 631,
+    "http_500": 0,
+    "checkout_attempts": 7,
+    "checkout_failed": 0,
+    "resolved": false
+   }
+  },
+  {
+   "round": 3,
+   "wall_s": 232,
+   "exit": 0,
+   "total_tokens": 581204,
+   "tool_calls": 21,
+   "answer": "## 第 3 轮排查结果\n\n### 一、被这轮结果证实的\n\n**1) 下单失败已彻底修好（checkoutservice 根因确认）**\n- `checkoutservice` 现在 `CART_SERVICE_ADDR=cartservice:7070`，`cartservice` Service/容器端口都是 7070。\n- 用户侧：9→7 次下单、0 失败、0 个 500（两轮都是）。\n- loadgenerator（locust，累计 15 分钟）：`POST /cart/checkout` 82 次、失败 20 次（24.39%）——全部发生在修复前的窗口，`max=6663ms` 就是当时 i/o timeout 的痕迹；最新窗口 0 失败。\n\n**2) adservice 恢复确认**\n- 1/1 Ready，日志持续 `received ad request`（约每 0.5s 一条，到 20:13:27 仍在正常服务）。\n- frontend 中 `failed to get ads: connection refused` 最后一条在 **20:06:31**，之后无。\n- 实测广告 RPC 现在只花 ~1ms（请求 20:13:18.5193 到、页面 20:13:18.5203 返回），广告不再是长尾来源。\n\n### 二、被这轮结果推翻的\n\n**第 2 轮\"productcatalogservice 被 200m CPU 限额限流\"的结论不成立（至少不是全部原因）**\n- 新 Pod `productcatalogservice-6847445d46-5rrlw`（20:11:18，cpu limit 已=1）**仍然**探针失败：readiness 20:12:00 失败 2 次、liveness 20:12:49 失败 1 次，报 `failed to connect ... within 1s`。\n- 该服务近空闲、无请求日志、无报错，cpu=1 下仍 1s 内连不上 → 不是 CFS 限流能解释的（限流不会让 TCP connect 失败）。\n- 长尾只从 23.9% 降到 13.6%，p99 反而从 516ms 升到 631ms，属于部分改善+波动，不能算证实。\n- 说明：我读不到 `container_cpu_cfs_throttled_seconds`（Prometheus/kubectl top 均不可用），限流始终只是推断。\n\n### 三、仍未解释的、这轮新拿到的证据\n\n1. 长尾是**服务端自己测的**（frontend 日志 `http.resp.took_ms`），不是客户端/loadgen 假象。\n2. 延迟呈 ~210ms 台阶 + 420/630 倍数——形状像 100ms CFS 周期 ×2，或 200ms TCP RTO。\n3. 逐请求定位（关键）：请求 `13825625`（`GET /product/0PUK6V6EV0`，took 213ms）\n   - 20:13:18.306973 请求开始\n   - 20:13:18.308 currencyservice 收到 `GetSupportedCurrencies`\n   - 20:13:18.309 汇率换算完成\n   - **20:13:18.5193** adservice 才收到广告 RPC，20:13:18.5203 页面返回\n   → 这 210ms 花在\"汇率换算之后、广告调用之前\"，即推荐/渲染阶段；**不在** adservice、productcatalog、cartservice 上。\n   → 主嫌疑：`recommendationservice`（Python，limit 200m），且它每次要串行对 productcatalog 发多次 GetProduct。\n4. 非推荐路径也有小长尾（locust 累计：`/` med 24/avg 35/max 240；`POST /cart` med 21/avg 114/max 646；`/cart` med 12/avg 100/max 1122；product 页 med 6-10/avg 80-116/max ≤1486）——指向 `cartservice`（.NET，limit 300m，GC/线程池吃 CPU）与 `frontend`（limit 200m，每页 5~6 次 RPC + 模板渲染）也在被限流。\n5. productcatalogservice 的探针失败仍未解释：新 Pod、cpu=1、无压力；可能是 kubelet/CNI 或节点级调度争抢（节点资源/事件我无权限读取：`nodes is forbidden`）。\n\n### 四、本轮申请的修复\n\n```json\n{\"root_causes\": [{\"object\": \"recommendationservice\", \"cause\": \"主要剩余根因：frontend 的 ListRecommendations 调用是 ~210ms 长尾的落点（逐请求追踪显示汇率换算在 +2ms 完成、广告 RPC 直到 +212ms 才发出、广告本身仅 1ms）。该服务为 Python，CPU 上限仅 200m，且每个请求串行对 productcatalogservice 多次 GetProduct，突发时被 CFS 限流（100ms 周期）产生 210/420/630ms 台阶；它是商品页/购物车页的共同依赖，故长尾集中在这些页面\"}, {\"object\": \"cartservice\", \"cause\": \"次要根因：.NET 服务 CPU 上限 300m，GetCart/AddItem 在每个页面路径上（含不调用推荐服务的 POST /cart），对应 /cart avg 100ms、POST /cart avg 114ms 的小长尾\"}, {\"object\": \"frontend\", \"cause\": \"次要根因：frontend CPU 上限 200m，每页串行 5~6 次下游 RPC + 模板渲染，突发即被限流，放大所有下游抖动（home 也出现 max 240ms）\"}, {\"object\": \"productcatalogservice\", \"cause\": \"未解释项/待观察：新 Pod（cpu=1，20:11:18 创建）仍出现 readiness/liveness `failed to connect within 1s`（20:12:00、20:12:49），应用日志无异常、响应正确，CPU 限额无法解释探针层连不上，疑似节点级 CPU 争抢或 CNI/kubelet 侧问题，需节点指标才能确认\"}], \"actions\": [{\"op\": \"set_cpu_limit\", \"deployment\": \"recommendationservice\", \"cpu\": \"1\"}, {\"op\": \"scale\", \"deployment\": \"recommendationservice\", \"replicas\": 2}, {\"op\": \"set_cpu_limit\", \"deployment\": \"cartservice\", \"cpu\": \"1\"}, {\"op\": \"set_cpu_limit\", \"deployment\": \"frontend\", \"cpu\": \"1\"}], \"explanation\": \"下单失败与广告错误已确认修复，剩余 13.6% >180ms 的长尾是 CPU 限额（200m/300m）叠加突发导致 CFS 限流：把推荐服务上限提到 1 并扩到 2 副本（它是 210ms 台阶的落点），同时把 cartservice、frontend 的上限提到 1；若仍未恢复，则需要运维采集 container_cpu_cfs_throttled_seconds 与节点 CPU/网络指标来确认 productcatalogservice 探针层 lost-SYN 是节点级争抢还是 CNI 问题。\"}\n```",
+   "plan": {
+    "root_causes": [
+     {
+      "object": "recommendationservice",
+      "cause": "主要剩余根因：frontend 的 ListRecommendations 调用是 ~210ms 长尾的落点（逐请求追踪显示汇率换算在 +2ms 完成、广告 RPC 直到 +212ms 才发出、广告本身仅 1ms）。该服务为 Python，CPU 上限仅 200m，且每个请求串行对 productcatalogservice 多次 GetProduct，突发时被 CFS 限流（100ms 周期）产生 210/420/630ms 台阶；它是商品页/购物车页的共同依赖，故长尾集中在这些页面"
+     },
+     {
+      "object": "cartservice",
+      "cause": "次要根因：.NET 服务 CPU 上限 300m，GetCart/AddItem 在每个页面路径上（含不调用推荐服务的 POST /cart），对应 /cart avg 100ms、POST /cart avg 114ms 的小长尾"
+     },
+     {
+      "object": "frontend",
+      "cause": "次要根因：frontend CPU 上限 200m，每页串行 5~6 次下游 RPC + 模板渲染，突发即被限流，放大所有下游抖动（home 也出现 max 240ms）"
+     },
+     {
+      "object": "productcatalogservice",
+      "cause": "未解释项/待观察：新 Pod（cpu=1，20:11:18 创建）仍出现 readiness/liveness `failed to connect within 1s`（20:12:00、20:12:49），应用日志无异常、响应正确，CPU 限额无法解释探针层连不上，疑似节点级 CPU 争抢或 CNI/kubelet 侧问题，需节点指标才能确认"
+     }
+    ],
+    "actions": [
+     {
+      "op": "set_cpu_limit",
+      "deployment": "recommendationservice",
+      "cpu": "1"
+     },
+     {
+      "op": "scale",
+      "deployment": "recommendationservice",
+      "replicas": 2
+     },
+     {
+      "op": "set_cpu_limit",
+      "deployment": "cartservice",
+      "cpu": "1"
+     },
+     {
+      "op": "set_cpu_limit",
+      "deployment": "frontend",
+      "cpu": "1"
+     }
+    ],
+    "explanation": "下单失败与广告错误已确认修复，剩余 13.6% >180ms 的长尾是 CPU 限额（200m/300m）叠加突发导致 CFS 限流：把推荐服务上限提到 1 并扩到 2 副本（它是 210ms 台阶的落点），同时把 cartservice、frontend 的上限提到 1；若仍未恢复，则需要运维采集 container_cpu_cfs_throttled_seconds 与节点 CPU/网络指标来确认 productcatalogservice 探针层 lost-SYN 是节点级争抢还是 CNI 问题。"
+   },
+   "plan_error": "",
+   "actions": [
+    {
+     "action": {
+      "op": "set_cpu_limit",
+      "deployment": "recommendationservice",
+      "cpu": "1"
+     },
+     "accepted": true,
+     "ok": true,
+     "result": "ok: deployment.apps/recommendationservice resource requirements updated | ok: plicas are pending termination...\nWaiting for deployment \"recommendationservice\" rollout to finish: 1 old replicas are pending termination...\ndeployment \"recommendationservice\" successfully rolled out"
+    },
+    {
+     "action": {
+      "op": "scale",
+      "deployment": "recommendationservice",
+      "replicas": 2
+     },
+     "accepted": true,
+     "ok": true,
+     "result": "ok: deployment.apps/recommendationservice scaled | ok: Waiting for deployment \"recommendationservice\" rollout to finish: 1 of 2 updated replicas are available...\ndeployment \"recommendationservice\" successfully rolled out"
+    },
+    {
+     "action": {
+      "op": "set_cpu_limit",
+      "deployment": "cartservice",
+      "cpu": "1"
+     },
+     "accepted": true,
+     "ok": true,
+     "result": "ok: deployment.apps/cartservice resource requirements updated | ok:  to finish: 1 old replicas are pending termination...\nWaiting for deployment \"cartservice\" rollout to finish: 1 old replicas are pending termination...\ndeployment \"cartservice\" successfully rolled out"
+    },
+    {
+     "action": {
+      "op": "set_cpu_limit",
+      "deployment": "frontend",
+      "cpu": "1"
+     },
+     "accepted": true,
+     "ok": true,
+     "result": "ok: deployment.apps/frontend resource requirements updated | ok: ollout to finish: 1 old replicas are pending termination...\nWaiting for deployment \"frontend\" rollout to finish: 1 old replicas are pending termination...\ndeployment \"frontend\" successfully rolled out"
+    }
+   ],
+   "observation": {
+    "since": "2026-11-16T20:17:42Z",
+    "seconds": 75.0,
+    "requests": 215,
+    "slow_180ms": 42,
+    "share_slow": 0.195,
+    "p50_ms": 9,
+    "p90_ms": 217,
+    "p99_ms": 429,
+    "http_500": 0,
+    "checkout_attempts": 7,
+    "checkout_failed": 0,
+    "resolved": false
+   }
+  }
+ ],
+ "outcome": "rounds_exhausted",
+ "before": {
+  "since": "2026-11-16T20:01:57Z",
+  "seconds": 45.0,
+  "requests": 160,
+  "slow_180ms": 31,
+  "share_slow": 0.194,
+  "p50_ms": 8,
+  "p90_ms": 219,
+  "p99_ms": 487,
+  "http_500": 8,
+  "checkout_attempts": 8,
+  "checkout_failed": 8,
+  "resolved": false
+ },
+ "injector_log": "netem on veth7a253b60 (productcatalogservice-7457c7c77f-2frfg 10.244.0.190): loss 6%\nqdisc netem 8032: root refcnt 17 limit 1000 loss 6% seed 7833803307680791224\nnetem applied: 1\nnetem re-applied on vethd9be6c68 (productcatalogservice 10.244.0.197): loss 6%\n",
+ "restored": [
+  "Deployment/recommendationservice: set resources deployment/recommendationservice -> ok",
+  "Deployment/recommendationservice: scale deployment/recommendationservice --replicas=1 -> ok",
+  "Deployment/frontend: set resources deployment/frontend -> ok",
+  "Deployment/productcatalogservice: set resources deployment/productcatalogservice -> ok",
+  "Deployment/cartservice: set resources deployment/cartservice -> ok"
+ ],
+ "steps": [
+  {
+   "phase": "verify_healthy",
+   "ok": true,
+   "detail": "healthy",
+   "seconds": 0.26
+  },
+  {
+   "phase": "home_latency",
+   "ok": true,
+   "detail": "GET / ok=True median=0.05s of [0.05] (need >= 0s)",
+   "seconds": 0.0
+  },
+  {
+   "phase": "clean_slate",
+   "ok": true,
+   "detail": "fresh pods",
+   "seconds": 35.86
+  },
+  {
+   "phase": "verify_fresh",
+   "ok": true,
+   "detail": "healthy",
+   "seconds": 0.24
+  },
+  {
+   "phase": "home_latency",
+   "ok": true,
+   "detail": "GET / ok=True median=0.07s of [0.07] (need >= 0s)",
+   "seconds": 0.0
+  },
+  {
+   "phase": "clear_events",
+   "ok": true,
+   "detail": "",
+   "seconds": 0.0
+  },
+  {
+   "phase": "prune_history",
+   "ok": true,
+   "detail": "3 old replicasets",
+   "seconds": 0.0
+  },
+  {
+   "phase": "inject",
+   "ok": true,
+   "detail": "-n boutique scale deployment/adservice --replicas=0",
+   "seconds": 0.06
+  },
+  {
+   "phase": "inject",
+   "ok": true,
+   "detail": "-n boutique set env deployment/checkoutservice CART_SERVICE_ADDR=cartservice:7071",
+   "seconds": 0.07
+  },
+  {
+   "phase": "inject",
+   "ok": true,
+   "detail": "-n boutique rollout status deployment/checkoutservice --timeout=140s",
+   "seconds": 1.67
+  },
+  {
+   "phase": "inject",
+   "ok": true,
+   "detail": "-n infra-tools delete pod net-injector --ignore-not-found",
+   "seconds": 0.04
+  },
+  {
+   "phase": "inject",
+   "ok": true,
+   "detail": "apply -f /work/scenarios/netem/injector-boutique-hard-BH15.yaml",
+   "seconds": 0.17
+  },
+  {
+   "phase": "inject",
+   "ok": true,
+   "detail": "-n infra-tools wait --for=condition=Ready pod/net-injector --timeout=180s",
+   "seconds": 1.05
+  },
+  {
+   "phase": "confirm",
+   "ok": true,
+   "detail": "8/33 requests >= 180 ms since 2026-11-16T20:01:57Z; logs(app=frontend) contain 'failed to complete the order': True; logs(app=net-injector) contain 'netem applied: 1': True",
+   "seconds": 9.62
+  },
+  {
+   "phase": "reset",
+   "ok": true,
+   "detail": "-n infra-tools delete pod net-injector --ignore-not-found",
+   "seconds": 1.55
+  },
+  {
+   "phase": "reset",
+   "ok": true,
+   "detail": "-n boutique scale deployment/adservice --replicas=1",
+   "seconds": 0.05
+  },
+  {
+   "phase": "reset",
+   "ok": true,
+   "detail": "-n boutique set env deployment/checkoutservice CART_SERVICE_ADDR=cartservice:7070",
+   "seconds": 0.05
+  },
+  {
+   "phase": "reset",
+   "ok": true,
+   "detail": "reset steps applied",
+   "seconds": 22.1
+  },
+  {
+   "phase": "verify_recovered",
+   "ok": true,
+   "detail": "healthy",
+   "seconds": 3.53
+  },
+  {
+   "phase": "home_latency",
+   "ok": true,
+   "detail": "GET / ok=True median=0.08s of [0.08] (need >= 0s)",
+   "seconds": 0.0
+  }
+ ],
+ "total_tokens": 3044770
+}

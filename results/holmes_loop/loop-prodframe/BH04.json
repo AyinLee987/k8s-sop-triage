@@ -1,0 +1,205 @@
+{
+ "scenario": "BH04",
+ "model": "deepseek-flash",
+ "max_rounds": 1,
+ "frame": "prod",
+ "rounds": [
+  {
+   "round": 1,
+   "wall_s": 464,
+   "exit": 0,
+   "total_tokens": 1038432,
+   "tool_calls": 32,
+   "answer": "## 结论\n\n**Confirmed facts (from logs/K8s API, boutique ns):**\n\n1. **Healthy baseline, then a step change.** Frontend handler timings (`took_ms`) at 01:00:33–01:00:53Z were **7–58 ms** for every page type (`/`, `/product/*`, `/cart`). From **≈01:00:54Z** on, no page has been under ~600 ms:\n   - `GET /` (home): 624 / 647 / 648 / 670 / 671 ms\n   - `GET /product/*` and `GET /cart`: **2137–2517 ms** (clustered at ~2400 = **4 × ~600 ms**)\n   - `/setCurrency` and `/cart` POST: 302 → k6 follows the redirect, so they show 620 ms and 3600 ms\n   - No errors at all (0 × 500 in frontend logs; k6 shows 0.00 % failures on every endpoint); pods stayed `1/1 Running`, 0 restarts, created 00:59:59–01:00:00Z.\n\n2. **The delay is per-RPC-hop, not in the app and not node-wide.** Measured with cross-service log timestamps:\n   - frontend `/_healthz` (no RPC): **took_ms = 0** every 10 s → process not CPU-starved.\n   - frontend → currencyservice: `Getting supported currencies` logged **0.7 ms** after the home request started, and the 10 follow-up conversions came back and rendered in **~15 ms** → that hop is clean.\n   - frontend → adservice: ad receipt **≈1 ms** after the `ENV_PLATFORM` log and page completed **5 ms** later → that hop is clean.\n   - checkoutservice → emailservice: email receipt 1794877426.2946 vs checkout \"email sent\" 01:03:46.2950 → **0.5 ms**.\n   - shippingservice: `[GetQuote] received/completed` differ by **0.04 ms**; currencyservice handled 10 conversions in 7 ms.\n\n3. **What is slow (by elimination, from the hop counts):** every call into **productcatalogservice**, **cartservice**, and the **recommendationservice** chain costs ~600 ms:\n   - home = max(one catalog/cart call) ≈ 647 ms (1 quantum)\n   - product page = getProduct(catalog) + getCart(cart) + ListRecommendations (which itself does a delayed catalog call) ≈ 4 quanta ≈ 2400 ms\n   - cart page ≈ 4 quanta; `POST /cart` = 2 quanta (add) + 4 quanta (redirected cart page) = **3600 ms** — matches k6 exactly\n   - checkoutservice, a *different* client, shows the same thing: `[PlaceOrder]` → \"payment went through\" gaps of 0.32 s / 0.59 s / 0.94 s / 1.49 s / 1.55 s = 1/2/3 cart+catalog hops → the delay is on the **callee pods**, not on the frontend.\n\n4. **Ruled out:** Service selector/targetPort (all 12 Services have exactly 1 correct endpoint on the right port), crashed/restarted pods, wrong env (all env vars are stock upstream v0.10.3), reduced CPU limits (catalog 100m/200m, cart 200m/300m, rec 100m/200m = upstream defaults), config drift (no ConfigMaps, single fresh ReplicaSet per Deployment, no events). Crucially, **the same manifests served 10 ms pages for the first ~50 s**, so the manifests are not what changed.\n\n**Interpretation (hypothesis, not directly observable here):** a ~**300 ms per-direction latency** (netem-style) is attached to the pod network path of `productcatalogservice`, `cartservice` and `recommendationservice` (→ ~600 ms per RPC, quantised, zero errors, healthy probes since the 1 s gRPC probe timeout still passes). The alternative I cannot separate with the tools I have (metrics/live-metrics and kube-prometheus-stack are disabled, no node/qdisc visibility) is severe CPU starvation of exactly those three pods; both would produce the same log signature. Node condition/CPU, chaos-engine state and tc/qdisc could not be read (RBAC: `nodes`, `namespaces`, `networkpolicies` all Forbidden for `diag-system:diag-agent`; no Istio CRDs present).\n\n**Requested fix:** recreate the three implicated pods. This both clears any latency rule bound to the pod network namespace and forces all clients (frontend, checkout, rec) to re-establish their gRPC connections to them.\n\n```json\n{\"root_causes\": [{\"object\": \"productcatalogservice (pod productcatalogservice-7457c7c77f-p959f)\", \"cause\": \"Every gRPC call into this pod costs ~600ms (~300ms per direction) since 01:00:54Z with no errors; the app itself is instant (9-15ms baseline before 01:00:54). Its latency is inherited by every page that reads the catalog: home 647ms, product page ~2400ms = 4 such hops.\"}, {\"object\": \"cartservice (pod cartservice-896c89968-zc4cc)\", \"cause\": \"Every gRPC call into this pod (GetCart/AddItem/EmptyCart) also costs ~600ms since 01:00:54Z while the pod is Running/Ready; it is the second ~600ms hop on the product, cart and checkout paths (POST /cart = 2 hops + redirected cart page = 3600ms, checkout PlaceOrder->payment gaps grow in ~600ms steps).\"}, {\"object\": \"recommendationservice (pod recommendationservice-6c88b5fb59-6dp8v)\", \"cause\": \"Its ListRecommendations call costs ~2 latency quanta (~1200ms) because it both sits behind the delayed path and makes its own delayed productcatalogservice call - this is the extra hop that makes /product/* and /cart pages 4 quanta (~2400ms) instead of 1 (~650ms) like the home page.\"}, {\"object\": \"boutique (node tiktok-k8s-lab-control-plane) - unverified alternative\", \"cause\": \"Cannot rule out that the same signature comes from severe CPU starvation of exactly those three pods (node-level noisy neighbour); no node, cgroup-throttling or metrics data is readable with current RBAC/toolsets, so this remains unconfirmed.\"}], \"actions\": [{\"op\": \"restart\", \"deployment\": \"productcatalogservice\"}, {\"op\": \"restart\", \"deployment\": \"cartservice\"}, {\"op\": \"restart\", \"deployment\": \"recommendationservice\"}], \"explanation\": \"Pages are slow by whole multiples of ~600ms because each RPC hop into productcatalogservice/cartservice (and rec's own catalog call) costs ~600ms since 01:00:54Z with zero errors, while health checks, currency, ads, email and shipping hops are sub-millisecond; recreating those three pods clears any latency rule bound to their network namespaces and forces clients to reconnect. If latency survives the recreation, the fault is below the workload (node/CNI qdisc) and must be handled by the cluster/node owner.\"}\n```",
+   "plan": {
+    "root_causes": [
+     {
+      "object": "productcatalogservice (pod productcatalogservice-7457c7c77f-p959f)",
+      "cause": "Every gRPC call into this pod costs ~600ms (~300ms per direction) since 01:00:54Z with no errors; the app itself is instant (9-15ms baseline before 01:00:54). Its latency is inherited by every page that reads the catalog: home 647ms, product page ~2400ms = 4 such hops."
+     },
+     {
+      "object": "cartservice (pod cartservice-896c89968-zc4cc)",
+      "cause": "Every gRPC call into this pod (GetCart/AddItem/EmptyCart) also costs ~600ms since 01:00:54Z while the pod is Running/Ready; it is the second ~600ms hop on the product, cart and checkout paths (POST /cart = 2 hops + redirected cart page = 3600ms, checkout PlaceOrder->payment gaps grow in ~600ms steps)."
+     },
+     {
+      "object": "recommendationservice (pod recommendationservice-6c88b5fb59-6dp8v)",
+      "cause": "Its ListRecommendations call costs ~2 latency quanta (~1200ms) because it both sits behind the delayed path and makes its own delayed productcatalogservice call - this is the extra hop that makes /product/* and /cart pages 4 quanta (~2400ms) instead of 1 (~650ms) like the home page."
+     },
+     {
+      "object": "boutique (node tiktok-k8s-lab-control-plane) - unverified alternative",
+      "cause": "Cannot rule out that the same signature comes from severe CPU starvation of exactly those three pods (node-level noisy neighbour); no node, cgroup-throttling or metrics data is readable with current RBAC/toolsets, so this remains unconfirmed."
+     }
+    ],
+    "actions": [
+     {
+      "op": "restart",
+      "deployment": "productcatalogservice"
+     },
+     {
+      "op": "restart",
+      "deployment": "cartservice"
+     },
+     {
+      "op": "restart",
+      "deployment": "recommendationservice"
+     }
+    ],
+    "explanation": "Pages are slow by whole multiples of ~600ms because each RPC hop into productcatalogservice/cartservice (and rec's own catalog call) costs ~600ms since 01:00:54Z with zero errors, while health checks, currency, ads, email and shipping hops are sub-millisecond; recreating those three pods clears any latency rule bound to their network namespaces and forces clients to reconnect. If latency survives the recreation, the fault is below the workload (node/CNI qdisc) and must be handled by the cluster/node owner."
+   },
+   "plan_error": "",
+   "actions": [
+    {
+     "action": {
+      "op": "restart",
+      "deployment": "productcatalogservice"
+     },
+     "accepted": true,
+     "ok": true,
+     "result": "ok: pod \"productcatalogservice-7457c7c77f-p959f\" deleted from boutique namespace | ok: Waiting for deployment \"productcatalogservice\" rollout to finish: 0 of 1 updated replicas are available...\ndeployment \"productcatalogservice\" successfully rolled out"
+    },
+    {
+     "action": {
+      "op": "restart",
+      "deployment": "cartservice"
+     },
+     "accepted": true,
+     "ok": true,
+     "result": "ok: pod \"cartservice-896c89968-zc4cc\" deleted from boutique namespace | ok: Waiting for deployment \"cartservice\" rollout to finish: 0 of 1 updated replicas are available...\ndeployment \"cartservice\" successfully rolled out"
+    },
+    {
+     "action": {
+      "op": "restart",
+      "deployment": "recommendationservice"
+     },
+     "accepted": true,
+     "ok": true,
+     "result": "ok: pod \"recommendationservice-6c88b5fb59-6dp8v\" deleted from boutique namespace | ok: Waiting for deployment \"recommendationservice\" rollout to finish: 0 of 1 updated replicas are available...\ndeployment \"recommendationservice\" successfully rolled out"
+    }
+   ],
+   "observation": {
+    "since": "2026-11-17T01:10:27Z",
+    "seconds": 75.0,
+    "requests": 131,
+    "slow_180ms": 109,
+    "share_slow": 0.832,
+    "p50_ms": 2413,
+    "p90_ms": 2726,
+    "p99_ms": 3624,
+    "http_500": 0,
+    "checkout_attempts": 4,
+    "checkout_failed": 0,
+    "resolved": false
+   }
+  }
+ ],
+ "outcome": "rounds_exhausted",
+ "before": {
+  "since": "2026-11-17T01:00:54Z",
+  "seconds": 45.0,
+  "requests": 109,
+  "slow_180ms": 92,
+  "share_slow": 0.844,
+  "p50_ms": 2395,
+  "p90_ms": 2499,
+  "p99_ms": 2843,
+  "http_500": 0,
+  "checkout_attempts": 2,
+  "checkout_failed": 0,
+  "resolved": false
+ },
+ "injector_log": "netem on veth2f87c23d (productcatalogservice-7457c7c77f-p959f 10.244.0.214): delay 300ms 30ms\nqdisc netem 8034: root refcnt 17 limit 1000 delay 300ms  30ms seed 2771567091318072559\nnetem on veth7e3f0752 (redis-cart-788fbddc7-xsvfj 10.244.0.216): delay 300ms 30ms\nqdisc netem 8035: root refcnt 17 limit 1000 delay 300ms  30ms seed 12457083476420797329\nnetem applied: 2\nnetem re-applied on veth5b4e64cf (productcatalogservice 10.244.0.218): delay 300ms 30ms\n",
+ "restored": [],
+ "steps": [
+  {
+   "phase": "verify_healthy",
+   "ok": true,
+   "detail": "healthy",
+   "seconds": 0.32
+  },
+  {
+   "phase": "home_latency",
+   "ok": true,
+   "detail": "GET / ok=True median=0.06s of [0.06] (need >= 0s)",
+   "seconds": 0.0
+  },
+  {
+   "phase": "clean_slate",
+   "ok": true,
+   "detail": "fresh pods",
+   "seconds": 35.33
+  },
+  {
+   "phase": "verify_fresh",
+   "ok": true,
+   "detail": "healthy",
+   "seconds": 0.27
+  },
+  {
+   "phase": "home_latency",
+   "ok": true,
+   "detail": "GET / ok=True median=0.06s of [0.06] (need >= 0s)",
+   "seconds": 0.0
+  },
+  {
+   "phase": "clear_events",
+   "ok": true,
+   "detail": "",
+   "seconds": 0.0
+  },
+  {
+   "phase": "prune_history",
+   "ok": true,
+   "detail": "5 old replicasets",
+   "seconds": 0.0
+  },
+  {
+   "phase": "inject",
+   "ok": true,
+   "detail": "-n infra-tools delete pod net-injector --ignore-not-found",
+   "seconds": 0.05
+  },
+  {
+   "phase": "inject",
+   "ok": true,
+   "detail": "apply -f /work/scenarios/netem/injector-boutique-hard-BH04.yaml",
+   "seconds": 0.19
+  },
+  {
+   "phase": "inject",
+   "ok": true,
+   "detail": "-n infra-tools wait --for=condition=Ready pod/net-injector --timeout=180s",
+   "seconds": 1.05
+  },
+  {
+   "phase": "confirm",
+   "ok": true,
+   "detail": "18/21 requests >= 180 ms since 2026-11-17T01:00:54Z; logs(app=net-injector) contain 'netem applied: 2': True",
+   "seconds": 12.59
+  },
+  {
+   "phase": "reset",
+   "ok": true,
+   "detail": "-n infra-tools delete pod net-injector --ignore-not-found",
+   "seconds": 2.04
+  },
+  {
+   "phase": "reset",
+   "ok": true,
+   "detail": "reset steps applied",
+   "seconds": 2.65
+  },
+  {
+   "phase": "verify_recovered",
+   "ok": true,
+   "detail": "healthy",
+   "seconds": 0.25
+  },
+  {
+   "phase": "home_latency",
+   "ok": true,
+   "detail": "GET / ok=True median=0.05s of [0.05] (need >= 0s)",
+   "seconds": 0.0
+  }
+ ],
+ "total_tokens": 1038432
+}

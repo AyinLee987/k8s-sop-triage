@@ -1,0 +1,305 @@
+{
+ "scenario": "BH12",
+ "model": "deepseek-flash",
+ "max_rounds": 3,
+ "rounds": [
+  {
+   "round": 1,
+   "wall_s": 373,
+   "exit": 0,
+   "total_tokens": 857104,
+   "tool_calls": 31,
+   "answer": "## 排查结论\n\n**受影响的实体**（均以自身证据确认）：\n\n| 实体 | 证据 |\n|---|---|\n| `currencyservice-6df4cccbb9-w9sz7`（单副本） | 18:57:58 kubelet 事件 `Warning/Unhealthy: Liveness probe failed: timeout: failed to connect service \"10.244.0.132:7000\" within 1s: context deadline exceeded` — 该 Pod 自身 >1s 无响应 |\n| `frontend-fd686dbb-4xgmm` | 请求日志中出现的尾部延迟（见下），**但 frontend 进程本身全程存活**（`/_healthz` 恒 0ms，`POST /setCurrency` 恒 0ms，`POST /cart` 恒 1ms） |\n| `boutique` 全站 | 45s 内 207 请求 24 个 >180ms、0 个 5xx、0 次下单失败 — 与现象一致 |\n\n### 关键证据链：延迟全部落在“调用 currencyservice 的等待”上\n\n1. **没有任何异常日志、没有重启、没有 OOM**：12 个 Deployment 全部 1/1 Ready，`restarts=0`，资源值均为上游 stock 值（frontend/productcatalog/currency 等 100m/200m），Service selector 与 targetPort 全对（`emailservice 5000→8080`、`frontend 80→8080` 正确），Endpoints 全 ready。所以不是路由/端口/报错类故障。\n\n2. **进程是否被“冻住”的定位实验**（18:58:37.9–18:58:38.7 这段）：\n   - `GET /` 683ms（completed 38.663，started 37.980）；`GET /product/OLJCESPC7Z` 307ms（started 38.336）；`GET /product/LS4PSXUNUM` 160ms（started 38.483）——三个请求在 ~38.643–38.663 **几乎同时结束**。\n   - 期间 `currencyservice` 日志完全静默：37.980 处理了首页的 `Getting supported currencies` + 7 次 `conversion request successful`（37.982–37.986），**之后直到 38.633 才继续**；产品页的 `Getting supported currencies` 也是 38.633 才被 currency 处理。\n   - 紧接着 `recommendationservice` 收到请求 38.638、`adservice` 收到请求 38.641，然后 38.643 全部完成（各 ~2–5ms）。\n   - `POST /cart/checkout` 396ms（18:57:49）：checkoutservice `PlaceOrder` 49.102 → `[GetQuote]` 49.1046（前段都正常）→ 而 **payment 49.4886**，中间 384ms 恰好是 checkoutservice 调 `currencyservice` 做总价换算的步骤，currency 日志同样在 49.103–49.458 静默。\n\n3. **为什么是 currencyservice 而不是 frontend / productcatalog**：frontend 在 38.336、38.483 仍在正常受理请求（`took_ms` 起点在这两个时刻），说明 frontend 进程没被冻结；而首页在 37.982–37.986 连续 7 次货币换算都成功，说明 productcatalog 与 frontend→后端网络通路当时是好的，只有 currency 的调用卡住。恢复瞬间所有被压住的请求一起放行（burst-release），是“下游 Pod 不读 socket / accept 队列被打满”的典型特征。\n\n4. **量化特征吻合 TCP 重传**：慢请求耗时高度聚集在 **203/213/215/220/225/243/252ms**，再往上 307/356、396/424/429、633/654/683/705 —— 即 ~200ms、~400ms、~600ms 的整数倍。这是丢包后 TCP RTO（最小 200ms）重传的指纹；kubelet 那条 `connect ... within 1s` 的失败同样是 SYN 丢失后 1s 重传超时。因此“页面偶尔等很久、无报错、中位数 9ms”正是一个下层服务间歇性无响应导致丢包/重传的表现。\n\n5. **放大因素（应用设计）**：首页对每个商品逐个 RPC 做货币换算（一次首页命中 currency 十余次），cart 页按件换算，checkout 内部再换算；currency 单副本无冗余，且 frontend 用 passthrough DNS + 长连接，所以单个 currency Pod 抖动会命中几乎每个请求。\n\n### 根因与修复思路\n`currencyservice` 这个 Pod 被限了 `cpu: 200m` / `memory: 128Mi`（Node.js 单线程事件循环），在高并发突发时被 CFS 配额节流（并可能叠加接近 128Mi 内存上限的 GC 停顿），事件循环被“冻住”200–700ms（个别 >1s），期间连接/请求包被丢弃，客户端按 RTO 重传，于是表现为 ~200/400/600ms 的尾部延迟、后端日志静默、恢复瞬间批量放行、且完全无 5xx。\n\n第 1 轮申请：把 `currencyservice` 的 CPU 上限提到 1 核（该操作同时会重建 Pod，顺带清掉当前进程状态）。若仍未恢复，第 2 轮我会再考虑重启/进一步扩容并复核（当前 frontend 走 passthrough DNS 长连接，单纯加副本不一定能分摊流量）。\n\n```json\n{\"root_causes\": [{\"object\": \"currencyservice (deployment/pod currencyservice-6df4cccbb9-w9sz7)\", \"cause\": \"单副本 Node.js 事件循环在高并发突发时被 200m CPU limit 节流（并可能受 128Mi 内存上限 GC 停顿影响），间歇性 200~700ms（个别 >1s，见 18:57:58 liveness probe 'failed to connect ... within 1s'）完全不响应；每次抖动都会丢连接/丢包，客户端按 TCP RTO 重传，形成 ~200/400/600ms 的尾部延迟，且不返回错误\"}, {\"object\": \"frontend (handlers: /, /product/*, /cart, /cart/checkout)\", \"cause\": \"每个页面按序多次同步调用 currencyservice（首页对每件商品逐个换算），把单点 currency 抖动放大成几乎每个请求都可能命中的尾部延迟；而 /_healthz、POST /cart、POST /setCurrency 这类不调 currency 的处理恒 0~1ms，可作为对照证据\"}, {\"object\": \"currencyservice Service/Deployment\", \"cause\": \"作为全站强依赖只有 1 个副本，frontend 使用 passthrough DNS + 长连接，缺少容错/负载分散能力，单 Pod 抖动即影响全站\"}], \"actions\": [{\"op\": \"set_cpu_limit\", \"deployment\": \"currencyservice\", \"cpu\": \"1\"}], \"explanation\": \"把 currencyservice 的 CPU 上限从 200m 提到 1 核，消除事件循环被 CFS 配额节流造成的间歇性冻结（该操作会重建 Pod，同时清掉当前进程状态）；执行后请反馈用户侧 45s 的尾延迟统计。\"}\n```",
+   "plan": {
+    "root_causes": [
+     {
+      "object": "currencyservice (deployment/pod currencyservice-6df4cccbb9-w9sz7)",
+      "cause": "单副本 Node.js 事件循环在高并发突发时被 200m CPU limit 节流（并可能受 128Mi 内存上限 GC 停顿影响），间歇性 200~700ms（个别 >1s，见 18:57:58 liveness probe 'failed to connect ... within 1s'）完全不响应；每次抖动都会丢连接/丢包，客户端按 TCP RTO 重传，形成 ~200/400/600ms 的尾部延迟，且不返回错误"
+     },
+     {
+      "object": "frontend (handlers: /, /product/*, /cart, /cart/checkout)",
+      "cause": "每个页面按序多次同步调用 currencyservice（首页对每件商品逐个换算），把单点 currency 抖动放大成几乎每个请求都可能命中的尾部延迟；而 /_healthz、POST /cart、POST /setCurrency 这类不调 currency 的处理恒 0~1ms，可作为对照证据"
+     },
+     {
+      "object": "currencyservice Service/Deployment",
+      "cause": "作为全站强依赖只有 1 个副本，frontend 使用 passthrough DNS + 长连接，缺少容错/负载分散能力，单 Pod 抖动即影响全站"
+     }
+    ],
+    "actions": [
+     {
+      "op": "set_cpu_limit",
+      "deployment": "currencyservice",
+      "cpu": "1"
+     }
+    ],
+    "explanation": "把 currencyservice 的 CPU 上限从 200m 提到 1 核，消除事件循环被 CFS 配额节流造成的间歇性冻结（该操作会重建 Pod，同时清掉当前进程状态）；执行后请反馈用户侧 45s 的尾延迟统计。"
+   },
+   "plan_error": "",
+   "actions": [
+    {
+     "action": {
+      "op": "set_cpu_limit",
+      "deployment": "currencyservice",
+      "cpu": "1"
+     },
+     "accepted": true,
+     "ok": true,
+     "result": "ok: deployment.apps/currencyservice resource requirements updated | ok: sh: 1 old replicas are pending termination...\nWaiting for deployment \"currencyservice\" rollout to finish: 1 old replicas are pending termination...\ndeployment \"currencyservice\" successfully rolled out"
+    }
+   ],
+   "observation": {
+    "since": "2026-11-16T19:04:52Z",
+    "seconds": 75.0,
+    "requests": 226,
+    "slow_180ms": 25,
+    "share_slow": 0.111,
+    "p50_ms": 8,
+    "p90_ms": 215,
+    "p99_ms": 421,
+    "http_500": 0,
+    "checkout_attempts": 9,
+    "checkout_failed": 0,
+    "resolved": false
+   }
+  },
+  {
+   "round": 2,
+   "wall_s": 443,
+   "exit": 0,
+   "total_tokens": 1310628,
+   "tool_calls": 33,
+   "answer": "### 本轮申请的操作（3 个）\n\n1. `scale currencyservice 2` —— 给单点全站依赖加一条可选路径，让按 Pod 生效的丢包不再等于全站故障面。\n2. `restart frontend` —— 重建前端到所有后端的 HTTP/2 长连接（该连接自 18:55:48 起未更换过；用于判别“连接级坏状态”与“路径级丢包”）。\n3. `restart checkoutservice` —— 同上，它的 currency 通道也在慢路径上（`[PlaceOrder]→payment` 内部耗时 212/219ms）。\n\n判别规则（下一轮即可判定）：\n- 若尾延迟明显下降 → 属“前端/结算到 currency 的单条长连接坏状态（丢包重传被放大在单条 TCP 流上）”，用新副本 + 重连即可长期缓解；\n- 若仍是 ~11%、仍是 200/400/600ms → 属 `currencyservice` 网络路径上的外部注入（netem `loss`/`delay` 或 chaos 对象按 label 作用于新 Pod），**6 个可申请操作里没有能移除它的**，需要运维在节点上执行 `tc -s qdisc show dev <currency-veth>` / `conntrack -S`，并清理 Chaos Mesh `NetworkChaos`（按 `app=currencyservice` 选择器）——这是只读/应用层操作无法覆盖的。\n\n补充说明（供运维参考）：本轮的量化很明确——`POST /cart` 79/79 为 1–3ms、`/setCurrency` 0ms（不经 currency），而每多一个 currency RPC，慢率按 `1-(1-0.04)^n` 上升（首页 10 个 → 34%，商品页 2 个 → 10%）；所有慢样本都落在 207–233 / 337–457 / 600–651ms 三档，正好是 TCP RTO 的 1/2/3 倍。\n\n```json\n{\"root_causes\": [{\"object\": \"currencyservice (pod currencyservice-bf885556-6ljl5，前序 -6df4cccbb9-w9sz7)\", \"cause\": \"约 4% 的 gRPC RPC 被额外加上 ~200ms，且严格量化在 200/400/600ms 三档（Linux TCP 最小 RTO 的整数倍），属该 Pod 流量路径上的丢包/重传，而非 CPU 或进程内停顿：CPU 上限 200m→1 核并重建 Pod（新 IP 10.244.0.141，19:04:31 启动）后慢率 11.6%→11.1% 基本不变，且新 Pod 82 秒后 readiness 即开始 failed to connect within 1s\"}, {\"object\": \"kubelet → currencyservice 探针通路（唯一有 probe 失败的服务）\", \"cause\": \"旧 Pod liveness 6 次、新 Pod readiness 2 次 'timeout: failed to connect service 10.244.0.x:7000 within 1s'，即 SYN/HTTP2 握手丢包需 1s 重传；其余 11 个 Pod 探针（同为 1s 超时）零失败，说明丢包只发生在这条路径，不是节点级或 CNI 全局问题\"}, {\"object\": \"frontend + checkoutservice（调用放大）\", \"cause\": \"前端每个页面多次串行调用 currency：首页 1 次 GetSupportedCurrencies + 9 次 Convert（34% 首页变慢），商品页/购物车/结算仅 2–4 次（10–16%），把约 4%/RPC 的丢包放大成全站 11% 的尾部延迟；checkoutservice 内部 PlaceOrder→payment 也出现 212/219ms，证明抖动在后端而非前端\"}, {\"object\": \"currencyservice deployment（单副本全站强依赖）\", \"cause\": \"只有 1 个副本，无冗余路径，任何按 Pod/按流生效的丢包都 100% 暴露给所有调用方；这是放大故障面而非根因\"}, {\"object\": \"故障注入源（节点 tc/netem 或外部 chaos 对象，boutique 命名空间内不可见）\", \"cause\": \"抖动跨两次 Pod 重建（新 IP、新 veth、新进程）持续存在且与 CPU 配额无关，最可能是按 app=currencyservice 选择器施加的 netem loss/delay；该类对象不在 boutique 命名空间，现有只读权限与 6 个应用层操作均无法移除，需运维在节点/chaos 层处理\"}], \"actions\": [{\"op\": \"scale\", \"deployment\": \"currencyservice\", \"replicas\": 2}, {\"op\": \"restart\", \"deployment\": \"frontend\"}, {\"op\": \"restart\", \"deployment\": \"checkoutservice\"}], \"explanation\": \"先重建前端/结算到 currency 的 HTTP/2 长连接并把 currency 扩到 2 副本：若尾延迟下降即为连接级丢包重传（可长期用多副本+重连缓解），若仍为 11% 且仍是 200/400/600ms 三档，则是 currencyservice 网络路径上的外部 netem/chaos，需要运维在节点上查 tc qdisc / conntrack 并清掉对应的 NetworkChaos，这超出我可申请的操作范围。\"}\n```",
+   "plan": {
+    "root_causes": [
+     {
+      "object": "currencyservice (pod currencyservice-bf885556-6ljl5，前序 -6df4cccbb9-w9sz7)",
+      "cause": "约 4% 的 gRPC RPC 被额外加上 ~200ms，且严格量化在 200/400/600ms 三档（Linux TCP 最小 RTO 的整数倍），属该 Pod 流量路径上的丢包/重传，而非 CPU 或进程内停顿：CPU 上限 200m→1 核并重建 Pod（新 IP 10.244.0.141，19:04:31 启动）后慢率 11.6%→11.1% 基本不变，且新 Pod 82 秒后 readiness 即开始 failed to connect within 1s"
+     },
+     {
+      "object": "kubelet → currencyservice 探针通路（唯一有 probe 失败的服务）",
+      "cause": "旧 Pod liveness 6 次、新 Pod readiness 2 次 'timeout: failed to connect service 10.244.0.x:7000 within 1s'，即 SYN/HTTP2 握手丢包需 1s 重传；其余 11 个 Pod 探针（同为 1s 超时）零失败，说明丢包只发生在这条路径，不是节点级或 CNI 全局问题"
+     },
+     {
+      "object": "frontend + checkoutservice（调用放大）",
+      "cause": "前端每个页面多次串行调用 currency：首页 1 次 GetSupportedCurrencies + 9 次 Convert（34% 首页变慢），商品页/购物车/结算仅 2–4 次（10–16%），把约 4%/RPC 的丢包放大成全站 11% 的尾部延迟；checkoutservice 内部 PlaceOrder→payment 也出现 212/219ms，证明抖动在后端而非前端"
+     },
+     {
+      "object": "currencyservice deployment（单副本全站强依赖）",
+      "cause": "只有 1 个副本，无冗余路径，任何按 Pod/按流生效的丢包都 100% 暴露给所有调用方；这是放大故障面而非根因"
+     },
+     {
+      "object": "故障注入源（节点 tc/netem 或外部 chaos 对象，boutique 命名空间内不可见）",
+      "cause": "抖动跨两次 Pod 重建（新 IP、新 veth、新进程）持续存在且与 CPU 配额无关，最可能是按 app=currencyservice 选择器施加的 netem loss/delay；该类对象不在 boutique 命名空间，现有只读权限与 6 个应用层操作均无法移除，需运维在节点/chaos 层处理"
+     }
+    ],
+    "actions": [
+     {
+      "op": "scale",
+      "deployment": "currencyservice",
+      "replicas": 2
+     },
+     {
+      "op": "restart",
+      "deployment": "frontend"
+     },
+     {
+      "op": "restart",
+      "deployment": "checkoutservice"
+     }
+    ],
+    "explanation": "先重建前端/结算到 currency 的 HTTP/2 长连接并把 currency 扩到 2 副本：若尾延迟下降即为连接级丢包重传（可长期用多副本+重连缓解），若仍为 11% 且仍是 200/400/600ms 三档，则是 currencyservice 网络路径上的外部 netem/chaos，需要运维在节点上查 tc qdisc / conntrack 并清掉对应的 NetworkChaos，这超出我可申请的操作范围。"
+   },
+   "plan_error": "",
+   "actions": [
+    {
+     "action": {
+      "op": "scale",
+      "deployment": "currencyservice",
+      "replicas": 2
+     },
+     "accepted": true,
+     "ok": true,
+     "result": "ok: deployment.apps/currencyservice scaled | ok: Waiting for deployment \"currencyservice\" rollout to finish: 1 of 2 updated replicas are available...\ndeployment \"currencyservice\" successfully rolled out"
+    },
+    {
+     "action": {
+      "op": "restart",
+      "deployment": "frontend"
+     },
+     "accepted": true,
+     "ok": true,
+     "result": "ok: pod \"frontend-fd686dbb-4xgmm\" deleted from boutique namespace | ok: Waiting for deployment \"frontend\" rollout to finish: 0 of 1 updated replicas are available...\ndeployment \"frontend\" successfully rolled out"
+    },
+    {
+     "action": {
+      "op": "restart",
+      "deployment": "checkoutservice"
+     },
+     "accepted": true,
+     "ok": true,
+     "result": "ok: pod \"checkoutservice-5d5f4589c5-88dvp\" deleted from boutique namespace | ok: Waiting for deployment \"checkoutservice\" rollout to finish: 0 of 1 updated replicas are available...\ndeployment \"checkoutservice\" successfully rolled out"
+    }
+   ],
+   "observation": {
+    "since": "2026-11-16T19:14:05Z",
+    "seconds": 75.0,
+    "requests": 168,
+    "slow_180ms": 21,
+    "share_slow": 0.125,
+    "p50_ms": 8,
+    "p90_ms": 214,
+    "p99_ms": 442,
+    "http_500": 0,
+    "checkout_attempts": 4,
+    "checkout_failed": 0,
+    "resolved": false
+   }
+  },
+  {
+   "round": 3,
+   "wall_s": 365,
+   "exit": 0,
+   "total_tokens": 1033787,
+   "tool_calls": 21,
+   "answer": "## 第 3 轮结论：前两轮的判断哪些被证实、哪些被推翻\n\n### 新增的硬证据（本轮实测）\n\n1. **页面的慢率与“该页调用 currencyservice 的次数”成正比，而不是与其它依赖成正比**（同一时间窗内逐条统计 `http.resp.took_ms`）：\n\n| 页面 | 每次页面调用 currency 次数 | 观测 >180ms 占比 | 按“单次 currency RPC 中招率 p≈4.5%”预测 |\n|---|---|---|---|\n| `GET /`（首页） | 1×GetSupportedCurrencies + 9~10×Convert = **11** | 4/10 = **40%** | 1-0.955¹¹ = **40%** ✅ |\n| `GET /product/*` | getCurrencies + 1×Convert = **2** | ~5/35 = **13%** | **8.8%**（样本小，噪声内）|\n| `GET /cart` | 1 + N×Convert = **3~5** | ~5/20 = **25%** | 13~20% ✅ |\n| `POST /cart`（只打 cartservice） | **0** | 0/20 = **0%**（恒 1ms）| 0% ✅ |\n| `POST /setCurrency`（无后端调用） | **0** | 0/6 = **0%**（恒 0ms）| 0% ✅ |\n\ncatalog（首页 1 次、商品页 1 次）、recommendation（均 1 次）、ad（均 1 次）的调用次数**无法**解释首页 40% 与商品页 13% 的差异，currency 是唯一拟合的依赖。\n\n2. **慢不在 currencyservice 的业务处理里**：它的日志里 `Getting supported currencies...` 与紧随其后的 `conversion request successful` 时间戳差恒为 1~7ms（12 组全部如此），说明只要进程在跑，它 7ms 内就答完了。\n\n3. **只有 currencyservice 的探针会 1 秒超时，而且是两个副本都会**（其余 11 个 pod 同为 1s 超时的探针零失败）：\n```\n19:13:32 currencyservice-…-zfpw2  Unhealthy  Readiness probe failed: timeout: failed to connect service \"10.244.0.142:7000\" within 1s\n19:14:32 currencyservice-…-zfpw2  Unhealthy  Liveness probe failed:  … 10.244.0.142:7000 within 1s\n19:15:23 currencyservice-…-6ljl5  Unhealthy  Readiness probe failed: timeout: … \"10.244.0.141:7000\" within 1s\n```\n它自己的日志流也出现 737ms / 813ms / 942ms / 1148ms / 1903ms 的整段空白，并在恢复瞬间把积压请求一次性打出（3 条日志同一毫秒）。\n\n### 被推翻 / 被证实的旧判断\n\n- ❌ **推翻：“currencyservice CPU 200m 被节流”**。已提到 1 核并重建 Pod，11.1%→12.5% 毫无变化；且 pod 内单请求处理仅 1~7ms，不存在算力不足。\n- ❌ **推翻：“frontend/checkout 到 currency 的连接状态问题”**。两者都已重启并重建长连接，慢率不变。\n- ⚠️ **“单副本放大”只对了一半**：扩到 2 副本无效，但原因不是副本不够——frontend 的 gRPC ClientConn 以 passthrough 方式钉死在一个 pod 上：近 35 秒内 `currencyservice-bf885556-6ljl5` 收到全部业务日志，而 `-zfpw2` 只有 6 行。所以 kube-proxy 的按连接负载均衡并没有把 RPC 摊开。\n- ✅ **证实：前端自身没有被限流**。只走 cartservice 的 `POST /cart` 20 次全部 1ms、`/setCurrency` 全部 0ms；frontend/checkout 日志 6 分钟内 0 条 error/warning，全站 0 个 500。\n- ✅ **证实并细化“丢包”判断**：延迟台阶严格在 **+200 / +400 / +600ms**（442ms ≈ 240+200、237/236/233 ≈ 30+200、213~219 ≈ 8~12+200），且没有 40ms/100ms 这类其它量级的成簇延迟——200ms 正是 Linux 已建立连接的 **TCP 最小 RTO**；而 1s 恰好是新连接 **SYN 重传超时**（探针每次新建连接）。两者可用同一套数解释：对 currency 路径约 **1.5%/包** 的丢包 ⇒ 3~4 个包一次的 RPC 约 4.5% 被 +200ms，新连接约 1.7~3% 在 1s 内失败（实测 15 分钟内 currency 4 次探针失败 ≈ 3%）。连续的 200/400/1200ms 空档也解释了 1~2.4s 的日志空白。\n- ❓ **仍未解释/无法确认**：这条丢包规则施加在哪里。它跨了两次 Pod 重建（新 IP 10.244.0.141/.142、新 veth、新进程）、跨了 CPU 上限调整、跨了副本数与两端重启，却只作用于 `app=currencyservice` 的两个 Pod，而对同节点上其它 11 个 Pod 完全无影响；集群里所有 Pod 都在同一节点 `tiktok-k8s-lab-control-plane`，Service/EndpointSlice/targetPort/env 全部正确（`currencyservice 7000→7000`，2 个 endpoint 无误），Deployment 无任何异常注解或标签。我无 nodes/CRD/其它命名空间读权限（`nodes is forbidden`、`CRDs … forbidden`、`chaos-mesh 命名空间 pods … forbidden`），因此看不到施加在节点 veth 上的 `tc`/chaos 对象。\n\n### 为什么本轮不再申请应用层操作\n\n我已用尽能触及这一层的全部手段（currency CPU 上限→1 核、副本 1→2、currency/frontend/checkout 三次重建）且全部无效。剩下的可选操作（set_env/unset_env、service selector、target port）都会**破坏**当前正确的配置（改 PORT 或 targetPort 会让 7000 探针立即失败、全站 5xx；selector 没有可用的更精确标签，两个副本标签相同），不会消除按包丢包。这属于节点/CNI/chaos 层故障，需运维在节点上处理。\n\n### 建议运维执行（需节点权限，我无此权限）\n```bash\n# 1) 看 currency Pod 的 netns 里是否被塞了 netem\nNODE=tiktok-k8s-lab-control-plane\nfor ip in 10.244.0.141 10.244.0.142; do\n  ns=$(crictl pods --name currencyservice -q | head -1)\n  # 在宿主机上找到对应 veth，例如：\n  tc -s qdisc show dev <veth-of-$ip>     # 期望只有 noqueue/pfifo_fast，若见 netem loss/delay 即为注入点\ndone\n# 2) 清理：删除对应 chaos 对象或 tc qdisc\n#    kubectl get networkchaos -A ; kubectl -n <ns> delete networkchaos <name>\n#    tc qdisc del dev <veth> root\n# 3) 顺便核对节点日志/磁盘是否在拖住容器 stdout（Node 进程同步写 stdout 会整进程冻结）\n```\n\n### 长期修复（代码/部署层，非本次可申请操作）\n- frontend 首页的 11 次 currency 调用应改为**并行 + 结果缓存**（GetSupportedCurrencies 每页一次即可复用），可把“单点抖动”放大倍数从 11 降到 1~2。\n- currencyservice 客户端改用 `round_robin`/DNS 解析 + 重试，让 ≥2 副本真正分摊并按连接抖动自动切换。\n- 为 currencyservice 增加 gRPC deadline 与 health-check 参数化（1s 硬超时在 200ms RTO 抖动下过于敏感）。\n\n```json\n{\"root_causes\": [{\"object\": \"currencyservice Pods（currencyservice-bf885556-6ljl5 / -zfpw2，10.244.0.141/.142）的请求路径\", \"cause\": \"该路径存在按包（约 1.5%/包）的丢包/瞬时黑洞，导致 TCP 重传：RPC 尾部延迟严格落在 +200ms/+400ms/+600ms 台阶（Linux 已建立连接最小 RTO=200ms），新建连接的探针则在 1s SYN 重传超时上失败；证据：pod 内每个 RPC 处理仅 1~7ms（日志时间戳差），延迟与 CPU 上限、Pod 重建、副本数均无关，且全命名空间只有这两个 Pod 的探针失败\"}, {\"object\": \"frontend 页面处理逻辑（/, /product/*, /cart）\", \"cause\": \"首页对每件商品逐个串行调用 currency（1 次 GetSupportedCurrencies + 9~10 次 Convert = 11 次），把 ~4.5%/RPC 的抖动放大成 40% 的首页尾延迟；商品页 2 次→13%、购物车 3~5 次→25%，而只调 cartservice 的 POST /cart 恒 1ms、/setCurrency 恒 0ms，量化吻合\"}, {\"object\": \"frontend → currencyservice 的连接方式（passthrough gRPC + 单副本语义）\", \"cause\": \"frontend 的单一 ClientConn 钉在一个 currencyservice Pod 上（近 35s 内 6ljl5 收到全部业务流量，zfpw2 仅 6 行日志），因此扩到 2 副本也没有分流，任何按 Pod/按包生效的丢包依旧 100% 暴露；这是放大面，不是根因\"}, {\"object\": \"故障注入源（节点 veth 上的 tc/netem 或 boutique 命名空间外的 chaos 对象）\", \"cause\": \"丢包只作用于 app=currencyservice 的两个 Pod，跨两次 Pod 重建（新 IP/netns/进程）、跨 CPU 与副本调整持续存在，同节点其余 11 个 Pod 完全不受影响；我无 nodes/CRD/其它命名空间读权限，无法定位该对象，且现有 7 种应用层操作都无法移除它\"}], \"actions\": [], \"explanation\": \"本轮不申请操作：能触及 currency 应用/资源层的三种手段（CPU 上限→1 核、副本 1→2、currency/frontend/checkout 重建）前两轮已验证无效，而剩余可用的 set_env/set_service_selector/set_service_target_port 都会破坏现有正确配置（改 PORT 或 targetPort 会让 7000 探针立刻失败、全站 5xx）并不能消除按包丢包。根因在节点/CNI 或 boutique 外的 chaos 对象，需运维用节点权限执行 `tc -s qdisc show dev <currencyservice veth>` 定位并 `tc qdisc del`，或删除命中 app=currencyservice 的 NetworkChaos；同时建议把 frontend 首页的 11 次串行 currency 调用改为并行+缓存，并让 currency 客户端改用 round_robin 以真正分摊到多副本。\"}\n```",
+   "plan": {
+    "root_causes": [
+     {
+      "object": "currencyservice Pods（currencyservice-bf885556-6ljl5 / -zfpw2，10.244.0.141/.142）的请求路径",
+      "cause": "该路径存在按包（约 1.5%/包）的丢包/瞬时黑洞，导致 TCP 重传：RPC 尾部延迟严格落在 +200ms/+400ms/+600ms 台阶（Linux 已建立连接最小 RTO=200ms），新建连接的探针则在 1s SYN 重传超时上失败；证据：pod 内每个 RPC 处理仅 1~7ms（日志时间戳差），延迟与 CPU 上限、Pod 重建、副本数均无关，且全命名空间只有这两个 Pod 的探针失败"
+     },
+     {
+      "object": "frontend 页面处理逻辑（/, /product/*, /cart）",
+      "cause": "首页对每件商品逐个串行调用 currency（1 次 GetSupportedCurrencies + 9~10 次 Convert = 11 次），把 ~4.5%/RPC 的抖动放大成 40% 的首页尾延迟；商品页 2 次→13%、购物车 3~5 次→25%，而只调 cartservice 的 POST /cart 恒 1ms、/setCurrency 恒 0ms，量化吻合"
+     },
+     {
+      "object": "frontend → currencyservice 的连接方式（passthrough gRPC + 单副本语义）",
+      "cause": "frontend 的单一 ClientConn 钉在一个 currencyservice Pod 上（近 35s 内 6ljl5 收到全部业务流量，zfpw2 仅 6 行日志），因此扩到 2 副本也没有分流，任何按 Pod/按包生效的丢包依旧 100% 暴露；这是放大面，不是根因"
+     },
+     {
+      "object": "故障注入源（节点 veth 上的 tc/netem 或 boutique 命名空间外的 chaos 对象）",
+      "cause": "丢包只作用于 app=currencyservice 的两个 Pod，跨两次 Pod 重建（新 IP/netns/进程）、跨 CPU 与副本调整持续存在，同节点其余 11 个 Pod 完全不受影响；我无 nodes/CRD/其它命名空间读权限，无法定位该对象，且现有 7 种应用层操作都无法移除它"
+     }
+    ],
+    "actions": [],
+    "explanation": "本轮不申请操作：能触及 currency 应用/资源层的三种手段（CPU 上限→1 核、副本 1→2、currency/frontend/checkout 重建）前两轮已验证无效，而剩余可用的 set_env/set_service_selector/set_service_target_port 都会破坏现有正确配置（改 PORT 或 targetPort 会让 7000 探针立刻失败、全站 5xx）并不能消除按包丢包。根因在节点/CNI 或 boutique 外的 chaos 对象，需运维用节点权限执行 `tc -s qdisc show dev <currencyservice veth>` 定位并 `tc qdisc del`，或删除命中 app=currencyservice 的 NetworkChaos；同时建议把 frontend 首页的 11 次串行 currency 调用改为并行+缓存，并让 currency 客户端改用 round_robin 以真正分摊到多副本。"
+   },
+   "plan_error": "",
+   "actions": [],
+   "observation": null
+  }
+ ],
+ "outcome": "agent_stopped",
+ "before": {
+  "since": "2026-11-16T18:57:13Z",
+  "seconds": 45.0,
+  "requests": 207,
+  "slow_180ms": 24,
+  "share_slow": 0.116,
+  "p50_ms": 9,
+  "p90_ms": 214,
+  "p99_ms": 429,
+  "http_500": 0,
+  "checkout_attempts": 14,
+  "checkout_failed": 0,
+  "resolved": false
+ },
+ "injector_log": "netem on vethd692c4d7 (currencyservice-6df4cccbb9-w9sz7 10.244.0.132): loss 6%\nqdisc netem 8028: root refcnt 17 limit 1000 loss 6% seed 6472629600299775908\nnetem applied: 1\nnetem re-applied on veth2db08796 (currencyservice 10.244.0.141): loss 6%\nnetem re-applied on veth8c282d00 (currencyservice 10.244.0.142): loss 6%\n",
+ "restored": [
+  "Deployment/currencyservice: set resources deployment/currencyservice -> ok",
+  "Deployment/currencyservice: scale deployment/currencyservice --replicas=1 -> ok"
+ ],
+ "steps": [
+  {
+   "phase": "verify_healthy",
+   "ok": true,
+   "detail": "healthy",
+   "seconds": 0.38
+  },
+  {
+   "phase": "home_latency",
+   "ok": true,
+   "detail": "GET / ok=True median=0.16s of [0.16] (need >= 0s)",
+   "seconds": 0.0
+  },
+  {
+   "phase": "clean_slate",
+   "ok": true,
+   "detail": "fresh pods",
+   "seconds": 35.67
+  },
+  {
+   "phase": "verify_fresh",
+   "ok": true,
+   "detail": "healthy",
+   "seconds": 0.26
+  },
+  {
+   "phase": "home_latency",
+   "ok": true,
+   "detail": "GET / ok=True median=0.06s of [0.06] (need >= 0s)",
+   "seconds": 0.0
+  },
+  {
+   "phase": "clear_events",
+   "ok": true,
+   "detail": "",
+   "seconds": 0.0
+  },
+  {
+   "phase": "prune_history",
+   "ok": true,
+   "detail": "8 old replicasets",
+   "seconds": 0.0
+  },
+  {
+   "phase": "inject",
+   "ok": true,
+   "detail": "-n infra-tools delete pod net-injector --ignore-not-found",
+   "seconds": 0.04
+  },
+  {
+   "phase": "inject",
+   "ok": true,
+   "detail": "apply -f /work/scenarios/netem/injector-boutique-hard-BH12.yaml",
+   "seconds": 0.16
+  },
+  {
+   "phase": "inject",
+   "ok": true,
+   "detail": "-n infra-tools wait --for=condition=Ready pod/net-injector --timeout=180s",
+   "seconds": 2.6
+  },
+  {
+   "phase": "confirm",
+   "ok": true,
+   "detail": "8/65 requests >= 180 ms since 2026-11-16T18:57:13Z; logs(app=net-injector) contain 'netem applied: 1': True",
+   "seconds": 18.71
+  },
+  {
+   "phase": "reset",
+   "ok": true,
+   "detail": "-n infra-tools delete pod net-injector --ignore-not-found",
+   "seconds": 2.56
+  },
+  {
+   "phase": "reset",
+   "ok": true,
+   "detail": "reset steps applied",
+   "seconds": 12.18
+  },
+  {
+   "phase": "verify_recovered",
+   "ok": true,
+   "detail": "healthy",
+   "seconds": 6.63
+  },
+  {
+   "phase": "home_latency",
+   "ok": true,
+   "detail": "GET / ok=True median=0.06s of [0.06] (need >= 0s)",
+   "seconds": 0.0
+  }
+ ],
+ "total_tokens": 3201519
+}
