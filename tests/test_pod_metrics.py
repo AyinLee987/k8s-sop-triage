@@ -42,7 +42,7 @@ def test_table_shows_usage_throttling_and_network_for_the_namespace_only():
     row = next(line for line in t.splitlines() if line.startswith("| currencyservice-abc"))
     cells = [c.strip() for c in row.strip("|").split("|")]
     # 3 CPU-seconds in 15 s = 200m against a 200m limit; 120 of 150 periods throttled in the window, 220 of 1150 since start
-    assert cells[1:6] == ["4 分钟", "200", "200", "80%", "19%"] and cells[6] == "64 / 128" and cells[7] == "600/600" and cells[8] == "0/0"
+    assert cells[1:6] == ["4 分钟", "200", "200", "80%（120/150）", "19%"] and cells[6] == "64 / 128" and cells[7] == "600/600" and cells[8] == "0/0"
     assert "2.5 小时" in t and "累计被限流" not in t and "包含刚启动的那段时间" in t
     assert "net-injector" not in t and "infra-tools" not in t and "777777" not in t
     # a pod the kubelet has not reported yet gets dashes, not zeros
@@ -78,6 +78,8 @@ def test_end_to_end_with_a_fake_kubelet_never_prints_the_token(monkeypatch, caps
     token.write_text("SECRET-TOKEN-VALUE\n", encoding="utf-8")
     monkeypatch.setenv("METRICS_TOKEN_FILE", str(token))
     monkeypatch.setattr(sys, "argv", ["pod_metrics.py", "--window", "0"])
+    slept = []
+    monkeypatch.setattr(pm.time, "sleep", slept.append)
     monkeypatch.setattr(pm, "list_pods", lambda ns: PODS)
     monkeypatch.setattr(sys, "argv", ["pod_metrics.py", "--window", "0", "--extra", "0"])
     # the second reading is not fresh yet (same timestamp): the tool reads once more instead of printing dashes
@@ -87,15 +89,30 @@ def test_end_to_end_with_a_fake_kubelet_never_prints_the_token(monkeypatch, caps
     monkeypatch.setattr(pm, "scrape", lambda host, tok, timeout=20: (seen.append((host, tok)), next(samples))[1])
     assert pm.main() == 0
     out = capsys.readouterr().out
-    assert "80%" in out and "SECRET" not in out and seen == [("172.18.0.2", "SECRET-TOKEN-VALUE")] * 3
+    assert "80%（120/150）" in out and "SECRET" not in out and seen == [("172.18.0.2", "SECRET-TOKEN-VALUE")] * 3
+    assert slept == [15.0, 0.0] and "最近约 15 秒" in out          # 0 (nothing or nonsense from the model) means the default window
+    for given, used in (("5", 10.0), ("30", 30.0), ("9999", 45.0), ("-3", 15.0)):
+        slept.clear()
+        samples = iter([cadvisor(10.0, 1000, 100, 8.0, 5000, 1_000_000), cadvisor(13.0, 1150, 220, 17.5, 5600, 1_015_000)])
+        monkeypatch.setattr(sys, "argv", ["pod_metrics.py", "--window", given])
+        assert pm.main() == 0 and slept == [used], given
+        capsys.readouterr()
     monkeypatch.setattr(pm, "scrape", lambda *a, **k: (_ for _ in ()).throw(PermissionError("HTTP Error 403: Forbidden")))
     assert pm.main() == 1 and "SECRET" not in capsys.readouterr().out
 
 
-def test_the_tool_takes_no_arguments_and_the_account_can_only_read_node_metrics():
+def test_the_only_argument_reaches_the_shell_as_digits_and_the_account_can_only_read_node_metrics():
     ts = yaml.safe_load((REPO / "holmes" / "toolsets-metrics.yaml").read_text(encoding="utf-8"))["toolsets"]["boutique/metrics"]
     (tool,) = ts["tools"]
-    assert "parameters" not in tool and "{{" not in tool["command"] and "$" not in tool["command"]     # nothing the model writes reaches the shell
+    cmd = tool["command"]
+    assert cmd.count("{{") == 1 and "{{ window_seconds | default(15) | int }}" in cmd and "$" not in cmd
+    assert list(tool["parameters"]) == ["window_seconds"] and tool["parameters"]["window_seconds"]["required"] is False
+    jinja2 = __import__("pytest").importorskip("jinja2")
+    render = lambda **kw: jinja2.Template(cmd).render(**kw)  # noqa: E731
+    assert render() == "python /work/scripts/pod_metrics.py --window 15" and render(window_seconds=30).endswith("--window 30")
+    for hostile in ("15; rm -rf /", "$(cat /work/.env)", "`id`", "20 && curl x", "'; kubectl delete ns boutique #", "--namespace kube-system"):
+        tail = render(window_seconds=hostile).split("--window ")[1]
+        assert tail.lstrip("-").isdigit(), (hostile, tail)
     docs = list(yaml.safe_load_all((REPO / "k8s" / "rbac-metrics.yaml").read_text(encoding="utf-8")))
     role = next(d for d in docs if d["kind"] == "ClusterRole")
     assert role["rules"] == [{"apiGroups": [""], "resources": ["nodes/metrics"], "verbs": ["get"]}]

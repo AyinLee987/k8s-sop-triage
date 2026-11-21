@@ -605,5 +605,16 @@
     "BT12": "△"
    }
   }
+ },
+ "metrics_trial": {
+  "run": "results/holmes_pilot/BT12-20261121-072323.json (laptop)",
+  "setup": "base SOPs (svc-sop-v0) + boutique_pod_metrics, BT12, one run, 1.83M tokens",
+  "grade": [
+   "部分对",
+   "currencyservice、cartservice 都判为调用/网络路径上的延迟，并用“窗口内限流 0%、CPU 远低于上限”排除了 CPU 和应用；另把 productcatalogservice 也当成每次约 200ms（不存在，把 currencyservice 的晚到算给了前一跳）"
+  ],
+  "compare": "同一组不带指标的那一遍（eval-S0 BT12）：把两个服务都判成 CPU 限流/节点 CPU 饱和，部分对。机制的误判消失了，定位上多报一个服务的问题还在。",
+  "tool_use": "调用 2 次：第 4 个工具调用成功（21 秒）；第 30 个被 HolmesGPT 拒绝（同一次排查里参数完全相同的调用不重复执行）。读表正确：以窗口一列为准，注意到启动以来的数值样本小。",
+  "changes_after": "工具加了可选的 window_seconds（经 Jinja int 过滤，只有数字能到命令行），窗口一列显示被限流周期数/总周期数"
  }
 }

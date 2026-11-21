@@ -1,11 +1,19 @@
 # Custom HolmesGPT toolset: container metrics for the Online Boutique namespace (holmes ask ... --custom-toolsets <this file>).
-# One tool, no arguments: nothing the model writes reaches a shell. The command reads the kubelet's cAdvisor endpoint with a
-# token that may only read node metrics (k8s/rbac-metrics.yaml) and prints one table for the pods of `boutique`.
+# One tool with one optional number. The number goes through Jinja's `int` filter, so whatever the model writes reaches
+# the shell as digits only; the script then keeps it between 10 and 45. (HolmesGPT refuses a second call with identical
+# arguments in one investigation, so without any argument the table could be read only once.) The command reads the
+# kubelet's cAdvisor endpoint with a token that may only read node metrics (k8s/rbac-metrics.yaml) and prints one table
+# for the pods of `boutique`.
 toolsets:
   boutique/metrics:
     enabled: true
     description: "Container resource metrics (CPU usage, CPU throttling, memory, pod network counters) for the pods in the boutique namespace, read from the node's kubelet (cAdvisor)."
     tools:
       - name: boutique_pod_metrics
-        description: "Returns one table for every pod in the boutique namespace: CPU usage against its limit, the share of CFS periods in which the container was throttled (last ~15 seconds and since the container started), how long the pod has been running, memory against its limit, and the pod network interface's packet, drop and error counters. Takes 15 to 30 seconds. No arguments."
-        command: "python /work/scripts/pod_metrics.py"
+        description: "Returns one table for every pod in the boutique namespace: how long the pod has been running, CPU usage against its limit, the share of CFS periods in which the container was throttled (in the measuring window, with the counts, and since the container started), memory against its limit, and the pod network interface's packet, drop and error counters. Takes about as long as the window plus a few seconds. To read the metrics again later in the same investigation, call it with a different window_seconds."
+        command: "python /work/scripts/pod_metrics.py --window {{ window_seconds | default(15) | int }}"
+        parameters:
+          window_seconds:
+            description: "Length of the measuring window in seconds, 10 to 45. Default 15."
+            type: integer
+            required: false

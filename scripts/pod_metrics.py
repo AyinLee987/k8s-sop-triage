@@ -91,8 +91,11 @@ def table(pods: list[dict], first: dict, second: dict, window: float) -> str:
         seconds = (tb - ta) / 1000 if ta and tb else window
         return (b - a, seconds) if seconds > 0 else (None, 0.0)
 
-    def pct(part, whole):
-        return "-" if part is None or not whole else f"{100 * part / whole:.0f}%"
+    def pct(part, whole, counts=False):
+        if part is None or not whole:
+            return "-"
+        # in the window the counts are shown too: 1 throttled period out of 12 is "8%" and means very little
+        return f"{100 * part / whole:.0f}%" + (f"（{part:.0f}/{whole:.0f}）" if counts else "")
 
     def num(x, fmt="{:.0f}"):
         return "-" if x is None else fmt.format(x)
@@ -116,12 +119,13 @@ def table(pods: list[dict], first: dict, second: dict, window: float) -> str:
         tx, _ = delta(pod, "container_network_transmit_packets_total")
         g = lambda name: val(second, pod, name)[0]  # noqa: E731
         rows.append(f"| {pod} | {age(p.get('age_s'))} | {num(1000 * d_cpu / s_cpu if d_cpu is not None and s_cpu else None)} | {num(p['cpu_limit_m'])} | "
-                    f"{pct(d_thr, d_per)} | {pct(throttled, periods)} | "
+                    f"{pct(d_thr, d_per, counts=True)} | {pct(throttled, periods)} | "
                     f"{num(mem / 1048576 if mem is not None else None)} / {num(p['mem_limit_mi'])} | {num(rx)}/{num(tx)} | "
                     f"{num(g('container_network_receive_packets_dropped_total'))}/{num(g('container_network_transmit_packets_dropped_total'))} | "
                     f"{num(g('container_network_receive_errors_total'))}/{num(g('container_network_transmit_errors_total'))} |")
     notes = (f"\n说明：窗口 = 最近约 {window:.0f} 秒；“-” = 这段时间内 kubelet 没有刷新该计数。"
-             "被限流周期占比 = 容器有任务可运行的 CFS 调度周期（100 毫秒一个）里，因为用完 CPU 配额而被暂停的周期所占比例；"
+             "被限流周期占比 = 容器有任务可运行的 CFS 调度周期（100 毫秒一个）里，因为用完 CPU 配额而被暂停的周期所占比例，"
+             "窗口一列括号里是“被限流的周期数/有任务可运行的周期数”；"
              "“启动以来”从容器启动算起，包含刚启动的那段时间。"
              "网络计数取自 Pod 自己的网卡（eth0），只统计到达这块网卡或由它发出的包。数据来源：节点 kubelet 的 cAdvisor。")
     return "\n".join(rows) + notes
@@ -170,6 +174,8 @@ def main() -> int:
     ap.add_argument("--window", type=float, default=15)
     ap.add_argument("--extra", type=float, default=6, help="seconds to wait before reading again when a pod has no fresh reading (at most twice)")
     args = ap.parse_args()
+    # the tool passes whatever the model wrote, reduced to an integer: nothing or nonsense arrives as 0 and means the default
+    args.window = 15.0 if args.window <= 0 else max(10.0, min(45.0, args.window))
     token_file = os.environ.get("METRICS_TOKEN_FILE", "")
     if not token_file or not os.path.exists(token_file):
         print("指标不可用：没有配置读取节点指标的凭证。")
