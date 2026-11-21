@@ -4,7 +4,9 @@
 
 For each service and limit: set limit=request, wait for the rollout, let it settle, load a page that calls the
 service 8 times through the API-server proxy, record the timings and the pod's ready/restart state. The page is the
-home page, except for services the home page does not call (recommendationservice: a product page).
+home page, except for services the home page does not call (recommendationservice: a product page). The "slow/all"
+column counts, in the frontend's own log over the settle and probe time, the requests that took >= 110 ms: the measure
+the scenarios' confirm check uses, and the only one that sees services called from the cart or checkout pages.
 Pick, per service, the largest limit at which the page is clearly slower than the baseline in most of the 8 loads
 while the rollout finished, the pod is ready and has not restarted; put it into CPU_LIMIT in
 boutique/make_hard_scenarios.py and regenerate. The baseline values are put
@@ -13,6 +15,7 @@ back at the end (and after an interruption). No agent runs; nothing is deleted.
 from __future__ import annotations
 
 import argparse
+import re
 import statistics
 import sys
 import time
@@ -60,9 +63,17 @@ def main() -> int:
                      "jsonpath={range .items[*]}{.status.containerStatuses[0].ready}/{.status.containerStatuses[0].restartCount} {end}"], 20)
         return res.stdout.strip() or res.stderr.strip()[:60]
 
+    def slow_share(since: int, min_ms: float = 110) -> str:
+        """Requests in the frontend's own log over the last `since` seconds that took >= min_ms, as "slow/total".
+        This is what the scenarios' confirm check counts; it also sees pages the probe does not load (cart, checkout)."""
+        res = k.run(["-n", NS, "logs", "deployment/frontend", f"--since={since}s"], 40)
+        took = [float(m) for m in re.findall(r'"http\.resp\.took_ms":\s*([0-9.]+)', res.stdout)]
+        return f"{sum(t >= min_ms for t in took)}/{len(took)}"
+
     print("baseline home page:", probe(5), flush=True)
+    print("baseline slow requests in the frontend log (>=110 ms, last 60 s):", slow_share(60), flush=True)
     print("baseline product page:", probe(5, PAGE["recommendationservice"]), flush=True)
-    print(f"{'service':24} {'limit':>6} {'rollout':>8} {'ready/restarts':>15}  median  timings (s; -1 = error)", flush=True)
+    print(f"{'service':24} {'limit':>6} {'rollout':>8} {'ready/restarts':>15}  median  {'slow/all':>9}  timings (s; -1 = error)", flush=True)
     try:
         for dep in args.services.split(","):
             for lim in args.limits.split(","):
@@ -71,7 +82,7 @@ def main() -> int:
                 times = probe(page=PAGE.get(dep, HOME))
                 good = [t for t in times if t >= 0]
                 print(f"{dep:24} {lim:>6} {'ok' if rolled else 'TIMEOUT':>8} {pod_state(dep):>15}  "
-                      f"{statistics.median(good) if good else -1:>6}  {times}", flush=True)
+                      f"{statistics.median(good) if good else -1:>6}  {slow_share(int(args.settle) + 30):>9}  {times}", flush=True)
             print(f"{dep}: back to baseline ->", "ok" if set_cpu(dep, *BASE[dep]) else "ROLLOUT NOT FINISHED", flush=True)
     finally:
         for dep in args.services.split(","):

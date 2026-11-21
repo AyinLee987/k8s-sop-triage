@@ -1,0 +1,493 @@
+[
+ {
+  "scenario": "BH01",
+  "mode": "B",
+  "lesson": "用户同时报“慢”和“失败”时，可能是两个独立的根因：按请求类型分开归因，失败看错误日志里的目标地址并和现网配置对比，变慢看各页面耗时和它调某个下游的次数是否成比例。",
+  "changes": [
+   {
+    "change": {
+     "op": "add",
+     "sop": "boutique-triage-overview",
+     "text": "现象：用户同时反馈变慢和请求失败（例如下单失败）。判断：不要默认是同一个根因。先按接口/handler 把请求分成“报错的”和“慢但成功的”两组，各自顺着调用链查。报错组看调用方错误日志里的具体错误和目标地址；慢组看各 handler 的耗时分布。两组指向不同下游时，分别给出根因和修复。只有当慢请求和失败请求都卡在同一个下游、同一种错误上时，才合并成一个根因。例：下单失败来自一个服务的配置错误，整站变慢来自另一个服务的资源瓶颈。"
+    },
+    "applied": true,
+    "id": "E1"
+   },
+   {
+    "change": {
+     "op": "add",
+     "sop": "boutique-triage-overview",
+     "text": "现象：调用方日志报 dial tcp <ClusterIP>:<端口> i/o timeout 或 connection refused。判断：(1) 用 IP 反查是哪个 Service，把日志里的端口和该 Service 的 port/targetPort、容器实际监听端口逐一比较；ClusterIP 上没有对应端口规则时，通常表现为 i/o timeout，而不是 refused。(2) 查调用方 Deployment 的 ReplicaSet 历史，对比新旧 revision 的环境变量（*_ADDR 等）和镜像，再结合 ScalingReplicaSet 事件的时间，确认是不是刚改出来的。(3) 被调方没有错误日志、Endpoints 正常时，修调用方配置，不要改 Service。另外，Pod 刚启动时短暂的 refused 或 readiness 失败、之后自己恢复的，属于启动期现象，不算根因。"
+    },
+    "applied": true,
+    "id": "E2"
+   },
+   {
+    "change": {
+     "op": "add",
+     "sop": "boutique-triage-overview",
+     "text": "现象：整站变慢，但没有错误日志。判断：把调用方各 handler 的耗时，和该 handler 调用某个下游的次数列成表（例如首页按商品数、购物车按件数调用）。如果耗时随调用次数线性增加，而不调用该下游的 handler 仍然很快，瓶颈就在这个下游。再区分是资源节流还是网络延迟：查该下游日志里低负载时段是否有很快完成的批量处理，并查它的 CPU limit 和请求速率；本身处理很快、limit 又很低、负载上来才变慢，支持 CFS 节流/CPU 争抢。拿不到节点或 Pod 的 CPU 指标时，要说明不能排除节点级争抢；如果提高配额后仍然慢，再去查节点。例：货币转换服务每次调用被拖慢，首页的多次顺序调用把它放大成秒级页面耗时。"
+    },
+    "applied": true,
+    "id": "E3"
+   }
+  ],
+  "prompt_chars": 6532,
+  "tokens": null,
+  "writer": "claude-opus-5-5",
+  "method_rule": true,
+  "entries_total": 3,
+  "truth": "checkoutservice 的环境变量 PAYMENT_SERVICE_ADDR 被改成 paymentservice:50052（应为 paymentservice:50051），调不到 paymentservice；paymentservice 自身没有问题。"
+ },
+ {
+  "scenario": "BH02",
+  "mode": "B",
+  "lesson": "调用方报 connection refused 时先看被调 Service 的 Endpoints 是否为空，为空就逐字比对 selector 与 Pod 标签；整站变慢时用单个请求的逐跳日志时间戳找出耗时集中的那一跳，再看耗时是否按该服务的网络往返次数成整数倍增加，以此区分网络延迟和 CPU 节流。",
+  "changes": [
+   {
+    "change": {
+     "op": "modify",
+     "sop": "boutique-triage-overview",
+     "id": "E2",
+     "text": "现象：调用方日志报 dial tcp <ClusterIP>:<端口> i/o timeout 或 connection refused。判断：(1) 用 IP 反查是哪个 Service，先看它的 Endpoints。Endpoints 为空（subsets: []）时，ClusterIP 通常直接返回 refused：逐字比对 Service selector 和后端 Pod 的 labels（键名、取值、后缀如 -v2），再顺手核对其他 Service 的 Endpoints，找出唯一为空的那个；修复方法是把 selector 改回去，不要动 Pod 或调用方。(2) Endpoints 正常时，把日志里的端口和 Service 的 port/targetPort、容器实际监听端口逐一比较；ClusterIP 上没有对应端口规则时，多表现为 i/o timeout。(3) 查调用方 ReplicaSet 历史，对比新旧 revision 的 *_ADDR 环境变量和镜像，结合 ScalingReplicaSet 事件时间，确认是不是刚改出来的。被调方无错误日志、Endpoints 和端口都对时，修调用方配置。Pod 刚启动时短暂 refused、之后自己恢复的，不算根因。"
+    },
+    "applied": true,
+    "before": "现象：调用方日志报 dial tcp <ClusterIP>:<端口> i/o timeout 或 connection refused。判断：(1) 用 IP 反查是哪个 Service，把日志里的端口和该 Service 的 port/targetPort、容器实际监听端口逐一比较；ClusterIP 上没有对应端口规则时，通常表现为 i/o timeout，而不是 refused。(2) 查调用方 Deployment 的 ReplicaSet 历史，对比新旧 revision 的环境变量（*_ADDR 等）和镜像，再结合 ScalingReplicaSet 事件的时间，确认是不是刚改出来的。(3) 被调方没有错误日志、Endpoints 正常时，修调用方配置，不要改 Service。另外，Pod 刚启动时短暂的 refused 或 readiness 失败、之后自己恢复的，属于启动期现象，不算根因。"
+   },
+   {
+    "change": {
+     "op": "modify",
+     "sop": "boutique-triage-overview",
+     "id": "E3",
+     "text": "现象：整站变慢，但没有错误日志。判断：(1) 找瓶颈：挑一个慢请求，按调用方 handler 起点和各下游日志的时间戳逐跳对时，找出耗时集中在哪两条日志之间、中间夹的是哪个下游调用；或者把各 handler 耗时和它调用某下游的次数列成表，耗时随调用次数增加、而不调它的 handler 仍然很快，瓶颈就在那个下游。调用方自身的健康检查端点、其他下游仍是毫秒级时，排除调用方进程和整节点负载。(2) 区分网络延迟和 CPU 节流：数一下该服务各接口各自要几次网络往返（与调用方之间、与它的存储之间）。耗时按往返次数呈固定台阶增加、与负载和请求大小无关，支持该 Pod 网络被注入固定延迟；本身处理很快、CPU limit 很低、负载上来才变慢且有波动，支持 CFS 节流。(3) 对照变慢开始的时间和该服务 Pod 的创建/Ready 时间。网络延迟先重建 Pod；节流先提高 limit；修复后仍慢，就换另一个假设，或去查节点。例：读接口一次存储往返、写接口两次往返，二者正好相差一个固定台阶。"
+    },
+    "applied": true,
+    "before": "现象：整站变慢，但没有错误日志。判断：把调用方各 handler 的耗时，和该 handler 调用某个下游的次数列成表（例如首页按商品数、购物车按件数调用）。如果耗时随调用次数线性增加，而不调用该下游的 handler 仍然很快，瓶颈就在这个下游。再区分是资源节流还是网络延迟：查该下游日志里低负载时段是否有很快完成的批量处理，并查它的 CPU limit 和请求速率；本身处理很快、limit 又很低、负载上来才变慢，支持 CFS 节流/CPU 争抢。拿不到节点或 Pod 的 CPU 指标时，要说明不能排除节点级争抢；如果提高配额后仍然慢，再去查节点。例：货币转换服务每次调用被拖慢，首页的多次顺序调用把它放大成秒级页面耗时。"
+   }
+  ],
+  "prompt_chars": 6982,
+  "tokens": null,
+  "writer": "claude-opus-5-5",
+  "method_rule": true,
+  "entries_total": 3,
+  "truth": "Service paymentservice 的 selector 被改成 app=paymentservice-v2，匹配不到 Pod，端点为空。"
+ },
+ {
+  "scenario": "BH03",
+  "mode": "B",
+  "lesson": "变慢和失败要分开查：失败看调用方配置与线上 spec 和 last-applied 的差异，变慢则对比调用方发起时间与被调方接收日志时间，判断延迟发生在到达被调方之前（网络）还是处理过程中。",
+  "changes": [
+   {
+    "change": {
+     "op": "modify",
+     "sop": "boutique-triage-overview",
+     "id": "E2",
+     "text": "（BH01–BH03）现象：调用方日志报 dial tcp <ClusterIP>:<端口> i/o timeout、connection refused，或 gRPC 错误链显示某个下游步骤失败，且首次失败耗时为秒级（建连超时）、之后都是毫秒级快速失败。判断：(1) 从错误链和日志确定目标下游和端口，反查 Service 看 Endpoints；为空时逐字比对 selector 与 Pod labels（键名、取值、后缀），修 selector，不动 Pod 和调用方。(2) Endpoints 正常时，把调用方 *_ADDR 中的端口与 Service port/targetPort、容器实际监听端口逐一比较。(3) 被调方日志无错、仍能正常服务其他调用方时，问题在调用方配置：对比调用方线上 env 与 last-applied-configuration、新旧 ReplicaSet 模板，结合 ScalingReplicaSet 事件时间确认是刚改出来的，然后修调用方配置。Pod 刚启动时短暂 refused、随后自愈的不算根因。"
+    },
+    "applied": true,
+    "before": "现象：调用方日志报 dial tcp <ClusterIP>:<端口> i/o timeout 或 connection refused。判断：(1) 用 IP 反查是哪个 Service，先看它的 Endpoints。Endpoints 为空（subsets: []）时，ClusterIP 通常直接返回 refused：逐字比对 Service selector 和后端 Pod 的 labels（键名、取值、后缀如 -v2），再顺手核对其他 Service 的 Endpoints，找出唯一为空的那个；修复方法是把 selector 改回去，不要动 Pod 或调用方。(2) Endpoints 正常时，把日志里的端口和 Service 的 port/targetPort、容器实际监听端口逐一比较；ClusterIP 上没有对应端口规则时，多表现为 i/o timeout。(3) 查调用方 ReplicaSet 历史，对比新旧 revision 的 *_ADDR 环境变量和镜像，结合 ScalingReplicaSet 事件时间，确认是不是刚改出来的。被调方无错误日志、Endpoints 和端口都对时，修调用方配置。Pod 刚启动时短暂 refused、之后自己恢复的，不算根因。"
+   },
+   {
+    "change": {
+     "op": "modify",
+     "sop": "boutique-triage-overview",
+     "id": "E3",
+     "text": "（BH01–BH03）现象：整站变慢，无错误日志。判断：(1) 找瓶颈：把各 handler 耗时与它是否/几次调用某下游列表比较，只有调用它的 handler 变慢、不调它的仍很快，瓶颈就在该下游；再挑一个慢请求逐跳对时间戳。(2) 定位延迟在哪一段：比较调用方发起调用的时间、被调方打出“收到请求”日志的时间、被调方返回后调用方完成的时间。耗时集中在到达被调方之前、而被调方处理和其出向调用都很快，支持该 Pod 入方向网络延迟；耗时在被调方处理内部、CPU limit 低、随负载波动，支持 CFS 节流。耗时随网络往返次数呈固定台阶增加，也支持网络延迟。(3) 对照变慢开始时间与 Pod 创建/Ready 时间。网络延迟先重建 Pod，节流先提高 limit；修复后仍慢就换假设或查节点/注入源。例：被调方收到请求比调用方发起晚一个稳定间隔，而处理只要几毫秒。"
+    },
+    "applied": true,
+    "before": "现象：整站变慢，但没有错误日志。判断：(1) 找瓶颈：挑一个慢请求，按调用方 handler 起点和各下游日志的时间戳逐跳对时，找出耗时集中在哪两条日志之间、中间夹的是哪个下游调用；或者把各 handler 耗时和它调用某下游的次数列成表，耗时随调用次数增加、而不调它的 handler 仍然很快，瓶颈就在那个下游。调用方自身的健康检查端点、其他下游仍是毫秒级时，排除调用方进程和整节点负载。(2) 区分网络延迟和 CPU 节流：数一下该服务各接口各自要几次网络往返（与调用方之间、与它的存储之间）。耗时按往返次数呈固定台阶增加、与负载和请求大小无关，支持该 Pod 网络被注入固定延迟；本身处理很快、CPU limit 很低、负载上来才变慢且有波动，支持 CFS 节流。(3) 对照变慢开始的时间和该服务 Pod 的创建/Ready 时间。网络延迟先重建 Pod；节流先提高 limit；修复后仍慢，就换另一个假设，或去查节点。例：读接口一次存储往返、写接口两次往返，二者正好相差一个固定台阶。"
+   },
+   {
+    "change": {
+     "op": "add",
+     "sop": "boutique-triage-overview",
+     "text": "现象：有多个嫌疑对象，或不确定最近改了什么。判断：对命名空间内所有 Deployment 和 Service，把线上 spec（env、镜像、selector、port/targetPort、resources）与各自的 last-applied-configuration 逐项比对，并查各 Deployment 的 ReplicaSet revision 和创建时间。差异唯一且时间与故障开始吻合时，优先作为配置类根因并验证。注意网络延迟注入、节点问题等不会改 spec，比对干净的服务仍出现异常时，应转向配置之外的解释（按 E3 判断网络还是资源），不能据此排除它。"
+    },
+    "applied": true,
+    "id": "E4"
+   }
+  ],
+  "prompt_chars": 7888,
+  "tokens": null,
+  "writer": "claude-opus-5-5",
+  "method_rule": true,
+  "entries_total": 4,
+  "truth": "checkoutservice 的环境变量 CURRENCY_SERVICE_ADDR 被改成 currencyservice:7001（应为 currencyservice:7000），调不到 currencyservice；currencyservice 自身没有问题。"
+ },
+ {
+  "scenario": "BH04",
+  "mode": "B",
+  "lesson": "整站变慢、无报错时，延迟可能同时附着在多个下游上：要逐个下游算“每次调用的增量”，用同一窗口内其他下游的正常往返做对照，把所有被抬高的下游都找出来，不要只修第一个找到的瓶颈。",
+  "changes": [
+   {
+    "change": {
+     "op": "add",
+     "sop": "boutique-triage-overview",
+     "text": "现象：整站变慢、无错误日志，按 E3 找到一个慢下游，但它解释不了全部耗时。判断：(1) 对每个 handler 数出它对各下游的调用次数，用调用方日志里相邻两次调用的时间戳间隔估算每个下游单次调用耗时。(2) 用“各下游单次增量×调用次数”去拼每个 handler 的总耗时（含下游的内部再调用），拼不齐说明还有被漏掉的慢下游，继续逐跳对时间戳。(3) 同一时间窗内找出往返仍正常的下游作对照：只有部分 Pod 变慢、其余正常，支持针对这些 Pod 的注入/入方向网络问题，排除节点 CPU 和全局网络。根因要列出所有被抬高的下游，修复一并覆盖。例：多个下游各被抬高相同的一段，页面耗时约等于增量乘以调用次数之和。"
+    },
+    "applied": true,
+    "id": "E5"
+   },
+   {
+    "change": {
+     "op": "add",
+     "sop": "boutique-triage-overview",
+     "text": "现象：修复需要重建 Pod（尤其是用 emptyDir 等非持久存储的有状态服务，如缓存/数据库），或重建后要复核效果。判断：(1) 重建前先评估副作用：会丢失哪些数据，哪些接口会因数据变少而“假性变快”或行为变化，复核时以不受这些数据影响的接口为准。(2) 有依赖关系的先重建被依赖方，再重建调用方，确保重新建连。(3) 重建后与故障前的健康基线比较：恢复则说明问题附着在 Pod 运行期状态上；完全不变说明是按 label 持续施加的外部注入（chaos 实验、sidecar、节点 tc 规则）或节点问题，不要重复重启，转去查注入源或节点。"
+    },
+    "applied": true,
+    "id": "E6"
+   }
+  ],
+  "prompt_chars": 7936,
+  "tokens": null,
+  "writer": "claude-opus-5-5",
+  "method_rule": true,
+  "entries_total": 6,
+  "truth": "productcatalogservice 的 Pod 网络被加了约 300ms 延迟；它自身处理不慢，调用它的服务跟着变慢。"
+ },
+ {
+  "scenario": "BH05",
+  "mode": "B",
+  "lesson": "整站变慢且配置全部干净时，用“极快的 handler 作对照排除下游 + 多个独立调用方取共同下游 + 调用方发起时刻与被调方入口日志逐条对齐”三步，就能把延迟钉在某个 Pod 的入方向网络上，而不必依赖指标或进入容器。",
+  "changes": [
+   {
+    "change": {
+     "op": "modify",
+     "sop": "boutique-triage-overview",
+     "id": "E3",
+     "text": "现象：整站变慢，无错误日志。判断：(1) 找瓶颈：把各 handler 耗时与它调用了哪些下游、各几次比较。先找最快的 handler 作对照：它调用到的下游都可排除；只有调用某下游的 handler 变慢、耗时随该下游调用次数（如列表条目数）成台阶增加，瓶颈就在该下游。(2) 定位延迟在哪一段：比较调用方发起调用的时间（完成时刻减耗时）、被调方 handler 入口日志时间、被调方返回后调用方完成的时间，注意区分被调方日志是入口打印还是出口打印。耗时集中在到达被调方之前、被调方处理和出向调用都很快，支持该 Pod 入方向网络延迟；耗时在处理内部、CPU limit 低、随负载波动，支持 CFS 节流；负载很低时仍慢可排除节流。(3) 对照变慢开始时间与 Pod 创建/Ready 时间。网络延迟先重建 Pod，节流先提高 limit；修复后仍慢按 E6 转查注入源或节点。例：被调方收到请求比调用方发起晚一个稳定间隔，而处理只要几毫秒。"
+    },
+    "applied": true,
+    "before": "现象：整站变慢，无错误日志。判断：(1) 找瓶颈：把各 handler 耗时与它是否/几次调用某下游列表比较，只有调用它的 handler 变慢、不调它的仍很快，瓶颈就在该下游；再挑一个慢请求逐跳对时间戳。(2) 定位延迟在哪一段：比较调用方发起调用的时间、被调方打出“收到请求”日志的时间、被调方返回后调用方完成的时间。耗时集中在到达被调方之前、而被调方处理和其出向调用都很快，支持该 Pod 入方向网络延迟；耗时在被调方处理内部、CPU limit 低、随负载波动，支持 CFS 节流。耗时随网络往返次数呈固定台阶增加，也支持网络延迟。(3) 对照变慢开始时间与 Pod 创建/Ready 时间。网络延迟先重建 Pod，节流先提高 limit；修复后仍慢就换假设或查节点/注入源。例：被调方收到请求比调用方发起晚一个稳定间隔，而处理只要几毫秒。"
+   },
+   {
+    "change": {
+     "op": "add",
+     "sop": "boutique-triage-overview",
+     "text": "现象：某个调用方变慢，不确定是调用方自身/其所在节点的问题，还是某个下游的问题。判断：(1) 找出另一个独立的调用方（不同 Pod、最好不同 handler 路径），看它调用同一批下游的阶段是否也变慢；用它日志里相邻步骤的时间戳间隔估算各段耗时。(2) 两个调用方都慢，取它们共同调用的下游的交集，交集里再用 E3 的对照法排除仍快的下游，剩下的就是嫌疑；只有一个调用方慢、另一个正常，转查慢调用方自身（资源、节点、出方向网络）。(3) 对嫌疑之外的下游做反证：挑一个在 handler 末尾才被调用的下游，其入口日志应与调用方完成时刻几乎重合，重合即说明该下游及调用方出向网络正常。例：前端页面和下单流程都慢，共同点只有一个被两者调用的下游 Pod。"
+    },
+    "applied": true,
+    "id": "E7"
+   }
+  ],
+  "prompt_chars": 8088,
+  "tokens": null,
+  "writer": "claude-opus-5-5",
+  "method_rule": true,
+  "entries_total": 7,
+  "truth": "currencyservice 的 Pod 网络被加了约 200ms 延迟；它自身处理不慢，调用它的服务跟着变慢。"
+ },
+ {
+  "scenario": "BH06",
+  "mode": "B",
+  "lesson": "用户只报“变慢、无报错”时，仍要扫调用方日志里被降级吞掉的错误：可能同时存在第二个故障（如下游被缩到 0 副本）；快速失败的错误不贡献延迟，要用“耗时是否已被其他下游的调用次数×单次增量解释完”来区分主次。",
+  "changes": [
+   {
+    "change": {
+     "op": "modify",
+     "sop": "boutique-triage-overview",
+     "id": "E1",
+     "text": "现象：用户反馈变慢和/或请求失败，或只说“变慢、没报错”。判断：(1) 不要默认只有一个根因，也不要因用户侧 5xx 为 0 就认为没有错误：扫调用方日志里被降级吞掉的错误（可选功能调用失败、页面照常返回），它们常是同时存在的第二个故障。(2) 按接口/handler 把请求分成“报错的”和“慢但成功的”两组，各自顺调用链查：报错组看错误内容和目标地址，慢组看耗时分布。(3) 判断某个错误是否贡献延迟：看它是毫秒级快速失败还是超时失败，并检查慢 handler 的耗时是否已被其他下游“调用次数×单次增量”完全解释；已解释完则该错误只是独立故障，单独给出根因和修复。只有慢和错都卡在同一下游、同一错误上才合并。例：页面变慢来自一个下游的固定延迟，同时另一个下游缩容导致快速失败的报错日志。"
+    },
+    "applied": true,
+    "before": "现象：用户同时反馈变慢和请求失败（例如下单失败）。判断：不要默认是同一个根因。先按接口/handler 把请求分成“报错的”和“慢但成功的”两组，各自顺着调用链查。报错组看调用方错误日志里的具体错误和目标地址；慢组看各 handler 的耗时分布。两组指向不同下游时，分别给出根因和修复。只有当慢请求和失败请求都卡在同一个下游、同一种错误上时，才合并成一个根因。例：下单失败来自一个服务的配置错误，整站变慢来自另一个服务的资源瓶颈。"
+   },
+   {
+    "change": {
+     "op": "modify",
+     "sop": "boutique-triage-overview",
+     "id": "E2",
+     "text": "现象：调用方日志报 dial tcp <ClusterIP>:<端口> i/o timeout、connection refused，或 gRPC 错误链显示某下游步骤失败，首次失败秒级、之后毫秒级快速失败。判断：(1) 从错误确定目标下游和端口，反查 Service 的 Endpoints。为空时先看对应 Deployment 的 replicas 和 Ready Pod 数：replicas 为 0 或无 Pod，查 ScalingReplicaSet/SuccessfulDelete/Killing 事件确认是被缩容或删除，恢复副本数；有 Ready Pod 仍为空，再逐字比对 selector 与 Pod labels（键名、取值、后缀），修 selector，不动 Pod 和调用方。(2) Endpoints 正常时，把调用方 *_ADDR 端口与 Service port/targetPort、容器监听端口逐一比较。(3) 被调方无错且能服务其他调用方时，问题在调用方配置：对比线上 env 与 last-applied-configuration、新旧 ReplicaSet 模板及事件时间，修调用方配置。Pod 刚启动时短暂 refused 随后自愈的不算根因。"
+    },
+    "applied": true,
+    "before": "现象：调用方日志报 dial tcp <ClusterIP>:<端口> i/o timeout、connection refused，或 gRPC 错误链显示某个下游步骤失败，且首次失败耗时为秒级（建连超时）、之后都是毫秒级快速失败。判断：(1) 从错误链和日志确定目标下游和端口，反查 Service 看 Endpoints；为空时逐字比对 selector 与 Pod labels（键名、取值、后缀），修 selector，不动 Pod 和调用方。(2) Endpoints 正常时，把调用方 *_ADDR 中的端口与 Service port/targetPort、容器实际监听端口逐一比较。(3) 被调方日志无错、仍能正常服务其他调用方时，问题在调用方配置：对比调用方线上 env 与 last-applied-configuration、新旧 ReplicaSet 模板，结合 ScalingReplicaSet 事件时间确认是刚改出来的，然后修调用方配置。Pod 刚启动时短暂 refused、随后自愈的不算根因。"
+   }
+  ],
+  "prompt_chars": 8911,
+  "tokens": null,
+  "writer": "claude-opus-5-5",
+  "method_rule": true,
+  "entries_total": 7,
+  "truth": "currencyservice 的 Pod 网络被加了约 200ms 延迟；它自身处理不慢，调用它的服务跟着变慢。"
+ },
+ {
+  "scenario": "BH07",
+  "mode": "B",
+  "lesson": "调用 ClusterIP 时，connection refused 多指 Service 无 Endpoints，i/o timeout 多指连了 Service 未暴露的端口；先按错误类型分流，再把调用方地址与 Service 端口、新旧 ReplicaSet 模板逐一比对；同一时刻有多个对象变更时，要把这一批变更全部找出来。",
+  "changes": [
+   {
+    "change": {
+     "op": "modify",
+     "sop": "boutique-triage-overview",
+     "id": "E2",
+     "text": "现象：调用方日志报 dial tcp <ClusterIP>:<端口> i/o timeout、connection refused，或 gRPC 错误链显示某下游步骤失败。判断：(0) 先按错误类型分流：对 ClusterIP 报 connection refused，优先怀疑 Service 无 Endpoints；报 i/o timeout，优先核对端口是否为 Service 实际暴露的端口。(1) 从错误确定目标下游和端口，反查 Endpoints。为空时看 Deployment 的 replicas 和 Ready Pod 数：replicas 为 0，查 ScalingReplicaSet/SuccessfulDelete 事件确认被缩容，恢复副本数；有 Ready Pod 仍为空，逐字比对 selector 与 Pod labels，修 selector。(2) Endpoints 正常时，把调用方 *_ADDR 端口与 Service port/targetPort、容器监听端口逐一比较。(3) 被调方无错、日志显示仍在服务其他调用方时，问题在调用方配置：对比线上 env 与 last-applied-configuration、新旧 ReplicaSet 模板及创建时间，修调用方配置，不动被调方。Pod 刚启动时短暂 refused 随后自愈的不算根因。例：调用方地址端口被改成 Service 没有的端口，表现为 i/o timeout，而另一个被缩到 0 的服务表现为 refused。"
+    },
+    "applied": true,
+    "before": "现象：调用方日志报 dial tcp <ClusterIP>:<端口> i/o timeout、connection refused，或 gRPC 错误链显示某下游步骤失败，首次失败秒级、之后毫秒级快速失败。判断：(1) 从错误确定目标下游和端口，反查 Service 的 Endpoints。为空时先看对应 Deployment 的 replicas 和 Ready Pod 数：replicas 为 0 或无 Pod，查 ScalingReplicaSet/SuccessfulDelete/Killing 事件确认是被缩容或删除，恢复副本数；有 Ready Pod 仍为空，再逐字比对 selector 与 Pod labels（键名、取值、后缀），修 selector，不动 Pod 和调用方。(2) Endpoints 正常时，把调用方 *_ADDR 端口与 Service port/targetPort、容器监听端口逐一比较。(3) 被调方无错且能服务其他调用方时，问题在调用方配置：对比线上 env 与 last-applied-configuration、新旧 ReplicaSet 模板及事件时间，修调用方配置。Pod 刚启动时短暂 refused 随后自愈的不算根因。"
+   },
+   {
+    "change": {
+     "op": "modify",
+     "sop": "boutique-triage-overview",
+     "id": "E4",
+     "text": "现象：有多个嫌疑对象，或不确定最近改了什么。判断：(1) 对命名空间内所有 Deployment 和 Service，把线上 spec（env、镜像、selector、port/targetPort、replicas、resources）与 last-applied-configuration 逐项比对，并查各 Deployment 的 ReplicaSet revision、创建时间和缩扩容事件。(2) 找到一处变更后，取它的事件时间，在全命名空间事件里查同一时刻前后的其他变更（新 RS、缩容、删除）：同一时刻发生的往往是同一批改动，每一处都要单独判断影响并修复，不要找到一个就停。(3) 差异与故障开始时间吻合时，优先作为配置类根因并验证。注意网络延迟注入、节点问题不会改 spec，比对干净的服务仍异常时，按 E3 转查网络或资源，不能据此排除它。例：一个服务的 env 被改与另一个服务被缩容发生在同一秒。"
+    },
+    "applied": true,
+    "before": "现象：有多个嫌疑对象，或不确定最近改了什么。判断：对命名空间内所有 Deployment 和 Service，把线上 spec（env、镜像、selector、port/targetPort、resources）与各自的 last-applied-configuration 逐项比对，并查各 Deployment 的 ReplicaSet revision 和创建时间。差异唯一且时间与故障开始吻合时，优先作为配置类根因并验证。注意网络延迟注入、节点问题等不会改 spec，比对干净的服务仍出现异常时，应转向配置之外的解释（按 E3 判断网络还是资源），不能据此排除它。"
+   },
+   {
+    "change": {
+     "op": "add",
+     "sop": "boutique-triage-overview",
+     "text": "现象：某个多步骤业务流程（如下单）全部失败，其他页面正常、请求快速返回而非超时变慢。判断：(1) 取调用方返回的完整错误链，从外到内读到最内层的那一跳，确定流程卡在哪个步骤、连的是哪个下游地址。(2) 用流程的固定调用顺序反证：失败步骤之后的下游应几乎没有来自该流程的调用日志，之前的下游应有正常调用；若与之相符，后面那些服务的“安静”是流程提前中止的结果，不要当成它们的故障。(3) 失败率是该流程的 100%，且只这一流程受影响，优先查流程编排方（调用方）到该步骤下游的连接配置，按 E2 处理。例：下单在运费报价一步就失败，支付服务因此几乎没有调用日志。"
+    },
+    "applied": true,
+    "id": "E8"
+   }
+  ],
+  "prompt_chars": 8979,
+  "tokens": null,
+  "writer": "claude-opus-5-5",
+  "method_rule": true,
+  "entries_total": 8,
+  "truth": "checkoutservice 的环境变量 SHIPPING_SERVICE_ADDR 被改成 shippingservice:50052（应为 shippingservice:50051），调不到 shippingservice；shippingservice 自身没有问题。"
+ },
+ {
+  "scenario": "BH08",
+  "mode": "B",
+  "lesson": "慢但无错时，按每一跳（包括下游对缓存/数据库的内部调用）的往返次数去拆接口耗时：耗时和哪一跳的次数成正比，延迟就在哪一跳，比例还能说明延迟附着在哪一侧。找到的配置漂移要用时间线检验，变更后仍正常服务了一段时间的，不是本次根因。",
+  "changes": [
+   {
+    "change": {
+     "op": "modify",
+     "sop": "boutique-triage-overview",
+     "id": "E5",
+     "text": "（BH04、BH08）现象：整站变慢、无错误日志，按 E3 找到慢下游但它解释不了全部耗时，或慢下游本身还调用缓存/数据库。判断：(1) 对每个 handler 数出每一跳的调用次数，包括下游的内部再调用（如对缓存/数据库的命令条数），用调用方日志里相邻调用的时间戳间隔估算单次耗时。(2) 用“单次增量×次数”拼每个 handler 的总耗时，拼不齐说明漏了慢下游，继续逐跳对时间戳。用比例定位延迟附着点：耗时与某一跳的次数严格成正比，延迟就在该跳；若附着在中间服务自身的网络上，它的入向调用也会被抬高，比例会偏离；每次调用都不低于同一下限、没有快的，说明是固定延迟而非丢包。(3) 找同一时间窗内往返仍正常的下游作对照：只有部分 Pod 变慢，支持针对这些 Pod 的注入或入方向网络问题，排除节点和全局网络。根因要列出所有被抬高的跳，修复一并覆盖。例：一次缓存操作的接口与两次操作的接口耗时正好差一倍。"
+    },
+    "applied": true,
+    "before": "现象：整站变慢、无错误日志，按 E3 找到一个慢下游，但它解释不了全部耗时。判断：(1) 对每个 handler 数出它对各下游的调用次数，用调用方日志里相邻两次调用的时间戳间隔估算每个下游单次调用耗时。(2) 用“各下游单次增量×调用次数”去拼每个 handler 的总耗时（含下游的内部再调用），拼不齐说明还有被漏掉的慢下游，继续逐跳对时间戳。(3) 同一时间窗内找出往返仍正常的下游作对照：只有部分 Pod 变慢、其余正常，支持针对这些 Pod 的注入/入方向网络问题，排除节点 CPU 和全局网络。根因要列出所有被抬高的下游，修复一并覆盖。例：多个下游各被抬高相同的一段，页面耗时约等于增量乘以调用次数之和。"
+   },
+   {
+    "change": {
+     "op": "modify",
+     "sop": "boutique-triage-overview",
+     "id": "E4",
+     "text": "（BH03、BH07、BH08）现象：有多个嫌疑对象，或不确定最近改了什么。判断：(1) 对命名空间内所有 Deployment 和 Service，把线上 spec（env、镜像、selector、port/targetPort、replicas、resources）与 last-applied-configuration 逐项比对，并查各 Deployment 的 ReplicaSet revision、创建时间和缩扩容事件。(2) 找到一处变更后，取它的事件时间，在全命名空间事件里查同一时刻前后的其他变更：同一时刻发生的往往是同一批改动，每一处都要单独判断影响并修复，不要找到一个就停。(3) 用时间线检验每个差异：与故障开始时间吻合时，优先作为配置类根因去验证；变更后新 Pod Ready 了还正常服务过一段时间、故障之后才突然出现，就排除它是本次根因，作为独立的配置漂移另行报告，继续找真正的根因。网络延迟注入、节点问题不会改 spec，比对干净的服务仍异常时，按 E3 转查网络或资源。例：某服务被手工加了 env 并滚动更新，但新 Pod 先正常服务了一段时间，之后才变慢。"
+    },
+    "applied": true,
+    "before": "现象：有多个嫌疑对象，或不确定最近改了什么。判断：(1) 对命名空间内所有 Deployment 和 Service，把线上 spec（env、镜像、selector、port/targetPort、replicas、resources）与 last-applied-configuration 逐项比对，并查各 Deployment 的 ReplicaSet revision、创建时间和缩扩容事件。(2) 找到一处变更后，取它的事件时间，在全命名空间事件里查同一时刻前后的其他变更（新 RS、缩容、删除）：同一时刻发生的往往是同一批改动，每一处都要单独判断影响并修复，不要找到一个就停。(3) 差异与故障开始时间吻合时，优先作为配置类根因并验证。注意网络延迟注入、节点问题不会改 spec，比对干净的服务仍异常时，按 E3 转查网络或资源，不能据此排除它。例：一个服务的 env 被改与另一个服务被缩容发生在同一秒。"
+   },
+   {
+    "change": {
+     "op": "modify",
+     "sop": "boutique-triage-overview",
+     "id": "E3",
+     "text": "（BH01、BH02、BH03、BH05、BH08）现象：整站变慢，无错误日志。判断：(1) 找瓶颈：把各 handler 耗时与它调用了哪些下游、各几次比较。以最快的 handler 作对照，它调用到的下游都可排除；耗时随某下游调用次数成台阶增加，瓶颈就在该下游。(2) 定位延迟在哪一段：比较调用方发起时间（完成时刻减耗时）、被调方入口日志时间和调用方完成时间。耗时集中在到达被调方之前、处理很快，支持入方向网络延迟；耗时在处理内部、CPU limit 低、随负载波动，支持 CFS 节流。(3) 区分注入和节流：变慢是某一刻的台阶突变、每次调用都不低于同一下限、负载低时同样慢，支持固定延迟注入；节流应随负载有快有慢。没有节点指标时，同节点其他服务仍快可排除节点级问题。(4) 对照变慢开始时间与 Pod 创建/Ready 时间。网络延迟先重建 Pod，节流先提高 limit，修复后仍慢按 E6 转查注入源或节点。例：每次缓存往返都被抬高同一段时间，其他调用都很快。"
+    },
+    "applied": true,
+    "before": "现象：整站变慢，无错误日志。判断：(1) 找瓶颈：把各 handler 耗时与它调用了哪些下游、各几次比较。先找最快的 handler 作对照：它调用到的下游都可排除；只有调用某下游的 handler 变慢、耗时随该下游调用次数（如列表条目数）成台阶增加，瓶颈就在该下游。(2) 定位延迟在哪一段：比较调用方发起调用的时间（完成时刻减耗时）、被调方 handler 入口日志时间、被调方返回后调用方完成的时间，注意区分被调方日志是入口打印还是出口打印。耗时集中在到达被调方之前、被调方处理和出向调用都很快，支持该 Pod 入方向网络延迟；耗时在处理内部、CPU limit 低、随负载波动，支持 CFS 节流；负载很低时仍慢可排除节流。(3) 对照变慢开始时间与 Pod 创建/Ready 时间。网络延迟先重建 Pod，节流先提高 limit；修复后仍慢按 E6 转查注入源或节点。例：被调方收到请求比调用方发起晚一个稳定间隔，而处理只要几毫秒。"
+   }
+  ],
+  "prompt_chars": 9975,
+  "tokens": null,
+  "writer": "claude-opus-5-5",
+  "method_rule": true,
+  "entries_total": 8,
+  "truth": "redis-cart 的 Pod 网络被加了约 300ms 延迟；它自身处理不慢，调用它的服务跟着变慢。"
+ },
+ {
+  "scenario": "BH09",
+  "mode": "B",
+  "lesson": "“Pod 都正常、没报错”并不能排除网络延迟：探针超时比注入的延迟长时 Pod 照样 Ready；要把调用方和被调方的日志按时间戳对齐，找出两条日志之间只隔一次 RPC 的片段，拆开请求方向和响应方向，就能把延迟钉在某一跳的某个方向上。同时别漏掉被降级成 warning 的第二个故障。",
+  "changes": [
+   {
+    "change": {
+     "op": "add",
+     "sop": "boutique-triage-overview",
+     "text": "现象：变慢、无报错，Pod 全部 Running/Ready，看起来都正常。判断：(1) 不要因为 Pod Ready、没有 Unhealthy 事件就排除这个服务：探针超时大于注入的延迟时探针照样通过，要拿探针 timeoutSeconds 和观察到的延迟比一比。(2) 在调用方日志里找两条相邻记录之间只隔一次下游调用的片段（例如编排方在上一步返回后只调了一个下游，再记下一步），这段间隔就全是这一跳的往返时间，可以排除其他下游。(3) 把这一跳拆成三段：调用方发起→被调方入口日志（请求方向）、被调方入口→完成（处理）、被调方完成→调用方下一条日志（响应方向）。只有请求方向长，支持被调方 Pod 入向网络延迟；处理段长，转查 CPU/节流。(4) 页面耗时和条目数无关、只多出一个固定量，说明是某一次调用被抬高，不是逐条处理变慢。例：下单链路里扣款返回后到发货服务收到请求之间隔了一段固定延迟，发货服务处理和响应都是毫秒内完成。"
+    },
+    "applied": true,
+    "id": "E9"
+   },
+   {
+    "change": {
+     "op": "add",
+     "sop": "boutique-emailservice",
+     "text": "现象：怀疑 emailservice 有问题，或者整体排查时要确认它是否健康。判断：调用方 checkoutservice 把发邮件失败只记成 warning，订单照样成功，所以 emailservice 完全不可用时用户侧也没有 500，下单成功率也不变。不能拿“下单都成功”证明它正常，要直接在 checkoutservice 日志里搜 send order confirmation 的失败记录。找到第一次失败的时间点，和它之前最后一次成功对比，再拿这个时间去核对 emailservice 的 Service、Deployment 变更和 Pod 重建事件；错误类型按 E2 分流（refused 先查 Endpoints/selector）。邮件故障通常不贡献延迟，要作为独立根因单独修复。"
+    },
+    "applied": true,
+    "id": "E1"
+   }
+  ],
+  "prompt_chars": 9788,
+  "tokens": null,
+  "writer": "claude-opus-5-5",
+  "method_rule": true,
+  "entries_total": 10,
+  "truth": "shippingservice 的 Pod 网络被加了约 300ms 延迟；它自身处理不慢，调用它的服务跟着变慢。"
+ },
+ {
+  "scenario": "BH10",
+  "mode": "B",
+  "lesson": "对 ClusterIP 报 connection refused 不一定是 Endpoints 为空：Endpoints 有地址但端口是 Service targetPort，而 targetPort 与容器实际监听端口不一致时同样会被拒；要把 Service port→targetPort→Endpoints 端口→containerPort/启动日志监听端口整条链逐一比对。",
+  "changes": [
+   {
+    "change": {
+     "op": "modify",
+     "sop": "boutique-triage-overview",
+     "id": "E2",
+     "text": "（BH01-03、BH06、BH07、BH10）现象：调用方日志报 dial tcp <ClusterIP>:<端口> i/o timeout、connection refused，或 gRPC 错误链显示某下游步骤失败。判断：(1) 从错误定目标下游和端口，反查 Endpoints。为空：replicas 为 0 查缩容事件并恢复副本；有 Ready Pod 仍为空，逐字比对 selector 与 Pod labels，修 selector。(2) Endpoints 有地址仍 refused 或 timeout：沿端口链逐一比较——调用方 *_ADDR 端口、Service port、targetPort（即 Endpoints 里的端口）、containerPort 与被调方启动日志里实际监听端口；refused 多为 targetPort 与监听端口不符，timeout 多为调用方端口不是 Service 暴露的端口。(3) 被调方无错且仍在服务其他调用方，问题在调用方配置：对比线上 env 与 last-applied、新旧 ReplicaSet 模板，修调用方。Pod 刚启动短暂 refused 后自愈的不算根因。例：Service targetPort 被改成容器没监听的端口，Endpoints 非空但所有调用快速 refused。"
+    },
+    "applied": true,
+    "before": "现象：调用方日志报 dial tcp <ClusterIP>:<端口> i/o timeout、connection refused，或 gRPC 错误链显示某下游步骤失败。判断：(0) 先按错误类型分流：对 ClusterIP 报 connection refused，优先怀疑 Service 无 Endpoints；报 i/o timeout，优先核对端口是否为 Service 实际暴露的端口。(1) 从错误确定目标下游和端口，反查 Endpoints。为空时看 Deployment 的 replicas 和 Ready Pod 数：replicas 为 0，查 ScalingReplicaSet/SuccessfulDelete 事件确认被缩容，恢复副本数；有 Ready Pod 仍为空，逐字比对 selector 与 Pod labels，修 selector。(2) Endpoints 正常时，把调用方 *_ADDR 端口与 Service port/targetPort、容器监听端口逐一比较。(3) 被调方无错、日志显示仍在服务其他调用方时，问题在调用方配置：对比线上 env 与 last-applied-configuration、新旧 ReplicaSet 模板及创建时间，修调用方配置，不动被调方。Pod 刚启动时短暂 refused 随后自愈的不算根因。例：调用方地址端口被改成 Service 没有的端口，表现为 i/o timeout，而另一个被缩到 0 的服务表现为 refused。"
+   }
+  ],
+  "prompt_chars": 9285,
+  "tokens": null,
+  "writer": "claude-opus-5-5",
+  "method_rule": true,
+  "entries_total": 10,
+  "truth": "Service cartservice 的 targetPort 被改成 7071（容器监听 7070），Pod 正常但流量到不了。"
+ },
+ {
+  "scenario": "BH11",
+  "mode": "B",
+  "lesson": "“时快时慢、无报错”时，若慢请求耗时聚成同一个固定量（及其倍数），且调用越多的端点越容易慢，说明是部分调用被概率性地加上固定延迟（丢包重传或按比例注入），不是 CPU 节流；应先按端点与下游对照定位命中的下游或公共层，而不是凭 CPU limit 低就去抬多个服务的 limit。",
+  "changes": [
+   {
+    "change": {
+     "op": "add",
+     "sop": "boutique-triage-overview",
+     "text": "现象：时快时慢、无报错，中位数正常只有尾部慢，Pod 全部 Ready。判断：(1) 看慢请求耗时是否聚成一个固定量及其整数倍：是，说明是部分调用被加上一次固定延迟（概率性丢包重传或按比例注入的延迟）；CPU 节流的耗时应连续分布、随负载起伏，据此排除节流。(2) 按端点统计慢请求占比，对照各端点调用了哪些下游、各几次：不调后端的端点做对照；只调一个下游的端点出现慢请求，直接指向该下游；估算每个下游的单次命中概率，各下游都相近说明在公共层（节点、网络、全局注入），集中在某一下游的端点则查该下游 Pod。(3) 按 E9 用被调方入口日志拆段，延迟落在到达被调方之前支持入向丢包/延迟。(4) 没有节流指标时不要因 limit 低就批量抬 limit，先做能区分假设的检查；偶发的探针连接超时同样符合丢包。例：每条 RPC 都有小概率被加上同一段延迟，调用链越长的页面慢请求占比越高。"
+    },
+    "applied": true,
+    "id": "E10"
+   }
+  ],
+  "prompt_chars": 11000,
+  "tokens": null,
+  "writer": "claude-opus-5-5",
+  "method_rule": true,
+  "entries_total": 11,
+  "truth": "productcatalogservice 的 Pod 网络有约 6% 的丢包；被丢的包要等重传，所以只有一部分请求变慢，它自身处理不慢。"
+ },
+ {
+  "scenario": "BH12",
+  "mode": "B",
+  "lesson": "慢请求的耗时紧紧聚在“基线+同一固定量”及其整数倍上，说明是部分调用被加了固定延迟（丢包重传或注入）。CFS 节流的停顿取决于当前周期还剩多少时间，应在 0 到一个周期之间连续分布，所以不能因为数值像 100ms 的整数倍就判成节流；秒级的探针连接超时也更符合 SYN 丢包。",
+  "changes": [
+   {
+    "change": {
+     "op": "modify",
+     "sop": "boutique-triage-overview",
+     "id": "E10",
+     "text": "现象：时快时慢、无报错，中位数正常只有尾部慢，Pod 全部 Ready。判断：(1) 看慢请求的耗时形状：紧聚在“基线+同一固定量”及其整数倍上，支持部分调用被加了固定延迟（丢包重传或按比例注入）。CFS 节流的停顿等于当前周期剩余的时间，增量应在 0 到一个周期之间连续分布，单次停顿也不超过一个周期，不要因为数值像周期的整数倍就判节流。秒级的探针连接超时符合 SYN 丢包重传，不符合节流。(2) 按端点统计慢请求占比，对照各端点调用了哪些下游、各几次，用不调后端的端点做对照。把每个下游的单次命中概率都估算一遍，不能只和一个下游比：各下游相近，问题在公共层；集中在某一个下游，查它的 Pod。(3) 节流会冻结整个进程，同一时刻在途的多个调用方请求应一起变慢；丢包和注入是逐次独立发生的，慢请求的时刻互不重合。(4) 按 E9 用被调方入口日志拆段，延迟落在到达被调方之前，支持入向丢包或延迟。(5) 没有节流指标时，不要因为 limit 低就抬 limit，先做上面这些能区分假设的检查。例：慢请求都比正常多出同一段延迟，调用次数多的页面慢请求占比更高。"
+    },
+    "applied": true,
+    "before": "现象：时快时慢、无报错，中位数正常只有尾部慢，Pod 全部 Ready。判断：(1) 看慢请求耗时是否聚成一个固定量及其整数倍：是，说明是部分调用被加上一次固定延迟（概率性丢包重传或按比例注入的延迟）；CPU 节流的耗时应连续分布、随负载起伏，据此排除节流。(2) 按端点统计慢请求占比，对照各端点调用了哪些下游、各几次：不调后端的端点做对照；只调一个下游的端点出现慢请求，直接指向该下游；估算每个下游的单次命中概率，各下游都相近说明在公共层（节点、网络、全局注入），集中在某一下游的端点则查该下游 Pod。(3) 按 E9 用被调方入口日志拆段，延迟落在到达被调方之前支持入向丢包/延迟。(4) 没有节流指标时不要因 limit 低就批量抬 limit，先做能区分假设的检查；偶发的探针连接超时同样符合丢包。例：每条 RPC 都有小概率被加上同一段延迟，调用链越长的页面慢请求占比越高。"
+   }
+  ],
+  "prompt_chars": 10807,
+  "tokens": null,
+  "writer": "claude-opus-5-5",
+  "method_rule": true,
+  "entries_total": 11,
+  "truth": "currencyservice 的 Pod 网络有约 6% 的丢包；被丢的包要等重传，所以只有一部分请求变慢，它自身处理不慢。"
+ },
+ {
+  "scenario": "BH13",
+  "mode": "B",
+  "lesson": "间歇性尾部延迟时，把全命名空间的探针失败事件按 Pod 和时间对齐慢请求簇：kubelet 探针绕过调用方直连被调方，只有一个 Pod 探针超时就能把问题定在该 Pod 一侧并排除调用方和节点级原因；TCP 握手由内核完成，dial i/o timeout 更支持丢包而非 CPU 节流。",
+  "changes": [
+   {
+    "change": {
+     "op": "add",
+     "sop": "boutique-triage-overview",
+     "text": "现象：间歇变慢或超时、无报错，需要判断问题在调用方、被调方还是节点/公共网络。判断：(1) 列出命名空间内全部 Pod 的 Unhealthy 探针事件，按 Pod 和时间排列，与慢请求的时间簇对齐。(2) kubelet 探针直连被调方、绕过所有调用方：只有某一个 Pod 的探针超时且时间与慢请求簇吻合，支持问题在该 Pod 一侧（进程停顿或其入向网络），可排除调用方自身 GC/线程池停顿；多个服务的探针零散失败，支持节点级或公共网络问题。(3) TCP 握手由内核完成，进程被节流或阻塞时连接通常仍能建立，所以 TCP 探针 dial i/o timeout 更支持丢包/网络不通，而不是 CPU 节流；再按 E10 的耗时形状和时刻是否重合做区分。(4) 探针全部通过不能证明健康，先按 E9 比较 timeoutSeconds 与观察到的延迟。例：只有缓存 Pod 的 TCP 探针间歇超时，它的调用方探针全部正常。"
+    },
+    "applied": true,
+    "id": "E11"
+   },
+   {
+    "change": {
+     "op": "add",
+     "sop": "boutique-cartservice",
+     "text": "现象：首页、商品页、购物车页等多个页面偶发同样幅度的变慢，或需要确认购物车路径（cartservice、redis-cart）是否有问题。判断：(1) frontend 渲染页头时每个页面都会调用 cartservice 取购物车数量，所以购物车路径的问题会分布在几乎所有页面上，不能因为“首页不是购物车功能”就排除它；只有不调后端的端点（健康检查、切换货币）不受影响，可作对照。(2) 直接测购物车往返：下单流程里 checkoutservice 记录扣款成功之后、emailservice 收到请求之前，中间只有清空购物车一次调用，这段间隔与正常下单对比即可确认延迟是否在购物车路径上。(3) 再区分 cartservice 与 redis-cart：对照两者各自的探针事件和日志（按总则中探针分布条目），redis-cart 探针超时而 cartservice 探针正常，支持 redis-cart 一侧。修复要重建 redis-cart 时注意它用 emptyDir，按总则 E6 评估购物车数据丢失。"
+    },
+    "applied": true,
+    "id": "E1"
+   }
+  ],
+  "prompt_chars": 11063,
+  "tokens": null,
+  "writer": "claude-opus-5-5",
+  "method_rule": true,
+  "entries_total": 13,
+  "truth": "redis-cart 的 Pod 网络有约 6% 的丢包；被丢的包要等重传，所以只有一部分请求变慢，它自身处理不慢。"
+ },
+ {
+  "scenario": "BH14",
+  "mode": "B",
+  "lesson": "间歇尾部延迟中，多个并发请求同一瞬间一起恢复不一定是进程被节流：同一条 gRPC/HTTP2 连接上的一次丢包重传会让所有复用该连接的请求同时卡住、同时解除，要看不同连接（其他调用方、探针）是否也同时变慢再下结论。",
+  "changes": [
+   {
+    "change": {
+     "op": "modify",
+     "sop": "boutique-triage-overview",
+     "id": "E10",
+     "text": "（BH11、BH12、BH14）现象：时快时慢、无报错，中位数正常只有尾部慢，Pod 全部 Ready。判断：(1) 看慢请求耗时形状：紧聚在“基线+同一固定量”及其整数倍上，支持部分调用被加了固定延迟（丢包重传或按比例注入）；CFS 节流的增量应在 0 到一个周期之间连续分布，秒级的探针连接超时符合 SYN 丢包重传而非节流。(2) 按端点统计慢请求占比，对照各端点调用了哪些下游、各几次，用不调后端的端点和调用方自身健康检查的耗时做对照（它们从不慢即可排除调用方进程停顿）；把每个下游的单次命中概率都估算一遍：各下游相近查公共层，集中在某一个下游查它的 Pod。(3) 看同一时刻变慢的范围：节流冻结整个进程，经由不同连接的请求（其他调用方、kubelet 探针）应一起变慢；丢包只卡住所在的 TCP 连接，gRPC/HTTP2 同一连接上复用的并发请求会因队头阻塞在同一瞬间一起恢复，这不能当作节流证据。(4) 按 E9 拆段，延迟落在到达被调方之前支持入向丢包或延迟。(5) 没有节流指标时不要因 limit 低就抬 limit，先做上述区分检查。例：慢请求多出同一段延迟及其两倍，同一调用方两个起跑不同的并发请求在同一瞬间返回。"
+    },
+    "applied": true,
+    "before": "现象：时快时慢、无报错，中位数正常只有尾部慢，Pod 全部 Ready。判断：(1) 看慢请求的耗时形状：紧聚在“基线+同一固定量”及其整数倍上，支持部分调用被加了固定延迟（丢包重传或按比例注入）。CFS 节流的停顿等于当前周期剩余的时间，增量应在 0 到一个周期之间连续分布，单次停顿也不超过一个周期，不要因为数值像周期的整数倍就判节流。秒级的探针连接超时符合 SYN 丢包重传，不符合节流。(2) 按端点统计慢请求占比，对照各端点调用了哪些下游、各几次，用不调后端的端点做对照。把每个下游的单次命中概率都估算一遍，不能只和一个下游比：各下游相近，问题在公共层；集中在某一个下游，查它的 Pod。(3) 节流会冻结整个进程，同一时刻在途的多个调用方请求应一起变慢；丢包和注入是逐次独立发生的，慢请求的时刻互不重合。(4) 按 E9 用被调方入口日志拆段，延迟落在到达被调方之前，支持入向丢包或延迟。(5) 没有节流指标时，不要因为 limit 低就抬 limit，先做上面这些能区分假设的检查。例：慢请求都比正常多出同一段延迟，调用次数多的页面慢请求占比更高。"
+   },
+   {
+    "change": {
+     "op": "modify",
+     "sop": "boutique-cartservice",
+     "id": "E1",
+     "text": "（BH13、BH14）现象：首页、商品页、购物车页等多个页面偶发同样幅度的变慢，或需要确认购物车路径（cartservice、redis-cart）是否有问题。判断：(1) frontend 渲染页头时每个页面都会调用 cartservice 取购物车数量，购物车路径的问题会分布在几乎所有页面上，不能因“首页不是购物车功能”就排除它；不调后端的端点（健康检查、切换货币）不受影响，可作对照。(2) 直接测购物车往返：加购接口只调用 cartservice 一次，它的慢请求在“开始加购”与“请求完成”日志之间没有其他下游调用，可作纯购物车样本；下单流程里 checkoutservice 开始处理到扣款成功之间只有取购物车等少数调用，与正常下单对比也能确认。(3) 再区分 cartservice 与 redis-cart：对照两者各自的探针事件（按总则 E11），哪一侧探针超时而另一侧正常，就支持问题在哪一侧的 Pod；cartservice 探针连接超时而 redis-cart 探针全部通过，查 cartservice Pod 的入向网络，不要转去 redis-cart。修复要重建 redis-cart 时注意它用 emptyDir，按总则 E6 评估购物车数据丢失。"
+    },
+    "applied": true,
+    "before": "现象：首页、商品页、购物车页等多个页面偶发同样幅度的变慢，或需要确认购物车路径（cartservice、redis-cart）是否有问题。判断：(1) frontend 渲染页头时每个页面都会调用 cartservice 取购物车数量，所以购物车路径的问题会分布在几乎所有页面上，不能因为“首页不是购物车功能”就排除它；只有不调后端的端点（健康检查、切换货币）不受影响，可作对照。(2) 直接测购物车往返：下单流程里 checkoutservice 记录扣款成功之后、emailservice 收到请求之前，中间只有清空购物车一次调用，这段间隔与正常下单对比即可确认延迟是否在购物车路径上。(3) 再区分 cartservice 与 redis-cart：对照两者各自的探针事件和日志（按总则中探针分布条目），redis-cart 探针超时而 cartservice 探针正常，支持 redis-cart 一侧。修复要重建 redis-cart 时注意它用 emptyDir，按总则 E6 评估购物车数据丢失。"
+   }
+  ],
+  "prompt_chars": 11962,
+  "tokens": null,
+  "writer": "claude-opus-5-5",
+  "method_rule": true,
+  "entries_total": 13,
+  "truth": "cartservice 的 Pod 网络有约 6% 的丢包；被丢的包要等重传，所以只有一部分请求变慢，它自身处理不慢。"
+ },
+ {
+  "scenario": "BH15",
+  "mode": "B",
+  "lesson": "被调方日志里两条入口记录之间的空档不等于被调方停顿，要看单个请求自己的入口到完成耗时，再对齐调用方时间戳确定空档期间调用方在等哪一跳；有多个延迟嫌疑时要逐个验证，不要同时重启，否则无法归因。",
+  "changes": [
+   {
+    "change": {
+     "op": "add",
+     "sop": "boutique-triage-overview",
+     "text": "现象：间歇变慢时，在某个下游日志里看到相邻两条记录之间有较长空档，怀疑它停顿。判断：(1) 空档本身不能作为该服务停顿的证据：被调方日志按请求到达记录，两条入口之间的空白往往只是调用方当时在等别的下游，或者根本没有请求进来。(2) 先看这个服务每个请求自己的“入口→完成”处理耗时：处理都很快，就排除它的进程停顿。(3) 把空档两端的时间对到调用方日志上：查调用方在空档期间发起了哪一跳、还没返回的是谁，延迟算在那一跳上（按 E9 拆段）。(4) 只有同一个请求的入口到完成之间出现长间隔，或者它的探针在同一时刻超时（按 E11），才把它列为嫌疑。例：货币服务两批换算日志之间有一段空档，实际上调用方当时在等推荐链路对商品目录的多次扇出。"
+    },
+    "applied": true,
+    "id": "E12"
+   },
+   {
+    "change": {
+     "op": "modify",
+     "sop": "boutique-triage-overview",
+     "id": "E6",
+     "text": "现象：修复需要重建 Pod（尤其是用 emptyDir 等非持久存储的有状态服务，如缓存/数据库），或重建后要复核效果。判断：(1) 重建前先评估副作用：会丢失哪些数据，哪些接口会因数据变少而“假性变快”或行为变化，复核时以不受这些数据影响的接口为准。(2) 有依赖关系的先重建被依赖方，再重建调用方，确保重新建连。(3) 把重建当作验证手段时，有多个延迟嫌疑就一次只重建一个，或者先只重建证据最强的那个（比如探针超时、处理耗时确实被抬高的那个），复核以后再决定下一个；同时重建多个就分不清是哪一个起了作用。确证的配置类修复可以同一轮做，复核时按接口分开看。(4) 重建后与故障前的健康基线比较：恢复则说明问题附着在 Pod 运行期状态上；完全不变说明是按 label 持续施加的外部注入（chaos 实验、sidecar、节点 tc 规则）或节点问题，不要重复重启，转去查注入源或节点。"
+    },
+    "applied": true,
+    "before": "现象：修复需要重建 Pod（尤其是用 emptyDir 等非持久存储的有状态服务，如缓存/数据库），或重建后要复核效果。判断：(1) 重建前先评估副作用：会丢失哪些数据，哪些接口会因数据变少而“假性变快”或行为变化，复核时以不受这些数据影响的接口为准。(2) 有依赖关系的先重建被依赖方，再重建调用方，确保重新建连。(3) 重建后与故障前的健康基线比较：恢复则说明问题附着在 Pod 运行期状态上；完全不变说明是按 label 持续施加的外部注入（chaos 实验、sidecar、节点 tc 规则）或节点问题，不要重复重启，转去查注入源或节点。"
+   }
+  ],
+  "prompt_chars": 12222,
+  "tokens": null,
+  "writer": "claude-opus-5-5",
+  "method_rule": true,
+  "entries_total": 14,
+  "truth": "checkoutservice 的环境变量 CART_SERVICE_ADDR 被改成 cartservice:7071（应为 cartservice:7070），调不到 cartservice；cartservice 自身没有问题。"
+ }
+]

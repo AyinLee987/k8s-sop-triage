@@ -57,6 +57,11 @@ ENGINEER = ("5. 记录分两部分：agent 当时的一次性诊断（只读排�
             "agent 的诊断哪些和这些结果相符、哪些不符。只有被这些结果支持的内容才能写成经验："
             "某一步之后对应的症状消失的，写成【已证实】；某一步之后数字没有变化的，写成【已排除】并说明排除了什么；"
             "这些数字无法检验的猜测，不能写成结论，最多写成【未解决】并说明还缺什么证据。每条以这三个标记之一开头。\n")
+# --method (2026-11-22): ask for the way of judging instead of this incident's finding. Entries written without it name
+# the fault's own numbers and objects ("约 200ms", "到节点查 veth 的 tc 规则") and only fit the same fault again.
+METHOD = ("6. 条目要写成换一个服务、换一种故障也能照做的判断方法：看哪几样证据、拿什么和什么比较、什么结果支持哪种解释、怎样排除另一种解释。"
+          "不要把这次测到的具体数值（例如多少毫秒、百分之几）、具体的服务组合写成判断条件；"
+          "这次的情况最多放在条目末尾做一句例子。一条经验如果只在“同一个服务出同一个故障”时才用得上，就不要写。\n")
 OUTPUT = ('只输出 JSON：{"lesson": "<这次最值得记住的一两句话>", "changes": [{"op": "add", "sop": "<skill 名>", "text": "<条目>"}, '
           '{"op": "modify", "sop": "<skill 名>", "id": "E<编号>", "text": "<新的条目>"}, {"op": "remove", "sop": "<skill 名>", "id": "E<编号>"}]}')
 
@@ -194,11 +199,16 @@ def main() -> None:
     ap.add_argument("--ids", default=",".join(f"BH{i:02d}" for i in range(1, 16)))
     ap.add_argument("--dry", action="store_true", help="print the first incident's prompt and stop (no model call)")
     ap.add_argument("--replay", action="store_true", help="rebuild --out from --base and the existing log (no model call)")
+    ap.add_argument("--method", action="store_true", help="add the rule that entries describe a transferable way of judging, not this incident's finding")
+    ap.add_argument("--external", default="", help="directory for a model that is called from outside this program: the next incident's prompt is written to "
+                    "<dir>/<id>.prompt.md and the program stops; put the reply in <dir>/<id>.response.json and run again")
+    ap.add_argument("--writer", default="", help="--external: name of the model that writes the replies (for the log)")
     args = ap.parse_args()
     if args.replay:
         return replay(REPO / args.out, REPO / args.base)
-    from openai import OpenAI
-    import make_experience as me
+    if not args.external:
+        from openai import OpenAI
+        import make_experience as me
     runs, out, base = REPO / args.runs, REPO / args.out, REPO / args.base
     scenarios = {s["id"]: s for f in ("boutique_hard.yaml", "boutique_v2.yaml") if (REPO / "scenarios" / f).exists()
                  for s in yaml.safe_load((REPO / "scenarios" / f).read_text(encoding="utf-8"))["scenarios"]}
@@ -209,7 +219,7 @@ def main() -> None:
     docs = {p.parent.name: split(p.read_text(encoding="utf-8")) for p in sorted(out.glob("*/SKILL.md"))}
     heads = {n: h for n, (h, _) in docs.items()}
     lib = {n: items_of(b) for n, (_, b) in docs.items()}
-    system = COMMON + {"B": "", "C": VERIFIED, "D": ENGINEER}[args.mode] + OUTPUT
+    system = COMMON + {"B": "", "C": VERIFIED, "D": ENGINEER}[args.mode] + (METHOD if args.method else "") + OUTPUT
     if args.mode == "D" and not args.fixes:
         raise SystemExit("--mode D needs --fixes")
     client = None
@@ -228,12 +238,23 @@ def main() -> None:
         if args.dry:
             print(system, "\n\n", user)
             return
-        if client is None:
-            env = me.dotenv()
-            client = OpenAI(api_key=env["LLM_API_KEY"], base_url=env.get("LLM_BASE_URL", "https://api.deepseek.com").rstrip("/") + "/v1")
-        r = client.chat.completions.create(model=env.get("LLM_MODEL", "deepseek-flash"), temperature=0, max_tokens=20000,
-                                           messages=[{"role": "system", "content": system}, {"role": "user", "content": user}])
-        t = (r.choices[0].message.content or "").strip()
+        if args.external:
+            ext = REPO / args.external
+            ext.mkdir(parents=True, exist_ok=True)
+            reply = ext / f"{sid}.response.json"
+            if not reply.exists():
+                # the same two messages the API call would send, in one file; nothing else goes to the writing model
+                (ext / f"{sid}.prompt.md").write_text(system + "\n\n" + user + "\n", encoding="utf-8")
+                print(f"WAITING {sid}: prompt written to {args.external}/{sid}.prompt.md; reply expected in {args.external}/{sid}.response.json", flush=True)
+                return
+            t, r = reply.read_text(encoding="utf-8").strip(), None
+        else:
+            if client is None:
+                env = me.dotenv()
+                client = OpenAI(api_key=env["LLM_API_KEY"], base_url=env.get("LLM_BASE_URL", "https://api.deepseek.com").rstrip("/") + "/v1")
+            r = client.chat.completions.create(model=env.get("LLM_MODEL", "deepseek-flash"), temperature=0, max_tokens=20000,
+                                               messages=[{"role": "system", "content": system}, {"role": "user", "content": user}])
+            t = (r.choices[0].message.content or "").strip()
         data = json.loads(t[t.index("{"): t.rindex("}") + 1])
         applied = apply(lib, data.get("changes"), sid)
         for name, (head, body) in docs.items():
@@ -243,7 +264,8 @@ def main() -> None:
                 (out / name / "SKILL.md").write_text(f"---\n{head}---\n\n{new}\n", encoding="utf-8")
         # the real cause is logged for the later comparison; it is never part of a prompt
         entry = {"scenario": sid, "mode": args.mode, "lesson": data.get("lesson"), "changes": applied,
-                 "prompt_chars": len(user), "tokens": getattr(r.usage, "total_tokens", None), "entries_total": sum(len(v) for v in lib.values()),
+                 "prompt_chars": len(user), "tokens": getattr(getattr(r, "usage", None), "total_tokens", None),
+                 **({"writer": args.writer or "external", "method_rule": args.method} if args.external else {}), "entries_total": sum(len(v) for v in lib.values()),
                  "truth": scenarios[sid]["answer"].get("explanation")}
         log.append(entry)
         log_path.write_text(json.dumps(log, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
