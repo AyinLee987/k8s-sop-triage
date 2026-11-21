@@ -9,6 +9,17 @@
 
 ---
 
+## E-022 tiktok-k8s-lab 的脚本在 Windows PowerShell 5.1 下归属检查必然失败
+- 现象：台式机上用 `powershell.exe` 跑 lab 的 `Setup.ps1`，集群建好后报 `template parsing error: function "io" not defined`，
+  接着 `Project kind node ownership check failed.`。节点标签实际是对的。
+- 原因：`Common.ps1` 的 `Assert-LabContext` 把带双引号的模板 `{{index .Config.Labels "io.x-k8s.kind.cluster"}}` 传给 docker；
+  PowerShell 5.1 调用外部程序时会去掉参数里嵌入的双引号（7.3 起修复），docker 收到的模板就坏了。
+  另外，从笔记本拷来的 `.venv` 指向那台机器的 Python 路径，在新机器上不能用。
+- 处理：lab 的脚本改用 PowerShell 7（`pwsh -File .\scripts\Setup.ps1`）运行，不改 lab 源码；旧 `.venv` 改名为
+  `.venv.laptop-old`，用新装的 Python 3.12 重建。本仓库的 `Run-Laptop.ps1`、`Setup-Boutique.ps1` 在 5.1 下正常
+  （它们用 `ConvertFrom-Json` 读标签，不经过模板）。
+- 状态：已规避
+
 ## E-021 Online Boutique 上前一个场景的痕迹成了后一个场景的"证据"
 - 现象：`boutique-base` 这批（B01–B05 各 3 次）里，B04 有 2 次把上一个场景留下的 Redis 连接报错或推荐服务报错当成了变慢的原因；几乎每个回答都列出了之前几次注入留下的重启和改配置记录。关键词自动评分给了 15/15，人工读是 11/15。
 - 原因：这套环境复位时不重建 Pod，Pod 日志一直保留；HolmesGPT 默认读最近 30 分钟到 1 小时的日志。另外 `rollout restart` 会在 Deployment 上留下 restartedAt 注解，改 Service 会在 managedFields 里留下时间戳。原来的小应用复位时会重建 Pod，所以没有这个问题。
