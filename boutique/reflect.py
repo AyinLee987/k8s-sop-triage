@@ -62,6 +62,15 @@ ENGINEER = ("5. 记录分两部分：agent 当时的一次性诊断（只读排�
 METHOD = ("6. 条目要写成换一个服务、换一种故障也能照做的判断方法：看哪几样证据、拿什么和什么比较、什么结果支持哪种解释、怎样排除另一种解释。"
           "不要把这次测到的具体数值（例如多少毫秒、百分之几）、具体的服务组合写成判断条件；"
           "这次的情况最多放在条目末尾做一句例子。一条经验如果只在“同一个服务出同一个故障”时才用得上，就不要写。\n")
+# --scope (2026-11-22, docs/RESEARCH-admission.md): every entry states when it applies and when it does not. The --method
+# libraries still steer "slow" towards the network ("先查 tc，不要先查 CPU limit"), because every slow learning incident
+# was a network fault; an entry that names the evidence it rests on and the evidence that would speak against it can be
+# skipped by the reader when that evidence is absent. Also keeps the lab's own word for the fault out of the entries.
+SCOPE = ("7. 每条经验都要写清适用范围，用下面的固定结构：“适用：<看到哪些可以查到的证据时才用这一条>。不适用：<看到什么证据时不要用这一条，应该改查什么>。做法：<怎么判断>。”"
+         "适用和不适用的条件必须是排查时能实际查到的东西（日志里的字段、事件、配置项、指标），不能是“当问题是 X 时”这种要先知道答案才能判断的条件。"
+         "这次的记录只说明这一种情况；同样的现象可能有别的原因（例如变慢可以来自网络、CPU 限流、应用自身、下游排队），"
+         "不要因为这一次是某种原因，就把这种现象直接指向这种原因，更不要写“先查 A，不要先查 B”，除非记录里有证据说明 B 已经被排除。\n"
+         "8. 把故障当作生产环境里自然发生的事来写：不要用“注入”“被注入”这类说法，也不要假设故障是谁故意加上去的。\n")
 OUTPUT = ('只输出 JSON：{"lesson": "<这次最值得记住的一两句话>", "changes": [{"op": "add", "sop": "<skill 名>", "text": "<条目>"}, '
           '{"op": "modify", "sop": "<skill 名>", "id": "E<编号>", "text": "<新的条目>"}, {"op": "remove", "sop": "<skill 名>", "id": "E<编号>"}]}')
 
@@ -200,6 +209,7 @@ def main() -> None:
     ap.add_argument("--dry", action="store_true", help="print the first incident's prompt and stop (no model call)")
     ap.add_argument("--replay", action="store_true", help="rebuild --out from --base and the existing log (no model call)")
     ap.add_argument("--method", action="store_true", help="add the rule that entries describe a transferable way of judging, not this incident's finding")
+    ap.add_argument("--scope", action="store_true", help="add the rules that every entry states when it applies and when it does not, and does not call the fault injected")
     ap.add_argument("--external", default="", help="directory for a model that is called from outside this program: the next incident's prompt is written to "
                     "<dir>/<id>.prompt.md and the program stops; put the reply in <dir>/<id>.response.json and run again")
     ap.add_argument("--writer", default="", help="--external: name of the model that writes the replies (for the log)")
@@ -219,7 +229,7 @@ def main() -> None:
     docs = {p.parent.name: split(p.read_text(encoding="utf-8")) for p in sorted(out.glob("*/SKILL.md"))}
     heads = {n: h for n, (h, _) in docs.items()}
     lib = {n: items_of(b) for n, (_, b) in docs.items()}
-    system = COMMON + {"B": "", "C": VERIFIED, "D": ENGINEER}[args.mode] + (METHOD if args.method else "") + OUTPUT
+    system = COMMON + {"B": "", "C": VERIFIED, "D": ENGINEER}[args.mode] + (METHOD if args.method else "") + (SCOPE if args.scope else "") + OUTPUT
     if args.mode == "D" and not args.fixes:
         raise SystemExit("--mode D needs --fixes")
     client = None
@@ -265,7 +275,7 @@ def main() -> None:
         # the real cause is logged for the later comparison; it is never part of a prompt
         entry = {"scenario": sid, "mode": args.mode, "lesson": data.get("lesson"), "changes": applied,
                  "prompt_chars": len(user), "tokens": getattr(getattr(r, "usage", None), "total_tokens", None),
-                 **({"writer": args.writer or "external", "method_rule": args.method} if args.external else {}), "entries_total": sum(len(v) for v in lib.values()),
+                 **({"writer": args.writer or "external", "method_rule": args.method, "scope_rule": args.scope} if args.external else {}), "entries_total": sum(len(v) for v in lib.values()),
                  "truth": scenarios[sid]["answer"].get("explanation")}
         log.append(entry)
         log_path.write_text(json.dumps(log, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
