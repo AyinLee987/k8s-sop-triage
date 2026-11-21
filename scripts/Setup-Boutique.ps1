@@ -1,5 +1,8 @@
 # Deploy Online Boutique v0.10.3 (the application Cloud-OpsBench uses) into namespace "boutique" on the existing
-# kind cluster, next to the lab app. Only adds things: namespace, workloads, a read-only Role for the diagnoser.
+# kind cluster (next to the lab app, if there is one). Only adds things: namespace, workloads, a read-only Role
+# for the diagnoser.
+#
+# Which cluster: -Cluster, else ADMIN_CONTEXT=kind-<name> in .env, else sg-prod-01 (see scripts\_cluster.ps1).
 #
 #   .\scripts\Setup-Boutique.ps1                  # deploy and wait until every Deployment is ready
 #   .\scripts\Setup-Boutique.ps1 -Action status   # show what is there
@@ -10,21 +13,24 @@
 [CmdletBinding()]
 param(
     [ValidateSet('deploy', 'status')][string]$Action = 'deploy',
-    [int]$TimeoutMinutes = 20
+    [int]$TimeoutMinutes = 20,
+    [string]$Cluster = '',          # kind cluster name; empty = from .env / default
+    [string]$KindExe = '',          # path to kind.exe; empty = lab copy or kind on PATH
+    [string]$AdminKubeconfig = ''   # admin kubeconfig on this machine; empty = lab copy or ~\.kube\config
 )
 $ErrorActionPreference = 'Continue'   # Windows PowerShell 5.1: native stderr must not become a terminating error
 $Repo = Split-Path -Parent $PSScriptRoot
-$Lab = Join-Path (Split-Path -Parent $Repo) 'tiktok-k8s-lab'
-$Kind = Join-Path $Lab '.tools\kind.exe'
-$Cluster = 'tiktok-k8s-lab'
+. (Join-Path $PSScriptRoot '_cluster.ps1')
+$cc = Resolve-ClusterConfig $Repo $Cluster $KindExe $AdminKubeconfig
+$Cluster = $cc.Cluster; $Kind = $cc.Kind; $labKube = $cc.Kubeconfig
 $Ns = 'boutique'
 $Manifest = Join-Path $Repo 'boutique\kubernetes-manifests-v0.10.3.yaml'
 
 function Step($msg) { Write-Host "==> $msg" -ForegroundColor Cyan }
 function Need($ok, $msg) { if (-not $ok) { throw $msg } }
 
-Need (Test-Path -LiteralPath $Lab) "tiktok-k8s-lab not found next to this repo: $Lab"
-Need (Test-Path -LiteralPath $Kind) "kind.exe not found: $Kind"
+Need ($Kind -and (Test-Path -LiteralPath $Kind)) "kind.exe not found (install kind, put it on PATH, or pass -KindExe)"
+Need (Test-Path -LiteralPath $labKube) "admin kubeconfig not found: $labKube (pass -AdminKubeconfig or set ADMIN_KUBECONFIG in .env)"
 Need (Test-Path -LiteralPath $Manifest) "manifest not found: $Manifest"
 
 Step 'Docker Desktop'
@@ -42,15 +48,20 @@ if ($LASTEXITCODE -ne 0) {
 
 Step "kind cluster '$Cluster'"
 $clusters = & $Kind get clusters 2>&1 | Where-Object { $_ -is [string] }
-Need ($clusters -contains $Cluster) "kind cluster '$Cluster' not found"
+Need ($clusters -contains $Cluster) "kind cluster '$Cluster' not found (kind get clusters: $($clusters -join ', ')). Pass -Cluster or set ADMIN_CONTEXT=kind-<name> in .env"
+# Every node of the cluster (control-plane and workers), not only the control-plane.
 $node = "$Cluster-control-plane"
-$running = (& docker inspect -f '{{.State.Running}}' $node 2>&1 | Out-String).Trim()
-if ($running -ne 'true') {
-    Step "starting stopped kind node $node (normal docker start)"
-    & docker start $node 2>&1 | Out-Host
-    Need ($LASTEXITCODE -eq 0) "could not start $node"
+$allNodes = @(& $Kind get nodes --name $Cluster 2>$null | Where-Object { $_ -is [string] -and $_.Trim() })
+if ($allNodes.Count -eq 0) { $allNodes = @($node) }
+foreach ($n in $allNodes) {
+    $running = (& docker inspect -f '{{.State.Running}}' $n 2>&1 | Out-String).Trim()
+    if ($running -ne 'true') {
+        Step "starting stopped kind node $n (normal docker start)"
+        & docker start $n 2>&1 | Out-Host
+        Need ($LASTEXITCODE -eq 0) "could not start $n"
+    }
 }
-$labKube = Join-Path $Lab '.local\kubeconfig'
+Write-Host "cluster: $Cluster   kubeconfig: $labKube"
 for ($i = 0; $i -lt 30; $i++) {
     & kubectl --kubeconfig $labKube --context "kind-$Cluster" get --raw /readyz 2>&1 | Out-Null
     if ($LASTEXITCODE -eq 0) { break }
@@ -68,10 +79,10 @@ function Show-Status {
     Step "pods in namespace $Ns"
     K -n $Ns get pods -o wide 2>&1 | Out-Host
     Step 'node capacity in use (requests / limits)'
-    K describe node $node 2>&1 | Select-String -Pattern 'Allocated resources' -Context 0, 8 | Out-Host
+    foreach ($n in $allNodes) { Write-Host "-- $n"; K describe node $n 2>&1 | Select-String -Pattern 'Allocated resources' -Context 0, 8 | Out-Host }
     Step 'Docker memory'
     & docker info --format 'CPUs={{.NCPU}} MemTotal={{.MemTotal}}' 2>&1 | Out-Host
-    & docker stats --no-stream --format 'node container: mem {{.MemUsage}} cpu {{.CPUPerc}}' $node 2>&1 | Out-Host
+    & docker stats --no-stream --format '{{.Name}}: mem {{.MemUsage}} cpu {{.CPUPerc}}' @allNodes 2>&1 | Out-Host
 }
 
 if ($Action -eq 'status') { Show-Status; exit 0 }
@@ -98,7 +109,8 @@ foreach ($d in $names) {
 }
 
 Step 'read-only access for the diagnoser'
-K apply -f (Join-Path $Repo 'k8s\rbac-diag.yaml') 2>&1 | Out-Host
+# rbac-diag.yaml also grants read access in tiktok-k8s-lab; that part is skipped when the lab app is not here
+Invoke-ApplyExisting ${function:K} (Join-Path $Repo 'k8s\rbac-diag.yaml')
 K apply -f (Join-Path $Repo 'k8s\rbac-diag-boutique.yaml') 2>&1 | Out-Host
 if ($LASTEXITCODE -ne 0) { Write-Host 'WARNING: applying the read-only Role failed' -ForegroundColor Yellow }
 

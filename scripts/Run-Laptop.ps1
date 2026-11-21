@@ -1,4 +1,8 @@
-# Run the HolmesGPT experiments on this Windows laptop, against the existing kind cluster.
+# Run the HolmesGPT experiments on this Windows machine, against the existing kind cluster.
+#
+# Which cluster: -Cluster, else ADMIN_CONTEXT=kind-<name> in .env, else sg-prod-01 (see scripts\_cluster.ps1).
+# The laptop's .env has ADMIN_CONTEXT=kind-tiktok-k8s-lab, so it keeps using that cluster without any flag.
+# Without the tiktok-k8s-lab folder next to this repo the lab app is skipped and only Online Boutique scenarios run.
 #
 #   .\scripts\Run-Laptop.ps1 -Action check                       # first time: cluster + runner image + tests
 #   .\scripts\Run-Laptop.ps1 -Action pilot -Scenario R06         # one scenario
@@ -29,6 +33,9 @@ param(
     [int]$Rounds = 3,           # loop: how many diagnose-fix-verify rounds the agent gets
     [int]$Observe = 0,          # validate: keep each fault this many more seconds and record the frontend's latency meanwhile
     [switch]$Metrics,           # batch/pilot: also give the agent the boutique_pod_metrics tool (CPU throttling, memory, pod network counters)
+    [string]$Cluster = '',          # kind cluster name; empty = from .env / default (scripts\_cluster.ps1)
+    [string]$KindExe = '',          # path to kind.exe; empty = lab copy or kind on PATH
+    [string]$AdminKubeconfig = '',  # admin kubeconfig on this machine; empty = lab copy or ~\.kube\config
     [switch]$Rebuild
 )
 # Not 'Stop': in Windows PowerShell 5.1 any stderr line from a native command (docker progress, a failed
@@ -37,16 +44,20 @@ $ErrorActionPreference = 'Continue'
 # 'a,b' typed unquoted reaches a [string] parameter as 'a b'; put the commas back.
 $Scenarios = $Scenarios -replace '\s+', ','; $Noise = $Noise -replace '\s+', ','; $Skills = $Skills -replace '\s+', ','
 $Repo = Split-Path -Parent $PSScriptRoot
-$Lab = Join-Path (Split-Path -Parent $Repo) 'tiktok-k8s-lab'
-$Kind = Join-Path $Lab '.tools\kind.exe'
-$Cluster = 'tiktok-k8s-lab'
+. (Join-Path $PSScriptRoot '_cluster.ps1')
+$cc = Resolve-ClusterConfig $Repo $Cluster $KindExe $AdminKubeconfig
+$Cluster = $cc.Cluster; $Kind = $cc.Kind; $labKube = $cc.Kubeconfig; $Lab = $cc.Lab; $HasLab = $cc.HasLab
 $Image = 'k8s-sop-runner'
 
 function Step($msg) { Write-Host "==> $msg" -ForegroundColor Cyan }
 function Need($ok, $msg) { if (-not $ok) { throw $msg } }
 
-Need (Test-Path -LiteralPath $Lab) "tiktok-k8s-lab not found next to this repo: $Lab"
-Need (Test-Path -LiteralPath $Kind) "kind.exe not found: $Kind (run tiktok-k8s-lab\scripts\Setup.ps1 first)"
+Need ($Kind -and (Test-Path -LiteralPath $Kind)) "kind.exe not found (install kind, put it on PATH, or pass -KindExe)"
+Need (Test-Path -LiteralPath $labKube) "admin kubeconfig not found: $labKube (pass -AdminKubeconfig or set ADMIN_KUBECONFIG in .env)"
+if (-not $HasLab) {
+    Write-Host "tiktok-k8s-lab not found next to this repo ($Lab): skipping the lab app; only Online Boutique scenarios will run." -ForegroundColor Yellow
+}
+Write-Host "cluster: $Cluster   kind: $Kind   kubeconfig: $labKube"
 Need (Test-Path -LiteralPath (Join-Path $Repo '.env')) ".env missing in $Repo (copy windows.env.example and fill LLM_API_KEY)"
 
 Step 'Docker Desktop'
@@ -69,17 +80,21 @@ Need ($LASTEXITCODE -eq 0) "Docker is running but cannot list containers (docker
 
 Step "kind cluster '$Cluster'"
 $clusters = & $Kind get clusters 2>&1 | Where-Object { $_ -is [string] }
-Need ($clusters -contains $Cluster) "kind cluster '$Cluster' not found. In tiktok-k8s-lab run: .\scripts\Setup.ps1; .\scripts\Build.ps1 -Version v1; .\scripts\Build.ps1 -Version v2"
+Need ($clusters -contains $Cluster) "kind cluster '$Cluster' not found (kind get clusters: $($clusters -join ', ')). Pass -Cluster or set ADMIN_CONTEXT=kind-<name> in .env"
 
 # kind nodes are created with restart=on-failure, so after Docker Desktop restarts the node is often stopped.
+# Every node of the cluster (control-plane and workers), not only the control-plane.
 $node = "$Cluster-control-plane"
-$running = (& docker inspect -f '{{.State.Running}}' $node 2>&1 | Out-String).Trim()
-if ($running -ne 'true') {
-    Step "starting stopped kind node $node (normal docker start)"
-    & docker start $node 2>&1 | Out-Host
-    Need ($LASTEXITCODE -eq 0) "could not start $node"
+$allNodes = @(& $Kind get nodes --name $Cluster 2>$null | Where-Object { $_ -is [string] -and $_.Trim() })
+if ($allNodes.Count -eq 0) { $allNodes = @($node) }
+foreach ($n in $allNodes) {
+    $running = (& docker inspect -f '{{.State.Running}}' $n 2>&1 | Out-String).Trim()
+    if ($running -ne 'true') {
+        Step "starting stopped kind node $n (normal docker start)"
+        & docker start $n 2>&1 | Out-Host
+        Need ($LASTEXITCODE -eq 0) "could not start $n"
+    }
 }
-$labKube = Join-Path $Lab '.local\kubeconfig'
 for ($i = 0; $i -lt 30; $i++) {
     & kubectl --kubeconfig $labKube --context "kind-$Cluster" get --raw /readyz 2>&1 | Out-Null
     if ($LASTEXITCODE -eq 0) { break }
@@ -94,6 +109,7 @@ Need ($nodeInfo.Config.Labels.'io.x-k8s.kind.cluster' -eq $Cluster) "container $
 $server = (& kubectl --kubeconfig $labKube --context "kind-$Cluster" config view --minify -o "jsonpath={.clusters[0].cluster.server}" 2>$null | Out-String).Trim()
 Need ($server -match '^https://(127\.0\.0\.1|localhost):\d+$') "refusing to write: API server '$server' is not a loopback address"
 
+if ($HasLab) {
 # Images the scenarios need must already be inside the kind node (imagePullPolicy: Never).
 $nodeImages = (& docker exec $node crictl images 2>&1 | Out-String)
 foreach ($v in 'v1', 'v2') {
@@ -137,6 +153,7 @@ foreach ($w in 'statefulset/redis', 'deployment/api', 'deployment/worker') {
     K rollout status $w --timeout=180s 2>&1 | Out-Host
     Need ($LASTEXITCODE -eq 0) "$w is not ready"
 }
+}   # end if ($HasLab): lab images and lab app
 
 Step 'kubeconfig for containers on the kind network'
 $local = Join-Path $Repo '.local'
@@ -156,7 +173,7 @@ if ($Rebuild -or $LASTEXITCODE -ne 0) {
 # api variants for the "slow but healthy" scenarios (L01-L03): v3 = request log, v3.1 = v3 + a code defect.
 # They are derived from a copy of the lab's source (lab_variants/make_variants.py); the lab folder is only read.
 $nodeImages = (& docker exec $node crictl images 2>&1 | Out-String)
-if ($Rebuild -or $nodeImages -notmatch 'tiktok-k8s-lab\s+v3\s' -or $nodeImages -notmatch 'tiktok-k8s-lab\s+v3\.1\s') {
+if ($HasLab -and ($Rebuild -or $nodeImages -notmatch 'tiktok-k8s-lab\s+v3\s' -or $nodeImages -notmatch 'tiktok-k8s-lab\s+v3\.1\s')) {
     Step 'building api variants v3 and v3.1'
     & docker image inspect tiktok-k8s-lab:v1 2>&1 | Out-Null
     if ($LASTEXITCODE -ne 0) {
@@ -212,8 +229,9 @@ if ($Action -ne 'shell') {
         throw "another run is still active (container $($active -join ', ')). Stop it first with: docker stop $($active -join ' ')"
     }
 }
+$mounts = @('-v', "${Repo}:/work")
+if ($HasLab) { $mounts += @('-v', "${Lab}:/lab:ro") }
 Step "running: $($runArgs -join ' ')"
-& docker run --rm @tty --network kind `
-    -v "${Repo}:/work" -v "${Lab}:/lab:ro" `
+& docker run --rm @tty --network kind @mounts -e "ADMIN_CONTEXT=kind-$Cluster" `
     $Image @runArgs
 exit $LASTEXITCODE
