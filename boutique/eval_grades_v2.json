@@ -1,5 +1,6 @@
 {
- "status": "草稿（2026-11-22），等用户确认；确认后在第一次运行之前定稿，之后不再改。如果必须改，所有组用新规则重判并说明改了什么。",
+ "status": "定稿（2026-11-22，用户确认）。在第一次运行之前定下，之后不再改。如果必须改，所有组用新规则重判并说明改了什么。",
+ "run_settings": "阶段 3 基线：基础 SOP（holmes/skills/svc-sop-v0），开指标工具（-Metrics，用户确认），-MaxSteps 100，结果在 results/holmes_batch/v2-S0。之后各组用同样的设置。",
  "applies_to": "第二版题库 CL/CV/CT（scenarios/boutique_v2.yaml）。旧的 BT01–12 仍按 boutique/eval_grades.json 判，不混用。",
  "how": "人工判：读每次运行的最终回答和它列出的根因，对照题目的 answer（含 also）和 mechanisms 字段。不用关键词自动判分。判分时不看这次运行属于哪个组（把组名遮住、打乱顺序后再判）。",
  "per_cause": {
