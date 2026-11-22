@@ -1,0 +1,201 @@
+{
+ "scenario": "CL02",
+ "symptom": "商城页面明显变慢了，但没有报错；Pod 看起来都是正常的。",
+ "steps": [
+  {
+   "n": 1,
+   "operation": "把 Deployment cartservice 的 CPU 上限设为 300m、CPU 请求设为 200m（Pod 随之滚动更新）",
+   "observation": {
+    "since": "2026-11-22T10:39:09Z",
+    "seconds": 75.0,
+    "requests": 182,
+    "slow_180ms": 127,
+    "share_slow": 0.698,
+    "p50_ms": 328,
+    "p90_ms": 415,
+    "p99_ms": 435,
+    "http_500": 0,
+    "checkout_attempts": 6,
+    "checkout_failed": 0,
+    "card_rejected": 0,
+    "resolved": false
+   },
+   "improved": false,
+   "observation_first": {
+    "since": "2026-11-22T10:37:54Z",
+    "seconds": 75.0,
+    "requests": 219,
+    "slow_180ms": 146,
+    "share_slow": 0.667,
+    "p50_ms": 330,
+    "p90_ms": 394,
+    "p99_ms": 430,
+    "http_500": 0,
+    "checkout_attempts": 10,
+    "checkout_failed": 0,
+    "card_rejected": 0,
+    "resolved": false
+   }
+  },
+  {
+   "n": 2,
+   "operation": "在节点上清除了 recommendationservice 的 Pod 对应 veth 网卡上的 tc 规则（恢复为默认队列）",
+   "observation": {
+    "since": "2026-11-22T10:40:47Z",
+    "seconds": 75.0,
+    "requests": 219,
+    "slow_180ms": 0,
+    "share_slow": 0.0,
+    "p50_ms": 7,
+    "p90_ms": 11,
+    "p99_ms": 33,
+    "http_500": 0,
+    "checkout_attempts": 11,
+    "checkout_failed": 0,
+    "card_rejected": 0,
+    "resolved": true
+   },
+   "improved": true
+  }
+ ],
+ "resolved": true,
+ "outcome": "resolved",
+ "before": {
+  "since": "2026-11-22T10:36:20Z",
+  "seconds": 45.0,
+  "requests": 121,
+  "slow_180ms": 86,
+  "share_slow": 0.711,
+  "p50_ms": 367,
+  "p90_ms": 561,
+  "p99_ms": 6473,
+  "http_500": 0,
+  "checkout_attempts": 2,
+  "checkout_failed": 0,
+  "card_rejected": 0,
+  "resolved": false
+ },
+ "restored": [],
+ "log": [
+  {
+   "phase": "verify_healthy",
+   "ok": true,
+   "detail": "healthy",
+   "seconds": 0.18
+  },
+  {
+   "phase": "home_latency",
+   "ok": true,
+   "detail": "GET / ok=True median=0.04s of [0.04] (need >= 0s)",
+   "seconds": 0.0
+  },
+  {
+   "phase": "clean_slate",
+   "ok": true,
+   "detail": "fresh pods",
+   "seconds": 33.22
+  },
+  {
+   "phase": "verify_fresh",
+   "ok": true,
+   "detail": "healthy",
+   "seconds": 0.22
+  },
+  {
+   "phase": "home_latency",
+   "ok": true,
+   "detail": "GET / ok=True median=0.05s of [0.05] (need >= 0s)",
+   "seconds": 0.0
+  },
+  {
+   "phase": "clear_events",
+   "ok": true,
+   "detail": "",
+   "seconds": 0.0
+  },
+  {
+   "phase": "prune_history",
+   "ok": true,
+   "detail": "1 old replicasets",
+   "seconds": 0.0
+  },
+  {
+   "phase": "inject",
+   "ok": true,
+   "detail": "-n boutique set resources deployment/cartservice --limits=cpu=30m",
+   "seconds": 0.04
+  },
+  {
+   "phase": "inject",
+   "ok": true,
+   "detail": "-n boutique rollout status deployment/cartservice --timeout=140s",
+   "seconds": 33.48
+  },
+  {
+   "phase": "inject",
+   "ok": true,
+   "detail": "-n infra-tools delete pod net-injector --ignore-not-found",
+   "seconds": 0.04
+  },
+  {
+   "phase": "inject",
+   "ok": true,
+   "detail": "apply -f /work/scenarios/netem/injector-boutique-hard-CL02.yaml",
+   "seconds": 0.17
+  },
+  {
+   "phase": "inject",
+   "ok": true,
+   "detail": "-n infra-tools wait --for=condition=Ready pod/net-injector --timeout=180s",
+   "seconds": 2.58
+  },
+  {
+   "phase": "confirm",
+   "ok": true,
+   "detail": "18/18 requests >= 110 ms since 2026-11-22T10:36:20Z; logs(app=net-injector) contain 'netem applied: 1': True",
+   "seconds": 6.27
+  },
+  {
+   "phase": "fix",
+   "ok": true,
+   "detail": "-n boutique set resources deployment/cartservice --limits=cpu=300m",
+   "seconds": 0.06
+  },
+  {
+   "phase": "fix",
+   "ok": true,
+   "detail": "-n infra-tools delete pod net-injector --ignore-not-found",
+   "seconds": 2.36
+  },
+  {
+   "phase": "reset",
+   "ok": true,
+   "detail": "-n infra-tools delete pod net-injector --ignore-not-found",
+   "seconds": 0.04
+  },
+  {
+   "phase": "reset",
+   "ok": true,
+   "detail": "-n boutique set resources deployment/cartservice --limits=cpu=300m",
+   "seconds": 0.04
+  },
+  {
+   "phase": "reset",
+   "ok": true,
+   "detail": "reset steps applied",
+   "seconds": 0.56
+  },
+  {
+   "phase": "verify_recovered",
+   "ok": true,
+   "detail": "healthy",
+   "seconds": 0.18
+  },
+  {
+   "phase": "home_latency",
+   "ok": true,
+   "detail": "GET / ok=True median=0.04s of [0.04] (need >= 0s)",
+   "seconds": 0.0
+  }
+ ]
+}

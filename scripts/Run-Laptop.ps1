@@ -32,7 +32,7 @@ param(
     [string]$Frame = '',        # loop/batch: empty = the default framing (a real production incident, judge from evidence only); 'none' = the bare prompt
     [int]$Rounds = 3,           # loop: how many diagnose-fix-verify rounds the agent gets
     [int]$Observe = 0,          # validate: keep each fault this many more seconds and record the frontend's latency meanwhile
-    [switch]$Metrics,           # batch/pilot: also give the agent the boutique_pod_metrics tool (CPU throttling, memory, pod network counters)
+    [switch]$Metrics,           # batch/pilot/loop: also give the agent the boutique_pod_metrics tool (CPU throttling, memory, pod network counters)
     [string]$Cluster = '',          # kind cluster name; empty = from .env / default (scripts\_cluster.ps1)
     [string]$KindExe = '',          # path to kind.exe; empty = lab copy or kind on PATH
     [string]$AdminKubeconfig = '',  # admin kubeconfig on this machine; empty = lab copy or ~\.kube\config
@@ -202,7 +202,7 @@ switch ($Action) {
     'pilot'    { $runArgs = @('pilot', $Scenario); if ($Noise) { $runArgs += @('--noise', $Noise) }; if ($Skills) { $runArgs += @('--skills', $Skills) }; if ($MaxSteps -gt 0) { $runArgs += @('--max-steps', "$MaxSteps") }; if ($Metrics) { $runArgs += '--metrics' } }
     'noise'    { $runArgs = @('noise') }
     'validate' { $runArgs = @('validate'); if ($Scenarios) { $runArgs += ($Scenarios -split ',') } else { $runArgs += $Scenario }; if ($Observe -gt 0) { $runArgs += @('--observe', "$Observe") } }
-    'loop'     { $runArgs = @('loop'); if ($Scenarios) { $runArgs += ($Scenarios -split ',') } else { $runArgs += $Scenario }; $runArgs += @('--rounds', "$Rounds"); if ($Frame) { $runArgs += @('--frame', $Frame) }; if ($Tag) { $runArgs += @('--tag', $Tag) }; if ($Skills) { $runArgs += @('--skills', $Skills) }; if ($MaxSteps -gt 0) { $runArgs += @('--max-steps', "$MaxSteps") } }
+    'loop'     { $runArgs = @('loop'); if ($Scenarios) { $runArgs += ($Scenarios -split ',') } else { $runArgs += $Scenario }; $runArgs += @('--rounds', "$Rounds"); if ($Frame) { $runArgs += @('--frame', $Frame) }; if ($Tag) { $runArgs += @('--tag', $Tag) }; if ($Skills) { $runArgs += @('--skills', $Skills) }; if ($MaxSteps -gt 0) { $runArgs += @('--max-steps', "$MaxSteps") }; if ($Metrics) { $runArgs += '--metrics' } }
     'fix'      { $runArgs = @('fix'); if ($Scenarios) { $runArgs += ($Scenarios -split ',') } else { $runArgs += $Scenario }; if ($Tag) { $runArgs += @('--tag', $Tag) } }
     'metrics'  { $runArgs = @('metrics') }   # no agent: print the metrics table the agent's tool would return
     'shell'    { $runArgs = @('shell') }

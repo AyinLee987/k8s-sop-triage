@@ -113,3 +113,35 @@ def test_loop_end_to_end_on_a_simulated_cluster(tmp_path, monkeypatch):
     # afterwards the namespace is the release manifest again and the injector is gone
     assert sim.state == lifecycle.BoutiqueLifecycle(sim, "/lab/k8s")._baseline() and not sim.injector and "reset_error" not in r
     assert "你当时的预期：慢请求降到 0" in hl.build_prompt("boutique", "慢", 3, [one], r["before"])
+
+
+def test_loop_metrics_flag_adds_the_toolset_and_token(tmp_path, monkeypatch):
+    """--metrics gives the loop's agent the same metrics tool as holmes_pilot.py --metrics; without it the token is withheld."""
+    seen = []
+
+    def fake_holmes(cmd, **kw):
+        seen.append((cmd, kw["env"]))
+        with open(cmd[cmd.index("--json-output-file") + 1], "w", encoding="utf-8") as fh:
+            json.dump({"result": "```json\n" + json.dumps(PLANS[2], ensure_ascii=False) + "\n```", "total_tokens": 1, "tool_calls": []}, fh)
+        return types.SimpleNamespace(returncode=0, stdout="", stderr="")
+
+    observe = remediate.observe
+    monkeypatch.setattr(remediate, "observe", lambda lc, since, **kw: observe(lc, since, **{**kw, "sleep": lambda s: None, "min_seconds": 0}))
+    monkeypatch.setattr(hl.time, "sleep", lambda s: None)
+    monkeypatch.setattr(hl, "KubectlRunner", lambda **kw: Sim())
+    monkeypatch.setattr(hl.subprocess, "run", fake_holmes)
+    monkeypatch.setattr(hl, "REPO", tmp_path)
+    monkeypatch.setattr(hl, "holmes_env", lambda skills: {"METRICS_TOKEN_FILE": "inherited"})
+    monkeypatch.setattr(hl, "load_dotenv", lambda: None)
+    token = tmp_path / "metrics.token"
+    token.write_text("t")
+    monkeypatch.setenv("METRICS_TOKEN_FILE", str(token))
+    (tmp_path / "holmes").mkdir()
+    for flags in (["--metrics"], []):
+        monkeypatch.setattr(sys, "argv", ["holmes_loop.py", "BH01", "--rounds", "1", "--tag", "m", *flags])
+        assert hl.main() == 0
+    (with_cmd, with_env), (without_cmd, without_env) = seen
+    assert "--custom-toolsets" in with_cmd and with_cmd[with_cmd.index("--custom-toolsets") + 1].endswith("toolsets-metrics.yaml")
+    assert with_env["METRICS_TOKEN_FILE"] == str(token)
+    assert "--custom-toolsets" not in without_cmd and "METRICS_TOKEN_FILE" not in without_env
+    assert json.loads((tmp_path / "results" / "holmes_loop" / "m" / "BH01.json").read_text(encoding="utf-8"))["metrics"] is False

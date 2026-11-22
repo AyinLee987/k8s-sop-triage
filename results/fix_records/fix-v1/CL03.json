@@ -1,0 +1,189 @@
+{
+ "scenario": "CL03",
+ "symptom": "商城页面明显变慢了，但没有报错；Pod 看起来都是正常的。",
+ "steps": [
+  {
+   "n": 1,
+   "operation": "把 Deployment adservice 的副本数设为 1",
+   "observation": {
+    "since": "2026-11-22T10:46:51Z",
+    "seconds": 75.0,
+    "requests": 206,
+    "slow_180ms": 11,
+    "share_slow": 0.053,
+    "p50_ms": 8,
+    "p90_ms": 105,
+    "p99_ms": 214,
+    "http_500": 0,
+    "checkout_attempts": 4,
+    "checkout_failed": 0,
+    "card_rejected": 0,
+    "resolved": false
+   },
+   "improved": true,
+   "observation_first": {
+    "since": "2026-11-22T10:45:36Z",
+    "seconds": 75.0,
+    "requests": 214,
+    "slow_180ms": 31,
+    "share_slow": 0.145,
+    "p50_ms": 8,
+    "p90_ms": 197,
+    "p99_ms": 585,
+    "http_500": 0,
+    "checkout_attempts": 7,
+    "checkout_failed": 0,
+    "card_rejected": 0,
+    "resolved": false
+   }
+  },
+  {
+   "n": 2,
+   "operation": "把 Deployment currencyservice 的 CPU 上限设为 200m、CPU 请求设为 100m（Pod 随之滚动更新）",
+   "observation": {
+    "since": "2026-11-22T10:48:39Z",
+    "seconds": 75.0,
+    "requests": 234,
+    "slow_180ms": 0,
+    "share_slow": 0.0,
+    "p50_ms": 7,
+    "p90_ms": 13,
+    "p99_ms": 33,
+    "http_500": 0,
+    "checkout_attempts": 10,
+    "checkout_failed": 0,
+    "card_rejected": 0,
+    "resolved": true
+   },
+   "improved": true
+  }
+ ],
+ "resolved": true,
+ "outcome": "resolved",
+ "before": {
+  "since": "2026-11-22T10:43:35Z",
+  "seconds": 45.0,
+  "requests": 207,
+  "slow_180ms": 29,
+  "share_slow": 0.14,
+  "p50_ms": 7,
+  "p90_ms": 203,
+  "p99_ms": 822,
+  "http_500": 0,
+  "checkout_attempts": 5,
+  "checkout_failed": 0,
+  "card_rejected": 0,
+  "resolved": false
+ },
+ "restored": [],
+ "log": [
+  {
+   "phase": "verify_healthy",
+   "ok": true,
+   "detail": "healthy",
+   "seconds": 0.17
+  },
+  {
+   "phase": "home_latency",
+   "ok": true,
+   "detail": "GET / ok=True median=0.04s of [0.04] (need >= 0s)",
+   "seconds": 0.0
+  },
+  {
+   "phase": "clean_slate",
+   "ok": true,
+   "detail": "fresh pods",
+   "seconds": 32.77
+  },
+  {
+   "phase": "verify_fresh",
+   "ok": true,
+   "detail": "healthy",
+   "seconds": 0.22
+  },
+  {
+   "phase": "home_latency",
+   "ok": true,
+   "detail": "GET / ok=True median=0.05s of [0.05] (need >= 0s)",
+   "seconds": 0.0
+  },
+  {
+   "phase": "clear_events",
+   "ok": true,
+   "detail": "",
+   "seconds": 0.0
+  },
+  {
+   "phase": "prune_history",
+   "ok": true,
+   "detail": "1 old replicasets",
+   "seconds": 0.0
+  },
+  {
+   "phase": "inject",
+   "ok": true,
+   "detail": "-n boutique scale deployment/adservice --replicas=0",
+   "seconds": 0.05
+  },
+  {
+   "phase": "inject",
+   "ok": true,
+   "detail": "-n boutique set resources deployment/currencyservice --limits=cpu=25m",
+   "seconds": 0.05
+  },
+  {
+   "phase": "inject",
+   "ok": true,
+   "detail": "-n boutique rollout status deployment/currencyservice --timeout=140s",
+   "seconds": 13.5
+  },
+  {
+   "phase": "confirm",
+   "ok": true,
+   "detail": "15/68 requests >= 110 ms since 2026-11-22T10:43:35Z",
+   "seconds": 24.44
+  },
+  {
+   "phase": "fix",
+   "ok": true,
+   "detail": "-n boutique scale deployment/adservice --replicas=1",
+   "seconds": 0.06
+  },
+  {
+   "phase": "fix",
+   "ok": true,
+   "detail": "-n boutique set resources deployment/currencyservice --limits=cpu=200m",
+   "seconds": 0.07
+  },
+  {
+   "phase": "reset",
+   "ok": true,
+   "detail": "-n boutique scale deployment/adservice --replicas=1",
+   "seconds": 0.04
+  },
+  {
+   "phase": "reset",
+   "ok": true,
+   "detail": "-n boutique set resources deployment/currencyservice --limits=cpu=200m",
+   "seconds": 0.04
+  },
+  {
+   "phase": "reset",
+   "ok": true,
+   "detail": "reset steps applied",
+   "seconds": 0.54
+  },
+  {
+   "phase": "verify_recovered",
+   "ok": true,
+   "detail": "healthy",
+   "seconds": 0.19
+  },
+  {
+   "phase": "home_latency",
+   "ok": true,
+   "detail": "GET / ok=True median=0.04s of [0.04] (need >= 0s)",
+   "seconds": 0.0
+  }
+ ]
+}

@@ -48,7 +48,7 @@ case "$cmd" in
   pilot)    mint_diag; if wants_metrics "$@"; then mint_metrics; fi; python scripts/holmes_pilot.py "$@" ;;
   batch)    mint_diag; if wants_metrics "$@"; then mint_metrics; fi; python scripts/holmes_batch.py "$@" ;;
   metrics)  mint_diag; mint_metrics; KUBECONFIG="$DIAG_KUBECONFIG" python scripts/pod_metrics.py "$@" ;;
-  loop)     mint_diag; python scripts/holmes_loop.py "$@" ;;
+  loop)     mint_diag; if wants_metrics "$@"; then mint_metrics; fi; python scripts/holmes_loop.py "$@" ;;
   fix)      python scripts/fix_records.py "$@" ;;
   validate) python scripts/validate_injection.py "$@" ;;
   noise)    python scripts/validate_noise.py "$@" ;;

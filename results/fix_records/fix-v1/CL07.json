@@ -1,0 +1,157 @@
+{
+ "scenario": "CL07",
+ "symptom": "有用户反馈商城出问题了：有的页面打不开或者操作失败，报 500 错误。",
+ "steps": [
+  {
+   "n": 1,
+   "operation": "把 Service shippingservice 的 selector 设为 app=shippingservice",
+   "observation": {
+    "since": "2026-11-22T11:11:57Z",
+    "seconds": 75.0,
+    "requests": 219,
+    "slow_180ms": 0,
+    "share_slow": 0.0,
+    "p50_ms": 6,
+    "p90_ms": 9,
+    "p99_ms": 38,
+    "http_500": 55,
+    "checkout_attempts": 6,
+    "checkout_failed": 6,
+    "card_rejected": 0,
+    "resolved": false
+   },
+   "improved": false,
+   "observation_first": {
+    "since": "2026-11-22T11:10:41Z",
+    "seconds": 75.0,
+    "requests": 243,
+    "slow_180ms": 0,
+    "share_slow": 0.0,
+    "p50_ms": 6,
+    "p90_ms": 12,
+    "p99_ms": 38,
+    "http_500": 53,
+    "checkout_attempts": 10,
+    "checkout_failed": 10,
+    "card_rejected": 0,
+    "resolved": false
+   }
+  }
+ ],
+ "resolved": false,
+ "outcome": "not_resolved",
+ "before": {
+  "since": "2026-11-22T11:09:36Z",
+  "seconds": 45.0,
+  "requests": 132,
+  "slow_180ms": 0,
+  "share_slow": 0.0,
+  "p50_ms": 6,
+  "p90_ms": 10,
+  "p99_ms": 34,
+  "http_500": 31,
+  "checkout_attempts": 2,
+  "checkout_failed": 2,
+  "card_rejected": 0,
+  "resolved": false
+ },
+ "restored": [],
+ "log": [
+  {
+   "phase": "verify_healthy",
+   "ok": true,
+   "detail": "healthy",
+   "seconds": 0.18
+  },
+  {
+   "phase": "home_latency",
+   "ok": true,
+   "detail": "GET / ok=True median=0.04s of [0.04] (need >= 0s)",
+   "seconds": 0.0
+  },
+  {
+   "phase": "clean_slate",
+   "ok": true,
+   "detail": "fresh pods",
+   "seconds": 32.57
+  },
+  {
+   "phase": "verify_fresh",
+   "ok": true,
+   "detail": "healthy",
+   "seconds": 0.18
+  },
+  {
+   "phase": "home_latency",
+   "ok": true,
+   "detail": "GET / ok=True median=0.05s of [0.05] (need >= 0s)",
+   "seconds": 0.0
+  },
+  {
+   "phase": "clear_events",
+   "ok": true,
+   "detail": "",
+   "seconds": 0.0
+  },
+  {
+   "phase": "prune_history",
+   "ok": true,
+   "detail": "1 old replicasets",
+   "seconds": 0.0
+  },
+  {
+   "phase": "inject",
+   "ok": true,
+   "detail": "-n boutique patch service shippingservice --type=merge",
+   "seconds": 0.04
+  },
+  {
+   "phase": "inject",
+   "ok": true,
+   "detail": "-n boutique delete pod -l app=shippingservice",
+   "seconds": 0.49
+  },
+  {
+   "phase": "inject",
+   "ok": true,
+   "detail": "-n boutique rollout status deployment/shippingservice --timeout=140s",
+   "seconds": 0.14
+  },
+  {
+   "phase": "confirm",
+   "ok": true,
+   "detail": "logs(app=frontend) contain '\"http.resp.status\":500': True",
+   "seconds": 0.05
+  },
+  {
+   "phase": "fix",
+   "ok": true,
+   "detail": "-n boutique patch service shippingservice --type=merge",
+   "seconds": 0.04
+  },
+  {
+   "phase": "reset",
+   "ok": true,
+   "detail": "-n boutique patch service shippingservice --type=merge",
+   "seconds": 0.04
+  },
+  {
+   "phase": "reset",
+   "ok": true,
+   "detail": "reset steps applied",
+   "seconds": 0.54
+  },
+  {
+   "phase": "verify_recovered",
+   "ok": true,
+   "detail": "healthy",
+   "seconds": 0.18
+  },
+  {
+   "phase": "home_latency",
+   "ok": true,
+   "detail": "GET / ok=True median=0.10s of [0.1] (need >= 0s)",
+   "seconds": 0.0
+  }
+ ]
+}

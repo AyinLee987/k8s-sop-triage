@@ -1,0 +1,130 @@
+{
+ "scenario": "CL01",
+ "symptom": "商城页面明显变慢了，但没有报错；Pod 看起来都是正常的。",
+ "steps": [
+  {
+   "n": 1,
+   "operation": "把 Deployment currencyservice 的 CPU 上限设为 200m、CPU 请求设为 100m（Pod 随之滚动更新）",
+   "observation": {
+    "since": "2026-11-22T10:33:10Z",
+    "seconds": 75.0,
+    "requests": 195,
+    "slow_180ms": 0,
+    "share_slow": 0.0,
+    "p50_ms": 8,
+    "p90_ms": 13,
+    "p99_ms": 37,
+    "http_500": 0,
+    "checkout_attempts": 3,
+    "checkout_failed": 0,
+    "card_rejected": 0,
+    "resolved": true
+   },
+   "improved": true
+  }
+ ],
+ "resolved": true,
+ "outcome": "resolved",
+ "before": {
+  "since": "2026-11-22T10:31:25Z",
+  "seconds": 45.0,
+  "requests": 222,
+  "slow_180ms": 27,
+  "share_slow": 0.122,
+  "p50_ms": 8,
+  "p90_ms": 193,
+  "p99_ms": 391,
+  "http_500": 0,
+  "checkout_attempts": 8,
+  "checkout_failed": 0,
+  "card_rejected": 0,
+  "resolved": false
+ },
+ "restored": [],
+ "log": [
+  {
+   "phase": "verify_healthy",
+   "ok": true,
+   "detail": "healthy",
+   "seconds": 0.19
+  },
+  {
+   "phase": "home_latency",
+   "ok": true,
+   "detail": "GET / ok=True median=0.05s of [0.05] (need >= 0s)",
+   "seconds": 0.0
+  },
+  {
+   "phase": "clean_slate",
+   "ok": true,
+   "detail": "fresh pods",
+   "seconds": 32.88
+  },
+  {
+   "phase": "verify_fresh",
+   "ok": true,
+   "detail": "healthy",
+   "seconds": 0.2
+  },
+  {
+   "phase": "home_latency",
+   "ok": true,
+   "detail": "GET / ok=True median=0.05s of [0.05] (need >= 0s)",
+   "seconds": 0.0
+  },
+  {
+   "phase": "clear_events",
+   "ok": true,
+   "detail": "",
+   "seconds": 0.0
+  },
+  {
+   "phase": "inject",
+   "ok": true,
+   "detail": "-n boutique set resources deployment/currencyservice --limits=cpu=25m",
+   "seconds": 0.05
+  },
+  {
+   "phase": "inject",
+   "ok": true,
+   "detail": "-n boutique rollout status deployment/currencyservice --timeout=140s",
+   "seconds": 13.51
+  },
+  {
+   "phase": "confirm",
+   "ok": true,
+   "detail": "15/69 requests >= 110 ms since 2026-11-22T10:31:25Z",
+   "seconds": 27.5
+  },
+  {
+   "phase": "fix",
+   "ok": true,
+   "detail": "-n boutique set resources deployment/currencyservice --limits=cpu=200m",
+   "seconds": 0.04
+  },
+  {
+   "phase": "reset",
+   "ok": true,
+   "detail": "-n boutique set resources deployment/currencyservice --limits=cpu=200m",
+   "seconds": 0.04
+  },
+  {
+   "phase": "reset",
+   "ok": true,
+   "detail": "reset steps applied",
+   "seconds": 0.52
+  },
+  {
+   "phase": "verify_recovered",
+   "ok": true,
+   "detail": "healthy",
+   "seconds": 0.19
+  },
+  {
+   "phase": "home_latency",
+   "ok": true,
+   "detail": "GET / ok=True median=0.04s of [0.04] (need >= 0s)",
+   "seconds": 0.0
+  }
+ ]
+}

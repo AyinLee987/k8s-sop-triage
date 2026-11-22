@@ -93,6 +93,7 @@ def main() -> int:
     ap.add_argument("--model", default=None)
     ap.add_argument("--skills", default="")
     ap.add_argument("--tag", default="loop")
+    ap.add_argument("--metrics", action="store_true", help="also give the agent the boutique_pod_metrics tool, as holmes_pilot.py --metrics does")
     ap.add_argument("--frame", default="prod", choices=["prod", "none"],
                     help="prod (default since 2026-11-17) = tell the agent this is a real production incident and to judge from evidence only; "
                          "none = the bare prompt of the first loop-pilot runs")
@@ -121,8 +122,16 @@ def run(sc: dict, args) -> int:
     for old in [out_dir / f"{sc['id']}.json", *out_dir.glob(f"{sc['id']}-round*.json")]:
         old.unlink(missing_ok=True)
     env = holmes_env(args.skills)
+    if getattr(args, "metrics", False):
+        token_file = os.environ.get("METRICS_TOKEN_FILE") or str(REPO / ".local" / "metrics.token")
+        if not Path(token_file).is_file():
+            sys.exit(f"--metrics needs the metrics token ({token_file}); the laptop entry script mints it")
+        env["METRICS_TOKEN_FILE"] = token_file
+    else:
+        env.pop("METRICS_TOKEN_FILE", None)   # without the flag the agent's tools cannot reach the kubelet
     log = StepLog()
-    record = {"scenario": sc["id"], "model": model, "max_rounds": args.rounds, "frame": args.frame, "rounds": [], "outcome": "error"}
+    record = {"scenario": sc["id"], "model": model, "max_rounds": args.rounds, "frame": args.frame, "metrics": bool(getattr(args, "metrics", False)),
+              "skills": args.skills, "rounds": [], "outcome": "error"}
     leftovers = remediate.recover(lc)   # a previous run killed mid-scenario leaves its injector and changes behind
     if leftovers:
         print(f"cleaned up after an interrupted run: {leftovers}", flush=True)
@@ -145,6 +154,8 @@ def run(sc: dict, args) -> int:
             started = time.monotonic()
             cmd = [HOLMES, "ask", prompt, "--model", f"openai/{model}", "--config", str(REPO / "holmes" / "config.yaml"),
                    "--max-steps", str(args.max_steps), "--no-interactive", "--no-echo", "--log-costs", "--json-output-file", str(json_out)]
+            if getattr(args, "metrics", False):
+                cmd += ["--custom-toolsets", str(REPO / "holmes" / "toolsets-metrics.yaml")]
             try:
                 res = subprocess.run(cmd, env=env, capture_output=True, text=True, timeout=1500, stdin=subprocess.DEVNULL)
                 data = json.loads(json_out.read_text(encoding="utf-8")) if json_out.exists() else {}
