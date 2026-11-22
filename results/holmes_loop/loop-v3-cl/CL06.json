@@ -1,0 +1,171 @@
+{
+ "scenario": "CL06",
+ "model": "deepseek-flash",
+ "max_rounds": 1,
+ "frame": "prod",
+ "metrics": true,
+ "skills": "holmes/skills/svc-sop-v0",
+ "rounds": [
+  {
+   "round": 1,
+   "wall_s": 23,
+   "exit": 0,
+   "total_tokens": 151310,
+   "tool_calls": 12,
+   "answer": "I found a skill named **boutique-triage-overview** and **boutique-checkoutservice** and used them to troubleshoot:\n\n1. ✅ *定位失败面（frontend 日志）* — 全部 `POST /cart/checkout` 立即 500，耗時 4–6ms\n2. ✅ *查 checkoutservice Deployment/RS/Pod* — Pod Running/Ready，重启 0，但 12:08:20 滚动出一个新 ReplicaSet（revision 29→30）\n3. ✅ *查 Service / EndpointSlice* — `checkoutservice` selector/端口 5050 正常，ready 端点 10.244.0.34\n4. ✅ *查 checkoutservice 日志与 env* — 找到直接证据（见下）\n5. ✅ *查探针/资源/配额* — 无 Probe failed、无 OOMKilled、无 FailedCreate 事件\n6. ✅ *逐个核对六个下游* — 全部 EndpointSlice ready、端口一致\n7. ✅ *验证 paymentservice 侧* — 只有启动日志，近 15 分钟**没有收到任何 Charge 调用**\n\n## 直接证据\n\n`checkoutservice` 新 ReplicaSet（revision 30，12:08:20 创建）的启动配置日志：\n\n```\nservice config: &{... paymentSvcAddr:emailservice:5000\n                  paymentSvcConn:0xc000387c08 emailSvcAddr:emailservice:5000 ...}\n```\n\n对照同一 Deployment 的历史 ReplicaSet（revision 29，PAYMENT_SERVICE_ADDR 正常）：\n\n| env | revision 29 (旧) | revision 30 (当前) |\n|---|---|---|\n| PAYMENT_SERVICE_ADDR | `paymentservice:50051` | **`emailservice:5000`** ❌ |\n| 其余 5 个下游 | 正常 | 正常 |\n\n后果在 frontend/checkoutservice 日志里逐条可见（4 次下单 4 次失败）：\n\n```\n\"error\": \"failed to complete the order: rpc error: code = Internal desc =\n failed to charge card: could not charge the card:\n rpc error: code = Unimplemented desc = Method not found!\"\nPOST /cart/checkout -> http.resp.status 500, took_ms 4~6\n```\n\n即 checkout 把 `Charge` 发给了 emailservice 的 gRPC 服务端（该服务未实现 Charge），因此秒返回 `Unimplemented`，不是超时、也不是支付/邮件服务故障。paymentservice（10.244.0.29:50051，`PaymentService gRPC server started on port 50051`）健康但完全没被调用。\n\n## 已排除\n- paymentservice / emailservice / productcatalog / shipping / currency / cart / redis：EndpointSlice 均 ready、端口正确，日志无对应时间窗内错误。\n- frontend、checkoutservice 的 Pod 状态、探针、资源限制、Service/EndpointSlice：正常。\n- 12:07:45–12:08:00 出现过的 `productcatalogservice` i/o timeout、`adservice:9555 connection refused` 是 12:07:24 全部 Pod 同时启动时的预热噪声，12:08:00 之后不再出现，且与“其它页面正常”一致，不是本次下单失败原因。\n\n## 修复\n把 checkoutservice 的 `PAYMENT_SERVICE_ADDR` 改回 `paymentservice:50051`（会触发一次滚动，Pod 重建）。\n\n```json\n{\"root_causes\": [{\"object\": \"checkoutservice Deployment（ReplicaSet checkoutservice-865848b987 / Pod checkoutservice-865848b987-86ldr）\", \"cause\": \"环境变量 PAYMENT_SERVICE_ADDR 被改成 emailservice:5000（revision 30，12:08:20 生效；revision 29 为正确的 paymentservice:50051），导致 PlaceOrder 把 Charge 发到 emailservice 的 gRPC 服务端，返回 Unimplemented 'Method not found!'，checkout 立即 500；paymentservice 因此完全没有收到任何 Charge 调用\"}], \"actions\": [{\"op\": \"set_env\", \"deployment\": \"checkoutservice\", \"name\": \"PAYMENT_SERVICE_ADDR\", \"value\": \"paymentservice:50051\"}], \"expect\": \"checkoutservice 重建后 PlaceOrder 重新走 paymentservice:50051：下单成功率 4/4 失败 → 0 失败（45 秒窗口内下单 4 次、失败 0 次），500 响应从 4 个降到 0 个，下单请求耗时从 4–6ms 的快速失败变为正常的数十毫秒（仍应远低于 180ms），其余页面指标不变\", \"explanation\": \"checkoutservice 的 PAYMENT_SERVICE_ADDR 指向了 emailservice:5000，Charge 调用返回 Unimplemented 导致所有下单失败；改回 paymentservice:50051 并滚动重建即可恢复。\"}\n```",
+   "plan": {
+    "root_causes": [
+     {
+      "object": "checkoutservice Deployment（ReplicaSet checkoutservice-865848b987 / Pod checkoutservice-865848b987-86ldr）",
+      "cause": "环境变量 PAYMENT_SERVICE_ADDR 被改成 emailservice:5000（revision 30，12:08:20 生效；revision 29 为正确的 paymentservice:50051），导致 PlaceOrder 把 Charge 发到 emailservice 的 gRPC 服务端，返回 Unimplemented 'Method not found!'，checkout 立即 500；paymentservice 因此完全没有收到任何 Charge 调用"
+     }
+    ],
+    "actions": [
+     {
+      "op": "set_env",
+      "deployment": "checkoutservice",
+      "name": "PAYMENT_SERVICE_ADDR",
+      "value": "paymentservice:50051"
+     }
+    ],
+    "expect": "checkoutservice 重建后 PlaceOrder 重新走 paymentservice:50051：下单成功率 4/4 失败 → 0 失败（45 秒窗口内下单 4 次、失败 0 次），500 响应从 4 个降到 0 个，下单请求耗时从 4–6ms 的快速失败变为正常的数十毫秒（仍应远低于 180ms），其余页面指标不变",
+    "explanation": "checkoutservice 的 PAYMENT_SERVICE_ADDR 指向了 emailservice:5000，Charge 调用返回 Unimplemented 导致所有下单失败；改回 paymentservice:50051 并滚动重建即可恢复。"
+   },
+   "plan_error": "",
+   "actions": [
+    {
+     "action": {
+      "op": "set_env",
+      "deployment": "checkoutservice",
+      "name": "PAYMENT_SERVICE_ADDR",
+      "value": "paymentservice:50051"
+     },
+     "accepted": true,
+     "ok": true,
+     "result": "ok: deployment.apps/checkoutservice env updated | ok: sh: 1 old replicas are pending termination...\nWaiting for deployment \"checkoutservice\" rollout to finish: 1 old replicas are pending termination...\ndeployment \"checkoutservice\" successfully rolled out"
+    }
+   ],
+   "observation": {
+    "since": "2026-11-22T12:10:15Z",
+    "seconds": 75.0,
+    "requests": 215,
+    "slow_180ms": 1,
+    "share_slow": 0.005,
+    "p50_ms": 7,
+    "p90_ms": 12,
+    "p99_ms": 52,
+    "http_500": 0,
+    "checkout_attempts": 3,
+    "checkout_failed": 0,
+    "card_rejected": 0,
+    "resolved": true
+   },
+   "kept": true
+  }
+ ],
+ "outcome": "resolved",
+ "before": {
+  "since": "2026-11-22T12:08:45Z",
+  "seconds": 45.0,
+  "requests": 141,
+  "slow_180ms": 0,
+  "share_slow": 0.0,
+  "p50_ms": 7,
+  "p90_ms": 12,
+  "p99_ms": 33,
+  "http_500": 4,
+  "checkout_attempts": 4,
+  "checkout_failed": 4,
+  "card_rejected": 0,
+  "resolved": false
+ },
+ "injector_log": null,
+ "restored": [],
+ "steps": [
+  {
+   "phase": "verify_healthy",
+   "ok": true,
+   "detail": "healthy",
+   "seconds": 0.18
+  },
+  {
+   "phase": "home_latency",
+   "ok": true,
+   "detail": "GET / ok=True median=0.04s of [0.04] (need >= 0s)",
+   "seconds": 0.0
+  },
+  {
+   "phase": "clean_slate",
+   "ok": true,
+   "detail": "fresh pods",
+   "seconds": 32.51
+  },
+  {
+   "phase": "verify_fresh",
+   "ok": true,
+   "detail": "healthy",
+   "seconds": 0.19
+  },
+  {
+   "phase": "home_latency",
+   "ok": true,
+   "detail": "GET / ok=True median=0.05s of [0.05] (need >= 0s)",
+   "seconds": 0.0
+  },
+  {
+   "phase": "clear_events",
+   "ok": true,
+   "detail": "",
+   "seconds": 0.0
+  },
+  {
+   "phase": "prune_history",
+   "ok": true,
+   "detail": "2 old replicasets",
+   "seconds": 0.0
+  },
+  {
+   "phase": "inject",
+   "ok": true,
+   "detail": "-n boutique set env deployment/checkoutservice PAYMENT_SERVICE_ADDR=emailservice:5000",
+   "seconds": 0.04
+  },
+  {
+   "phase": "inject",
+   "ok": true,
+   "detail": "-n boutique rollout status deployment/checkoutservice --timeout=140s",
+   "seconds": 0.69
+  },
+  {
+   "phase": "confirm",
+   "ok": true,
+   "detail": "logs(app=frontend) contain 'failed to complete the order': True",
+   "seconds": 0.05
+  },
+  {
+   "phase": "reset",
+   "ok": true,
+   "detail": "-n boutique set env deployment/checkoutservice PAYMENT_SERVICE_ADDR=paymentservice:50051",
+   "seconds": 0.04
+  },
+  {
+   "phase": "reset",
+   "ok": true,
+   "detail": "reset steps applied",
+   "seconds": 0.54
+  },
+  {
+   "phase": "verify_recovered",
+   "ok": true,
+   "detail": "healthy",
+   "seconds": 6.59
+  },
+  {
+   "phase": "home_latency",
+   "ok": true,
+   "detail": "GET / ok=True median=0.06s of [0.06] (need >= 0s)",
+   "seconds": 0.0
+  }
+ ],
+ "total_tokens": 151310
+}

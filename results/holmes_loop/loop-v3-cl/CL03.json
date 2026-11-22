@@ -1,0 +1,202 @@
+{
+ "scenario": "CL03",
+ "model": "deepseek-flash",
+ "max_rounds": 1,
+ "frame": "prod",
+ "metrics": true,
+ "skills": "holmes/skills/svc-sop-v0",
+ "rounds": [
+  {
+   "round": 1,
+   "wall_s": 171,
+   "exit": 0,
+   "total_tokens": 395083,
+   "tool_calls": 18,
+   "answer": "I found the skills `boutique-triage-overview`, `boutique-frontend` and `boutique-currencyservice` and used them to troubleshoot:\n\n1. ✅ *从 frontend 入口固定症状* — 用户只报“变慢、无报错”；前端日志确认所有请求都返回 200，并伴随大量 `failed to retrieve ads`（warning），无 5xx。\n2. ✅ *查 frontend Deployment/Pod/事件* — `frontend-fd686dbb-hhdn4` Running/Ready、restarts=0，CPU 10m/200m、限流 1%，Pod 5 分钟前由 RS `frontend-fd686dbb` 创建（11:31:56，与其它大多数服务同时重建）。本服务无异常。\n3. ✅ *查 frontend 日志中的下游调用* — 唯一的持续性下游错误是 `adservice:9555` 被拒：`failed to get ads: ... dial tcp 10.96.207.0:9555: connect: connection refused`，但该失败只花约 5–6 ms，请求仍 200（`http.resp.took_ms: 5~7`），不是 180 ms 抖动的来源。\n4. ✅ *定位慢请求落点* — 慢的是会做币种换算的页面：`GET /`、`GET /cart`、`POST /cart/checkout`（loadgen 观测 `/` 中位 140 ms、`/cart` 尾 443 ms、checkout 尾 392 ms），而单次换算的 `/product/*` 中位 6–9 ms；日志中 188/200/281/365 ms 的请求，耗时都发生在进入模板、完成货币换算之后。→ 按 skill 跳 `boutique-currencyservice`。\n5. ✅ *查 currencyservice Deployment/ReplicaSet* — **关键差异**：`currencyservice-65b9c9cbdc`（建于 2026-11-22T11:32:51Z）把 CPU 改成 `requests/limits: 25m`，而昨天正常在跑的 `currencyservice-6df4cccbb9` 是 `requests 100m / limits 200m`；镜像、env（`PORT=7000`、`DISABLE_PROFILER=1`）、grpc 探针 7000 都没变。事件：`ScalingReplicaSet ... Scaled up ... -65b9c9cbdc from 0 to 1` / `Scaled down ... -6df4cccbb9 from 1 to 0`，紧接着 `Readiness probe failed: timeout ... 10.244.0.231:7000 within 1s`（11:32:55）和 `Liveness probe failed: ... within 1s`（11:33:03）——25m 配额下连 1 秒的 gRPC 探针都答不出来。\n6. ✅ *查 Pod 级 CPU 限流证据（cAdvisor）* — 只有 currencyservice 被限流：窗口 39%（59/152 个周期），启动以来 44%；CPU 用量 8m，上限 25m。其余 10 个 Pod 全部 0–3%，`frontend` 1%、`productcatalogservice` 0%、`cartservice` 0%。\n7. ✅ *查 currencyservice 日志* — 无报错，全部 `conversion request successful`；但时间戳呈约每 100 ms 才推进一条的节拍（如 315702→315802→315902→316002→316101…），典型的 CFS 每 100 ms 周期只用上 2.5 ms 就被掐停。\n8. ✅ *查 adservice* — Deployment `adservice` 的 `spec.replicas=0`（事件 `Scaled down replica set adservice-6bfc5fc46c from 1 to 0`，11:32:51），镜像/配额本身正常；这是独立的功能性降级，不是延迟来源。\n9. ✅ *ResourceQuota / 其它服务排除* — 命名空间无 ResourceQuota；checkout/cart/productcatalog/recommendation/redis/shipping/email/payment 均无重启、无错误日志、无限流。\n\n**根因（有直接证据）**：`currencyservice` 的 CPU 上限在 11:32:51 被改成 25m（正常是 200m），导致 CFS 限流 39–44%，每次换算要等 100–300 ms 的调度周期，凡是做币种换算的页面（首页、购物车、下单、商品页尾部长尾）就出现 180–500 ms 的尖刺——中位仍 6 ms、无 500，正好符合“明显变慢但不报错”。\n**另一个独立问题**：`adservice` 被缩到 0 副本，所有广告调用 connection refused，页面不再显示广告（前端一直刷 warning），但它只耗 5–6 ms，不解释延迟。\n\n```json\n{\"root_causes\": [{\"object\": \"currencyservice (Deployment currencyservice-65b9c9cbdc)\", \"cause\": \"CPU requests/limits 在 2026-11-22T11:32:51Z 被从 100m/200m 改成 25m/25m，容器 CFS 被限流 39%~44%（cAdvisor：窗口 59/152 周期、启动以来 44%），把货币换算调用拖到 100~300ms；首页/购物车/下单/商品页这些做换算的请求因此出现 180~500ms 长尾（前端日志中 188/200/281/365ms 的慢请求耗时都在换算之后）。启动时 grpc 探针 1s 超时（11:32:55、11:33:03）也是同一配额导致\"}, {\"object\": \"adservice (Deployment adservice)\", \"cause\": \"2026-11-22T11:32:51Z 被缩容到 0 副本（Scaled down replica set adservice-6bfc5fc46c from 1 to 0），EndpointSlice 无后端，frontend 每次广告调用都 connection refused，页面持续缺广告并刷 warning；该失败仅耗时约 5~6ms，不是本次延迟的成因\"}], \"actions\": [{\"op\": \"set_cpu_limit\", \"deployment\": \"currencyservice\", \"cpu\": \"200m\"}, {\"op\": \"scale\", \"deployment\": \"adservice\", \"replicas\": 1}], \"expect\": \"把 currencyservice 的 CPU 上限恢复到原值 200m 后，CFS 限流应从 39~44% 降到接近 0，超过 180ms 的请求从 24/210(11.4%) 降到 0~2 个，p90 从 201ms 降到约 10~15ms，p99 从 481ms 降到 60ms 以内，中位数仍约 6ms，500 仍为 0，下单成功率不变；scale adservice 到 1 后前端不再出现 failed to retrieve ads，页面恢复广告，对延迟无负作用（adservice 就绪前广告调用仍是快速失败）。\", \"explanation\": \"currencyservice 的新 ReplicaSet 把 CPU 上限压到 25m，造成 39~44% 的 CFS 限流和百毫秒级换算延迟，这是页面变慢的长尾来源；adservice 被缩到 0 副本只导致广告缺失，与延迟无关。恢复 CPU 上限到 200m 并恢复 adservice 1 副本即可，两项都不需要只读权限之外的信息。\"}\n```",
+   "plan": {
+    "root_causes": [
+     {
+      "object": "currencyservice (Deployment currencyservice-65b9c9cbdc)",
+      "cause": "CPU requests/limits 在 2026-11-22T11:32:51Z 被从 100m/200m 改成 25m/25m，容器 CFS 被限流 39%~44%（cAdvisor：窗口 59/152 周期、启动以来 44%），把货币换算调用拖到 100~300ms；首页/购物车/下单/商品页这些做换算的请求因此出现 180~500ms 长尾（前端日志中 188/200/281/365ms 的慢请求耗时都在换算之后）。启动时 grpc 探针 1s 超时（11:32:55、11:33:03）也是同一配额导致"
+     },
+     {
+      "object": "adservice (Deployment adservice)",
+      "cause": "2026-11-22T11:32:51Z 被缩容到 0 副本（Scaled down replica set adservice-6bfc5fc46c from 1 to 0），EndpointSlice 无后端，frontend 每次广告调用都 connection refused，页面持续缺广告并刷 warning；该失败仅耗时约 5~6ms，不是本次延迟的成因"
+     }
+    ],
+    "actions": [
+     {
+      "op": "set_cpu_limit",
+      "deployment": "currencyservice",
+      "cpu": "200m"
+     },
+     {
+      "op": "scale",
+      "deployment": "adservice",
+      "replicas": 1
+     }
+    ],
+    "expect": "把 currencyservice 的 CPU 上限恢复到原值 200m 后，CFS 限流应从 39~44% 降到接近 0，超过 180ms 的请求从 24/210(11.4%) 降到 0~2 个，p90 从 201ms 降到约 10~15ms，p99 从 481ms 降到 60ms 以内，中位数仍约 6ms，500 仍为 0，下单成功率不变；scale adservice 到 1 后前端不再出现 failed to retrieve ads，页面恢复广告，对延迟无负作用（adservice 就绪前广告调用仍是快速失败）。",
+    "explanation": "currencyservice 的新 ReplicaSet 把 CPU 上限压到 25m，造成 39~44% 的 CFS 限流和百毫秒级换算延迟，这是页面变慢的长尾来源；adservice 被缩到 0 副本只导致广告缺失，与延迟无关。恢复 CPU 上限到 200m 并恢复 adservice 1 副本即可，两项都不需要只读权限之外的信息。"
+   },
+   "plan_error": "",
+   "actions": [
+    {
+     "action": {
+      "op": "set_cpu_limit",
+      "deployment": "currencyservice",
+      "cpu": "200m"
+     },
+     "accepted": true,
+     "ok": true,
+     "result": "ok: deployment.apps/currencyservice resource requirements updated | ok: sh: 1 old replicas are pending termination...\nWaiting for deployment \"currencyservice\" rollout to finish: 1 old replicas are pending termination...\ndeployment \"currencyservice\" successfully rolled out"
+    },
+    {
+     "action": {
+      "op": "scale",
+      "deployment": "adservice",
+      "replicas": 1
+     },
+     "accepted": true,
+     "ok": true,
+     "result": "ok: deployment.apps/adservice scaled | ok: Waiting for deployment \"adservice\" rollout to finish: 0 of 1 updated replicas are available...\ndeployment \"adservice\" successfully rolled out"
+    }
+   ],
+   "observation": {
+    "since": "2026-11-22T11:38:37Z",
+    "seconds": 75.0,
+    "requests": 192,
+    "slow_180ms": 0,
+    "share_slow": 0.0,
+    "p50_ms": 6,
+    "p90_ms": 12,
+    "p99_ms": 38,
+    "http_500": 0,
+    "checkout_attempts": 4,
+    "checkout_failed": 0,
+    "card_rejected": 0,
+    "resolved": true
+   },
+   "kept": true
+  }
+ ],
+ "outcome": "resolved",
+ "before": {
+  "since": "2026-11-22T11:33:30Z",
+  "seconds": 45.0,
+  "requests": 210,
+  "slow_180ms": 24,
+  "share_slow": 0.114,
+  "p50_ms": 6,
+  "p90_ms": 201,
+  "p99_ms": 481,
+  "http_500": 0,
+  "checkout_attempts": 7,
+  "checkout_failed": 0,
+  "card_rejected": 0,
+  "resolved": false
+ },
+ "injector_log": null,
+ "restored": [
+  "Deployment/currencyservice: set resources deployment/currencyservice -> ok"
+ ],
+ "steps": [
+  {
+   "phase": "verify_healthy",
+   "ok": true,
+   "detail": "healthy",
+   "seconds": 0.17
+  },
+  {
+   "phase": "home_latency",
+   "ok": true,
+   "detail": "GET / ok=True median=0.04s of [0.04] (need >= 0s)",
+   "seconds": 0.0
+  },
+  {
+   "phase": "clean_slate",
+   "ok": true,
+   "detail": "fresh pods",
+   "seconds": 33.11
+  },
+  {
+   "phase": "verify_fresh",
+   "ok": true,
+   "detail": "healthy",
+   "seconds": 0.19
+  },
+  {
+   "phase": "home_latency",
+   "ok": true,
+   "detail": "GET / ok=True median=0.05s of [0.05] (need >= 0s)",
+   "seconds": 0.0
+  },
+  {
+   "phase": "clear_events",
+   "ok": true,
+   "detail": "",
+   "seconds": 0.0
+  },
+  {
+   "phase": "prune_history",
+   "ok": true,
+   "detail": "2 old replicasets",
+   "seconds": 0.0
+  },
+  {
+   "phase": "inject",
+   "ok": true,
+   "detail": "-n boutique scale deployment/adservice --replicas=0",
+   "seconds": 0.04
+  },
+  {
+   "phase": "inject",
+   "ok": true,
+   "detail": "-n boutique set resources deployment/currencyservice --limits=cpu=25m",
+   "seconds": 0.05
+  },
+  {
+   "phase": "inject",
+   "ok": true,
+   "detail": "-n boutique rollout status deployment/currencyservice --timeout=140s",
+   "seconds": 13.36
+  },
+  {
+   "phase": "confirm",
+   "ok": true,
+   "detail": "18/85 requests >= 110 ms since 2026-11-22T11:33:30Z",
+   "seconds": 27.48
+  },
+  {
+   "phase": "reset",
+   "ok": true,
+   "detail": "-n boutique scale deployment/adservice --replicas=1",
+   "seconds": 0.04
+  },
+  {
+   "phase": "reset",
+   "ok": true,
+   "detail": "-n boutique set resources deployment/currencyservice --limits=cpu=200m",
+   "seconds": 0.04
+  },
+  {
+   "phase": "reset",
+   "ok": true,
+   "detail": "reset steps applied",
+   "seconds": 11.96
+  },
+  {
+   "phase": "verify_recovered",
+   "ok": true,
+   "detail": "healthy",
+   "seconds": 6.61
+  },
+  {
+   "phase": "home_latency",
+   "ok": true,
+   "detail": "GET / ok=True median=0.07s of [0.07] (need >= 0s)",
+   "seconds": 0.0
+  }
+ ],
+ "total_tokens": 395083
+}

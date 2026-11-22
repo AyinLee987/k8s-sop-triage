@@ -1,0 +1,213 @@
+{
+ "scenario": "CL02",
+ "model": "deepseek-flash",
+ "max_rounds": 1,
+ "frame": "prod",
+ "metrics": true,
+ "skills": "holmes/skills/svc-sop-v0",
+ "rounds": [
+  {
+   "round": 1,
+   "wall_s": 192,
+   "exit": 0,
+   "total_tokens": 610833,
+   "tool_calls": 26,
+   "answer": "## 排查结论\n\nI found a skill named **Online Boutique 排查总则（boutique-triage-overview）、cartservice SOP（boutique-cartservice）、frontend SOP（boutique-frontend）** and used it to troubleshoot:\n\n1. ✅ *固定症状：只要延迟、没有报错* - 用户侧 138 请求/45s，68.8% 超过 180ms，0 个 500，下单 2 次 0 失败；Pod 全 `Running`、`restartCount=0`、Event 无 OOMKilled/CrashLoopBackOff\n2. ✅ *从入口 frontend 定界（triage 默认规则）* - 逐页对比 frontend 日志 `http.resp.took_ms`：\n   - `GET /`（只打 productcatalogservice + currencyservice）：**12–35ms**\n   - `GET /product/*`：**271–434ms**\n   - `GET /cart`：**366–480ms**\n   - `POST /cart/checkout`：**349–476ms**\n   - `POST /setCurrency`（不调后端）：**0ms**\n   → frontend 自身与其 productcatalog/currency 调用正常，慢点只落在**要调 `cartservice:7070` 的页面**上（首页 v0.10.3 的 handler 不取购物车，product/cart/checkout 都取）\n3. ✅ *frontend Pod/Service/EndpointSlice* - `frontend` 1/1 Ready，Service `80→8080`，EndpointSlice `10.244.0.208:8080 ready=true`；frontend CPU 12m/200m，窗口限流 0%（0/206）。frontend 侧无任何下游连接失败/超时/解析失败日志\n4. ✅ *核对各服务清单（resources/env/端口/探针）* - 11 个服务工作负载与 v0.10.3 基准一致，**唯一偏离项是 `cartservice`：requests cpu=30m / limits cpu=30m（基准应为 200m / 300m）**；`REDIS_ADDR=redis-cart:6379`、7070、探针均正确\n5. ✅ *cartservice CPU 限流（两次独立采样，来自 kubelet cAdvisor）* - 窗口 13%（19/143）、8%（11/130）被限流；**启动以来 70% / 48%**；实际用量仅 5m。全命名空间**其余 11 个 Pod 窗口限流全部 0%**，启动以来最高 5%（adservice）\n6. ✅ *cartservice 自身响应能力* - 命名空间内**唯一**的 Warning 事件都落在 `cartservice-b65cf5966-7pqw9`：`Liveness probe failed: timeout: failed to connect service 10.244.0.215:7070 within 1s`、`Readiness probe failed: timeout: health rpc did not complete within 1s`（health RPC 1s 内都完不成）\n7. ✅ *cartservice Service/EndpointSlice* - selector `app: cartservice`，`7070→7070`，EndpointSlice `10.244.0.215:7070 ready=true`（服务发现正常，排除 selector/端口问题）\n8. ✅ *下游 redis-cart* - Pod Ready，EndpointSlice ready 6379，CPU 1m/125m，窗口限流 0%，日志只有无害启动告警（未设认证）；cartservice 日志全是正常的 `GetCartAsync/AddItemAsync/EmptyCartAsync`，无连接拒绝/超时\n9. ✅ *网络层* - 全部 Pod 收/发丢包=0、收/发错误=0\n10. ❌ *无法直接测量单个 RPC 耗时* - 无 tracing/APM、不能进容器，只能用页面级 took_ms + Pod 指标做归因（已在下文标注证据边界）\n\n**根因（已确认的观测链）**：`cartservice` 的 CPU limit 被压到 **30m（=每 100ms 周期只有 3ms 配额）**，容器长期处于 CFS 限流（启动以来 48–70%，稳态窗口也有 8–13%），连自检 health RPC 都超过 1s；每次 `GetCart` 被切成多个调度周期，单次调用增加数百毫秒，于是所有经过购物车的页面（/product、/cart、/cart/checkout）从 <180ms 涨到 270–480ms，而 `/`、`/setCurrency` 仍然 12–35ms / 0ms，也完全不报错——与用户侧\"变慢但无错误\"一致。\n\n**证据边界（无法区分项）**：`recommendationservice` 也同时出现在这三类慢页面上（`/`不调用它），它自身指标是 5m/200m、窗口限流 0%（0/216）、无 Warning 事件，因此没有任何直接证据表明它慢；但若限流修好后延迟仍停在 ~350ms，下一个待查对象就是它，届时需要 tracing 才能分辨。\n\n## 修复申请（第 1 轮，1 个操作）\n\n```json\n{\"root_causes\": [{\"object\": \"cartservice (Deployment, pod cartservice-b65cf5966-7pqw9)\", \"cause\": \"CPU limits/requests 被设为 30m（v0.10.3 基准为 requests 200m、limits 300m），容器每 100ms 只有 3ms CPU 配额，CFS 限流严重（启动以来 70%/48%，当前窗口 8–13%），连 1s 的 gRPC health 探针都超时（Liveness/Readiness probe failed: health rpc did not complete within 1s），使每次 GetCart 增加数百毫秒；导致 /product、/cart、/cart/checkout 从正常 <180ms 变成 270–480ms，而 / 与 /setCurrency 仍为 12–35ms、0ms，且无任何报错——与用户侧 353ms 中位数/68.8% 超 180ms/0 个 500 完全吻合。其他 11 个 Pod 窗口限流均为 0%、无丢包无错误，redis-cart 与 Service/EndpointSlice 均正常。\"}], \"actions\": [{\"op\": \"set_cpu_limit\", \"deployment\": \"cartservice\", \"cpu\": \"300m\"}], \"expect\": \"cartservice 停止被限流（窗口被限流周期 8–13% → ~0%），经购物车的页面延迟回到 <180ms：/product 约 271–434ms → 40–80ms，/cart 约 366–480ms → 70–120ms，/cart/checkout 约 349–476ms → 80–130ms；用户侧 95/138(68.8%) 超过 180ms → 接近 0，中位数 353ms → 约 30–50ms，p90 437ms → <120ms，p99 539ms → <180ms，500 仍为 0，下单成功率不变。\", \"explanation\": \"根因是 cartservice 的 CPU 上限被压到 30m 造成严重 CFS 限流（唯一被限流、唯一有探针超时事件的 Pod），把上限恢复到基准 300m 即可解除；注意本次只改 limits，requests 仍为 30m，建议运维随后按清单把 requests 也改回 200m。\"}\n```\n\n如果这一轮用户侧延迟没有下降，我的下一步是去查 `recommendationservice`（它是三条慢路径的另一共同依赖）——这点目前没有直接证据，需要 tracing 或单 RPC 指标支持。",
+   "plan": {
+    "root_causes": [
+     {
+      "object": "cartservice (Deployment, pod cartservice-b65cf5966-7pqw9)",
+      "cause": "CPU limits/requests 被设为 30m（v0.10.3 基准为 requests 200m、limits 300m），容器每 100ms 只有 3ms CPU 配额，CFS 限流严重（启动以来 70%/48%，当前窗口 8–13%），连 1s 的 gRPC health 探针都超时（Liveness/Readiness probe failed: health rpc did not complete within 1s），使每次 GetCart 增加数百毫秒；导致 /product、/cart、/cart/checkout 从正常 <180ms 变成 270–480ms，而 / 与 /setCurrency 仍为 12–35ms、0ms，且无任何报错——与用户侧 353ms 中位数/68.8% 超 180ms/0 个 500 完全吻合。其他 11 个 Pod 窗口限流均为 0%、无丢包无错误，redis-cart 与 Service/EndpointSlice 均正常。"
+     }
+    ],
+    "actions": [
+     {
+      "op": "set_cpu_limit",
+      "deployment": "cartservice",
+      "cpu": "300m"
+     }
+    ],
+    "expect": "cartservice 停止被限流（窗口被限流周期 8–13% → ~0%），经购物车的页面延迟回到 <180ms：/product 约 271–434ms → 40–80ms，/cart 约 366–480ms → 70–120ms，/cart/checkout 约 349–476ms → 80–130ms；用户侧 95/138(68.8%) 超过 180ms → 接近 0，中位数 353ms → 约 30–50ms，p90 437ms → <120ms，p99 539ms → <180ms，500 仍为 0，下单成功率不变。",
+    "explanation": "根因是 cartservice 的 CPU 上限被压到 30m 造成严重 CFS 限流（唯一被限流、唯一有探针超时事件的 Pod），把上限恢复到基准 300m 即可解除；注意本次只改 limits，requests 仍为 30m，建议运维随后按清单把 requests 也改回 200m。"
+   },
+   "plan_error": "",
+   "actions": [
+    {
+     "action": {
+      "op": "set_cpu_limit",
+      "deployment": "cartservice",
+      "cpu": "300m"
+     },
+     "accepted": true,
+     "ok": true,
+     "result": "ok: deployment.apps/cartservice resource requirements updated | ok:  to finish: 1 old replicas are pending termination...\nWaiting for deployment \"cartservice\" rollout to finish: 1 old replicas are pending termination...\ndeployment \"cartservice\" successfully rolled out"
+    }
+   ],
+   "observation": {
+    "since": "2026-11-22T11:29:54Z",
+    "seconds": 75.0,
+    "requests": 203,
+    "slow_180ms": 132,
+    "share_slow": 0.65,
+    "p50_ms": 325,
+    "p90_ms": 400,
+    "p99_ms": 434,
+    "http_500": 0,
+    "checkout_attempts": 9,
+    "checkout_failed": 0,
+    "card_rejected": 0,
+    "resolved": false
+   },
+   "kept": false,
+   "observation_first": {
+    "since": "2026-11-22T11:28:39Z",
+    "seconds": 75.0,
+    "requests": 195,
+    "slow_180ms": 130,
+    "share_slow": 0.667,
+    "p50_ms": 333,
+    "p90_ms": 411,
+    "p99_ms": 442,
+    "http_500": 0,
+    "checkout_attempts": 8,
+    "checkout_failed": 0,
+    "card_rejected": 0,
+    "resolved": false
+   },
+   "undone": [
+    "Deployment/cartservice: set resources deployment/cartservice -> ok"
+   ]
+  }
+ ],
+ "outcome": "rounds_exhausted",
+ "before": {
+  "since": "2026-11-22T11:23:54Z",
+  "seconds": 45.0,
+  "requests": 138,
+  "slow_180ms": 95,
+  "share_slow": 0.688,
+  "p50_ms": 353,
+  "p90_ms": 437,
+  "p99_ms": 539,
+  "http_500": 0,
+  "checkout_attempts": 2,
+  "checkout_failed": 0,
+  "card_rejected": 0,
+  "resolved": false
+ },
+ "injector_log": "netem on vethb3cf8719 (recommendationservice-6c88b5fb59-dmpzg 10.244.0.212): delay 170ms 51ms\nqdisc netem 802f: root refcnt 13 limit 1000 delay 170ms  51ms seed 1082026675550171165\nnetem applied: 1\n",
+ "restored": [
+  "Deployment/cartservice: set resources deployment/cartservice -> ok"
+ ],
+ "steps": [
+  {
+   "phase": "verify_healthy",
+   "ok": true,
+   "detail": "healthy",
+   "seconds": 0.18
+  },
+  {
+   "phase": "home_latency",
+   "ok": true,
+   "detail": "GET / ok=True median=0.05s of [0.05] (need >= 0s)",
+   "seconds": 0.0
+  },
+  {
+   "phase": "clean_slate",
+   "ok": true,
+   "detail": "fresh pods",
+   "seconds": 32.72
+  },
+  {
+   "phase": "verify_fresh",
+   "ok": true,
+   "detail": "healthy",
+   "seconds": 0.19
+  },
+  {
+   "phase": "home_latency",
+   "ok": true,
+   "detail": "GET / ok=True median=0.05s of [0.05] (need >= 0s)",
+   "seconds": 0.0
+  },
+  {
+   "phase": "clear_events",
+   "ok": true,
+   "detail": "",
+   "seconds": 0.0
+  },
+  {
+   "phase": "prune_history",
+   "ok": true,
+   "detail": "2 old replicasets",
+   "seconds": 0.0
+  },
+  {
+   "phase": "inject",
+   "ok": true,
+   "detail": "-n boutique set resources deployment/cartservice --limits=cpu=30m",
+   "seconds": 0.04
+  },
+  {
+   "phase": "inject",
+   "ok": true,
+   "detail": "-n boutique rollout status deployment/cartservice --timeout=140s",
+   "seconds": 33.31
+  },
+  {
+   "phase": "inject",
+   "ok": true,
+   "detail": "-n infra-tools delete pod net-injector --ignore-not-found",
+   "seconds": 0.04
+  },
+  {
+   "phase": "inject",
+   "ok": true,
+   "detail": "apply -f /work/scenarios/netem/injector-boutique-hard-CL02.yaml",
+   "seconds": 0.15
+  },
+  {
+   "phase": "inject",
+   "ok": true,
+   "detail": "-n infra-tools wait --for=condition=Ready pod/net-injector --timeout=180s",
+   "seconds": 2.58
+  },
+  {
+   "phase": "confirm",
+   "ok": true,
+   "detail": "17/21 requests >= 110 ms since 2026-11-22T11:23:54Z; logs(app=net-injector) contain 'netem applied: 1': True",
+   "seconds": 6.27
+  },
+  {
+   "phase": "reset",
+   "ok": true,
+   "detail": "-n infra-tools delete pod net-injector --ignore-not-found",
+   "seconds": 2.24
+  },
+  {
+   "phase": "reset",
+   "ok": true,
+   "detail": "-n boutique set resources deployment/cartservice --limits=cpu=300m",
+   "seconds": 0.04
+  },
+  {
+   "phase": "reset",
+   "ok": true,
+   "detail": "reset steps applied",
+   "seconds": 21.7
+  },
+  {
+   "phase": "verify_recovered",
+   "ok": true,
+   "detail": "healthy",
+   "seconds": 3.46
+  },
+  {
+   "phase": "home_latency",
+   "ok": true,
+   "detail": "GET / ok=True median=0.07s of [0.07] (need >= 0s)",
+   "seconds": 0.0
+  }
+ ],
+ "total_tokens": 610833
+}

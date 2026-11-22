@@ -778,6 +778,38 @@ scenarios:
     - --type=merge
     - -p
     - '{"spec": {"selector": {"app": "shippingservice"}}}'
+  - kubectl:
+    - -n
+    - '{ns}'
+    - delete
+    - pod
+    - -l
+    - app=checkoutservice
+    - --wait=true
+    - --timeout=90s
+  - kubectl:
+    - -n
+    - '{ns}'
+    - rollout
+    - status
+    - deployment/checkoutservice
+    - --timeout=140s
+  - kubectl:
+    - -n
+    - '{ns}'
+    - delete
+    - pod
+    - -l
+    - app=frontend
+    - --wait=true
+    - --timeout=90s
+  - kubectl:
+    - -n
+    - '{ns}'
+    - rollout
+    - status
+    - deployment/frontend
+    - --timeout=140s
   answer:
     status: root_cause_found
     cause_category: other
@@ -1559,6 +1591,38 @@ scenarios:
     - --type=merge
     - -p
     - '{"spec": {"selector": {"app": "currencyservice"}}}'
+  - kubectl:
+    - -n
+    - '{ns}'
+    - delete
+    - pod
+    - -l
+    - app=checkoutservice
+    - --wait=true
+    - --timeout=90s
+  - kubectl:
+    - -n
+    - '{ns}'
+    - rollout
+    - status
+    - deployment/checkoutservice
+    - --timeout=140s
+  - kubectl:
+    - -n
+    - '{ns}'
+    - delete
+    - pod
+    - -l
+    - app=frontend
+    - --wait=true
+    - --timeout=90s
+  - kubectl:
+    - -n
+    - '{ns}'
+    - rollout
+    - status
+    - deployment/frontend
+    - --timeout=140s
   answer:
     status: root_cause_found
     cause_category: other
@@ -3029,6 +3093,22 @@ scenarios:
     - --type=merge
     - -p
     - '{"spec": {"selector": {"app": "paymentservice"}}}'
+  - kubectl:
+    - -n
+    - '{ns}'
+    - delete
+    - pod
+    - -l
+    - app=checkoutservice
+    - --wait=true
+    - --timeout=90s
+  - kubectl:
+    - -n
+    - '{ns}'
+    - rollout
+    - status
+    - deployment/checkoutservice
+    - --timeout=140s
   answer:
     status: root_cause_found
     cause_category: other
@@ -3218,6 +3298,38 @@ scenarios:
     - --type=merge
     - -p
     - '{"spec": {"selector": {"app": "cartservice"}}}'
+  - kubectl:
+    - -n
+    - '{ns}'
+    - delete
+    - pod
+    - -l
+    - app=checkoutservice
+    - --wait=true
+    - --timeout=90s
+  - kubectl:
+    - -n
+    - '{ns}'
+    - rollout
+    - status
+    - deployment/checkoutservice
+    - --timeout=140s
+  - kubectl:
+    - -n
+    - '{ns}'
+    - delete
+    - pod
+    - -l
+    - app=frontend
+    - --wait=true
+    - --timeout=90s
+  - kubectl:
+    - -n
+    - '{ns}'
+    - rollout
+    - status
+    - deployment/frontend
+    - --timeout=140s
   answer:
     status: root_cause_found
     cause_category: other

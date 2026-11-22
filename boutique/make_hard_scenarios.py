@@ -331,8 +331,12 @@ def main() -> None:
 
     def selector_other(t, other):
         patch = lambda v: json.dumps({"spec": {"selector": {"app": v}}})  # noqa: E731
+        # The callers hold long-lived gRPC connections: a connection that was set up while the selector was wrong stays on
+        # the wrong pod after the selector is put back (fix record CL07, 2026-11-22: still 500s 150 s later). So the fix,
+        # like the injection, has to break the existing connections: recreate the callers' pods.
+        callers = sorted(c for c, e in env.items() if c != "loadgenerator" and any(k.endswith("_ADDR") and v.split(":")[0] == t for k, v in e.items()))
         return ([K("-n", "{ns}", "patch", "service", t, "--type=merge", "-p", patch(other)), *recreate(t)],
-                [K("-n", "{ns}", "patch", "service", t, "--type=merge", "-p", patch(t))],
+                [K("-n", "{ns}", "patch", "service", t, "--type=merge", "-p", patch(t)), *[st for c in callers for st in recreate(c)]],
                 {"object": {"kind": "Service", "name": t}, "mechanism": "config",
                  "explanation": f"Service {t} 的 selector 被改成 app={other}：端点不为空，但选中的是 {other} 的 Pod，流量被送错了地方；{t} 和 {other} 的 Pod 自身都没有问题。",
                  "key_evidence": [f"app={other}"], "accept_cause_keywords": ["selector", "选择器", "endpoint", "端点"]})

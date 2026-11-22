@@ -73,12 +73,14 @@ def describe_step(args: list[str], sc: dict) -> str:
             sel = "、".join(f"{k}={v}" for k, v in patch["spec"]["selector"].items())
             return f"把 Service {svc} 的 selector 设为 {sel}"
         return f"把 Service {svc} 第一个端口的 targetPort 设为 {patch[0]['value']}"
+    if "delete" in a and "pod" in a:
+        return f"重建了 {a[a.index('-l') + 1].split('=')[-1]} 的 Pod"
     raise ValueError(f"no description for reset step: {' '.join(a)}")
 
 
 def fix_steps(sc: dict) -> list[dict]:
     """The scenario's reset steps in the order an engineer would take them: cluster objects first, the node last."""
-    steps = [s for s in sc.get("reset") or [] if "kubectl" in s]
+    steps = [s for s in sc.get("reset") or [] if "kubectl" in s and "rollout" not in [str(x) for x in s["kubectl"]]]   # waiting for a rollout is not an operation
     objects = [s for s in steps if "net-injector" not in [str(x) for x in s["kubectl"]]]
     node = [s for s in steps if s not in objects]
     return objects + node

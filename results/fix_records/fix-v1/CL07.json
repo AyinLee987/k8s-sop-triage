@@ -6,50 +6,105 @@
    "n": 1,
    "operation": "把 Service shippingservice 的 selector 设为 app=shippingservice",
    "observation": {
-    "since": "2026-11-22T11:11:57Z",
+    "since": "2026-11-22T12:24:36Z",
+    "seconds": 75.0,
+    "requests": 201,
+    "slow_180ms": 5,
+    "share_slow": 0.025,
+    "p50_ms": 7,
+    "p90_ms": 13,
+    "p99_ms": 6362,
+    "http_500": 41,
+    "checkout_attempts": 4,
+    "checkout_failed": 4,
+    "card_rejected": 0,
+    "resolved": false
+   },
+   "improved": false,
+   "observation_first": {
+    "since": "2026-11-22T12:23:20Z",
+    "seconds": 75.0,
+    "requests": 204,
+    "slow_180ms": 4,
+    "share_slow": 0.02,
+    "p50_ms": 7,
+    "p90_ms": 13,
+    "p99_ms": 1077,
+    "http_500": 42,
+    "checkout_attempts": 5,
+    "checkout_failed": 5,
+    "card_rejected": 0,
+    "resolved": false
+   }
+  },
+  {
+   "n": 2,
+   "operation": "重建了 checkoutservice 的 Pod",
+   "observation": {
+    "since": "2026-11-22T12:27:28Z",
     "seconds": 75.0,
     "requests": 219,
     "slow_180ms": 0,
     "share_slow": 0.0,
     "p50_ms": 6,
     "p90_ms": 9,
-    "p99_ms": 38,
-    "http_500": 55,
+    "p99_ms": 37,
+    "http_500": 52,
     "checkout_attempts": 6,
-    "checkout_failed": 6,
+    "checkout_failed": 0,
     "card_rejected": 0,
     "resolved": false
    },
    "improved": false,
    "observation_first": {
-    "since": "2026-11-22T11:10:41Z",
+    "since": "2026-11-22T12:26:13Z",
     "seconds": 75.0,
-    "requests": 243,
+    "requests": 229,
     "slow_180ms": 0,
     "share_slow": 0.0,
-    "p50_ms": 6,
-    "p90_ms": 12,
-    "p99_ms": 38,
-    "http_500": 53,
-    "checkout_attempts": 10,
-    "checkout_failed": 10,
+    "p50_ms": 7,
+    "p90_ms": 13,
+    "p99_ms": 34,
+    "http_500": 47,
+    "checkout_attempts": 9,
+    "checkout_failed": 0,
     "card_rejected": 0,
     "resolved": false
    }
+  },
+  {
+   "n": 3,
+   "operation": "重建了 frontend 的 Pod",
+   "observation": {
+    "since": "2026-11-22T12:29:15Z",
+    "seconds": 75.0,
+    "requests": 188,
+    "slow_180ms": 0,
+    "share_slow": 0.0,
+    "p50_ms": 7,
+    "p90_ms": 13,
+    "p99_ms": 54,
+    "http_500": 0,
+    "checkout_attempts": 3,
+    "checkout_failed": 0,
+    "card_rejected": 0,
+    "resolved": true
+   },
+   "improved": true
   }
  ],
- "resolved": false,
- "outcome": "not_resolved",
+ "resolved": true,
+ "outcome": "resolved",
  "before": {
-  "since": "2026-11-22T11:09:36Z",
+  "since": "2026-11-22T12:22:14Z",
   "seconds": 45.0,
-  "requests": 132,
+  "requests": 114,
   "slow_180ms": 0,
   "share_slow": 0.0,
-  "p50_ms": 6,
-  "p90_ms": 10,
-  "p99_ms": 34,
-  "http_500": 31,
+  "p50_ms": 8,
+  "p90_ms": 14,
+  "p99_ms": 38,
+  "http_500": 16,
   "checkout_attempts": 2,
   "checkout_failed": 2,
   "card_rejected": 0,
@@ -66,20 +121,20 @@
   {
    "phase": "home_latency",
    "ok": true,
-   "detail": "GET / ok=True median=0.04s of [0.04] (need >= 0s)",
+   "detail": "GET / ok=True median=0.05s of [0.05] (need >= 0s)",
    "seconds": 0.0
   },
   {
    "phase": "clean_slate",
    "ok": true,
    "detail": "fresh pods",
-   "seconds": 32.57
+   "seconds": 33.38
   },
   {
    "phase": "verify_fresh",
    "ok": true,
    "detail": "healthy",
-   "seconds": 0.18
+   "seconds": 0.19
   },
   {
    "phase": "home_latency",
@@ -94,34 +149,28 @@
    "seconds": 0.0
   },
   {
-   "phase": "prune_history",
-   "ok": true,
-   "detail": "1 old replicasets",
-   "seconds": 0.0
-  },
-  {
    "phase": "inject",
    "ok": true,
    "detail": "-n boutique patch service shippingservice --type=merge",
-   "seconds": 0.04
+   "seconds": 0.06
   },
   {
    "phase": "inject",
    "ok": true,
    "detail": "-n boutique delete pod -l app=shippingservice",
-   "seconds": 0.49
+   "seconds": 0.51
   },
   {
    "phase": "inject",
    "ok": true,
    "detail": "-n boutique rollout status deployment/shippingservice --timeout=140s",
-   "seconds": 0.14
+   "seconds": 1.2
   },
   {
    "phase": "confirm",
    "ok": true,
    "detail": "logs(app=frontend) contain '\"http.resp.status\":500': True",
-   "seconds": 0.05
+   "seconds": 0.06
   },
   {
    "phase": "fix",
@@ -130,6 +179,18 @@
    "seconds": 0.04
   },
   {
+   "phase": "fix",
+   "ok": true,
+   "detail": "-n boutique delete pod -l app=checkoutservice",
+   "seconds": 0.52
+  },
+  {
+   "phase": "fix",
+   "ok": true,
+   "detail": "-n boutique delete pod -l app=frontend",
+   "seconds": 1.14
+  },
+  {
    "phase": "reset",
    "ok": true,
    "detail": "-n boutique patch service shippingservice --type=merge",
@@ -138,19 +199,43 @@
   {
    "phase": "reset",
    "ok": true,
+   "detail": "-n boutique delete pod -l app=checkoutservice",
+   "seconds": 0.52
+  },
+  {
+   "phase": "reset",
+   "ok": true,
+   "detail": "-n boutique rollout status deployment/checkoutservice --timeout=140s",
+   "seconds": 1.19
+  },
+  {
+   "phase": "reset",
+   "ok": true,
+   "detail": "-n boutique delete pod -l app=frontend",
+   "seconds": 0.82
+  },
+  {
+   "phase": "reset",
+   "ok": true,
+   "detail": "-n boutique rollout status deployment/frontend --timeout=140s",
+   "seconds": 10.02
+  },
+  {
+   "phase": "reset",
+   "ok": true,
    "detail": "reset steps applied",
-   "seconds": 0.54
+   "seconds": 13.09
   },
   {
    "phase": "verify_recovered",
    "ok": true,
    "detail": "healthy",
-   "seconds": 0.18
+   "seconds": 0.2
   },
   {
    "phase": "home_latency",
    "ok": true,
-   "detail": "GET / ok=True median=0.10s of [0.1] (need >= 0s)",
+   "detail": "GET / ok=True median=0.04s of [0.04] (need >= 0s)",
    "seconds": 0.0
   }
  ]

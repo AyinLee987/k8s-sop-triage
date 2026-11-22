@@ -1,0 +1,213 @@
+{
+ "scenario": "CL04",
+ "model": "deepseek-flash",
+ "max_rounds": 1,
+ "frame": "prod",
+ "metrics": true,
+ "skills": "holmes/skills/svc-sop-v0",
+ "rounds": [
+  {
+   "round": 1,
+   "wall_s": 502,
+   "exit": 0,
+   "total_tokens": 234256,
+   "tool_calls": 14,
+   "answer": "**我找到了 skill `boutique-triage-overview`（排查总则）和 `boutique-frontend` + `boutique-currencyservice`，并按它们的步骤排查：**\n\n1. ✅ *总则：固定症状* — 用户侧 127 请求/45s，82.7% >180ms，0 个 500，下单 2 次全成功 → 是\"慢但不报错\"，入口为 `frontend`\n2. ✅ *frontend 第 1 步：Deployment/RS/Pod* — `frontend` desired/ready/available=1，Pod `frontend-fd686dbb-czmgk` Running/Ready，restartCount 0，无拉镜像/调度/配额事件；RS revision 60，11-21 15:27 创建，今天没变过\n3. ✅ *frontend 第 2 步：Service/EndpointSlice* — `frontend` Service selector `app: frontend`，port 80→targetPort 8080 正常（`frontend-external` 同）\n4. ✅ *frontend 第 3 步：应用日志* — 最近 10 分钟 4,529 行（显示最新 80 行，4,434 行被截断）：全部 `http.resp.status: 200/302`，**没有任何下游连接失败/超时/解析失败**，只有 `took_ms` 偏高（`/` 415–668ms，`/product/*` 391–565ms，`/cart` 466–560ms，`POST /cart 746–780ms`，`/cart/checkout` 980ms），而 `POST /setCurrency`（不调 currencyservice 换算）是 **0ms**\n5. ✅ *frontend 第 4 步：探针/端口* — PORT=8080、containerPort 8080、`/_healthz` 探针正常，无探针失败、无重启\n6. ✅ *第 5 步归因：只看 Pod 状态无法区分，因此查命名空间内全部 12 个 Deployment 的资源与限流（cAdvisor）*\n   - **只有 `currencyservice` 一个 Pod 在被 CPU 限流**：CPU 用量 5–7m / 上限 **25m**，窗口被限流 **11–15%**（14/128、21/136 个周期），启动以来 **21–32%**\n   - 其余 11 个 Pod 窗口限流均为 0%（frontend 9–11m/200m、productcatalog 5–6m/200m、recommendation 4m/200m、redis 1m/125m、adservice 10m/300m 仅 6%）\n   - 网络计数：所有 Pod 丢包/错误全为 0，且全部在同一节点 `tiktok-k8s-lab-control-plane` → 排除跨节点网络\n7. ✅ *currencyservice SOP 第 2/6 步：Deployment 与历史 ReplicaSet 对比资源* —\n   - `currencyservice-6df4cccbb9`（revision **52**，11-21 15:27）：limits cpu **200m** / requests cpu **100m**\n   - `currencyservice-65b9c9cbdc`（revision **53**，创建时间 **2026-11-22T11:41:08Z**，即今天故障前）：limits cpu **25m** / requests cpu **25m**\n   - 13 个 RS 里只有这一个今天被改过，其他 release 全部停在 11-21 15:27 → 今天只发生了这一次配置变更\n8. ✅ *currencyservice SOP 第 4/5 步：事件与日志* — 事件 11:41:12 `Unhealthy Readiness probe failed: timeout: failed to connect 10.244.0.247:7000 within 1s`，11:41:19 `Unhealthy Liveness probe failed: ... within 1s`（探针在 25m 配额下 1s 内连不上自己的 gRPC 端口），随后 11:41:21 旧 RS `currencyservice-6df4cccbb9` 缩容删除。日志无任何错误，全是 `conversion request successful` / `Getting supported currencies...`，但时间戳呈**明显的成串突发 + 空档**（例：11:50:16.436 → 16.948 → 17.813 有 865ms 空档，17.813→18.269 456ms，18.585→19.022 437ms），即 Node.js 事件循环被 CFS 配额掐断造成的处理队列停顿\n9. ✅ *Service 配置核对* — 12 个 Service 的 selector 与 targetPort 全部与清单一致（currencyservice 7000→7000、frontend 80→8080、emailservice 5000→8080），排除 selector/端口类故障\n\n**根因（已确认）**：今天 11:41:08 对 Deployment `currencyservice` 的下发把容器 CPU limit 从 200m 压到 **25m**（request 也从 100m 压到 25m，revision 52→53）。25m = 每 100ms 只有 2.5ms CPU 配额，Node.js 单线程的 currencyservice 每个页面要处理 9+ 次货币换算 gRPC 调用，配额在突发时被打穿 → CFS 限流 21–32% → 每次换算排队数百毫秒 → frontend 首页/商品页/购物车/结账全部 400–1000ms，但都在 gRPC 超时之前完成，所以**没有任何错误、没有 500、下单也成功**，只有延迟；`POST /setCurrency`（不换算）耗时 0ms 正是对照证据。loadgenerator 自 11-21 从未变过（rev 1、RATE=1、USERS=10），流量侧没有变化，排除\"负载突增\"这一解释。\n\n修复：把 limit 恢复为改动前的 200m（改变 Pod 模板会触发自动滚动重建，无需额外 restart）。\n\n```json\n{\"root_causes\": [{\"object\": \"Deployment currencyservice（ReplicaSet currencyservice-65b9c9cbdc, revision 53）\", \"cause\": \"今天 11:41:08 下发的变更把容器 CPU limit 从 200m 降到 25m（request 100m→25m）。25m 配额导致该 Pod CFS 限流：窗口 11–15%（14/128 周期）、启动以来 21–32%，日志出现最长 865ms 的处理突发空档；frontend 每次页面渲染要调用 currencyservice 做多次货币换算，因此所有依赖换算的请求都被拖到 391–980ms（首页 415–668ms、商品页 391–565ms、购物车 466–560ms、结账 980ms），而 0ms 的 POST /setCurrency 与全 200 状态码说明只是延迟、未超时未报错。其余 11 个 Pod 窗口限流均为 0%，网络丢包/错误均为 0，Service selector/端口全部正常，loadgenerator 配置自 11-21 未变，故排除下游、网络、入口配置与流量突增\"}], \"actions\": [{\"op\": \"set_cpu_limit\", \"deployment\": \"currencyservice\", \"cpu\": \"200m\"}], \"expect\": \"currencyservice 不再被 CPU 限流（限流周期占比从 11–15% 降到 0%），用户侧 >180ms 的请求从 105/127（82.7%）降到接近 0，中位数从 478ms 回落到 100ms 以内（正常时无请求超过 180ms），90 分位从 669ms 回到 150ms 左右，99 分位从 940ms 回到 300ms 以内，500 仍为 0，下单 2/2 继续成功\", \"explanation\": \"currencyservice 的 CPU limit 被压到 25m 造成 CFS 限流，页面里每次货币换算都要排队数百毫秒，表现为全站变慢但不报错；把 limit 恢复到变更前的 200m 即可（会触发该 Deployment 自动滚动重建）。请求侧 request 仍为 25m，现有操作列表里没有调整 request 的项，建议运维后续一并用 100m 修正。\"}\n```",
+   "plan": {
+    "root_causes": [
+     {
+      "object": "Deployment currencyservice（ReplicaSet currencyservice-65b9c9cbdc, revision 53）",
+      "cause": "今天 11:41:08 下发的变更把容器 CPU limit 从 200m 降到 25m（request 100m→25m）。25m 配额导致该 Pod CFS 限流：窗口 11–15%（14/128 周期）、启动以来 21–32%，日志出现最长 865ms 的处理突发空档；frontend 每次页面渲染要调用 currencyservice 做多次货币换算，因此所有依赖换算的请求都被拖到 391–980ms（首页 415–668ms、商品页 391–565ms、购物车 466–560ms、结账 980ms），而 0ms 的 POST /setCurrency 与全 200 状态码说明只是延迟、未超时未报错。其余 11 个 Pod 窗口限流均为 0%，网络丢包/错误均为 0，Service selector/端口全部正常，loadgenerator 配置自 11-21 未变，故排除下游、网络、入口配置与流量突增"
+     }
+    ],
+    "actions": [
+     {
+      "op": "set_cpu_limit",
+      "deployment": "currencyservice",
+      "cpu": "200m"
+     }
+    ],
+    "expect": "currencyservice 不再被 CPU 限流（限流周期占比从 11–15% 降到 0%），用户侧 >180ms 的请求从 105/127（82.7%）降到接近 0，中位数从 478ms 回落到 100ms 以内（正常时无请求超过 180ms），90 分位从 669ms 回到 150ms 左右，99 分位从 940ms 回到 300ms 以内，500 仍为 0，下单 2/2 继续成功",
+    "explanation": "currencyservice 的 CPU limit 被压到 25m 造成 CFS 限流，页面里每次货币换算都要排队数百毫秒，表现为全站变慢但不报错；把 limit 恢复到变更前的 200m 即可（会触发该 Deployment 自动滚动重建）。请求侧 request 仍为 25m，现有操作列表里没有调整 request 的项，建议运维后续一并用 100m 修正。"
+   },
+   "plan_error": "",
+   "actions": [
+    {
+     "action": {
+      "op": "set_cpu_limit",
+      "deployment": "currencyservice",
+      "cpu": "200m"
+     },
+     "accepted": true,
+     "ok": true,
+     "result": "ok: deployment.apps/currencyservice resource requirements updated | ok: sh: 1 old replicas are pending termination...\nWaiting for deployment \"currencyservice\" rollout to finish: 1 old replicas are pending termination...\ndeployment \"currencyservice\" successfully rolled out"
+    }
+   ],
+   "observation": {
+    "since": "2026-11-22T11:52:48Z",
+    "seconds": 75.0,
+    "requests": 185,
+    "slow_180ms": 154,
+    "share_slow": 0.832,
+    "p50_ms": 466,
+    "p90_ms": 718,
+    "p99_ms": 1087,
+    "http_500": 0,
+    "checkout_attempts": 6,
+    "checkout_failed": 0,
+    "card_rejected": 0,
+    "resolved": false
+   },
+   "kept": false,
+   "observation_first": {
+    "since": "2026-11-22T11:51:32Z",
+    "seconds": 75.0,
+    "requests": 193,
+    "slow_180ms": 169,
+    "share_slow": 0.876,
+    "p50_ms": 472,
+    "p90_ms": 664,
+    "p99_ms": 982,
+    "http_500": 0,
+    "checkout_attempts": 6,
+    "checkout_failed": 0,
+    "card_rejected": 0,
+    "resolved": false
+   },
+   "undone": [
+    "Deployment/currencyservice: set resources deployment/currencyservice -> ok"
+   ]
+  }
+ ],
+ "outcome": "rounds_exhausted",
+ "before": {
+  "since": "2026-11-22T11:41:47Z",
+  "seconds": 45.0,
+  "requests": 127,
+  "slow_180ms": 105,
+  "share_slow": 0.827,
+  "p50_ms": 478,
+  "p90_ms": 669,
+  "p99_ms": 940,
+  "http_500": 0,
+  "checkout_attempts": 2,
+  "checkout_failed": 0,
+  "card_rejected": 0,
+  "resolved": false
+ },
+ "injector_log": "netem on veth2758deab (cartservice-896c89968-9wq7j 10.244.0.236): delay 230ms 69ms\nqdisc netem 8030: root refcnt 13 limit 1000 delay 230ms  69ms seed 10309374016220837066\nnetem applied: 1\n",
+ "restored": [
+  "Deployment/currencyservice: set resources deployment/currencyservice -> ok"
+ ],
+ "steps": [
+  {
+   "phase": "verify_healthy",
+   "ok": true,
+   "detail": "healthy",
+   "seconds": 0.18
+  },
+  {
+   "phase": "home_latency",
+   "ok": true,
+   "detail": "GET / ok=True median=0.04s of [0.04] (need >= 0s)",
+   "seconds": 0.0
+  },
+  {
+   "phase": "clean_slate",
+   "ok": true,
+   "detail": "fresh pods",
+   "seconds": 33.23
+  },
+  {
+   "phase": "verify_fresh",
+   "ok": true,
+   "detail": "healthy",
+   "seconds": 0.19
+  },
+  {
+   "phase": "home_latency",
+   "ok": true,
+   "detail": "GET / ok=True median=0.05s of [0.05] (need >= 0s)",
+   "seconds": 0.0
+  },
+  {
+   "phase": "clear_events",
+   "ok": true,
+   "detail": "",
+   "seconds": 0.0
+  },
+  {
+   "phase": "prune_history",
+   "ok": true,
+   "detail": "2 old replicasets",
+   "seconds": 0.0
+  },
+  {
+   "phase": "inject",
+   "ok": true,
+   "detail": "-n boutique set resources deployment/currencyservice --limits=cpu=25m",
+   "seconds": 0.04
+  },
+  {
+   "phase": "inject",
+   "ok": true,
+   "detail": "-n boutique rollout status deployment/currencyservice --timeout=140s",
+   "seconds": 13.39
+  },
+  {
+   "phase": "inject",
+   "ok": true,
+   "detail": "-n infra-tools delete pod net-injector --ignore-not-found",
+   "seconds": 0.04
+  },
+  {
+   "phase": "inject",
+   "ok": true,
+   "detail": "apply -f /work/scenarios/netem/injector-boutique-hard-CL04.yaml",
+   "seconds": 0.13
+  },
+  {
+   "phase": "inject",
+   "ok": true,
+   "detail": "-n infra-tools wait --for=condition=Ready pod/net-injector --timeout=180s",
+   "seconds": 0.79
+  },
+  {
+   "phase": "confirm",
+   "ok": true,
+   "detail": "15/24 requests >= 110 ms since 2026-11-22T11:41:47Z; logs(app=net-injector) contain 'netem applied: 1': True",
+   "seconds": 6.26
+  },
+  {
+   "phase": "reset",
+   "ok": true,
+   "detail": "-n infra-tools delete pod net-injector --ignore-not-found",
+   "seconds": 2.49
+  },
+  {
+   "phase": "reset",
+   "ok": true,
+   "detail": "-n boutique set resources deployment/currencyservice --limits=cpu=200m",
+   "seconds": 0.04
+  },
+  {
+   "phase": "reset",
+   "ok": true,
+   "detail": "reset steps applied",
+   "seconds": 12.0
+  },
+  {
+   "phase": "verify_recovered",
+   "ok": true,
+   "detail": "healthy",
+   "seconds": 6.49
+  },
+  {
+   "phase": "home_latency",
+   "ok": true,
+   "detail": "GET / ok=True median=0.05s of [0.05] (need >= 0s)",
+   "seconds": 0.0
+  }
+ ],
+ "total_tokens": 234256
+}
