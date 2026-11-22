@@ -1,0 +1,198 @@
+{
+ "scenario": "BH07",
+ "model": "deepseek-flash",
+ "max_rounds": 3,
+ "frame": "prod",
+ "rounds": [
+  {
+   "round": 1,
+   "wall_s": 57,
+   "exit": 0,
+   "total_tokens": 349038,
+   "tool_calls": 21,
+   "answer": "## 排查结论（第 1 轮）\n\n### 证据链\n\n**1. 下单失败：checkoutservice 的 `SHIPPING_SERVICE_ADDR` 指向了错误端口**\n\nfrontend 日志（`frontend-fd686dbb-dmxdc`，近 30 分钟，按 `error|failed|500` 过滤，共 178 条匹配，展示最新 100 条）中所有 `/cart/checkout` 的 500 都是同一条：\n\n```\n\"failed to complete the order: rpc error: code = Internal desc = shipping quote failure:\n failed to get shipping quote: rpc error: code = Unavailable desc = connection error:\n dial tcp 10.96.50.166:50052: i/o timeout\"\n```\n\n- `10.96.50.166` = Service `shippingservice` 的 ClusterIP，而该 Service **只暴露 50051**（`port 50051 → targetPort 50051`，Endpoint `10.244.0.133:50051`），shippingservice Pod 的 `PORT=50051`。\n- 但运行中的 checkoutservice Deployment（gen 76 / revision 74）env 是 `SHIPPING_SERVICE_ADDR=shippingservice:50052`。\n- 对比可证这是**运行态配置被改**，不是历史遗留：旧 ReplicaSet `checkoutservice-5d5f4589c5`（2026-11-15 创建）里是 `shippingservice:50051`；07:08:04 新建的 `checkoutservice-77b8f6dc84` 里变成 `50052`（事件：`Scaled up replica set checkoutservice-77b8f6dc84 from 0 to 1` + 旧 RS `Scaled down … from 1 to 0`），`last-applied-configuration` 里也仍是 50051。同一 Deployment 其它地址（productcatalog:3550 / payment:50051 / email:5000 / currency:7000 / cart:7070）都对得上各自 Service。\n- 结果：shipping quote 是 PlaceOrder 流程里的必经步骤，它挂 → 订单 100% 提交不了；因为失败在 shipping 这一步之前就返回，paymentservice 近 30 分钟几乎没有上游调用日志（11 条），与「下单 4 次失败 4 次」一致。\n\n**2. 推荐服务被缩到 0（非致命，但确实是异常）**\n\n- Deployment `recommendationservice` 现在 `spec.replicas=0`，Pod 已在 07:08:04 被删除（事件 `Scaled down replica set recommendationservice-6c88b5fb59 from 1 to 0`），其 Service `10.96.63.235` **没有任何 Endpoint**。\n- frontend 每个商品页/购物车页都记录：`failed to get product recommendations … dial tcp 10.96.63.235:8080: connect: connection refused`（近 30 分钟上百条）。该错误只被 frontend 降级处理，页面仍返回 200（如 `/product/0PUK6V6EV0` → `status:200, took_ms:6`），这正好解释「其它页面还能打开」。\n\n**3. 其余组件均正常（已检查，未见问题）**\n- 全部 11 个 Pod Running、restartCount 0；adservice / cartservice / currencyservice / productcatalogservice / paymentservice / emailservice / shippingservice 日志中无 error/timeout/refused（各查近 30 分钟）。\n- 所有 Service selector 都能匹配到 Pod、Endpoint 齐全（仅 recommendationservice 为空）。shippingservice Pod 近 10 分钟有 171 行日志，说明 50051 上服务本身是健康的、只是 checkout 连的不是这个口。\n- 延迟指标也吻合：失败路径是快速失败（checkout 请求 `took_ms:5~8`），所以中位数 6ms、无 >180ms 请求，只有 4 个 500。\n\n### 修复申请（本轮 2 个操作）\n\n1. `set_env checkoutservice SHIPPING_SERVICE_ADDR=shippingservice:50051`（改回 Service 真实端口，会滚动重建一个 Pod）\n2. `scale recommendationservice 1`（恢复推荐服务 Endpoint）\n\n```json\n{\"root_causes\": [{\"object\": \"deployment/checkoutservice\", \"cause\": \"环境变量 SHIPPING_SERVICE_ADDR 被改成 shippingservice:50052，而 shippingservice Service/Pod 只监听 50051（Endpoint 10.244.0.133:50051），PlaceOrder 的 shipping quote 阶段连接 10.96.50.166:50052 超时，导致所有下单 500；旧 ReplicaSet checkoutservice-5d5f4589c5 中该值仍为 shippingservice:50051，07:08:04 新建的 checkoutservice-77b8f6dc84 才带 50052\"}, {\"object\": \"deployment/recommendationservice\", \"cause\": \"副本数被缩到 0（07:08:04 Scaled down ... from 1 to 0），Service 10.96.63.235 无 Endpoint，frontend 每次进入商品页/购物车都报 failed to get product recommendations: connection refused（被降级，页面仍 200，故只影响推荐内容不影响下单）\"}], \"actions\": [{\"op\": \"set_env\", \"deployment\": \"checkoutservice\", \"name\": \"SHIPPING_SERVICE_ADDR\", \"value\": \"shippingservice:50051\"}, {\"op\": \"scale\", \"deployment\": \"recommendationservice\", \"replicas\": 1}], \"expect\": \"下单恢复：45 秒内下单 4 次应 4 次成功、0 次失败；返回 500 的请求从 4 个降到 0；frontend 不再出现 'shipping quote failure' 与 'failed to get product recommendations' 日志；延迟维持中位 ~6ms、99 分位 <100ms、超过 180ms 的请求仍为 0（新增 shipping/currency 调用仍在毫秒级）\", \"explanation\": \"下单失败的根因是 checkoutservice 的 SHIPPING_SERVICE_ADDR 端口写成了 50052（Service 只有 50051），改回后订单流程即可走通；同时把被缩到 0 的 recommendationservice 恢复到 1 副本，消除商品页的推荐报错。\"}\n```",
+   "plan": {
+    "root_causes": [
+     {
+      "object": "deployment/checkoutservice",
+      "cause": "环境变量 SHIPPING_SERVICE_ADDR 被改成 shippingservice:50052，而 shippingservice Service/Pod 只监听 50051（Endpoint 10.244.0.133:50051），PlaceOrder 的 shipping quote 阶段连接 10.96.50.166:50052 超时，导致所有下单 500；旧 ReplicaSet checkoutservice-5d5f4589c5 中该值仍为 shippingservice:50051，07:08:04 新建的 checkoutservice-77b8f6dc84 才带 50052"
+     },
+     {
+      "object": "deployment/recommendationservice",
+      "cause": "副本数被缩到 0（07:08:04 Scaled down ... from 1 to 0），Service 10.96.63.235 无 Endpoint，frontend 每次进入商品页/购物车都报 failed to get product recommendations: connection refused（被降级，页面仍 200，故只影响推荐内容不影响下单）"
+     }
+    ],
+    "actions": [
+     {
+      "op": "set_env",
+      "deployment": "checkoutservice",
+      "name": "SHIPPING_SERVICE_ADDR",
+      "value": "shippingservice:50051"
+     },
+     {
+      "op": "scale",
+      "deployment": "recommendationservice",
+      "replicas": 1
+     }
+    ],
+    "expect": "下单恢复：45 秒内下单 4 次应 4 次成功、0 次失败；返回 500 的请求从 4 个降到 0；frontend 不再出现 'shipping quote failure' 与 'failed to get product recommendations' 日志；延迟维持中位 ~6ms、99 分位 <100ms、超过 180ms 的请求仍为 0（新增 shipping/currency 调用仍在毫秒级）",
+    "explanation": "下单失败的根因是 checkoutservice 的 SHIPPING_SERVICE_ADDR 端口写成了 50052（Service 只有 50051），改回后订单流程即可走通；同时把被缩到 0 的 recommendationservice 恢复到 1 副本，消除商品页的推荐报错。"
+   },
+   "plan_error": "",
+   "actions": [
+    {
+     "action": {
+      "op": "set_env",
+      "deployment": "checkoutservice",
+      "name": "SHIPPING_SERVICE_ADDR",
+      "value": "shippingservice:50051"
+     },
+     "accepted": true,
+     "ok": true,
+     "result": "ok: deployment.apps/checkoutservice env updated | ok: sh: 1 old replicas are pending termination...\nWaiting for deployment \"checkoutservice\" rollout to finish: 1 old replicas are pending termination...\ndeployment \"checkoutservice\" successfully rolled out"
+    },
+    {
+     "action": {
+      "op": "scale",
+      "deployment": "recommendationservice",
+      "replicas": 1
+     },
+     "accepted": true,
+     "ok": true,
+     "result": "ok: deployment.apps/recommendationservice scaled | ok: Waiting for deployment \"recommendationservice\" rollout to finish: 0 of 1 updated replicas are available...\ndeployment \"recommendationservice\" successfully rolled out"
+    }
+   ],
+   "observation": {
+    "since": "2026-11-17T07:10:42Z",
+    "seconds": 75.0,
+    "requests": 241,
+    "slow_180ms": 0,
+    "share_slow": 0.0,
+    "p50_ms": 8,
+    "p90_ms": 14,
+    "p99_ms": 51,
+    "http_500": 0,
+    "checkout_attempts": 9,
+    "checkout_failed": 0,
+    "resolved": true
+   },
+   "kept": true
+  }
+ ],
+ "outcome": "resolved",
+ "before": {
+  "since": "2026-11-17T07:08:31Z",
+  "seconds": 45.0,
+  "requests": 114,
+  "slow_180ms": 0,
+  "share_slow": 0.0,
+  "p50_ms": 6,
+  "p90_ms": 16,
+  "p99_ms": 76,
+  "http_500": 4,
+  "checkout_attempts": 4,
+  "checkout_failed": 4,
+  "resolved": false
+ },
+ "injector_log": null,
+ "restored": [],
+ "steps": [
+  {
+   "phase": "verify_healthy",
+   "ok": true,
+   "detail": "healthy",
+   "seconds": 0.24
+  },
+  {
+   "phase": "home_latency",
+   "ok": true,
+   "detail": "GET / ok=True median=0.07s of [0.07] (need >= 0s)",
+   "seconds": 0.0
+  },
+  {
+   "phase": "clean_slate",
+   "ok": true,
+   "detail": "fresh pods",
+   "seconds": 34.27
+  },
+  {
+   "phase": "verify_fresh",
+   "ok": true,
+   "detail": "healthy",
+   "seconds": 0.26
+  },
+  {
+   "phase": "home_latency",
+   "ok": true,
+   "detail": "GET / ok=True median=0.06s of [0.06] (need >= 0s)",
+   "seconds": 0.0
+  },
+  {
+   "phase": "clear_events",
+   "ok": true,
+   "detail": "",
+   "seconds": 0.0
+  },
+  {
+   "phase": "prune_history",
+   "ok": true,
+   "detail": "2 old replicasets",
+   "seconds": 0.0
+  },
+  {
+   "phase": "inject",
+   "ok": true,
+   "detail": "-n boutique scale deployment/recommendationservice --replicas=0",
+   "seconds": 0.06
+  },
+  {
+   "phase": "inject",
+   "ok": true,
+   "detail": "-n boutique set env deployment/checkoutservice SHIPPING_SERVICE_ADDR=shippingservice:50052",
+   "seconds": 0.06
+  },
+  {
+   "phase": "inject",
+   "ok": true,
+   "detail": "-n boutique rollout status deployment/checkoutservice --timeout=140s",
+   "seconds": 1.73
+  },
+  {
+   "phase": "confirm",
+   "ok": true,
+   "detail": "logs(app=frontend) contain 'failed to complete the order': True",
+   "seconds": 0.07
+  },
+  {
+   "phase": "reset",
+   "ok": true,
+   "detail": "-n boutique scale deployment/recommendationservice --replicas=1",
+   "seconds": 0.05
+  },
+  {
+   "phase": "reset",
+   "ok": true,
+   "detail": "-n boutique set env deployment/checkoutservice SHIPPING_SERVICE_ADDR=shippingservice:50051",
+   "seconds": 0.06
+  },
+  {
+   "phase": "reset",
+   "ok": true,
+   "detail": "reset steps applied",
+   "seconds": 0.75
+  },
+  {
+   "phase": "verify_recovered",
+   "ok": true,
+   "detail": "healthy",
+   "seconds": 0.29
+  },
+  {
+   "phase": "home_latency",
+   "ok": true,
+   "detail": "GET / ok=True median=0.06s of [0.06] (need >= 0s)",
+   "seconds": 0.0
+  }
+ ],
+ "total_tokens": 349038
+}

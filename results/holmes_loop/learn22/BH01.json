@@ -1,0 +1,232 @@
+{
+ "scenario": "BH01",
+ "model": "deepseek-flash",
+ "max_rounds": 3,
+ "frame": "prod",
+ "rounds": [
+  {
+   "round": 1,
+   "wall_s": 256,
+   "exit": 0,
+   "total_tokens": 1067405,
+   "tool_calls": 31,
+   "answer": "## 已确认的证据\n\n**1) 下单失败 = checkoutservice 的支付地址端口写错（可确证）**\n\n- `frontend` 日志（最近 30 分钟，按 `error` 过滤，共 54 条命中）反复出现：\n  `failed to charge card ... dial tcp 10.96.55.1:50052: i/o timeout`（`POST /cart/checkout` → 500，took_ms 402/619/1412/9614）\n- `10.96.55.1` 是 `paymentservice` 的 ClusterIP，但该 Service 与容器实际监听的是 **50051**（`paymentservice` Service 端口 50051→50051，容器 `PORT=50051`），50052 上没有任何监听/kube-proxy 规则 → 丢包 → i/o timeout。\n- 现网对象直接证明这是刚被改坏的：`checkoutservice` 有两个 ReplicaSet —\n  - `checkoutservice-5d5f4589c5`（rev 65，旧，已 0 副本）：`PAYMENT_SERVICE_ADDR=paymentservice:50051`\n  - `checkoutservice-6497dd6766`（rev 66，`2026-11-17T03:39:50Z` 新建）：`PAYMENT_SERVICE_ADDR=paymentservice:**50052**`\n  - 事件 `ScalingReplicaSet ... scaled up 6497dd6766` / `scaled down 5d5f4589c5` 证实 03:39:50 有人改了 checkoutservice 的环境变量。事件里**没有** `OOMKilled`/`Evicted`；`Unhealthy` 那条是滚动更新时新 Pod 启动期 readiness 探测未通（启动现象，非故障）。\n- 用户侧：locust（`loadgenerator`）统计 `POST /cart/checkout` 20 次 **15 次失败（75%）**，与你看到的\"下单 2 次失败 2 次\"一致。\n\n**2) 变慢 = currencyservice 每次 RPC 被拖到 ~180–200ms（前端的顺序调用把它放大）**\n\n`frontend` 日志中同一 handler 的 `took_ms` 呈严格的比例关系：\n\n| 页面 | 观测耗时 | 该页面调 currencyservice 的次数 |\n|---|---|---|\n| `GET /`（首页） | 2022–2171 ms（极稳定） | `GetSupportedCurrencies` + 每个商品 1 次 `Convert` ≈ 11 次 |\n| `GET /product/*` | 386–450 ms | 2 次 |\n| `GET /cart` | 409 ms(1 件) → 815(2) → 1030(3) → 1226–1286(5) | 约每件 +1 次（**每件 +~200ms**） |\n| `POST /cart`（加购）、`POST /setCurrency`、`/_healthz` | 1–2 ms / 0 ms / 0 ms（handler 内不调 currency） | 0 |\n\n即\"每多一次 currencyservice 调用就多 ~190ms\"，而其他依赖明显不慢：\n- `POST /cart` handler 1–2 ms ⇒ 到 `cartservice` 的 RPC 正常；\n- 商品页在 adservice 收到广告请求后 1ms 内返回 ⇒ adservice 正常；productcatalogservice 无报错日志；\n- cartservice 日志 328 行、0 条 error；paymentservice 15 行、0 条 error；redis 正常。\n- `currencyservice` 日志**无任何错误**，且 `03:39:37.7–37.9` 曾在 **4ms 内完成 10 次 conversion** —— 说明它本身计算很快，慢是\"抢不到 CPU 时的排队\"，而不是固定网络延迟（locust 侧 `min` 为 8–16ms 也说明存在 10ms 级的快路径）。它的 CPU limit 只有 **200m**（=20ms/100ms 周期），而约 10–13 次/秒的 conversion 加上 Node/pino 日志开销正好顶到配额 → 每个请求被 CFS 节流成 100–200ms 的台阶。\n- adservice 在 03:39:33–47 的 `connection refused` 是 Java 冷启动期现象（Pod 03:39:00 启动），随后自愈，不计入影响。\n\n**未能验证的部分**：我无法读取节点/Pod 实时 CPU 指标（`kubernetes/live-metrics` 未启用，`nodes` 列表被 RBAC 拒绝：`cannot list resource \"nodes\"`），所以不能 100% 排除\"节点整体 CPU 被其他命名空间抢占、currencyservice 因 200m 上限最先被打满\"。两种解释都指向同一处置方向：给 currencyservice 更多 CPU 配额。\n\n**检查过且正常的对象**：cartservice、adservice、productcatalogservice、recommendationservice、shippingservice、emailservice、paymentservice、redis-cart（均 Running、0 重启、无错误日志）；全部 12 个 Service 的 selector 与 Endpoints 都正确指向各自 Pod（不存在 selectors/targetPort 错配），所以不建议改 Service。\n另注意一个与本次故障无关的潜在隐患：`frontend` 的 `SHOPPING_ASSISTANT_SERVICE_ADDR=shoppingassistantservice:80`，但该 Service 不存在；目前无人访问 `/assistant`，日志无相关报错，可后续单独处理。\n\n```json\n{\"root_causes\": [{\"object\": \"checkoutservice\", \"cause\": \"环境变量 PAYMENT_SERVICE_ADDR 被改成 paymentservice:50052（ReplicaSet rev 66，2026-11-17T03:39:50Z 创建；旧 rev 65 为 paymentservice:50051），而 paymentservice 容器与 Service 只监听 50051，50052 无监听导致 dial i/o timeout → 每次结账 500（frontend 日志 'failed to charge card ... dial tcp 10.96.55.1:50052: i/o timeout'，locust 显示 /cart/checkout 15/20 失败）\"}, {\"object\": \"currencyservice\", \"cause\": \"CPU 被限制在 200m（20ms/100ms 周期）后持续打满/被节流，单次 Convert/GetSupportedCurrencies RPC 从 ~1ms 劣化到 ~180-200ms；frontend 首页对 10 个商品顺序调用 convert（+getCurrencies）≈11 次 → 首页稳定 ~2050ms，商品页 2 次 → ~400ms，购物车每件 +~200ms（POST /cart、/_healthz 等不调 currency 的请求仍为 0-2ms，且 currencyservice 启动低负载时曾 4ms 内处理 10 次 conversion，因此是配额/争抢而非固定网络延迟；节点级 CPU 争抢这一替代解释我因无节点指标权限无法排除，若加配额无效需运维检查节点 CPU）\"}], \"actions\": [{\"op\": \"set_env\", \"deployment\": \"checkoutservice\", \"name\": \"PAYMENT_SERVICE_ADDR\", \"value\": \"paymentservice:50051\"}, {\"op\": \"set_cpu_limit\", \"deployment\": \"currencyservice\", \"cpu\": \"1\"}], \"expect\": \"结账链路恢复：/cart/checkout 失败数从 15/20 降到 0，返回 500 的请求从 2 个降到 0。currencyservice 去掉 200m 节流后：GET / 从 ~2050ms 降到 ~100ms 以内，商品页从 ~400ms 降到 ~50ms 以内，购物车页从 ~1000ms 降到 ~100ms 以内；45 秒窗口内超过 180ms 的请求比例从 68.8%（99/144）降到接近 0，中位数从 416ms 降到 50-80ms，90 分位从 2056ms 降到 150ms 以内，99 分位从 2129ms 降到 200ms 以内。\", \"explanation\": \"下单失败是 checkoutservice 的支付端口被改成 50052（改回 50051 即可）；变慢是 currencyservice 在 200m CPU 上限下被打满，每次货币转换耗时 ~200ms，被前端首页/购物车的顺序转换放大成 2s/1s 的页面耗时，因此同时给 currencyservice 提高 CPU 上限。\"}\n```",
+   "plan": {
+    "root_causes": [
+     {
+      "object": "checkoutservice",
+      "cause": "环境变量 PAYMENT_SERVICE_ADDR 被改成 paymentservice:50052（ReplicaSet rev 66，2026-11-17T03:39:50Z 创建；旧 rev 65 为 paymentservice:50051），而 paymentservice 容器与 Service 只监听 50051，50052 无监听导致 dial i/o timeout → 每次结账 500（frontend 日志 'failed to charge card ... dial tcp 10.96.55.1:50052: i/o timeout'，locust 显示 /cart/checkout 15/20 失败）"
+     },
+     {
+      "object": "currencyservice",
+      "cause": "CPU 被限制在 200m（20ms/100ms 周期）后持续打满/被节流，单次 Convert/GetSupportedCurrencies RPC 从 ~1ms 劣化到 ~180-200ms；frontend 首页对 10 个商品顺序调用 convert（+getCurrencies）≈11 次 → 首页稳定 ~2050ms，商品页 2 次 → ~400ms，购物车每件 +~200ms（POST /cart、/_healthz 等不调 currency 的请求仍为 0-2ms，且 currencyservice 启动低负载时曾 4ms 内处理 10 次 conversion，因此是配额/争抢而非固定网络延迟；节点级 CPU 争抢这一替代解释我因无节点指标权限无法排除，若加配额无效需运维检查节点 CPU）"
+     }
+    ],
+    "actions": [
+     {
+      "op": "set_env",
+      "deployment": "checkoutservice",
+      "name": "PAYMENT_SERVICE_ADDR",
+      "value": "paymentservice:50051"
+     },
+     {
+      "op": "set_cpu_limit",
+      "deployment": "currencyservice",
+      "cpu": "1"
+     }
+    ],
+    "expect": "结账链路恢复：/cart/checkout 失败数从 15/20 降到 0，返回 500 的请求从 2 个降到 0。currencyservice 去掉 200m 节流后：GET / 从 ~2050ms 降到 ~100ms 以内，商品页从 ~400ms 降到 ~50ms 以内，购物车页从 ~1000ms 降到 ~100ms 以内；45 秒窗口内超过 180ms 的请求比例从 68.8%（99/144）降到接近 0，中位数从 416ms 降到 50-80ms，90 分位从 2056ms 降到 150ms 以内，99 分位从 2129ms 降到 200ms 以内。",
+    "explanation": "下单失败是 checkoutservice 的支付端口被改成 50052（改回 50051 即可）；变慢是 currencyservice 在 200m CPU 上限下被打满，每次货币转换耗时 ~200ms，被前端首页/购物车的顺序转换放大成 2s/1s 的页面耗时，因此同时给 currencyservice 提高 CPU 上限。"
+   },
+   "plan_error": "",
+   "actions": [
+    {
+     "action": {
+      "op": "set_env",
+      "deployment": "checkoutservice",
+      "name": "PAYMENT_SERVICE_ADDR",
+      "value": "paymentservice:50051"
+     },
+     "accepted": true,
+     "ok": true,
+     "result": "ok: deployment.apps/checkoutservice env updated | ok: sh: 1 old replicas are pending termination...\nWaiting for deployment \"checkoutservice\" rollout to finish: 1 old replicas are pending termination...\ndeployment \"checkoutservice\" successfully rolled out"
+    },
+    {
+     "action": {
+      "op": "set_cpu_limit",
+      "deployment": "currencyservice",
+      "cpu": "1"
+     },
+     "accepted": true,
+     "ok": true,
+     "result": "ok: deployment.apps/currencyservice resource requirements updated | ok: sh: 1 old replicas are pending termination...\nWaiting for deployment \"currencyservice\" rollout to finish: 1 old replicas are pending termination...\ndeployment \"currencyservice\" successfully rolled out"
+    }
+   ],
+   "observation": {
+    "since": "2026-11-17T03:45:54Z",
+    "seconds": 75.0,
+    "requests": 200,
+    "slow_180ms": 154,
+    "share_slow": 0.77,
+    "p50_ms": 415,
+    "p90_ms": 1838,
+    "p99_ms": 2113,
+    "http_500": 0,
+    "checkout_attempts": 10,
+    "checkout_failed": 0,
+    "resolved": false
+   },
+   "kept": true
+  },
+  {
+   "round": 2,
+   "wall_s": 464,
+   "exit": 0,
+   "total_tokens": 1147187,
+   "tool_calls": 29,
+   "answer": "## 第 2 轮结论\n\n### 对照上轮预期的结果\n\n**被证实**：`checkoutservice` 的支付端口修复有效。\n- 环境变量现为 `PAYMENT_SERVICE_ADDR=paymentservice:50051`（pod `checkoutservice-5d5f4589c5-mgj9k`，03:45:31 创建）。\n- 用户侧 500 = 0，下单 10/10 成功；`paymentservice-78f6cfdf7f-l2xqj` 日志里 `PaymentService#Charge invoked` / `Transaction processed` 连续出现（03:47:03、03:47:07、03:47:22、03:47:48…），`checkoutservice` 每条 `payment went through` 都紧跟 `order confirmation email sent`。\n\n**被推翻**：currencyservice 的 CPU 节流解释是错的。\n- 限制已经是 `cpu: 1`（pod `currencyservice-bf885556-9h75t`，03:45:33 创建，spec 确认为 1 核），但延迟**一点没变**：中位数 416→415ms，p90 2056→1838ms，>180ms 比例 68.8%→77%。\n- 而且 currencyservice 根本不吃 CPU：03:47:35.668–03:47:39.830 共 4.16 秒处理 40 个 RPC（≈9.6 RPC/s），03:47:13.352–20.979 共 7.6 秒 55 个（≈7.2 RPC/s），同毫秒内多次落日志。若进程内串行阻塞 ~195ms，吞吐上限只有 ~5 RPC/s，早该排队并让页面耗时远超观测值。\n\n### 剩余现象已被完全量化：**每个 currencyservice RPC 固定 ~195ms，且延迟在“请求方向”**\n\nfrontend `fd686dbb-kddjp` 日志（取最近 10 分钟，过滤掉 `_healthz`/探针）按时延分解：\n- `GET /`（11 次货币 RPC：1×getCurrencies + 10×convert）= 2017–2117ms\n- `GET /product/*`（2 次货币 RPC）= 386–445ms\n- `GET /cart`：空车 382ms（getCurrencies + 运费 convert），每多一件商品 +~195ms → 582/601/614/621、805、1017–1044、1442–1486、1661–1683、1838–1883ms\n- `POST /cart`、`POST /setCurrency`（不调 currency）= 0–1ms\n\n方向与归属的直接证据：\n1. **currencyservice 侧日志配对**（03:47:13–21）：每个 `Getting supported currencies...` 之后 186–218ms 才出现下一个 `conversion request successful`；而页面在**最后一条货币日志之后 5–6ms 就结束**（如 product 页 03:47:14.524 开始 → 服务端 14.727 收到 getCurrencies、14.923 收到 convert → 页面 14.929 完成）。说明**请求送达晚了 ~195ms，响应是立刻回**的（不是服务端慢，也不是响应慢）。\n2. **不是客户端特例**：checkoutservice 03:47:06.667 收到 PlaceOrder → 07.084 shippingservice 才收到 GetQuote → 07.301 paymentservice 收到 Charge（中间正好一次运费 convert = ~195ms）→ 07.3026 ShipOrder。两个独立客户端对 currency 都付同样的 ~195ms。\n3. **不是 Pod 实例状态、不是连接状态**：03:45:33 新建的 currency pod 上，第一个 product 页（03:45:42）就是 415ms、第一个首页（03:45:45）2085ms；03:45:31 新建的 checkoutservice pod（全新 gRPC 连接）同样付费。\n4. **配置面无异常**：EndpointSlice 只有一个 ready 地址 10.244.0.179（无陈旧端点）；Service `currencyservice` 10.96.106.15:7000 → targetPort 7000、`sessionAffinity: None`；pod 无 sidecar、无 initContainer、无注解、env 均为标准值（PORT=7000、DISABLE_PROFILER=1）。\n5. 03:45:39 之后 frontend 日志无任何 error/timeout（03:45:39.940 那两条 `error reading from server: EOF` 是第 1 轮换 pod 造成的，不是当前故障）。\n\n→ 残余延迟 = 打到 `currencyservice:7000` 的**入向单向 ~200ms 网络延迟**（netem/tc 之类），与 Deployment 内容和 CPU 配额无关。我现有的 6 个操作里没有任何一个能删掉网络层的整形规则；`restart` 也已被实证无效（03:45:33 重建的新 Pod，9 秒后首个请求就已经慢了）。\n\n**仍需补的证据（用于区分两种落点）**：规则是在 currency pod 的 ingress/宿主 veth 上，还是在 frontend + checkoutservice 的 egress 上匹配 `10.96.106.15:7000`。需要在 currency pod netns 与节点（cni0、veth 对）上执行 `tc -s qdisc show` / `tc filter show`，或在 currency pod 内 tcpdump 对比客户端发包时间。\n\n```json\n{\"root_causes\": [{\"object\": \"currencyservice（Service 10.96.106.15:7000 / pod 10.244.0.179）的入向网络路径\", \"cause\": \"每个发往 currencyservice:7000 的请求在到达容器前被固定延迟约 195ms（单向、仅请求方向，响应立即返回）。证据：frontend 页面耗时 = 货币 RPC 次数 × ~195ms（首页 11 次=2107ms、商品页 2 次=400ms、空购物车 382ms、每件商品 +195ms，不调 currency 的 POST /cart=1ms）；currencyservice 日志里相邻两次 RPC 的接收间隔恒定 186–218ms，而页面在最后一条日志后 5–6ms 结束；服务端吞吐 7–10 RPC/s 排除进程内阻塞；checkoutservice 同样每次 convert 付 ~195ms；该延迟在 03:45:33 重建的新 Pod 上首个请求即存在（415ms/2085ms），故与 CPU 配额（第 1 轮已提到 1 核，无变化）、Pod 实例状态、客户端连接状态、端点表均无关，指向节点/CNI 或外部 chaos 注入的 tc netem 规则\"}, {\"object\": \"checkoutservice\", \"cause\": \"（第 1 轮已修复并验证）PAYMENT_SERVICE_ADDR 曾被设为 paymentservice:50052，而 paymentservice 只监听 50051；已改回 50051，返回 500 由 2 个降为 0、下单 10/10 成功\"}], \"actions\": [], \"expect\": \"\", \"explanation\": \"剩余的唯一根因是网络层对 currencyservice 入向施加的 ~195ms 延迟，六个可用操作（重启/改环境变量/扩缩容/改 CPU 上限/改 Service selector/targetPort）都无法移除网络整形规则；重启已实证无效——03:45:33 用新 CPU 模板重建的 currencyservice Pod，在 03:45:42 的第一个商品页就已 415ms、03:45:45 的首页 2085ms，说明规则对新建 Pod 立即生效（挂在节点/CNI 或由 chaos 控制器对 Pod 入向持续注入），不是 Pod 内部状态。需运维在节点与 Pod 网络命名空间执行 tc/iptables 检查并删除 netem 延迟规则（或删除针对 currencyservice 的 NetworkChaos/chaos 对象）：在 currencyservice Pod 内 `nsenter -n tc -s qdisc show dev eth0`、在节点上 `tc -s qdisc show`/`tc filter show` 检查 cni0 与对应 veth，并排查 frontend/checkoutservice 出向是否被按 10.96.106.15:7000 限速延时；规则清除后每页货币 RPC 恢复到 ~1ms。另外第 1 轮把 currencyservice CPU 上限提到 1 核没有作用，可回退为 200m。\"}\n```",
+   "plan": {
+    "root_causes": [
+     {
+      "object": "currencyservice（Service 10.96.106.15:7000 / pod 10.244.0.179）的入向网络路径",
+      "cause": "每个发往 currencyservice:7000 的请求在到达容器前被固定延迟约 195ms（单向、仅请求方向，响应立即返回）。证据：frontend 页面耗时 = 货币 RPC 次数 × ~195ms（首页 11 次=2107ms、商品页 2 次=400ms、空购物车 382ms、每件商品 +195ms，不调 currency 的 POST /cart=1ms）；currencyservice 日志里相邻两次 RPC 的接收间隔恒定 186–218ms，而页面在最后一条日志后 5–6ms 结束；服务端吞吐 7–10 RPC/s 排除进程内阻塞；checkoutservice 同样每次 convert 付 ~195ms；该延迟在 03:45:33 重建的新 Pod 上首个请求即存在（415ms/2085ms），故与 CPU 配额（第 1 轮已提到 1 核，无变化）、Pod 实例状态、客户端连接状态、端点表均无关，指向节点/CNI 或外部 chaos 注入的 tc netem 规则"
+     },
+     {
+      "object": "checkoutservice",
+      "cause": "（第 1 轮已修复并验证）PAYMENT_SERVICE_ADDR 曾被设为 paymentservice:50052，而 paymentservice 只监听 50051；已改回 50051，返回 500 由 2 个降为 0、下单 10/10 成功"
+     }
+    ],
+    "actions": [],
+    "expect": "",
+    "explanation": "剩余的唯一根因是网络层对 currencyservice 入向施加的 ~195ms 延迟，六个可用操作（重启/改环境变量/扩缩容/改 CPU 上限/改 Service selector/targetPort）都无法移除网络整形规则；重启已实证无效——03:45:33 用新 CPU 模板重建的 currencyservice Pod，在 03:45:42 的第一个商品页就已 415ms、03:45:45 的首页 2085ms，说明规则对新建 Pod 立即生效（挂在节点/CNI 或由 chaos 控制器对 Pod 入向持续注入），不是 Pod 内部状态。需运维在节点与 Pod 网络命名空间执行 tc/iptables 检查并删除 netem 延迟规则（或删除针对 currencyservice 的 NetworkChaos/chaos 对象）：在 currencyservice Pod 内 `nsenter -n tc -s qdisc show dev eth0`、在节点上 `tc -s qdisc show`/`tc filter show` 检查 cni0 与对应 veth，并排查 frontend/checkoutservice 出向是否被按 10.96.106.15:7000 限速延时；规则清除后每页货币 RPC 恢复到 ~1ms。另外第 1 轮把 currencyservice CPU 上限提到 1 核没有作用，可回退为 200m。"
+   },
+   "plan_error": "",
+   "actions": [],
+   "observation": null
+  }
+ ],
+ "outcome": "agent_stopped",
+ "before": {
+  "since": "2026-11-17T03:40:20Z",
+  "seconds": 45.0,
+  "requests": 144,
+  "slow_180ms": 99,
+  "share_slow": 0.688,
+  "p50_ms": 416,
+  "p90_ms": 2056,
+  "p99_ms": 2129,
+  "http_500": 2,
+  "checkout_attempts": 2,
+  "checkout_failed": 2,
+  "resolved": false
+ },
+ "injector_log": "netem on vethaad197a1 (currencyservice-6df4cccbb9-rk4fk 10.244.0.168): delay 200ms 20ms\nqdisc netem 8047: root refcnt 17 limit 1000 delay 200ms  20ms seed 15075319712676638188\nnetem applied: 1\nnetem re-applied on veth6f627aeb (currencyservice 10.244.0.179): delay 200ms 20ms\n",
+ "restored": [
+  "Deployment/currencyservice: set resources deployment/currencyservice -> ok"
+ ],
+ "steps": [
+  {
+   "phase": "verify_healthy",
+   "ok": true,
+   "detail": "healthy",
+   "seconds": 0.27
+  },
+  {
+   "phase": "home_latency",
+   "ok": true,
+   "detail": "GET / ok=True median=0.07s of [0.07] (need >= 0s)",
+   "seconds": 0.0
+  },
+  {
+   "phase": "clean_slate",
+   "ok": true,
+   "detail": "fresh pods",
+   "seconds": 34.88
+  },
+  {
+   "phase": "verify_fresh",
+   "ok": true,
+   "detail": "healthy",
+   "seconds": 0.27
+  },
+  {
+   "phase": "home_latency",
+   "ok": true,
+   "detail": "GET / ok=True median=0.07s of [0.07] (need >= 0s)",
+   "seconds": 0.0
+  },
+  {
+   "phase": "clear_events",
+   "ok": true,
+   "detail": "",
+   "seconds": 0.0
+  },
+  {
+   "phase": "inject",
+   "ok": true,
+   "detail": "-n boutique set env deployment/checkoutservice PAYMENT_SERVICE_ADDR=paymentservice:50052",
+   "seconds": 0.07
+  },
+  {
+   "phase": "inject",
+   "ok": true,
+   "detail": "-n boutique rollout status deployment/checkoutservice --timeout=140s",
+   "seconds": 1.84
+  },
+  {
+   "phase": "inject",
+   "ok": true,
+   "detail": "-n infra-tools delete pod net-injector --ignore-not-found",
+   "seconds": 0.05
+  },
+  {
+   "phase": "inject",
+   "ok": true,
+   "detail": "apply -f /work/scenarios/netem/injector-boutique-hard-BH01.yaml",
+   "seconds": 0.2
+  },
+  {
+   "phase": "inject",
+   "ok": true,
+   "detail": "-n infra-tools wait --for=condition=Ready pod/net-injector --timeout=180s",
+   "seconds": 2.79
+  },
+  {
+   "phase": "confirm",
+   "ok": true,
+   "detail": "19/28 requests >= 180 ms since 2026-11-17T03:40:20Z; logs(app=frontend) contain 'failed to complete the order': True; logs(app=net-injector) contain 'netem applied: 1': True",
+   "seconds": 9.68
+  },
+  {
+   "phase": "reset",
+   "ok": true,
+   "detail": "-n infra-tools delete pod net-injector --ignore-not-found",
+   "seconds": 1.05
+  },
+  {
+   "phase": "reset",
+   "ok": true,
+   "detail": "-n boutique set env deployment/checkoutservice PAYMENT_SERVICE_ADDR=paymentservice:50051",
+   "seconds": 0.05
+  },
+  {
+   "phase": "reset",
+   "ok": true,
+   "detail": "reset steps applied",
+   "seconds": 12.19
+  },
+  {
+   "phase": "verify_recovered",
+   "ok": true,
+   "detail": "healthy",
+   "seconds": 6.58
+  },
+  {
+   "phase": "home_latency",
+   "ok": true,
+   "detail": "GET / ok=True median=0.06s of [0.06] (need >= 0s)",
+   "seconds": 0.0
+  }
+ ],
+ "total_tokens": 2214592
+}

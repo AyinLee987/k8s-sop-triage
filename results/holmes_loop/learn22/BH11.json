@@ -1,0 +1,400 @@
+{
+ "scenario": "BH11",
+ "model": "deepseek-flash",
+ "max_rounds": 3,
+ "frame": "prod",
+ "rounds": [
+  {
+   "round": 1,
+   "wall_s": 384,
+   "exit": 0,
+   "total_tokens": 1733239,
+   "tool_calls": 52,
+   "answer": "## 排查结论(第 1 轮)\n\n### 已确认的事实\n\n**1) 故障在“跨 Pod 的 gRPC 调用”上,不在前端进程本身**\n- `POST /setCurrency` 只写 Cookie + 302,**不调用任何后端**。最近 2 分钟抓到 21 次,`took_ms` 全部为 **0**(frontend 日志 `frontend-fd686dbb-8z55q`)。\n- 但凡是带后端调用的端点都有尾巴,且延迟高度集中在 **214–237ms**(偶发 2–3 倍:311/330/424/433/730ms)。\n\n**2) 慢请求比例与“每个请求的后端调用次数”正相关**(frontend 自身 `http.resp.took_ms`,45 秒窗口)\n\n| 端点 | 后端调用 | 慢(>180ms)占比 | 采样中的延迟 |\n|---|---|---|---|\n| POST /setCurrency | 0 | 0% (0/21) | 全 0ms |\n| POST /cart (AddItem) | 1 (cartservice) | ~5% (5/100) | 1ms / 1ms / **206ms** |\n| GET / | 2 (currency+catalog)+换算 | ~4.4% (4/91) | max 234ms |\n| GET /cart | ~6 (cart+rec+ship+currency+product) | ~22% (42/188) | 215/218/218/221/230/**332/432** |\n| GET /product/* | ~6 (catalog+currency+cart+rec+ad) | ~28% (73/264) | 218/220/225/229/**423/433/730** |\n\n**3) 服务端没有任何错误**\n- 12 个 Deployment 全 Ready、Restart=0、无 5xx、无 OOM/Evicted;所有 Service 各有且仅有 1 个健康 endpoint;12 个 Pod **全部在同一个节点** `tiktok-k8s-lab-control-plane`。\n- 唯一 Warning 事件:`productcatalogservice-7457c7c77f-vqqx8` 在 `08:06:38` **Liveness probe failed: failed to connect service \"10.244.0.195:3550\" within 1s: context deadline exceeded` —— 说明它至少有一次 **>1s 完全无响应**。\n- cartservice/currencyservice/recommendationservice/redis-cart 日志无异常(redis 只有正常 BGSAVE:08:10:19 起 100ms 完成)。\n\n**4) 配置没有被改动过**:所有 Deployment/ReplicaSet 的 env、CPU/内存 request/limit 与上游 `microservices-demo v0.10.3` 清单逐项一致;每个 Deployment 只有 1 个 RS(2 天前创建),无近期模板变更。所以不是 env/selector/targetPort 类故障。\n\n**5) 负载侧佐证**(locust,loadgenerator 日志):聚合 596 请求 0 失败,中位 16ms、均值 90ms、max 871ms —— 典型“中位很好、尾部很差、无错误”。\n\n### 判读\n\n延迟量子恒为 ~215ms 且**任何一条跨 Pod RPC 都可能中招**,而计数特征又显示:调用链越长越容易命中(GET /cart、GET /product 约 22–28%;只调 1 次 cartservice 的 POST /cart 约 5%;不调后端的 /setCurrency 为 0%)。这不是某一个服务“变慢”,而是每条 RPC 有约 5–20% 概率被加上一次 ~200ms 的阻塞。指向的是**后端 Pod 的 CPU 饥饿/节流**(所有后端 CPU limit 只有 100–300m,redis 仅 125m,且全部挤在一个节点上),这也解释了 productcatalogservice 那次 >1s 的探针超时。\n\n按证据强弱,嫌疑排序(无法用现有工具最终区分):① cartservice(+redis-cart):POST /cart 单次 cartservice 调用就出现 206ms;② recommendationservice:cart 页与 product 页都调 ListRecommendations(日志中 4 个 product_ids 的列表正对应 cart 页),而完全不调它的首页只有 4.4% 慢;③ productcatalogservice:唯一一条控制面异常(>1s 探针超时)。\n\n**我缺的证据**:识别出到底是哪个 Pod 在被 cfs 节流,需要 `container_cpu_cfs_throttled_*` / 节点 cpu steal 指标。当前我无此权限:`nodes` 与 `kube-system` 均返回 `Forbidden`(SA `diag-system:diag-agent`),`kubernetes/live-metrics`、`prometheus/metrics` 工具集未配置。因此我先按“解除最可疑几个后端的 CPU 上限”做一轮可回滚的验证。\n\n```json\n{\"root_causes\": [{\"object\": \"cartservice (+ redis-cart)\", \"cause\": \"证据最直接:POST /cart 只经 1 次 cartservice AddItem 调用就出现 206ms(其余 1ms),GET /cart 22% 请求 ~215–432ms,POST /cart/checkout(avg 111ms/max 871ms)同样带尾;cartservice CPU limit 300m、其后端 redis-cart 仅 125m,存在 CPU 节流/GC 停顿导致的 ~200ms 阻塞\"}, {\"object\": \"recommendationservice\", \"cause\": \"cart 页与 product 页(均调用 ListRecommendations,日志出现 4 个 product_ids 的列表即 cart 页)慢占比 22%/28%,而不调用它的首页仅 4.4%,符合‘该 RPC 有约 20% 概率被加 ~215ms’;CPU limit 200m\"}, {\"object\": \"productcatalogservice\", \"cause\": \"命名空间内唯一控制面异常:08:06:38 Liveness probe 'failed to connect service 10.244.0.195:3550 within 1s' —— 曾出现 >1s 完全无响应,CPU limit 200m\"}, {\"object\": \"boutique 全命名空间(单节点 CPU 争用)\", \"cause\": \"12 个 Pod 全部调度在同一节点 tiktok-k8s-lab-control-plane 且 CPU limit 仅 100–300m;延迟呈‘每条 RPC 少量概率 ~200ms 阻塞’的弥散分布、同一请求内可叠加两次(730ms),符合后端 Pod 被 CFS 节流/节点 CPU 争用。未能验证:当前账号无权读 nodes/kube-system,且无实时/Prometheus 指标可用\"}], \"actions\": [{\"op\": \"set_cpu_limit\", \"deployment\": \"cartservice\", \"cpu\": \"1\"}, {\"op\": \"set_cpu_limit\", \"deployment\": \"redis-cart\", \"cpu\": \"500m\"}, {\"op\": \"set_cpu_limit\", \"deployment\": \"recommendationservice\", \"cpu\": \"1\"}, {\"op\": \"set_cpu_limit\", \"deployment\": \"productcatalogservice\", \"cpu\": \"500m\"}, {\"op\": \"set_cpu_limit\", \"deployment\": \"frontend\", \"cpu\": \"500m\"}], \"expect\": \"若根因是后端 Pod CPU 节流:>180ms 请求从 33/175(18.9%)降到 0–3 个,p90 从 220ms 降到 15–25ms,p99 从 529ms 降到 60–100ms,中位仍 ~12ms,500 仍为 0,下单 3/3 成功,GET /cart、GET /product 的 214–237ms 与 424–433ms 簇消失\", \"explanation\": \"实测证明延迟不在前端进程(setCurrency 0ms),而是每条跨 Pod RPC 约 5–20% 概率被加 ~215ms;先把 cartservice/redis-cart/recommendationservice/productcatalogservice/frontend 的 CPU 上限抬高以消除节流。若下一轮用户侧无改善,则说明是节点级 CPU 争用或网络层(200ms TCP 重传)问题,需运维在有节点指标权限的一侧核对 cpu.stat 的 nr_throttled 与节点 steal/丢包,届时我会改为其它方向(如卸掉部分 Pod 的 CPU 压力)。\"}\n```",
+   "plan": {
+    "root_causes": [
+     {
+      "object": "cartservice (+ redis-cart)",
+      "cause": "证据最直接:POST /cart 只经 1 次 cartservice AddItem 调用就出现 206ms(其余 1ms),GET /cart 22% 请求 ~215–432ms,POST /cart/checkout(avg 111ms/max 871ms)同样带尾;cartservice CPU limit 300m、其后端 redis-cart 仅 125m,存在 CPU 节流/GC 停顿导致的 ~200ms 阻塞"
+     },
+     {
+      "object": "recommendationservice",
+      "cause": "cart 页与 product 页(均调用 ListRecommendations,日志出现 4 个 product_ids 的列表即 cart 页)慢占比 22%/28%,而不调用它的首页仅 4.4%,符合‘该 RPC 有约 20% 概率被加 ~215ms’;CPU limit 200m"
+     },
+     {
+      "object": "productcatalogservice",
+      "cause": "命名空间内唯一控制面异常:08:06:38 Liveness probe 'failed to connect service 10.244.0.195:3550 within 1s' —— 曾出现 >1s 完全无响应,CPU limit 200m"
+     },
+     {
+      "object": "boutique 全命名空间(单节点 CPU 争用)",
+      "cause": "12 个 Pod 全部调度在同一节点 tiktok-k8s-lab-control-plane 且 CPU limit 仅 100–300m;延迟呈‘每条 RPC 少量概率 ~200ms 阻塞’的弥散分布、同一请求内可叠加两次(730ms),符合后端 Pod 被 CFS 节流/节点 CPU 争用。未能验证:当前账号无权读 nodes/kube-system,且无实时/Prometheus 指标可用"
+     }
+    ],
+    "actions": [
+     {
+      "op": "set_cpu_limit",
+      "deployment": "cartservice",
+      "cpu": "1"
+     },
+     {
+      "op": "set_cpu_limit",
+      "deployment": "redis-cart",
+      "cpu": "500m"
+     },
+     {
+      "op": "set_cpu_limit",
+      "deployment": "recommendationservice",
+      "cpu": "1"
+     },
+     {
+      "op": "set_cpu_limit",
+      "deployment": "productcatalogservice",
+      "cpu": "500m"
+     },
+     {
+      "op": "set_cpu_limit",
+      "deployment": "frontend",
+      "cpu": "500m"
+     }
+    ],
+    "expect": "若根因是后端 Pod CPU 节流:>180ms 请求从 33/175(18.9%)降到 0–3 个,p90 从 220ms 降到 15–25ms,p99 从 529ms 降到 60–100ms,中位仍 ~12ms,500 仍为 0,下单 3/3 成功,GET /cart、GET /product 的 214–237ms 与 424–433ms 簇消失",
+    "explanation": "实测证明延迟不在前端进程(setCurrency 0ms),而是每条跨 Pod RPC 约 5–20% 概率被加 ~215ms;先把 cartservice/redis-cart/recommendationservice/productcatalogservice/frontend 的 CPU 上限抬高以消除节流。若下一轮用户侧无改善,则说明是节点级 CPU 争用或网络层(200ms TCP 重传)问题,需运维在有节点指标权限的一侧核对 cpu.stat 的 nr_throttled 与节点 steal/丢包,届时我会改为其它方向(如卸掉部分 Pod 的 CPU 压力)。"
+   },
+   "plan_error": "",
+   "actions": [
+    {
+     "action": {
+      "op": "set_cpu_limit",
+      "deployment": "cartservice",
+      "cpu": "1"
+     },
+     "accepted": true,
+     "ok": true,
+     "result": "ok: deployment.apps/cartservice resource requirements updated | ok:  to finish: 1 old replicas are pending termination...\nWaiting for deployment \"cartservice\" rollout to finish: 1 old replicas are pending termination...\ndeployment \"cartservice\" successfully rolled out"
+    },
+    {
+     "action": {
+      "op": "set_cpu_limit",
+      "deployment": "redis-cart",
+      "cpu": "500m"
+     },
+     "accepted": true,
+     "ok": true,
+     "result": "ok: deployment.apps/redis-cart resource requirements updated | ok: ut to finish: 1 old replicas are pending termination...\nWaiting for deployment \"redis-cart\" rollout to finish: 1 old replicas are pending termination...\ndeployment \"redis-cart\" successfully rolled out"
+    },
+    {
+     "action": {
+      "op": "set_cpu_limit",
+      "deployment": "recommendationservice",
+      "cpu": "1"
+     },
+     "accepted": true,
+     "ok": true,
+     "result": "ok: deployment.apps/recommendationservice resource requirements updated | ok: plicas are pending termination...\nWaiting for deployment \"recommendationservice\" rollout to finish: 1 old replicas are pending termination...\ndeployment \"recommendationservice\" successfully rolled out"
+    },
+    {
+     "action": {
+      "op": "set_cpu_limit",
+      "deployment": "productcatalogservice",
+      "cpu": "500m"
+     },
+     "accepted": true,
+     "ok": true,
+     "result": "ok: deployment.apps/productcatalogservice resource requirements updated | ok: plicas are pending termination...\nWaiting for deployment \"productcatalogservice\" rollout to finish: 1 old replicas are pending termination...\ndeployment \"productcatalogservice\" successfully rolled out"
+    },
+    {
+     "action": {
+      "op": "set_cpu_limit",
+      "deployment": "frontend",
+      "cpu": "500m"
+     },
+     "accepted": true,
+     "ok": true,
+     "result": "ok: deployment.apps/frontend resource requirements updated | ok: ollout to finish: 1 old replicas are pending termination...\nWaiting for deployment \"frontend\" rollout to finish: 1 old replicas are pending termination...\ndeployment \"frontend\" successfully rolled out"
+    }
+   ],
+   "observation": {
+    "since": "2026-11-17T08:15:53Z",
+    "seconds": 75.0,
+    "requests": 204,
+    "slow_180ms": 46,
+    "share_slow": 0.225,
+    "p50_ms": 10,
+    "p90_ms": 228,
+    "p99_ms": 649,
+    "http_500": 0,
+    "checkout_attempts": 3,
+    "checkout_failed": 0,
+    "resolved": false
+   },
+   "kept": false,
+   "observation_first": {
+    "since": "2026-11-17T08:14:38Z",
+    "seconds": 75.0,
+    "requests": 207,
+    "slow_180ms": 36,
+    "share_slow": 0.174,
+    "p50_ms": 10,
+    "p90_ms": 219,
+    "p99_ms": 427,
+    "http_500": 0,
+    "checkout_attempts": 3,
+    "checkout_failed": 0,
+    "resolved": false
+   },
+   "undone": [
+    "Deployment/cartservice: set resources deployment/cartservice -> ok",
+    "Deployment/frontend: set resources deployment/frontend -> ok",
+    "Deployment/productcatalogservice: set resources deployment/productcatalogservice -> ok",
+    "Deployment/recommendationservice: set resources deployment/recommendationservice -> ok",
+    "Deployment/redis-cart: set resources deployment/redis-cart -> ok"
+   ]
+  },
+  {
+   "round": 2,
+   "wall_s": 472,
+   "exit": 0,
+   "total_tokens": 1307318,
+   "tool_calls": 26,
+   "answer": "## 对照上一轮预期\n\n| 上一轮判断 | 结果 |\n|---|---|\n| ~215ms 固定量级延迟、\"每条 RPC 有概率被加一次\" | **被证实**。慢请求成簇在 206/212/217/218/219/220/229ms，另有 283/435ms（≈200ms×2）；同一请求内可叠加 |\n| 延迟不在前端进程 | **被证实**。POST /setCurrency 全部 0ms、/_healthz 0ms；前端自身不卡 |\n| cartservice / redis-cart 是主因 | **被推翻**。POST /cart（走 getProduct+insertCart+redis 写）服务端 1–2ms，6 个样本无一超过 2ms |\n| recommendationservice 是主因 | **被证实为唯一共同点**（见下） |\n| productcatalogservice | **被推翻**（首页直连 ListProducts 却快）|\n| 全命名空间 CPU limit / 节点 CPU 争用 | **被推翻（至少 CPU 配额不是因）**。上一轮把 5 个 Deployment 的 CPU 上限抬到 500m–1（rollout 全部成功），>180ms 占比反而 18.9%→22.5%，p90 220→228，p99 529→649；且现在（已回滚、原限制的新 Pod）现象一模一样 |\n\n## 本轮新证据：把慢请求和快请求区分开的唯一依赖是 recommendationservice\n\n08:17:30–08:18:05 前端日志逐条统计（took_ms）：\n\n| 路径 | 慢(>180ms)/总数 | 是否调用 ListRecommendations |\n|---|---|---|\n| GET /product/* | 8/32（25%） | 是，1 次 |\n| GET /cart | 4/14（29%） | 是，1 次 |\n| POST /cart/checkout | 1/3 | 是（下单后为确认页取推荐） |\n| GET / | **0/9**（上一轮全量 4.4%） | 否 |\n| POST /cart | **0/6**（1–2ms） | 否 |\n| POST /setCurrency | **0/8**（0ms） | 否 |\n\n把所有\"慢\"和\"快\"的路径对比，唯一能同时解释的现象就是：**约 25% 的 ListRecommendations 调用被加上 ~210ms**，而点击该 RPC 的页面 100% 落在这个比例上，不点它的页面一个都不慢。\n\n时间戳对齐（前端 handler 顺序：getProduct→getCurrencies→getCart→convertCurrency→getRecommendations→chooseAd）：\n- 08:17:40.306 的商品页（218ms）：currencyservice 在 T+2ms 收到 getCurrencies、T+4ms 完成换算；recommendationservice 在 **T+7ms** 收到 ListRecommendations；前端直到 **T+217ms** 才发出 adservice 调用、T+218ms 完成 → **收单后的 210ms 全部落在 rec 这一跳**。\n- 快请求（如 08:17:46.117，11ms）：rec T+7ms 收到、T+10ms 前端就继续走到 ad → 正常只需 3ms。\n- 08:17:52.122（435ms）：一次 ~220ms 卡在 rec 之前、再一次 ~210ms 卡在 rec 之后（两次叠加）。\n- 08:17:44.518 的 checkout（229ms）：checkoutservice 在 T+13ms 就已全部完成（payment 44.5255、email 44.5314），前端\"order placed\" T+13.6ms，下一次调 rec 却在 T+225ms，之后 5ms 结束 → 又是 rec 这一跳。\n\n即：**服务端（rec）已经收到请求/下游已完成，但这一跳的往返要多 ~210ms**。~200ms 精确等于 Linux TCP `RTO_MIN`，且失败率为 0（TCP 自己重传恢复了），这与\"该跳上一个包丢了、等 200ms 重传\"完全吻合，而不是 rec 的 CPU（上一轮已抬到 1 核无效；且 Pod 在 08:17:09 重建过，新 Pod 依旧如此，排除实例级脏状态）。\n\n## 还没解释的现象（并列保留）\n\n1. 少量延迟发生在 rec **之前**（08:17:52 那一次 222ms 落在 currency→rec 之间），所以不能 100% 说\"只在 rec 服务端\"。**两个解释都说得通**：(a) rec 这一跳的丢包/延迟；(b) 节点/CNI 层面共享的 ~200ms 丢包（每条 RPC 约 4% 概率被命中，正好解释\"首页 4.4% vs 商品页 25%\"，因为首页的计价是并发的一轮、串行轮次少）。区分需要节点侧 `nstat`/`ss -ti` 重传计数、Pod veth 上的 qdisc——我没有 nodes/kube-system 权限，也没有 metrics-server/Prometheus/Cilium/inspektor-gadget/docker 工具（均不可用）。\n2. productcatalogservice 在稳态（非启动期）出现过 >1s 探针超时：vqqx8 readiness 08:05:19–08:13:40 共 4 次、liveness 08:06:38–08:11:28 共 4 次；fw9jq readiness 至 08:16:07。量级（≥1s）与 200ms 不是一回事，可能是同一节点压力在同一时刻的另一表现，未证实。\n3. Service/端点均正常：12 个 Service selector 各命中 1 个 Pod，endpoints 各 1 个 IP，targetPort 与容器端口一致（emailservice 5000→8080 为标准配置），排除服务发现类错误；12 个 Pod 全在 tiktok-k8s-lab-control-plane，重启 0、无 OOM、无 500。\n\n## 本轮申请（只针对\"rec 这一跳\"做可判定的处置）\n\n1. `scale recommendationservice 3`：若卡顿绑定在单个 Pod/连接/进程上，2/3 的推荐调用会落到干净 Pod。\n2. `set_env recommendationservice PRODUCT_CATALOG_SERVICE_ADDR=10.96.32.253:3550`（ClusterIP，稳定）：去掉 rec 下游这一跳的域名解析，排除\"短名/搜索域解析偶发慢 200ms\"。\n3. `set_cpu_limit currencyservice 500m`：唯一还没验证过 CPU 上限的热路径依赖（home 也调它），放在这里有 1 次\"换算已完成、响应却晚 219ms\"的观测支持，且无副作用。\n\n不再 restart：rec 的 Pod 在 08:17:09 已重建过，现象依旧，重启无效。\n\n```json\n{\"root_causes\": [{\"object\": \"recommendationservice (ListRecommendations 这一跳)\", \"cause\": \"已证实是唯一能区分快慢的因素：商品页/购物车/结算(均调用它)分别 25%/29%/1-of-3 慢，首页/POST /cart/setCurrency(不调用它)为 0/9、0/6、0/8；日志时间对齐显示约 25% 的调用在 rec 收到请求后前端要多等 ~210ms（08:17:40.306 请求 rec 在 T+7ms 收到、前端 T+217ms 才继续；快请求只需 3ms；08:17:52 的 435ms 是两次叠加；08:17:44 结算在 checkoutservice T+13ms 已完成、下一跳却延到 T+225ms）。~200ms 恰为 TCP RTO_MIN 且 500 数为 0，符合该跳单包丢失后重传，而非服务端算力。本轮已证伪的相邻解释：CPU 上限(上轮抬高后 18.9%→22.5%)、cartservice/redis(POST /cart 服务端 1–2ms)、productcatalogservice(首页直连 ListProducts 快)、Service/端点配置。\"}, {\"object\": \"节点 tiktok-k8s-lab-control-plane 的 Pod 网络(未证实的第二解释)\", \"cause\": \"另有证据显示 ~200ms 可能不限于 rec 一跳：08:17:52 那次 222ms 落在 currency 完成到 rec 收到之间；按 3–4%每条 RPC 概率被加 200ms 计算，正好复现首页 4.4% vs 商品页 25%(首页计价并发、串行轮次少)。若如此，则是节点/CNI 级偶发丢包或调度停顿，Pod 级配置改不动。区分需要节点侧 nstat/ss -ti 重传计数和 Pod veth qdisc，我无 nodes/kube-system 权限且无 metrics-server/Prometheus/Cilium 工具。\"}, {\"object\": \"productcatalogservice (未解释的次要异常)\", \"cause\": \"稳态下仍出现 >1s 的 readiness/liveness 探针超时（vqqx8 在 08:05:19–08:13:40、liveness 08:06:38–08:11:28；fw9jq 至 08:16:07），与 200ms 量级不同、也不能解释首页为何快，暂无定论。\"}], \"actions\": [{\"op\": \"scale\", \"deployment\": \"recommendationservice\", \"replicas\": 3}, {\"op\": \"set_env\", \"deployment\": \"recommendationservice\", \"name\": \"PRODUCT_CATALOG_SERVICE_ADDR\", \"value\": \"10.96.32.253:3550\"}, {\"op\": \"set_cpu_limit\", \"deployment\": \"currencyservice\", \"cpu\": \"500m\"}], \"expect\": \"若 ~210ms 卡顿绑定在 rec 的单个 Pod/连接/域名解析上：>180ms 从 46/204(22.5%) 降到 12–18 个(约 6–9%)，p90 从 228ms 降到 25–45ms，p99 从 649ms 降到 200–250ms，中位维持 10–12ms，500 仍为 0，下单 3/3 成功。若数字完全不动（仍 ~20%、p90 ~220ms），说明是节点/CNI 共享的每条 RPC ~4% 丢包/停顿，Pod 级操作无法修复，需运维在节点侧核对重传与 qdisc。\", \"explanation\": \"延迟已定位到 recommendationservice 这一跳（唯一区分快慢的依赖，约 25% 调用多 ~210ms，量级等于 TCP RTO_MIN），故用多副本稀释、用 ClusterIP 绕开该跳的域名解析、并补上唯一未验证 CPU 上限的热路径依赖；若这轮仍无变化，根因在节点/CNI 网络层，须由有节点权限的运维用 nstat/ss -ti/tcpdump 确认。\"}\n```",
+   "plan": {
+    "root_causes": [
+     {
+      "object": "recommendationservice (ListRecommendations 这一跳)",
+      "cause": "已证实是唯一能区分快慢的因素：商品页/购物车/结算(均调用它)分别 25%/29%/1-of-3 慢，首页/POST /cart/setCurrency(不调用它)为 0/9、0/6、0/8；日志时间对齐显示约 25% 的调用在 rec 收到请求后前端要多等 ~210ms（08:17:40.306 请求 rec 在 T+7ms 收到、前端 T+217ms 才继续；快请求只需 3ms；08:17:52 的 435ms 是两次叠加；08:17:44 结算在 checkoutservice T+13ms 已完成、下一跳却延到 T+225ms）。~200ms 恰为 TCP RTO_MIN 且 500 数为 0，符合该跳单包丢失后重传，而非服务端算力。本轮已证伪的相邻解释：CPU 上限(上轮抬高后 18.9%→22.5%)、cartservice/redis(POST /cart 服务端 1–2ms)、productcatalogservice(首页直连 ListProducts 快)、Service/端点配置。"
+     },
+     {
+      "object": "节点 tiktok-k8s-lab-control-plane 的 Pod 网络(未证实的第二解释)",
+      "cause": "另有证据显示 ~200ms 可能不限于 rec 一跳：08:17:52 那次 222ms 落在 currency 完成到 rec 收到之间；按 3–4%每条 RPC 概率被加 200ms 计算，正好复现首页 4.4% vs 商品页 25%(首页计价并发、串行轮次少)。若如此，则是节点/CNI 级偶发丢包或调度停顿，Pod 级配置改不动。区分需要节点侧 nstat/ss -ti 重传计数和 Pod veth qdisc，我无 nodes/kube-system 权限且无 metrics-server/Prometheus/Cilium 工具。"
+     },
+     {
+      "object": "productcatalogservice (未解释的次要异常)",
+      "cause": "稳态下仍出现 >1s 的 readiness/liveness 探针超时（vqqx8 在 08:05:19–08:13:40、liveness 08:06:38–08:11:28；fw9jq 至 08:16:07），与 200ms 量级不同、也不能解释首页为何快，暂无定论。"
+     }
+    ],
+    "actions": [
+     {
+      "op": "scale",
+      "deployment": "recommendationservice",
+      "replicas": 3
+     },
+     {
+      "op": "set_env",
+      "deployment": "recommendationservice",
+      "name": "PRODUCT_CATALOG_SERVICE_ADDR",
+      "value": "10.96.32.253:3550"
+     },
+     {
+      "op": "set_cpu_limit",
+      "deployment": "currencyservice",
+      "cpu": "500m"
+     }
+    ],
+    "expect": "若 ~210ms 卡顿绑定在 rec 的单个 Pod/连接/域名解析上：>180ms 从 46/204(22.5%) 降到 12–18 个(约 6–9%)，p90 从 228ms 降到 25–45ms，p99 从 649ms 降到 200–250ms，中位维持 10–12ms，500 仍为 0，下单 3/3 成功。若数字完全不动（仍 ~20%、p90 ~220ms），说明是节点/CNI 共享的每条 RPC ~4% 丢包/停顿，Pod 级操作无法修复，需运维在节点侧核对重传与 qdisc。",
+    "explanation": "延迟已定位到 recommendationservice 这一跳（唯一区分快慢的依赖，约 25% 调用多 ~210ms，量级等于 TCP RTO_MIN），故用多副本稀释、用 ClusterIP 绕开该跳的域名解析、并补上唯一未验证 CPU 上限的热路径依赖；若这轮仍无变化，根因在节点/CNI 网络层，须由有节点权限的运维用 nstat/ss -ti/tcpdump 确认。"
+   },
+   "plan_error": "",
+   "actions": [
+    {
+     "action": {
+      "op": "scale",
+      "deployment": "recommendationservice",
+      "replicas": 3
+     },
+     "accepted": true,
+     "ok": true,
+     "result": "ok: deployment.apps/recommendationservice scaled | ok:  updated replicas are available...\nWaiting for deployment \"recommendationservice\" rollout to finish: 2 of 3 updated replicas are available...\ndeployment \"recommendationservice\" successfully rolled out"
+    },
+    {
+     "action": {
+      "op": "set_env",
+      "deployment": "recommendationservice",
+      "name": "PRODUCT_CATALOG_SERVICE_ADDR",
+      "value": "10.96.32.253:3550"
+     },
+     "accepted": true,
+     "ok": true,
+     "result": "ok: deployment.apps/recommendationservice env updated | ok: plicas are pending termination...\nWaiting for deployment \"recommendationservice\" rollout to finish: 1 old replicas are pending termination...\ndeployment \"recommendationservice\" successfully rolled out"
+    },
+    {
+     "action": {
+      "op": "set_cpu_limit",
+      "deployment": "currencyservice",
+      "cpu": "500m"
+     },
+     "accepted": true,
+     "ok": true,
+     "result": "ok: deployment.apps/currencyservice resource requirements updated | ok: sh: 1 old replicas are pending termination...\nWaiting for deployment \"currencyservice\" rollout to finish: 1 old replicas are pending termination...\ndeployment \"currencyservice\" successfully rolled out"
+    }
+   ],
+   "observation": {
+    "since": "2026-11-17T08:27:25Z",
+    "seconds": 75.0,
+    "requests": 196,
+    "slow_180ms": 43,
+    "share_slow": 0.219,
+    "p50_ms": 11,
+    "p90_ms": 223,
+    "p99_ms": 432,
+    "http_500": 0,
+    "checkout_attempts": 4,
+    "checkout_failed": 0,
+    "resolved": false
+   },
+   "kept": false,
+   "observation_first": {
+    "since": "2026-11-17T08:26:10Z",
+    "seconds": 75.0,
+    "requests": 217,
+    "slow_180ms": 41,
+    "share_slow": 0.189,
+    "p50_ms": 11,
+    "p90_ms": 220,
+    "p99_ms": 428,
+    "http_500": 0,
+    "checkout_attempts": 11,
+    "checkout_failed": 0,
+    "resolved": false
+   },
+   "undone": [
+    "Deployment/currencyservice: set resources deployment/currencyservice -> ok",
+    "Deployment/recommendationservice: set env deployment/recommendationservice -> ok",
+    "Deployment/recommendationservice: scale deployment/recommendationservice --replicas=1 -> ok"
+   ]
+  },
+  {
+   "round": 3,
+   "wall_s": 312,
+   "exit": 0,
+   "total_tokens": 1042142,
+   "tool_calls": 25,
+   "answer": "## 第 3 轮实测结果（对照前两轮预期）\n\n**被推翻的判断**\n\n- 第 2 轮「首页快 ⇒ 问题锁定在 recommendationservice 这一跳」——**推翻**。同一时间窗（08:30:05–08:31:00）我把首页也取了：13 个首页请求里 `216ms`、`157ms`、`67ms`、`44ms`、`39ms` 都有（`edd40ceb` start 08:30:07.162 → end 07.378 = 216ms）。首页同样被卡。前一轮\"0/9\"是小样本。\n- 第 1 轮「各服务自身 CPU 节流」——**推翻**（上一轮已证），且本轮新证据表明与单个 Pod 的 quota 无关（见下）。\n- 第 2 轮「~200ms ≈ TCP RTO_MIN 的单包重传」——**基本排除**（见下，恢复时刻是全局同步的，不是每流独立的）。\n\n**本轮新增的关键证据：停顿是\"整机同时冻结，然后同时恢复\"**\n\n用 frontend 的 `request started/complete` + 各后端日志的到达时间做逐请求对齐（08:30 窗口），发现多个**互不相关的请求在同一微秒级时刻一起结束**：\n\n| 时刻 | 现象 |\n|---|---|\n| 08:30:34.6243 / .6247 | `33f91b3d`（start 34.513，111ms，product 页）与 `f9663eb0`（start 34.615，9ms）**同时完成** |\n| 08:30:46.7297 | `1ae4e810`（start 46.669，60ms）与 `2cd3489a`（start 46.718，11ms）**同时完成** |\n| 08:30:51.3366 | `090c865e`（start 51.201，135ms）与 `ed97221c`（start 51.327，9ms）**同时完成** |\n| 08:30:46.728 / 51.335 | adservice **两个线程**（executor-7、executor-2）在同一毫秒收到请求 |\n| 08:30:46.7255/.7262、51.3326/.3329 | recommendationservice 成对（<1ms）收到**不同**前端请求 |\n\n不同服务、不同连接、不同请求在**同一瞬间恢复推进** —— 这只能是节点/整机层面在这些窗口里\"没有调度任何东西\"，不符合单条 TCP 流丢包重传（那样各流恢复时刻是错开的），也不符合某个 Pod 自身 CFS quota（只影响该 Pod）。\n\n停顿长度分布也支持这点：`50/60/67/96/111/126/135/149/157/183ms` 的连续谱 + 主峰 `209–237ms` + 叠加值 `425/436ms` 和一次 `862ms`；按 196 请求/75s、21.9% 命中率反推，约 **1 次/秒** 的 ~200ms 整机冻结。\n\n**同样被证实/加固的事实**\n\n- 12 个 Pod（含 loadgenerator）全部在 `tiktok-k8s-lab-control-plane` 一个节点上；CPU requests 合计约 **1.57 核**（loadgenerator 300m 是最大单一消费者）。\n- 稳态 kubelet 探针也撞上同一停顿：`productcatalogservice-7457c7c77f-6l4dm`（08:17 起运行）在 **08:29:20 Liveness \"failed to connect 10.244.0.206:3550 within 1s\"**。\n- 无 500、无重启（restartCount 全 0）、无 OOMKilled、无错误日志（frontend 300s 内唯一 error 是 `visa_electron` 被支付拒绝，属负载生成器正常行为；adservice 无 ERROR/WARN）。\n- 逐跳分解（product 页）：停顿落在 `GetProduct`、`currencies→rec` 段、以及 `rec 收到后` 段——**分散在所有跳**，不存在单一\"慢服务\"。cart 页（不调用 adservice）同样 219–231ms，adservice 也排除（adservice 收包数 89 ≈ 同窗口 product 76 + home 13，说明 ads 只被 home/product 调用）。\n\n**尚未解释 / 需要节点侧证据的**\n\n- 是\"节点被同节点其它命名空间的工作负载吃满 CPU\"，还是\"VM 宿主 vCPU steal（噪声邻居）\"，我在 `diag-system` SA 下**无权读 nodes / kube-system / 全集群 pods / networkpolicies**，也没有 metrics-server/Prometheus/Cilium 工具，无法区分。区分需要：`kubectl top pods -A --sort-by=cpu`、`kubectl describe node`、节点上 `/proc/pressure/cpu`、各 Pod cgroup `cpu.stat` 的 `nr_throttled/throttled_usec`、`vmstat` 的 `st`、以及 `nstat -az | grep -i retrans`。\n\n**为什么这轮不再申请 Pod 级操作**：两轮已把可用杠杆试遍（5 个服务 CPU 上限、rec 3 副本、rec→productcatalog 走 ClusterIP、currency 500m），用户侧 18.9%→22.5%→21.9% 全部在噪声内；本轮证据指向整机冻结，任何单 Pod/Service 改动都动不了它，且最后一轮不应再消耗一次会被回滚的变更。需要由有节点权限的运维处理。\n\n```json\n{\"root_causes\": [{\"object\": \"节点 tiktok-k8s-lab-control-plane（boutique 全部 12 个 Pod 均在此节点）\", \"cause\": \"节点/整机层面的周期性停顿（CPU 被吃满或被宿主 steal）：跨服务、互不相关的请求在同一瞬时一起恢复——08:30:34.624 两个 product 请求、08:30:46.7297 两个、08:30:51.3366 两个同时结束；adservice 在 46.728/51.335 两线程同毫秒收包；recommendationservice 在 46.7255/46.7262、51.3326/51.3329 成对收到不同请求。每次停顿 50–250ms（主峰 209–237ms，可叠加 425–436ms，最长 862ms），约 1 次/秒，正好解释 196 请求/75s 中 43 个 >180ms、p90 223ms、p99 432ms、0 个 500。稳态 kubelet 探针对 productcatalogservice-7457c7c77f-6l4dm 在 08:29:20 出现 >1s 连接超时，是同一现象的旁证。\"}, {\"object\": \"boutique 命名空间的容量/放置（12 Pod 单节点、requests 合计约 1.57 核）\", \"cause\": \"全部工作负载（含 500m 上限/300m request 的 loadgenerator）挤在同一节点，节点侧任何 CPU 争用都会同时打击所有服务，因此抬高单个 Deployment 的 CPU 上限（第 1 轮 cart/redis/rec/productcatalog/frontend、第 2 轮 currency）或给 rec 加副本（第 2 轮 1→3）都没有任何效果；这也是 Pod 级操作本轮可预期的结果。\"}, {\"object\": \"未排除的替代解释（证据不足）\", \"cause\": \"节点/CNI 层丢包（~200ms 近似 TCP RTO_MIN）仍不能说完全排除，但它无法解释 50/60/67/96/111/126/135/149/157ms 这一连续谱、862ms 单点以及不同流的同步恢复；需节点侧 nstat 重传计数、ss -ti、以及 Pod veth qdisc/PSI 才能定案。此外第 1 轮提出、至今未解释的现象（productcatalogservice 在稳态下 liveness/readiness >1s 探针超时）与本轮结论一致，属同一节点级停顿的受害者。\"}], \"actions\": [], \"expect\": \"\", \"explanation\": \"问题不在任何单个服务：本轮逐请求对齐证明停顿是节点级的、全局同步的整机冻结（约1次/秒、每次50–250ms），Pod 级重启/加 CPU/加副本/换 Service 全部动不了它，前两轮实测也已证明无效，故不再申请变更。需由有节点权限的运维在节点侧确认并处理：kubectl top pods -A --sort-by=cpu 与 describe node（找出同节点其它命名空间的高 CPU 工作负载）、节点 /proc/pressure/cpu 与各 cgroup cpu.stat 的 nr_throttled/throttled_usec、vmstat 的 st（宿主 vCPU steal）、nstat 重传计数；修复方向是把 boutique 的 Pod（尤其 loadgenerator）分散到第二个节点/腾出节点 CPU，或给该节点加 vCPU/迁走共租户工作负载——我当前 SA 无权读 nodes、kube-system、全集群 pods 与 networkpolicies，无法自行完成这一步。\"}\n```",
+   "plan": {
+    "root_causes": [
+     {
+      "object": "节点 tiktok-k8s-lab-control-plane（boutique 全部 12 个 Pod 均在此节点）",
+      "cause": "节点/整机层面的周期性停顿（CPU 被吃满或被宿主 steal）：跨服务、互不相关的请求在同一瞬时一起恢复——08:30:34.624 两个 product 请求、08:30:46.7297 两个、08:30:51.3366 两个同时结束；adservice 在 46.728/51.335 两线程同毫秒收包；recommendationservice 在 46.7255/46.7262、51.3326/51.3329 成对收到不同请求。每次停顿 50–250ms（主峰 209–237ms，可叠加 425–436ms，最长 862ms），约 1 次/秒，正好解释 196 请求/75s 中 43 个 >180ms、p90 223ms、p99 432ms、0 个 500。稳态 kubelet 探针对 productcatalogservice-7457c7c77f-6l4dm 在 08:29:20 出现 >1s 连接超时，是同一现象的旁证。"
+     },
+     {
+      "object": "boutique 命名空间的容量/放置（12 Pod 单节点、requests 合计约 1.57 核）",
+      "cause": "全部工作负载（含 500m 上限/300m request 的 loadgenerator）挤在同一节点，节点侧任何 CPU 争用都会同时打击所有服务，因此抬高单个 Deployment 的 CPU 上限（第 1 轮 cart/redis/rec/productcatalog/frontend、第 2 轮 currency）或给 rec 加副本（第 2 轮 1→3）都没有任何效果；这也是 Pod 级操作本轮可预期的结果。"
+     },
+     {
+      "object": "未排除的替代解释（证据不足）",
+      "cause": "节点/CNI 层丢包（~200ms 近似 TCP RTO_MIN）仍不能说完全排除，但它无法解释 50/60/67/96/111/126/135/149/157ms 这一连续谱、862ms 单点以及不同流的同步恢复；需节点侧 nstat 重传计数、ss -ti、以及 Pod veth qdisc/PSI 才能定案。此外第 1 轮提出、至今未解释的现象（productcatalogservice 在稳态下 liveness/readiness >1s 探针超时）与本轮结论一致，属同一节点级停顿的受害者。"
+     }
+    ],
+    "actions": [],
+    "expect": "",
+    "explanation": "问题不在任何单个服务：本轮逐请求对齐证明停顿是节点级的、全局同步的整机冻结（约1次/秒、每次50–250ms），Pod 级重启/加 CPU/加副本/换 Service 全部动不了它，前两轮实测也已证明无效，故不再申请变更。需由有节点权限的运维在节点侧确认并处理：kubectl top pods -A --sort-by=cpu 与 describe node（找出同节点其它命名空间的高 CPU 工作负载）、节点 /proc/pressure/cpu 与各 cgroup cpu.stat 的 nr_throttled/throttled_usec、vmstat 的 st（宿主 vCPU steal）、nstat 重传计数；修复方向是把 boutique 的 Pod（尤其 loadgenerator）分散到第二个节点/腾出节点 CPU，或给该节点加 vCPU/迁走共租户工作负载——我当前 SA 无权读 nodes、kube-system、全集群 pods 与 networkpolicies，无法自行完成这一步。"
+   },
+   "plan_error": "",
+   "actions": [],
+   "observation": null
+  }
+ ],
+ "outcome": "agent_stopped",
+ "before": {
+  "since": "2026-11-17T08:06:09Z",
+  "seconds": 45.0,
+  "requests": 175,
+  "slow_180ms": 33,
+  "share_slow": 0.189,
+  "p50_ms": 12,
+  "p90_ms": 220,
+  "p99_ms": 529,
+  "http_500": 0,
+  "checkout_attempts": 3,
+  "checkout_failed": 0,
+  "resolved": false
+ },
+ "injector_log": "netem on vethf70a1572 (productcatalogservice-7457c7c77f-vqqx8 10.244.0.195): loss 6%\nqdisc netem 8069: root refcnt 17 limit 1000 loss 6% seed 14150161940433455182\nnetem applied: 1\nnetem re-applied on veth10073bcd (productcatalogservice 10.244.0.202): loss 6%\nnetem re-applied on vethaa255b00 (productcatalogservice 10.244.0.206): loss 6%\n",
+ "restored": [],
+ "steps": [
+  {
+   "phase": "verify_healthy",
+   "ok": true,
+   "detail": "healthy",
+   "seconds": 0.24
+  },
+  {
+   "phase": "home_latency",
+   "ok": true,
+   "detail": "GET / ok=True median=0.06s of [0.06] (need >= 0s)",
+   "seconds": 0.0
+  },
+  {
+   "phase": "clean_slate",
+   "ok": true,
+   "detail": "fresh pods",
+   "seconds": 33.61
+  },
+  {
+   "phase": "verify_fresh",
+   "ok": true,
+   "detail": "healthy",
+   "seconds": 0.26
+  },
+  {
+   "phase": "home_latency",
+   "ok": true,
+   "detail": "GET / ok=True median=0.06s of [0.06] (need >= 0s)",
+   "seconds": 0.0
+  },
+  {
+   "phase": "clear_events",
+   "ok": true,
+   "detail": "",
+   "seconds": 0.0
+  },
+  {
+   "phase": "inject",
+   "ok": true,
+   "detail": "-n infra-tools delete pod net-injector --ignore-not-found",
+   "seconds": 0.04
+  },
+  {
+   "phase": "inject",
+   "ok": true,
+   "detail": "apply -f /work/scenarios/netem/injector-boutique-hard-BH11.yaml",
+   "seconds": 0.18
+  },
+  {
+   "phase": "inject",
+   "ok": true,
+   "detail": "-n infra-tools wait --for=condition=Ready pod/net-injector --timeout=180s",
+   "seconds": 1.43
+  },
+  {
+   "phase": "confirm",
+   "ok": true,
+   "detail": "8/62 requests >= 180 ms since 2026-11-17T08:06:09Z; logs(app=net-injector) contain 'netem applied: 1': True",
+   "seconds": 21.89
+  },
+  {
+   "phase": "reset",
+   "ok": true,
+   "detail": "-n infra-tools delete pod net-injector --ignore-not-found",
+   "seconds": 1.39
+  },
+  {
+   "phase": "reset",
+   "ok": true,
+   "detail": "reset steps applied",
+   "seconds": 2.01
+  },
+  {
+   "phase": "verify_recovered",
+   "ok": true,
+   "detail": "healthy",
+   "seconds": 0.27
+  },
+  {
+   "phase": "home_latency",
+   "ok": true,
+   "detail": "GET / ok=True median=0.06s of [0.06] (need >= 0s)",
+   "seconds": 0.0
+  }
+ ],
+ "total_tokens": 4082699
+}

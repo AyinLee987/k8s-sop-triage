@@ -1,0 +1,273 @@
+{
+ "scenario": "BH04",
+ "model": "deepseek-flash",
+ "max_rounds": 3,
+ "frame": "prod",
+ "rounds": [
+  {
+   "round": 1,
+   "wall_s": 507,
+   "exit": 0,
+   "total_tokens": 1484361,
+   "tool_calls": 35,
+   "answer": "## 申请执行的修复（第 1 轮，6 个操作）\n\n顺序很重要：先重建 `redis-cart`，再重建 `cartservice`（让 cart 重新连到新 redis）。\n\n1. `restart redis-cart`\n2. `restart cartservice`\n3. `restart productcatalogservice`\n4. `restart recommendationservice`\n5. `restart adservice`\n6. `restart currencyservice`\n\n**几点必须先说清楚的边界：**\n- 我用只读权限看不到 Pod 内部网络命名空间里的 qdisc/进程状态，所以\"每一跳被稳定注入约 300ms\"是**从时间戳推断的结论**（受影响的 Pod 集合能确定，注入机制不能 100% 确定）。重建 Pod 是清单里唯一能清掉\"容器内/网络命名空间内状态\"的操作。\n- 如果重建后数字**完全没变**，说明延迟由集群外部的注入器按 label 持续重放（重建的 Pod 会再次被命中），那就不是 namespace 内可修的问题，需要运维去找那个注入源（chaos 实验 / sidecar 代理 / 节点上的 tc 规则）并在集群侧移除——这时我第 2 轮不会再重复重启。\n- 重建 `redis-cart` 会清空购物车（emptyDir），所以 `/cart` 类请求会**因为购物车变空而额外变快**，复核时请以 `/`、`/product/*`、`POST /cart` 为主口径。\n\n```json\n{\n  \"root_causes\": [\n    {\n      \"object\": \"productcatalogservice (boutique/productcatalogservice-7457c7c77f-2l78q)\",\n      \"cause\": \"运行期被注入约300ms/次的处理延迟：04:37:25 UTC 起 GetProduct/ListProducts 从 ~1ms 变成 ~300ms。首页 620ms≈2×300（该页几乎只依赖 productcatalog+cart）、加购 910ms≈3×300 都指向它；它被 /、/product、/cart、/cart/checkout 全部依赖，因此所有用户页面一起变慢。配置未变（env/resources 均为上游默认值），Pod 无重启、无报错。\"\n    },\n    {\n      \"object\": \"cartservice + redis-cart (boutique/cartservice-896c89968-f657x, redis-cart-788fbddc7-9k2wc)\",\n      \"cause\": \"购物车路径同样被抬高约300ms/次往返：checkout 的 ShipOrder 完成(04:38:35.2298)到 emailservice 收到请求(04:38:35.5038)之间只有一次 emptyCart，耗时 274ms；而同一时刻 checkout→shipping/payment/email 的往返仅 1–2.5ms。加购 910ms、购物车页每多一件商品 +约330ms 也与之一致。\"\n    },\n    {\n      \"object\": \"recommendationservice (boutique/recommendationservice-6c88b5fb59-xkx7d)\",\n      \"cause\": \"商品页/购物车页/下单确认页在 getRecommendations 之后还要再花约 1.3s：该服务自身一次 ListRecommendations 约 300ms，且它在内部再调用 productcatalogservice.ListProducts（再叠加 300ms），使商品页达到 8×300≈2400ms。\"\n    },\n    {\n      \"object\": \"adservice (boutique/adservice-6bfc5fc46c-lsbkw)\",\n      \"cause\": \"商品页最后一次依赖 GetAds 前已累计约 2261ms、返回后 220ms 内页面结束，与 adservice 单次调用约 300ms 的抬升一致，是商品页 2400ms 的组成部分。\"\n    }\n  ],\n  \"actions\": [\n    {\"op\": \"restart\", \"deployment\": \"redis-cart\"},\n    {\"op\": \"restart\", \"deployment\": \"cartservice\"},\n    {\"op\": \"restart\", \"deployment\": \"productcatalogservice\"},\n    {\"op\": \"restart\", \"deployment\": \"recommendationservice\"},\n    {\"op\": \"restart\", \"deployment\": \"adservice\"},\n    {\"op\": \"restart\", \"deployment\": \"currencyservice\"}\n  ],\n  \"expect\": \"若延迟确实附着在这几个 Pod 上，重建后用户侧应回到 04:37:00–04:37:23 的健康水平：中位数 2404ms → 约 10–50ms，90 分位 2515ms → 约 100ms 以内，>180ms 的占比 84.4% → 接近 0%（仅 /setCurrency 之类极少数异常值之外不应有超 180ms 的请求），/product/* 单请求 2400ms → 10–30ms，首页 620ms → 10–45ms，POST /cart 910ms → 10–20ms，/cart/checkout 3000ms → 100–300ms；500 仍为 0，下单成功率不变。注意：/cart 会因 redis 重建后购物车被清空而额外变快，请以首页、商品页、加购为判断口径。\",\n  \"explanation\": \"配置、Service、端点、Pod 健康度全部正常，故障是 04:37:25 起对 productcatalogservice/cartservice+redis/recommendationservice/adservice 每次调用稳定叠加约 300ms（同窗口内 frontend↔checkout↔shipping↔payment↔email 往返只有 1–2.5ms，故排除节点 CPU 与全局网络问题），只能用重建 Pod 清掉这些容器/网络命名空间内的运行期状态。若重建后完全无变化，说明是集群外部按标签持续重放的延迟注入，需运维在集群侧移除，namespace 内已无可用手段。\"\n}\n```",
+   "plan": {
+    "root_causes": [
+     {
+      "object": "productcatalogservice (boutique/productcatalogservice-7457c7c77f-2l78q)",
+      "cause": "运行期被注入约300ms/次的处理延迟：04:37:25 UTC 起 GetProduct/ListProducts 从 ~1ms 变成 ~300ms。首页 620ms≈2×300（该页几乎只依赖 productcatalog+cart）、加购 910ms≈3×300 都指向它；它被 /、/product、/cart、/cart/checkout 全部依赖，因此所有用户页面一起变慢。配置未变（env/resources 均为上游默认值），Pod 无重启、无报错。"
+     },
+     {
+      "object": "cartservice + redis-cart (boutique/cartservice-896c89968-f657x, redis-cart-788fbddc7-9k2wc)",
+      "cause": "购物车路径同样被抬高约300ms/次往返：checkout 的 ShipOrder 完成(04:38:35.2298)到 emailservice 收到请求(04:38:35.5038)之间只有一次 emptyCart，耗时 274ms；而同一时刻 checkout→shipping/payment/email 的往返仅 1–2.5ms。加购 910ms、购物车页每多一件商品 +约330ms 也与之一致。"
+     },
+     {
+      "object": "recommendationservice (boutique/recommendationservice-6c88b5fb59-xkx7d)",
+      "cause": "商品页/购物车页/下单确认页在 getRecommendations 之后还要再花约 1.3s：该服务自身一次 ListRecommendations 约 300ms，且它在内部再调用 productcatalogservice.ListProducts（再叠加 300ms），使商品页达到 8×300≈2400ms。"
+     },
+     {
+      "object": "adservice (boutique/adservice-6bfc5fc46c-lsbkw)",
+      "cause": "商品页最后一次依赖 GetAds 前已累计约 2261ms、返回后 220ms 内页面结束，与 adservice 单次调用约 300ms 的抬升一致，是商品页 2400ms 的组成部分。"
+     }
+    ],
+    "actions": [
+     {
+      "op": "restart",
+      "deployment": "redis-cart"
+     },
+     {
+      "op": "restart",
+      "deployment": "cartservice"
+     },
+     {
+      "op": "restart",
+      "deployment": "productcatalogservice"
+     },
+     {
+      "op": "restart",
+      "deployment": "recommendationservice"
+     },
+     {
+      "op": "restart",
+      "deployment": "adservice"
+     },
+     {
+      "op": "restart",
+      "deployment": "currencyservice"
+     }
+    ],
+    "expect": "若延迟确实附着在这几个 Pod 上，重建后用户侧应回到 04:37:00–04:37:23 的健康水平：中位数 2404ms → 约 10–50ms，90 分位 2515ms → 约 100ms 以内，>180ms 的占比 84.4% → 接近 0%（仅 /setCurrency 之类极少数异常值之外不应有超 180ms 的请求），/product/* 单请求 2400ms → 10–30ms，首页 620ms → 10–45ms，POST /cart 910ms → 10–20ms，/cart/checkout 3000ms → 100–300ms；500 仍为 0，下单成功率不变。注意：/cart 会因 redis 重建后购物车被清空而额外变快，请以首页、商品页、加购为判断口径。",
+    "explanation": "配置、Service、端点、Pod 健康度全部正常，故障是 04:37:25 起对 productcatalogservice/cartservice+redis/recommendationservice/adservice 每次调用稳定叠加约 300ms（同窗口内 frontend↔checkout↔shipping↔payment↔email 往返只有 1–2.5ms，故排除节点 CPU 与全局网络问题），只能用重建 Pod 清掉这些容器/网络命名空间内的运行期状态。若重建后完全无变化，说明是集群外部按标签持续重放的延迟注入，需运维在集群侧移除，namespace 内已无可用手段。"
+   },
+   "plan_error": "",
+   "actions": [
+    {
+     "action": {
+      "op": "restart",
+      "deployment": "redis-cart"
+     },
+     "accepted": true,
+     "ok": true,
+     "result": "ok: pod \"redis-cart-788fbddc7-9k2wc\" deleted from boutique namespace | ok: Waiting for deployment \"redis-cart\" rollout to finish: 0 of 1 updated replicas are available...\ndeployment \"redis-cart\" successfully rolled out"
+    },
+    {
+     "action": {
+      "op": "restart",
+      "deployment": "cartservice"
+     },
+     "accepted": true,
+     "ok": true,
+     "result": "ok: pod \"cartservice-896c89968-f657x\" deleted from boutique namespace | ok: Waiting for deployment \"cartservice\" rollout to finish: 0 of 1 updated replicas are available...\ndeployment \"cartservice\" successfully rolled out"
+    },
+    {
+     "action": {
+      "op": "restart",
+      "deployment": "productcatalogservice"
+     },
+     "accepted": true,
+     "ok": true,
+     "result": "ok: pod \"productcatalogservice-7457c7c77f-2l78q\" deleted from boutique namespace | ok: Waiting for deployment \"productcatalogservice\" rollout to finish: 0 of 1 updated replicas are available...\ndeployment \"productcatalogservice\" successfully rolled out"
+    },
+    {
+     "action": {
+      "op": "restart",
+      "deployment": "recommendationservice"
+     },
+     "accepted": true,
+     "ok": true,
+     "result": "ok: pod \"recommendationservice-6c88b5fb59-xkx7d\" deleted from boutique namespace | ok: Waiting for deployment \"recommendationservice\" rollout to finish: 0 of 1 updated replicas are available...\ndeployment \"recommendationservice\" successfully rolled out"
+    },
+    {
+     "action": {
+      "op": "restart",
+      "deployment": "adservice"
+     },
+     "accepted": true,
+     "ok": true,
+     "result": "ok: pod \"adservice-6bfc5fc46c-lsbkw\" deleted from boutique namespace | ok: Waiting for deployment \"adservice\" rollout to finish: 0 of 1 updated replicas are available...\ndeployment \"adservice\" successfully rolled out"
+    },
+    {
+     "action": {
+      "op": "restart",
+      "deployment": "currencyservice"
+     },
+     "accepted": true,
+     "ok": true,
+     "result": "ok: pod \"currencyservice-6df4cccbb9-mx4fc\" deleted from boutique namespace | ok: Waiting for deployment \"currencyservice\" rollout to finish: 0 of 1 updated replicas are available...\ndeployment \"currencyservice\" successfully rolled out"
+    }
+   ],
+   "observation": {
+    "since": "2026-11-17T04:48:29Z",
+    "seconds": 75.0,
+    "requests": 147,
+    "slow_180ms": 125,
+    "share_slow": 0.85,
+    "p50_ms": 2399,
+    "p90_ms": 2707,
+    "p99_ms": 3024,
+    "http_500": 0,
+    "checkout_attempts": 8,
+    "checkout_failed": 0,
+    "resolved": false
+   },
+   "kept": false,
+   "undone": []
+  },
+  {
+   "round": 2,
+   "wall_s": 378,
+   "exit": 0,
+   "total_tokens": 959216,
+   "tool_calls": 30,
+   "answer": "## 结论先说：上一轮的“Pod 运行期状态”已被推翻，但真正的机制这轮才测准\n\n### 与你上一轮预期的对照\n\n| 上轮判断 | 实测结果 | 判定 |\n|---|---|---|\n| 延迟附着在被重启的 6 个 Pod 上，重建即可清除 | 重建后 p50 2404→2399、p90 2515→2707、>180ms 85.0%，**完全无变化** | ❌ 推翻 |\n| 每次 RPC +~300ms（productcatalog / cart / redis / recommendation / ad） | 只有**请求方向**被延迟，**响应方向是正常**的（见下） | ✅ 证实并细化 |\n| checkout→shipping/payment/email 往返仅 1–2.5ms（故排除全局网络） | shipping/payment 确实 ~0.3–1ms，但 **checkout→email 约 280ms** | ⚠️ 部分推翻 |\n| 配置/Service/端点/Pod 全部正常 | 全部再次核对：CPU/内存 requests·limits 与上游 v0.10.3 默认值完全一致；env 无异常；Endpoints 每个 Service 只有 1 个正确 IP:端口；无 sidecar、无注入 env；04:36–04:46 无任何 event/RS 变更 | ✅ 证实 |\n\n### 这轮新拿到的关键证据（延迟只有一个方向）\n\n按毫秒对齐 frontend、currency、checkout、shipping、payment、email、ad 的日志：\n\n**正常（快）的边，说明节点网络与调度没坏：**\n- 首页 `/` 04:50:24.625873 开始 → currencyservice **04:50:24.626**（+0.75ms）就收到 `Getting supported currencies`\n- frontend 日志 `placing order` 04:50:31.034131 → checkoutservice `[PlaceOrder]` 04:50:31.034498（+0.37ms）\n- checkout `payment went through` 04:50:32.231631 → shipping `[ShipOrder] received` 04:50:32.231919（+0.29ms）\n- 一次结算里 `GetQuote` 完成 32.2291 → payment 收到 Charge 32.2300（+0.9ms，含一次货币转换）\n\n**慢的边，而且慢在“去程”：**\n- 12/12 个商品页样本：adservice `received ad request` 都发生在 frontend `request complete` **之前 1.2–2.1ms**。即广告请求到达 adservice 后，1.3ms 内整页就结束了 → **返回方向 ~1ms，那 ~300ms 全在请求去程**\n- checkout `order confirmation email sent` 32.512790，而 emailservice 收到时间是 **32.512252**（只早 0.54ms）→ 同样是返回快、去程 ~280ms\n- 首页 623ms 里：currency 0.75ms，剩下 621ms 只能是 `ListProducts` + `GetCart` 两次调用 → **~310ms/次**\n- 加购 POST /cart 886/902/912/932ms ≈ 3 次被延迟的调用；商品页 2361–2532ms ≈ 8×300ms；购物车页每多一件商品 +~300ms（多一次 getProduct）\n\n**所以（本轮确认的事实）**：约 300ms 延迟只加在**发往 productcatalogservice、cartservice、redis-cart、recommendationservice、adservice、emailservice 的请求方向**上，返回方向正常；与调用方无关（frontend 与 checkout 各自对 cart、email 都慢，而对 currency/payment/shipping 都在 1ms 内）。这排除了节点 CPU、全局网络、客户端进程/调度问题。\n\n### 为什么重建没用，以及还有什么没法区分\n\n重建后**换过名字、换过 IP** 的 productcatalog/cart/recommendation/ad 依然慢，说明延迟不是“某次性打到某几个 Pod 名字/IP 上”，而是**被按标签持续重新挂上的**（重放器监视 Pod 生命周期）。同一现象还剩两种解释，我无法区分：\n\n1. **目的端入向延迟**（最可能）：规则挂在被延迟 Pod 的 netns/ingress（ifb/netem 一类），Pod 重建后按 `app=` 标签重新注入。\n2. **发送端出向延迟 + 目的 IP 集合**：规则挂在发送方 Pod（frontend、checkoutservice 等，这两个 Pod 上轮从未重建）的 netns，按目的 IP 匹配，同样持续 reconcile。\n\n区分二者需要的证据我拿不到：`nodes`、集群级 `pods`、`networkpolicies` 被 RBAC 拒绝（`cannot list resource \"nodes\"/\"pods\"/\"networkpolicies\"`），没有 chaos CRD（`Unable to find resource kind 'networkchaos'`），也没有 exec/bash 进入 Pod netns 看 `tc qdisc`。上轮被我重启的 4 个目的 Pod 名字/IP 都变了延迟仍在 → 排除按名字选择，指向按标签重放。\n\n### 为什么这一轮不提交任何操作\n\n6 类可用操作全部落在 Kubernetes 对象层，改不到 tc/netem/iptables 层：`restart` 已实测无效（6 个 Pod）；`set_cpu_limit`/`set_env` 只换 ReplicaSet 和宿主名，**不改变 `app=` 标签**，按标签重放的选择器照样命中；`scale` 只是让更多 Pod 一起被延迟；`set_service_selector`/`set_service_target_port` 也不能改变“包发到该 Pod IP 就被延迟”这一事实（namespace 里也没有第二个可指向的 productcatalog/cart Pod，指错端口只会变成连接拒绝/500，把“只慢不报错”变成真故障）。所以我按“现有操作修不了”处理，不浪费一轮去做注定无效的变更。\n\n日志来源：frontend（近 7 分钟，含 `took_ms` 与 `http.req.path`，过滤后展示最新 80/2251 条）、currency（04:50:23–26.5 窗口全量 18 条）、ad（04:50:17–29 窗口 15 条）、checkout/shipping/email/payment（近 3 分钟）、cartservice（近 2 分钟，223 条取 40）、recommendationservice（近 2 分钟，148 取 30）。productcatalogservice 自身无逐请求日志（近 2 分钟 5 行且均为健康检查相关）。\n\n```json\n{\"root_causes\": [{\"object\": \"boutique 命名空间之外的网络层注入（作用于 productcatalogservice / cartservice / redis-cart / recommendationservice / adservice / emailservice 的请求方向）\", \"cause\": \"约 300ms 的单向网络延迟只加在“发往这几个 Pod 的请求”上，返回方向 <2ms：adservice 收到广告请求后 1.2–2.1ms 整页就结束（12/12 样本），emailservice 收到请求仅比 checkout 日志早 0.54ms，首页 623ms 中 ListProducts+GetCart 各 ~310ms。对 currency(0.75ms)、payment(~1ms)、shipping(0.29ms)、checkout(0.37ms) 的同类调用全部正常，故不是 CPU/全局网络/客户端进程问题。Pod 无 sidecar、无注入 env、limits 与上游 v0.10.3 完全一致、Endpoints 单 IP 正确、04:36–04:46 无任何变更；重建 6 个 Pod 后延迟不变（名字和 IP 都变过，排除按名字选择），说明规则在 Pod 之外且按标签被重新挂上。\"}, {\"object\": \"frontend-fd686dbb-wxvlk / checkoutservice-5d5f4589c5-2d5vp（上轮未重建，无法排除）\", \"cause\": \"另一种同样吻合全部观测的解释：延迟规则挂在发送方 Pod 的 netns 上、按目的 IP 集合匹配（因此 frontend 与 checkout 对 cart/email 慢，对 currency/payment/shipping 不慢）。这两个 Pod 上轮从未重建过，所以“重建目的端无效”这一结果无法区分它与上一条。要区分需在 Pod netns 内看 tc qdisc/iptables 或读节点级对象，我这里的 RBAC 拿不到（nodes/pods/networkpolicies 均 Forbidden，无 chaos CRD）。\"}], \"actions\": [], \"expect\": \"\", \"explanation\": \"延迟是单向（仅去程）约 300ms、按目的服务选择、并在 Pod 重建后按标签重新挂上的网络层规则，位于命名空间对象之外；可用的 6 类操作（restart/set_env/set_cpu_limit/scale/service selector/targetPort）都改不到 tc/netem/iptables 层，restart 已实测 6 个 Pod 无效，其余操作不影响 app 标签与注入规则，只会把“变慢”变成连接失败。应由集群/K8s 平台运维在节点侧处理：在各 Pod netns 或节点网桥上查 `tc -s qdisc/filter`（含 ifb）与 iptables 标记规则，定位并按标签作用于 boutique 这几个 app 的延迟注入实验（chaos 类控制器），暂停/删除后我从 frontend、adservice、emailservice 的毫秒级时间戳复测去程-返回方向即可确认。\"}\n```",
+   "plan": {
+    "root_causes": [
+     {
+      "object": "boutique 命名空间之外的网络层注入（作用于 productcatalogservice / cartservice / redis-cart / recommendationservice / adservice / emailservice 的请求方向）",
+      "cause": "约 300ms 的单向网络延迟只加在“发往这几个 Pod 的请求”上，返回方向 <2ms：adservice 收到广告请求后 1.2–2.1ms 整页就结束（12/12 样本），emailservice 收到请求仅比 checkout 日志早 0.54ms，首页 623ms 中 ListProducts+GetCart 各 ~310ms。对 currency(0.75ms)、payment(~1ms)、shipping(0.29ms)、checkout(0.37ms) 的同类调用全部正常，故不是 CPU/全局网络/客户端进程问题。Pod 无 sidecar、无注入 env、limits 与上游 v0.10.3 完全一致、Endpoints 单 IP 正确、04:36–04:46 无任何变更；重建 6 个 Pod 后延迟不变（名字和 IP 都变过，排除按名字选择），说明规则在 Pod 之外且按标签被重新挂上。"
+     },
+     {
+      "object": "frontend-fd686dbb-wxvlk / checkoutservice-5d5f4589c5-2d5vp（上轮未重建，无法排除）",
+      "cause": "另一种同样吻合全部观测的解释：延迟规则挂在发送方 Pod 的 netns 上、按目的 IP 集合匹配（因此 frontend 与 checkout 对 cart/email 慢，对 currency/payment/shipping 不慢）。这两个 Pod 上轮从未重建过，所以“重建目的端无效”这一结果无法区分它与上一条。要区分需在 Pod netns 内看 tc qdisc/iptables 或读节点级对象，我这里的 RBAC 拿不到（nodes/pods/networkpolicies 均 Forbidden，无 chaos CRD）。"
+     }
+    ],
+    "actions": [],
+    "expect": "",
+    "explanation": "延迟是单向（仅去程）约 300ms、按目的服务选择、并在 Pod 重建后按标签重新挂上的网络层规则，位于命名空间对象之外；可用的 6 类操作（restart/set_env/set_cpu_limit/scale/service selector/targetPort）都改不到 tc/netem/iptables 层，restart 已实测 6 个 Pod 无效，其余操作不影响 app 标签与注入规则，只会把“变慢”变成连接失败。应由集群/K8s 平台运维在节点侧处理：在各 Pod netns 或节点网桥上查 `tc -s qdisc/filter`（含 ifb）与 iptables 标记规则，定位并按标签作用于 boutique 这几个 app 的延迟注入实验（chaos 类控制器），暂停/删除后我从 frontend、adservice、emailservice 的毫秒级时间戳复测去程-返回方向即可确认。"
+   },
+   "plan_error": "",
+   "actions": [],
+   "observation": null
+  }
+ ],
+ "outcome": "agent_stopped",
+ "before": {
+  "since": "2026-11-17T04:37:26Z",
+  "seconds": 45.0,
+  "requests": 109,
+  "slow_180ms": 92,
+  "share_slow": 0.844,
+  "p50_ms": 2404,
+  "p90_ms": 2515,
+  "p99_ms": 3012,
+  "http_500": 0,
+  "checkout_attempts": 4,
+  "checkout_failed": 0,
+  "resolved": false
+ },
+ "injector_log": "netem on vethf11e249b (productcatalogservice-7457c7c77f-2l78q 10.244.0.220): delay 300ms 30ms\nqdisc netem 804d: root refcnt 17 limit 1000 delay 300ms  30ms seed 15584817607379130257\nnetem on veth0edc0678 (redis-cart-788fbddc7-9k2wc 10.244.0.222): delay 300ms 30ms\nqdisc netem 804e: root refcnt 17 limit 1000 delay 300ms  30ms seed 4352357389100940663\nnetem applied: 2\nnetem re-applied on veth0ce7d155 (redis-cart 10.244.0.224): delay 300ms 30ms\nnetem re-applied on veth6c8912ce (productcatalogservice 10.244.0.226): delay 300ms 30ms\n",
+ "restored": [],
+ "steps": [
+  {
+   "phase": "verify_healthy",
+   "ok": true,
+   "detail": "healthy",
+   "seconds": 0.29
+  },
+  {
+   "phase": "home_latency",
+   "ok": true,
+   "detail": "GET / ok=True median=0.05s of [0.05] (need >= 0s)",
+   "seconds": 0.0
+  },
+  {
+   "phase": "clean_slate",
+   "ok": true,
+   "detail": "fresh pods",
+   "seconds": 33.75
+  },
+  {
+   "phase": "verify_fresh",
+   "ok": true,
+   "detail": "healthy",
+   "seconds": 0.25
+  },
+  {
+   "phase": "home_latency",
+   "ok": true,
+   "detail": "GET / ok=True median=0.07s of [0.07] (need >= 0s)",
+   "seconds": 0.0
+  },
+  {
+   "phase": "clear_events",
+   "ok": true,
+   "detail": "",
+   "seconds": 0.0
+  },
+  {
+   "phase": "prune_history",
+   "ok": true,
+   "detail": "1 old replicasets",
+   "seconds": 0.0
+  },
+  {
+   "phase": "inject",
+   "ok": true,
+   "detail": "-n infra-tools delete pod net-injector --ignore-not-found",
+   "seconds": 0.06
+  },
+  {
+   "phase": "inject",
+   "ok": true,
+   "detail": "apply -f /work/scenarios/netem/injector-boutique-hard-BH04.yaml",
+   "seconds": 0.18
+  },
+  {
+   "phase": "inject",
+   "ok": true,
+   "detail": "-n infra-tools wait --for=condition=Ready pod/net-injector --timeout=180s",
+   "seconds": 2.76
+  },
+  {
+   "phase": "confirm",
+   "ok": true,
+   "detail": "18/20 requests >= 180 ms since 2026-11-17T04:37:26Z; logs(app=net-injector) contain 'netem applied: 2': True",
+   "seconds": 9.41
+  },
+  {
+   "phase": "reset",
+   "ok": true,
+   "detail": "-n infra-tools delete pod net-injector --ignore-not-found",
+   "seconds": 1.55
+  },
+  {
+   "phase": "reset",
+   "ok": true,
+   "detail": "reset steps applied",
+   "seconds": 2.16
+  },
+  {
+   "phase": "verify_recovered",
+   "ok": true,
+   "detail": "healthy",
+   "seconds": 0.26
+  },
+  {
+   "phase": "home_latency",
+   "ok": true,
+   "detail": "GET / ok=True median=0.05s of [0.05] (need >= 0s)",
+   "seconds": 0.0
+  }
+ ],
+ "total_tokens": 2443577
+}

@@ -1,0 +1,195 @@
+{
+ "scenario": "CL07",
+ "model": "deepseek-flash",
+ "max_rounds": 1,
+ "frame": "prod",
+ "metrics": true,
+ "skills": "holmes/skills/svc-sop-v0",
+ "rounds": [
+  {
+   "round": 1,
+   "wall_s": 130,
+   "exit": 0,
+   "total_tokens": 1108323,
+   "tool_calls": 35,
+   "answer": "I found a skill named **boutique-triage-overview / boutique-frontend** and used it to troubleshoot:\n\n1. ✅ *固定用户症状并查全命名空间 Pod/事件* – 12 个 Pod 全部 Running/Ready，restartCount=0；`shippingservice` 在 12:13:41 被其 ReplicaSet 滚动重建（`Killing` 旧 Pod `...-kpn78` + `SuccessfulCreate ...-dhr7q`），属控制器发布行为，不是故障源头\n2. ✅ *查 Pod 资源指标* – 无 CPU 限流（窗口内 0%）、无内存压力、无丢包/错误包，排除资源与网络层\n3. ✅ *查 frontend Deployment/Pod 和事件* – frontend 正常、无重启、无探针失败\n4. ✅ *查 frontend Service 与 EndpointSlice* – `frontend` selector `app: frontend`、80→8080 正确，有 ready endpoint\n5. ✅ *查 frontend 日志中的下游错误* – 10 分钟 1486 条日志、filter `error|500|fail` 命中 177 条；除两条 GCE metadata 无关报错外，**全部为同一错误**：\n   `failed to get shipping quote: rpc error: code = Unimplemented desc = The server does not implement the method /hipstershop.ShippingService/GetQuote`\n   → `/cart` 500（5060 字节，5-7ms）、`/cart/checkout` 500（\"shipping quote failure\"）\n6. ✅ *按调用方向跳下游 shippingservice 并比对 Service/EndpointSlice* – **定位到配置错误**：\n   - `svc/shippingservice` 的 `spec.selector = {app: paymentservice}`（其它 11 个 Service 的 selector 均与自身 app 一致）\n   - EndpointSlice `shippingservice-22xpf` 的唯一 endpoint 是 `10.244.0.43 = pod paymentservice-78f6cfdf7f-jh7wl`（与 `paymentservice` 的 EndpointSlice 完全相同）\n   - `shippingservice` Pod 本身健康：`Shipping Service listening on port :50051`，镜像 `shippingservice:v0.10.3`，Ready 1/1，但收不到任何业务流量\n   - `paymentservice` 日志只处理 `PaymentService#Charge`（成功），前端调的是 `ShippingService/GetQuote` → gRPC 返回 `Unimplemented`（paymentservice 同样监听 50051，所以 TCP 连接成功，只在方法层面报错）\n7. ✅ *核对 env 配置* – frontend/checkoutservice 的 `SHIPPING_SERVICE_ADDR=shippingservice:50051`、`PAYMENT_SERVICE_ADDR=paymentservice:50051` 均正确，排除调用方配置问题\n8. ✅ *核对尾延迟（180ms 以上）* – 全量日志里 `took_ms ≥ 100ms` 只有 15 条，全部集中在 12:13:20–12:14:42（如 `GET /` 6081/5081/4081/3082/2743ms，以及 12:14:35 的 2993ms、3079ms、12:14:42 的 1073ms，均为 200）；**12:14:45–12:16:50 没有任何 > 99ms 的请求**，说明尾部延迟是早段（12:11:39 全量启动 + 12:13:21 loadgenerator 重启后冷连接建立）的一次性突发，已自行消失\n\n当前仍在持续：12:16:25–12:16:53 的 28 秒内仍有 17 次 `GetQuote` 失败。\n\n**根因**：`shippingservice` Service 的 selector 被改成 `app: paymentservice`，所有 `shippingservice:50051` 的调用被路由到 paymentservice Pod，paymentservice 不实现 `ShippingService/GetQuote`，于是 gRPC 返回 `Unimplemented` → frontend 的 `/cart`、`/cart/checkout` 返回 500 → 下单全部失败。\n\n**修复**：把 `shippingservice` Service 的 selector 改回 `app: shippingservice`（不需要重启任何 Pod，shippingservice Pod 已 Ready 并在 :50051 监听）。\n\n**客户影响分层**：\n- **受影响（有各自直接证据）**：`frontend`（`/cart`、`/cart/checkout` 返回 500，日志 `request error` + `http.resp.status:500`）；`checkoutservice`（经 frontend 传递的 `shipping quote failure`，Internal）；下单功能（5/5 失败）\n- **已检查、正常**：`paymentservice`（Charge 全部成功，只是被误当作 shipping 后端）、`productcatalogservice`、`currencyservice`、`cartservice`、`redis-cart`、`recommendationservice`、`adservice`、`emailservice`（均无错误日志，业务请求正常）、`shippingservice` Pod（监听 50051，健康但因 selector 无流量）\n- **未确认**：12:13:20–12:14:42 的尾延迟突发，现有证据只显示是一次性冷启动型（多个请求在同一毫秒被同时释放、之后 2 分钟无慢请求），无 prometheus/链路数据可进一步定位\n\n```json\n{\"root_causes\": [{\"object\": \"Service/shippingservice\", \"cause\": \"Service 的 selector 被配置为 app: paymentservice（应为 app: shippingservice），EndpointSlice shippingservice-22xpf 指向 paymentservice Pod 10.244.0.43；paymentservice 不实现 /hipstershop.ShippingService/GetQuote，调用返回 gRPC Unimplemented，导致 frontend /cart 与 /cart/checkout 返回 500、下单 5/5 失败\"}], \"actions\": [{\"op\": \"set_service_selector\", \"service\": \"shippingservice\", \"app\": \"shippingservice\"}], \"expect\": \"shippingservice 的 EndpointSlice 重新指向 shippingservice-78969f44cf-dhr7q；/cart 与 /cart/checkout 返回 200，500 从 30/145 降到 0，下单 5/5 成功；GetQuote 的 Unimplemented 报错归零；>180ms 请求数保持 0（此前 3 个慢请求已在 12:14:42 后消失，p99 从 2993ms 回落到约 10ms 量级）\", \"explanation\": \"错误信息 Unimplemented 与 EndpointSlice 证据一致地指向 Service selector 写错（指向 paymentservice），shippingservice Pod 本身健康，只需改回 selector；尾延迟是一次性冷启动突发，无需处理。\"}\n```",
+   "plan": {
+    "root_causes": [
+     {
+      "object": "Service/shippingservice",
+      "cause": "Service 的 selector 被配置为 app: paymentservice（应为 app: shippingservice），EndpointSlice shippingservice-22xpf 指向 paymentservice Pod 10.244.0.43；paymentservice 不实现 /hipstershop.ShippingService/GetQuote，调用返回 gRPC Unimplemented，导致 frontend /cart 与 /cart/checkout 返回 500、下单 5/5 失败"
+     }
+    ],
+    "actions": [
+     {
+      "op": "set_service_selector",
+      "service": "shippingservice",
+      "app": "shippingservice"
+     }
+    ],
+    "expect": "shippingservice 的 EndpointSlice 重新指向 shippingservice-78969f44cf-dhr7q；/cart 与 /cart/checkout 返回 200，500 从 30/145 降到 0，下单 5/5 成功；GetQuote 的 Unimplemented 报错归零；>180ms 请求数保持 0（此前 3 个慢请求已在 12:14:42 后消失，p99 从 2993ms 回落到约 10ms 量级）",
+    "explanation": "错误信息 Unimplemented 与 EndpointSlice 证据一致地指向 Service selector 写错（指向 paymentservice），shippingservice Pod 本身健康，只需改回 selector；尾延迟是一次性冷启动突发，无需处理。"
+   },
+   "plan_error": "",
+   "actions": [
+    {
+     "action": {
+      "op": "set_service_selector",
+      "service": "shippingservice",
+      "app": "shippingservice"
+     },
+     "accepted": true,
+     "ok": true,
+     "result": "ok: service/shippingservice patched"
+    }
+   ],
+   "observation": {
+    "since": "2026-11-22T12:18:38Z",
+    "seconds": 75.0,
+    "requests": 226,
+    "slow_180ms": 0,
+    "share_slow": 0.0,
+    "p50_ms": 6,
+    "p90_ms": 9,
+    "p99_ms": 32,
+    "http_500": 54,
+    "checkout_attempts": 7,
+    "checkout_failed": 7,
+    "card_rejected": 0,
+    "resolved": false
+   },
+   "kept": false,
+   "observation_first": {
+    "since": "2026-11-22T12:17:23Z",
+    "seconds": 75.0,
+    "requests": 234,
+    "slow_180ms": 0,
+    "share_slow": 0.0,
+    "p50_ms": 6,
+    "p90_ms": 9,
+    "p99_ms": 33,
+    "http_500": 64,
+    "checkout_attempts": 11,
+    "checkout_failed": 11,
+    "card_rejected": 0,
+    "resolved": false
+   },
+   "undone": [
+    "Service/shippingservice: patch service shippingservice -> ok"
+   ]
+  }
+ ],
+ "outcome": "rounds_exhausted",
+ "before": {
+  "since": "2026-11-22T12:14:07Z",
+  "seconds": 45.0,
+  "requests": 145,
+  "slow_180ms": 3,
+  "share_slow": 0.021,
+  "p50_ms": 7,
+  "p90_ms": 10,
+  "p99_ms": 2993,
+  "http_500": 30,
+  "checkout_attempts": 5,
+  "checkout_failed": 5,
+  "card_rejected": 0,
+  "resolved": false
+ },
+ "injector_log": null,
+ "restored": [
+  "Service/shippingservice: patch service shippingservice -> ok"
+ ],
+ "steps": [
+  {
+   "phase": "verify_healthy",
+   "ok": true,
+   "detail": "healthy",
+   "seconds": 0.18
+  },
+  {
+   "phase": "home_latency",
+   "ok": true,
+   "detail": "GET / ok=True median=0.08s of [0.08] (need >= 0s)",
+   "seconds": 0.0
+  },
+  {
+   "phase": "clean_slate",
+   "ok": true,
+   "detail": "fresh pods",
+   "seconds": 103.37
+  },
+  {
+   "phase": "verify_fresh",
+   "ok": true,
+   "detail": "healthy",
+   "seconds": 0.19
+  },
+  {
+   "phase": "home_latency",
+   "ok": true,
+   "detail": "GET / ok=True median=0.05s of [0.05] (need >= 0s)",
+   "seconds": 0.0
+  },
+  {
+   "phase": "clear_events",
+   "ok": true,
+   "detail": "",
+   "seconds": 0.0
+  },
+  {
+   "phase": "prune_history",
+   "ok": true,
+   "detail": "1 old replicasets",
+   "seconds": 0.0
+  },
+  {
+   "phase": "inject",
+   "ok": true,
+   "detail": "-n boutique patch service shippingservice --type=merge",
+   "seconds": 0.04
+  },
+  {
+   "phase": "inject",
+   "ok": true,
+   "detail": "-n boutique delete pod -l app=shippingservice",
+   "seconds": 0.97
+  },
+  {
+   "phase": "inject",
+   "ok": true,
+   "detail": "-n boutique rollout status deployment/shippingservice --timeout=140s",
+   "seconds": 0.04
+  },
+  {
+   "phase": "confirm",
+   "ok": true,
+   "detail": "logs(app=frontend) contain '\"http.resp.status\":500': True",
+   "seconds": 0.05
+  },
+  {
+   "phase": "reset",
+   "ok": true,
+   "detail": "-n boutique patch service shippingservice --type=merge",
+   "seconds": 0.04
+  },
+  {
+   "phase": "reset",
+   "ok": true,
+   "detail": "reset steps applied",
+   "seconds": 0.52
+  },
+  {
+   "phase": "verify_recovered",
+   "ok": true,
+   "detail": "healthy",
+   "seconds": 0.17
+  },
+  {
+   "phase": "home_latency",
+   "ok": true,
+   "detail": "GET / ok=True median=0.04s of [0.04] (need >= 0s)",
+   "seconds": 0.0
+  }
+ ],
+ "total_tokens": 1108323
+}

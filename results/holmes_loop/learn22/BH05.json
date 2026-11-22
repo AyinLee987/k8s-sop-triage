@@ -1,0 +1,292 @@
+{
+ "scenario": "BH05",
+ "model": "deepseek-flash",
+ "max_rounds": 3,
+ "frame": "prod",
+ "rounds": [
+  {
+   "round": 1,
+   "wall_s": 203,
+   "exit": 0,
+   "total_tokens": 610002,
+   "tool_calls": 22,
+   "answer": "## 结论：`currencyservice` 的请求入口被添加了约 200 ms 的单向网络延迟\n\n### 定位过程与证据\n\n**1. 页面延迟分布（frontend 自身日志，`took_ms`，最近约 2 分钟，345 条 `request complete`）**\n\n| 路径 | 延迟 |\n|---|---|\n| `GET /` (home) | 1981–2144 ms（稳定 ~2080）|\n| `GET /product/*` | 377–448 ms（稳定 ~415）|\n| `GET /cart` | 4 个明显分层：~700 / ~880–950 / ~1090–1190 / ~1310–1330（每个购物车条目 +~200 ms）|\n| `POST /cart`（加购）| **1–2 ms** |\n| `POST /setCurrency` | 0–2 ms |\n| `POST /cart/checkout` | 1169–1677 ms |\n\n`POST /cart` 只花 1 ms，这说明 `productcatalogservice`、`cartservice`、`redis-cart` 都很快，请求路径本身没有异常。\n\n**2. 时间戳逐条对齐，发现延迟在 `currencyservice` 的入口**\n\n把 frontend 每个页面的起始时刻（= 完成时刻 − `took_ms`）与 `currencyservice-6df4cccbb9-ltrd7` 的 `Getting supported currencies...`（该日志在 handler **入口**打印）逐条比对，06:13:00–06:13:12 窗口内 **15 个页面请求 / 15 条 GSC 日志，一一对应**，偏移分别为：\n\n```\n199, 210, 194, 188, 191, 192, 212, 210, 211, 207, 206, 209, 200, 207, 204 ms\n```\n\n即：请求发出后 **约 200 ms 才到达 currencyservice 进程**；而 handler 执行完后返回很快（例：`/product/OLJCESPC7Z` 起始 06:13:05.015 → GSC 05.225 → 转换完成日志 05.434 → frontend 完成 05.442，**响应仅 +8 ms**）。同一毫秒内多次出现 2 条转换完成日志（84.876/84.876、89.997/89.997、91.055/91.056），说明业务处理本身是瞬时的。\n\n**3. 延迟只伴随 currency 的 RPC 数量**\n\n- home = product + 9 次额外转换：`2080 − 415 ≈ 1665 ms ÷ 9 ≈ 185 ms/次`\n- cart 每个条目 +~200 ms（每次 `Convert`）\n- 服务端日志速率 ~6 次转换/s，负载很低，排除 CPU 排队/限流（且容器 CPU limit 200m/request 100m 为官方 demo 标准值）\n\n**4. 排除的其他可能**\n- 镜像全部为标准 `us-central1-docker.pkg.dev/google-samples/microservices-demo/*:v0.10.3`，无自定义镜像、无 sidecar/initContainer、无 chaos 容器。\n- 所有 Deployment 的 env、资源、Service `targetPort` 与 Endpoints（`currencyservice → 10.244.0.87:7000`，唯一后端）均正确。\n- adservice 正常：`received ad request` 日志与 frontend 请求**完成时刻**相差 ≤2 ms（它是 handler 最后一个调用，且很快）。\n- 12 个 Pod 全部 Running、READY、0 重启；0 个 500；无相关 Event。\n- **不是 frontend 单侧问题**：`checkoutservice`（另一个 Pod，10.244.0.86）也慢——`[PlaceOrder]` 06:12:44.830 → `payment went through` 06:12:45.959，前置阶段 1129 ms，与“每个条目 1 次货币转换 ×200 ms”吻合。两个不同客户端都慢，共同点只有 `currencyservice` 这一个 Pod。\n\n### 影响面\n\n- **受影响**：`currencyservice`（自身延迟证据：入口日志相对调用方请求起始恒定 +188~212 ms）。其调用方 `frontend`（`took_ms` 2.0–2.1 s / 377–448 ms）与 `checkoutservice`（`PlaceOrder → payment` 1129 ms）因此变慢；用户侧 75.4% 请求 >180 ms、中位 420 ms、p90 1983 ms，且 0 报错，与“只加延迟不加错误”完全一致。\n- **检查后为正常**：`productcatalogservice`、`cartservice`、`redis-cart`（`POST /cart` 1 ms）、`adservice`（~2 ms）、所有 Pod 状态。\n- **未能精确定量**：`recommendationservice`（日志正常持续收到请求，但无完成时刻日志；home−product 差值已被货币转换完全解释）。\n\n### 修复\n\n延迟加在 `currencyservice` Pod 的**入向**网络路径上（请求晚到、响应及时），而 Deployment 的 env/资源/Service/Endpoints/镜像都正常，所以这是 Pod 网络命名空间/veth 级别的改动。重建该 Pod（新 netns、新 veth、很可能新 IP）应使这类规则失效，而无需改动任何配置——这也在允许的操作范围内。\n\n```json\n{\"root_causes\": [{\"object\": \"currencyservice (Pod currencyservice-6df4cccbb9-ltrd7, 10.244.0.87:7000)\", \"cause\": \"入向网络路径被注入约 200ms 单向延迟：每次 currency RPC 请求在发出后 188-212ms 才到达服务进程（15/15 次与 frontend 页面起始时刻精确对齐），而 handler 处理瞬时完成、响应仅 +8ms 返回。Deployment env/资源(100m/200m)/镜像(v0.10.3)/Service targetPort/Endpoints 均正常，故为 Pod 网络层面的延迟，非应用或配置问题。frontend 与 checkoutservice 两个不同客户端同时受害，共同点只有该 Pod。\"}], \"actions\": [{\"op\": \"restart\", \"deployment\": \"currencyservice\"}], \"expect\": \"currencyservice 重建为新 Pod 后约 200ms/次 RPC 的延迟消失：GET / 从 ~2080ms 降到 ~80-150ms，/product/* 从 ~415ms 降到 ~40-60ms，/cart 从 700-1330ms 降到 ~50-150ms，/cart/checkout 从 1170-1680ms 降到 ~200-300ms；用户侧中位数从 420ms 降到 <60ms，p90 从 1983ms 降到 <150ms，超过 180ms 的请求比例从 75.4% 降到接近 0%，500 仍为 0、下单仍成功。\", \"explanation\": \"延迟只出现在发往 currencyservice 的请求入向路径上（服务端日志比调用方请求起始恒定晚约 200ms，而响应即时返回），而容器内处理是瞬时的、配置与镜像均为标准值，因此重建 Pod 清除其网络命名空间/veth 上的延迟规则是最直接的修复；若重建后延迟仍在（说明故障按 IP/控制器持续重注入），则需由运维用具备 exec 权限的方式检查 currencyservice Pod 所在 veth 上的 tc/iptables netem 规则。\"}\n```",
+   "plan": {
+    "root_causes": [
+     {
+      "object": "currencyservice (Pod currencyservice-6df4cccbb9-ltrd7, 10.244.0.87:7000)",
+      "cause": "入向网络路径被注入约 200ms 单向延迟：每次 currency RPC 请求在发出后 188-212ms 才到达服务进程（15/15 次与 frontend 页面起始时刻精确对齐），而 handler 处理瞬时完成、响应仅 +8ms 返回。Deployment env/资源(100m/200m)/镜像(v0.10.3)/Service targetPort/Endpoints 均正常，故为 Pod 网络层面的延迟，非应用或配置问题。frontend 与 checkoutservice 两个不同客户端同时受害，共同点只有该 Pod。"
+     }
+    ],
+    "actions": [
+     {
+      "op": "restart",
+      "deployment": "currencyservice"
+     }
+    ],
+    "expect": "currencyservice 重建为新 Pod 后约 200ms/次 RPC 的延迟消失：GET / 从 ~2080ms 降到 ~80-150ms，/product/* 从 ~415ms 降到 ~40-60ms，/cart 从 700-1330ms 降到 ~50-150ms，/cart/checkout 从 1170-1680ms 降到 ~200-300ms；用户侧中位数从 420ms 降到 <60ms，p90 从 1983ms 降到 <150ms，超过 180ms 的请求比例从 75.4% 降到接近 0%，500 仍为 0、下单仍成功。",
+    "explanation": "延迟只出现在发往 currencyservice 的请求入向路径上（服务端日志比调用方请求起始恒定晚约 200ms，而响应即时返回），而容器内处理是瞬时的、配置与镜像均为标准值，因此重建 Pod 清除其网络命名空间/veth 上的延迟规则是最直接的修复；若重建后延迟仍在（说明故障按 IP/控制器持续重注入），则需由运维用具备 exec 权限的方式检查 currencyservice Pod 所在 veth 上的 tc/iptables netem 规则。"
+   },
+   "plan_error": "",
+   "actions": [
+    {
+     "action": {
+      "op": "restart",
+      "deployment": "currencyservice"
+     },
+     "accepted": true,
+     "ok": true,
+     "result": "ok: pod \"currencyservice-6df4cccbb9-ltrd7\" deleted from boutique namespace | ok: Waiting for deployment \"currencyservice\" rollout to finish: 0 of 1 updated replicas are available...\ndeployment \"currencyservice\" successfully rolled out"
+    }
+   ],
+   "observation": {
+    "since": "2026-11-17T06:17:40Z",
+    "seconds": 75.0,
+    "requests": 184,
+    "slow_180ms": 135,
+    "share_slow": 0.734,
+    "p50_ms": 416,
+    "p90_ms": 2054,
+    "p99_ms": 2165,
+    "http_500": 0,
+    "checkout_attempts": 7,
+    "checkout_failed": 0,
+    "resolved": false
+   },
+   "kept": false,
+   "observation_first": {
+    "since": "2026-11-17T06:16:25Z",
+    "seconds": 75.0,
+    "requests": 179,
+    "slow_180ms": 135,
+    "share_slow": 0.754,
+    "p50_ms": 422,
+    "p90_ms": 2057,
+    "p99_ms": 2158,
+    "http_500": 0,
+    "checkout_attempts": 5,
+    "checkout_failed": 0,
+    "resolved": false
+   },
+   "undone": []
+  },
+  {
+   "round": 2,
+   "wall_s": 411,
+   "exit": 0,
+   "total_tokens": 1436424,
+   "tool_calls": 36,
+   "answer": "## 结论：定位正确（延迟确实在发往 currencyservice 的请求路径上），但第 1 轮的“锚点”判断被推翻\n\n### 被证实的\n1. **延迟精确地按“每次 currency RPC ≈ 200ms”累加**，与本轮所有实测一致：\n   - `GET /`：首页 handler 依次发 1 次 `GetSupportedCurrencies` + 9 次 `Convert`（9 个商品）= 10×200ms → 实测 `took_ms` 2050/2080/2111；\n   - `GET /product/*`：1 次 `GetSupportedCurrencies` + 1 次 `Convert` = 2×200ms → 实测 384–442ms；\n   - `GET /cart`：1 + 2×商品数 → 实测 701/729/887/894/1098/1126/1338ms；\n   - `POST /cart`（只打 cartservice，不碰 currency）**1–3ms**、`/setCurrency` **0ms**、`_healthz` 0ms → 除 currency 外整条链路都是快的（cartservice、productcatalog、ad、payment、shipping、redis 均无异常）。\n2. **方向是“请求方向”**（不是响应方向）：首页 `b627a290` 起始 `06:19:46.087241`，`currencyservice` 的 handler 入口日志 `Getting supported currencies...` 落在 `06:19:46.268`（+181ms）；另一页 `c8ef0e53` 起始 `06:21:22.414689` → 服务端 `06:21:22.597`（+182ms）。handler 一旦进入就瞬时完成，响应随即返回。\n3. 500 = 0、下单失败 = 0；`frontend` 里唯一的 500 只出现在 `06:16:00–06:16:06`（14 条），正是**我第 1 轮重建 currencyservice Pod 时**（06:15:52 新 Pod）的滚动切换瞬间，之后无 500。\n4. locust 累计表（`/product` 中位 410ms、`GET /` 中位 2100ms、`/cart` 850–903ms、`checkout` 1400ms）与 frontend 的 `took_ms` 完全吻合；`POST /setCurrency` 显示 2028ms 是因为 locust 跟随 302 跳到 `GET /`，不是新问题。\n\n### 被推翻的\n**“延迟在该 Pod 的 network namespace/veth 上”**——第 1 轮的 `restart currencyservice` 已经换掉了 Pod（`currencyservice-6df4cccbb9-ltrd7` 10.244.0.87 → `currencyservice-6df4cccbb9-zs9g7` 10.244.0.96，06:15:52 起），新 netns/新 veth/新进程下**每次 RPC 仍然是 +181~182ms**。所以：\n- 不是该 Pod netns 里的 tc 规则；\n- 也排除了“按旧 Pod IP 10.244.0.87 匹配”的规则（IP 已变）；\n- Pod spec 无 sidecar/initContainer/注解，env（`PORT=7000`、`DISABLE_PROFILER=1`）、资源（100m/200m）、镜像 `v0.10.3` 与健康兄弟服务（productcatalogservice）逐字段一致；Service 7000→7000、`selector app=currencyservice`、EndpointSlice 只有 `10.244.0.96`（ready）——**boutique 里没有任何 K8s 对象配置错误**，也没有 chaos CRD/ConfigMap 可见。\n- Service 的 managedFields 显示历史上 `kubectl-patch` 改过 8 个服务的 selector/targetPort（含 currencyservice @11-16T05:24:46），但当前值全部是标准值，与本次延迟无关。\n\n### 还没有解释的（诚实说明）\n延迟是“按目的地锚定”（frontend 和 checkoutservice 两个不同源 Pod 都受害：checkout 的 `PlaceOrder`→`payment` 938ms、`→email` 1249ms，符合 4 次 currency 转换），却**熬过了目标 Pod 重建**。剩下两种锚点我的只读权限无法区分：\n- (a) 规则在**客户端 Pod 的 netns**（frontend、checkoutservice）里，按目的地 currency 匹配；\n- (b) 规则在**节点/CNI 层**，按 Service VIP `10.96.106.15:7000` 或 dport 7000 匹配（重启任何 Pod 都不会变）。\n区分二者需要 `tc qdisc/filter` 和 `iptables -t mangle` 的 node/nsenter 级读取权限（我只有 boutique 的只读 API，`networkpolicies`/跨命名空间都被 Forbidden）。\n\n本轮就测 (a)：重建这两个客户端 Pod（会同时清掉它们 netns 内的任何规则、DNS 缓存与卡住的 HTTP/2/TCP 状态）。\n\n```json\n{\"root_causes\": [{\"object\": \"currencyservice 的请求路径（frontend→currencyservice:7000、checkoutservice→currencyservice:7000）\", \"cause\": \"每次 currency RPC 的请求方向被注入约 181-212ms 单向延迟，响应方向不受影响；页面耗时 = currency RPC 次数 × 200ms（首页 10 次→2050-2111ms，/product 2 次→384-442ms，/cart 1+2×商品数→701-1338ms），非 currency 链路（POST /cart 1-3ms）完全正常。已排除 CPU 限流、应用/镜像/环境变量、Service 端口与 selector、Endpoints、sidecar —— 全部为标准 boutique v0.10.3 配置。\"}, {\"object\": \"延迟注入的锚点（尚未唯一确定）\", \"cause\": \"第 1 轮重建 currencyservice Pod（新 IP 10.244.0.96、新 netns）后每次 RPC 仍固定 +181ms，证明规则不在该 Pod 的 netns/按旧 Pod IP 匹配。剩余两种解释无法区分：(a) 规则位于客户端 Pod（frontend、checkoutservice）netns 内按 currency 目的地匹配；(b) 位于节点/CNI 层按 Service VIP 10.96.106.15:7000 或 dport 7000 匹配。需 node/netns 级 tc、iptables 读取才能判定。\"}], \"actions\": [{\"op\": \"restart\", \"deployment\": \"frontend\"}, {\"op\": \"restart\", \"deployment\": \"checkoutservice\"}], \"expect\": \"若锚点是 (a)：首页/商品页从 2050-2111ms / 384-442ms 降到 ~50-100ms / ~25-50ms，/cart 从 701-1338ms 降到 ~40-120ms，/cart/checkout 从 1250-1680ms 降到 ~150-350ms；用户侧中位数 416ms→~45-60ms，p90 2054ms→~110-150ms，p99 2165ms→~250ms，>180ms 占比 73.4%→<3%，500 仍为 0、下单仍全部成功。若数字毫无变化，则锚点是 (b)，重启任何 Pod 都不会改变，必须由运维在节点上用 nsenter/tc/iptables 按 10.96.106.15:7000（或 dport 7000）定位并清除该延迟规则。\", \"explanation\": \"延迟已确认是发往 currencyservice 的单向 200ms/次注入且不属于任何 K8s 对象配置，唯一还没被排除、且能由现有操作清除的载体是 frontend 与 checkoutservice 两个客户端 Pod 的网络命名空间，因此重建这两个 Pod；若无效则故障在节点/CNI 层（VIP:7000 或端口匹配），超出我可申请的操作范围，需运维用具备 NET_ADMIN/节点 root 的方式处理。\"}\n```",
+   "plan": {
+    "root_causes": [
+     {
+      "object": "currencyservice 的请求路径（frontend→currencyservice:7000、checkoutservice→currencyservice:7000）",
+      "cause": "每次 currency RPC 的请求方向被注入约 181-212ms 单向延迟，响应方向不受影响；页面耗时 = currency RPC 次数 × 200ms（首页 10 次→2050-2111ms，/product 2 次→384-442ms，/cart 1+2×商品数→701-1338ms），非 currency 链路（POST /cart 1-3ms）完全正常。已排除 CPU 限流、应用/镜像/环境变量、Service 端口与 selector、Endpoints、sidecar —— 全部为标准 boutique v0.10.3 配置。"
+     },
+     {
+      "object": "延迟注入的锚点（尚未唯一确定）",
+      "cause": "第 1 轮重建 currencyservice Pod（新 IP 10.244.0.96、新 netns）后每次 RPC 仍固定 +181ms，证明规则不在该 Pod 的 netns/按旧 Pod IP 匹配。剩余两种解释无法区分：(a) 规则位于客户端 Pod（frontend、checkoutservice）netns 内按 currency 目的地匹配；(b) 位于节点/CNI 层按 Service VIP 10.96.106.15:7000 或 dport 7000 匹配。需 node/netns 级 tc、iptables 读取才能判定。"
+     }
+    ],
+    "actions": [
+     {
+      "op": "restart",
+      "deployment": "frontend"
+     },
+     {
+      "op": "restart",
+      "deployment": "checkoutservice"
+     }
+    ],
+    "expect": "若锚点是 (a)：首页/商品页从 2050-2111ms / 384-442ms 降到 ~50-100ms / ~25-50ms，/cart 从 701-1338ms 降到 ~40-120ms，/cart/checkout 从 1250-1680ms 降到 ~150-350ms；用户侧中位数 416ms→~45-60ms，p90 2054ms→~110-150ms，p99 2165ms→~250ms，>180ms 占比 73.4%→<3%，500 仍为 0、下单仍全部成功。若数字毫无变化，则锚点是 (b)，重启任何 Pod 都不会改变，必须由运维在节点上用 nsenter/tc/iptables 按 10.96.106.15:7000（或 dport 7000）定位并清除该延迟规则。",
+    "explanation": "延迟已确认是发往 currencyservice 的单向 200ms/次注入且不属于任何 K8s 对象配置，唯一还没被排除、且能由现有操作清除的载体是 frontend 与 checkoutservice 两个客户端 Pod 的网络命名空间，因此重建这两个 Pod；若无效则故障在节点/CNI 层（VIP:7000 或端口匹配），超出我可申请的操作范围，需运维用具备 NET_ADMIN/节点 root 的方式处理。"
+   },
+   "plan_error": "",
+   "actions": [
+    {
+     "action": {
+      "op": "restart",
+      "deployment": "frontend"
+     },
+     "accepted": true,
+     "ok": true,
+     "result": "ok: pod \"frontend-fd686dbb-xzwph\" deleted from boutique namespace | ok: Waiting for deployment \"frontend\" rollout to finish: 0 of 1 updated replicas are available...\ndeployment \"frontend\" successfully rolled out"
+    },
+    {
+     "action": {
+      "op": "restart",
+      "deployment": "checkoutservice"
+     },
+     "accepted": true,
+     "ok": true,
+     "result": "ok: pod \"checkoutservice-5d5f4589c5-6dgmb\" deleted from boutique namespace | ok: Waiting for deployment \"checkoutservice\" rollout to finish: 0 of 1 updated replicas are available...\ndeployment \"checkoutservice\" successfully rolled out"
+    }
+   ],
+   "observation": {
+    "since": "2026-11-17T06:27:55Z",
+    "seconds": 75.0,
+    "requests": 181,
+    "slow_180ms": 136,
+    "share_slow": 0.751,
+    "p50_ms": 418,
+    "p90_ms": 2028,
+    "p99_ms": 2148,
+    "http_500": 0,
+    "checkout_attempts": 4,
+    "checkout_failed": 0,
+    "resolved": false
+   },
+   "kept": false,
+   "observation_first": {
+    "since": "2026-11-17T06:26:40Z",
+    "seconds": 75.0,
+    "requests": 207,
+    "slow_180ms": 152,
+    "share_slow": 0.734,
+    "p50_ms": 424,
+    "p90_ms": 1959,
+    "p99_ms": 2138,
+    "http_500": 0,
+    "checkout_attempts": 7,
+    "checkout_failed": 0,
+    "resolved": false
+   },
+   "undone": []
+  },
+  {
+   "round": 3,
+   "wall_s": 377,
+   "exit": 0,
+   "total_tokens": 991811,
+   "tool_calls": 27,
+   "answer": "## 本轮新查到的证据（第 3 轮）\n\n**1) 延迟不止在 currencyservice：shippingservice 同样有明显延迟，而且两者数值不同。**\n\n| 目标 | 每个请求的额外延迟 | 证据 |\n|---|---|---|\n| currencyservice（10.244.0.96:7000） | **≈200 ms，去程** | 首页请求 `d2818356`：`home` 06:29:55.8737 → 第一个 `Getting supported currencies...` 06:29:56.077（**+204ms**）→ 随后恰好 10 次 `conversion request successful`（56.278 / 56.496 / 56.706 / 56.905 / 57.118 / 57.331 / **57.415** / 57.539 / 57.745 / 57.937，间隔≈200ms）→ 页面 57.9646 结束（**最后一次转换后仅 27ms**）。商品页 391/401/405/409/418/425/426/442ms = 2 次 currency 调用 × 200ms |\n| shippingservice（10.244.0.95:50051） | **≈290–310 ms，去程** | 订单 A：checkout 记录 `payment went through` 06:30:19.6176 → 该订单的 `[ShipOrder] received request` 06:30:19.9280（**+310ms**）；而 shipping 内部 `received→completed` 只用了 50µs，响应回到 checkout 后 1.9ms 就发出了 email（emailservice 收到 19.9300，checkout 记录 `email sent` 19.9303）。订单 B：25.4545 → `ShipOrder received` 25.7451（**+290ms**）。9 单 payment→email 间隔稳定在 276–331ms。/cart 页面 896–944ms ≈ 3×200ms（currency）+ ~300ms（GetQuote） |\n\n**2) 这两个目标之外全部正常（同一个节点、同一个 CNI）：**\n- frontend→checkoutservice 请求 **+0ms**（前端 `/cart/checkout` 起始 06:29:49.7417 = checkoutservice `[PlaceOrder]` 日志 06:29:49.74163）\n- frontend→cartservice：`POST /cart` 全程 **1ms**；frontend→productcatalog/ad/recommendation：首页/商品页在最后一次 conversion 后 27ms 内完成渲染，无残余\n- paymentservice：Charge 在 06:30:03.856 收到，checkout 01ms 后记录 `payment went through`（payment 走 50051，shipping 也走 50051 → 说明延迟**不是按端口**匹配）\n- emailservice：checkout 记录 `email sent` 只比 emailservice 收到请求晚 0.3ms\n\n**3) 不是排队/CPU/限流**：06:29:53.0688 与 06:29:53.0734 两个首页请求**并发**执行，耗时 2084ms 与 2069ms（完全相同）；若是 CPU 节流或吞吐上限，第二个必然显著更长。currencyservice 的 conversion 日志均匀间隔 70–220ms、从不按 100ms 周期成簇，也不符合 CFS 节流特征。\n\n**4) 配置层面干净**：两服务镜像 v0.10.3、env 仅 PORT/DISABLE_PROFILER、limits 200m/128Mi、Service selector/port/targetPort 与原样 last-applied 一致、Endpoints 各只有一个 Ready Pod、Pod 无 annotations、集群无 chaos CRD（`networkchaos` 资源类型不存在）。NetworkPolicy 我**读不到**（`cannot list resource \"networkpolicies\"`，Forbidden）。\n\n## 对照前两轮\n- **证实**：每个 RPC 固定增加约 200ms，且只发生在请求方向（服务端 handler 瞬时完成、响应立即返回）；与镜像/env/资源/Service 端口/Endpoints 无关；用户侧的 416ms 中位数、2054ms p90 完全可以用“RPC 次数 × 单次延迟”解释（商品页 2 次→416ms，首页 1+10 次→~2090ms，购物车→900ms）。\n- **推翻**：“只有 currencyservice 受害”。shippingservice 也被延迟（≈300ms），我前两轮把 checkout 的 300ms 空隙归到 currency 的账上，是错的。\n- **推翻/无法成立**：延迟载体在 frontend/checkoutservice/currencyservice 任一 Pod 的 netns 内（第 1、2 轮三次重建均无变化）。而且延迟**跟着 Pod 走**（currencyservice 从 10.244.0.87 换到 .96 仍然延迟），说明是外部代理按 Pod/标签持续施加，重建不会清除。\n- **仍未解释**：注入点在 CNI/netns 入口（如 netns 内 ingress qdisc/ifb）还是按 Service VIP 路径（10.96.106.15:7000、10.96.50.166:50051）。kubelet 探针直连 Pod IP 且超时 1s，200–300ms 的延迟不足以让探针失败，因此这一现象无法用来区分这两种解释，我没有 node/NET_ADMIN 权限，做不了 tc/iptables 读取。**要补的证据**：节点上对这两个 Pod 的 netns 和宿主侧 veth 做 `tc qdisc show` / `tc filter show`，以及 `iptables-save | grep -E '10.96.106.15|10.96.50.166'`。\n\n## 为什么本轮不申请修复\n可用操作里没有一种能去掉“在 Pod 之外、并随 Pod 重建重新施加”的延迟：restart 已连续两轮验证无效；CPU 不是原因（并发不排队、handler 50µs–1ms）；`set_cpu_limit` 只会重建 Pod；把 currencyservice 的 PORT/Service targetPort 改到别的端口会让固定写在 Deployment 里的 liveness/readiness 探针（7000 / 50051）失败，直接把“变慢”变成“全站 500”，不可接受；改 selector 只会切断路由。\n\n**需要运维在节点侧处理（tiktok-k8s-lab-control-plane）**：对 `currencyservice-6df4cccbb9-zs9g7`(10.244.0.96)、`shippingservice-78969f44cf-zzkdp`(10.244.0.95) 的 netns 与宿主侧 veth 查 `tc qdisc show dev <if>`、`tc filter show dev <if> parent ffff:fff1`（ingress/ifb 上的 netem），并查 `iptables-save`/nft 里针对 10.96.106.15:7000、10.96.50.166:50051 或 10.244.0.95/.96 的 TPROXY/REDIRECT/延时规则；同时找是否有 NET_ADMIN 的注入 agent（daemonset/进程）在按 Pod 标签重放规则。清除后用户侧应回到中位数 <60ms、p90 <150ms、>180ms 占比 ≈0%。\n\n```json\n{\"root_causes\": [{\"object\": \"currencyservice 的入向网络路径（Service 10.96.106.15:7000 → Pod currencyservice-6df4cccbb9-zs9g7 10.244.0.96）\", \"cause\": \"每个 currency RPC 的请求方向被固定增加约 200ms（首页首调用 +204ms，之后 10 次 conversion 严格 200ms 间隔；商品页 2 次调用 391-442ms），handler 执行 1ms 内完成、响应 <8ms 返回，与镜像 v0.10.3/env/limits 200m/Service targetPort/Endpoints 均无关\"}, {\"object\": \"shippingservice 的入向网络路径（Service 10.96.50.166:50051 → Pod shippingservice-78969f44cf-zzkdp 10.244.0.95）\", \"cause\": \"每个 GetQuote/ShipOrder RPC 的请求方向被固定增加约 290-310ms：checkout 记录 payment 后 290/310ms ShipOrder 才到达 shipping（9 单 payment→email 间隔稳定 276-331ms），shipping 自身处理 50µs、响应 1-2ms 返回；/cart 页面 900ms = 3×200ms currency + ~300ms GetQuote\"}, {\"object\": \"延迟注入的锚点（非 K8s 对象层）\", \"cause\": \"规则既不在 currencyservice/frontend/checkoutservice 任一 Pod 的 netns/配置里（第 1、2 轮三次重建 Pod 后数值完全不变），也不按端口匹配（paymentservice 同为 50051 但零延迟），而是按目标 Pod 施加并从节点/CNI 层重新下发；无法用只读 K8s API 判定的两种剩余解释：(a) 目标 Pod netns 内的 ingress qdisc/ifb netem；(b) 针对 Service VIP 10.96.106.15:7000 与 10.96.50.166:50051 的节点级 tc/iptables 延时规则。区分需要节点 root/NET_ADMIN 下的 tc、iptables/nft 读取\"}], \"actions\": [], \"explaination\": \"placeholder\", \"explanation\": \"延迟是 Pod 之外（节点/CNI 层，随目标 Pod 重建重新施加）的固定单向延时，两个目标 currencyservice≈200ms、shippingservice≈300ms；允许的操作（restart 已验证两轮无效、set_env/scale/set_cpu_limit/set_service_selector/set_service_target_port）都无法清除它，改 PORT/targetPort 还会让写死在 Deployment 里的 7000/50051 探针失败导致全站 500，故不申请操作，需运维在 tiktok-k8s-lab-control-plane 上对 10.244.0.96、10.244.0.95 的 netns/宿主 veth 及 10.96.106.15:7000、10.96.50.166:50051 相关规则做 tc/iptables 排查并清除（或找到按 Pod 标签重放规则的注入 agent）。\", \"expect\": \"\"}\n```",
+   "plan": {
+    "root_causes": [
+     {
+      "object": "currencyservice 的入向网络路径（Service 10.96.106.15:7000 → Pod currencyservice-6df4cccbb9-zs9g7 10.244.0.96）",
+      "cause": "每个 currency RPC 的请求方向被固定增加约 200ms（首页首调用 +204ms，之后 10 次 conversion 严格 200ms 间隔；商品页 2 次调用 391-442ms），handler 执行 1ms 内完成、响应 <8ms 返回，与镜像 v0.10.3/env/limits 200m/Service targetPort/Endpoints 均无关"
+     },
+     {
+      "object": "shippingservice 的入向网络路径（Service 10.96.50.166:50051 → Pod shippingservice-78969f44cf-zzkdp 10.244.0.95）",
+      "cause": "每个 GetQuote/ShipOrder RPC 的请求方向被固定增加约 290-310ms：checkout 记录 payment 后 290/310ms ShipOrder 才到达 shipping（9 单 payment→email 间隔稳定 276-331ms），shipping 自身处理 50µs、响应 1-2ms 返回；/cart 页面 900ms = 3×200ms currency + ~300ms GetQuote"
+     },
+     {
+      "object": "延迟注入的锚点（非 K8s 对象层）",
+      "cause": "规则既不在 currencyservice/frontend/checkoutservice 任一 Pod 的 netns/配置里（第 1、2 轮三次重建 Pod 后数值完全不变），也不按端口匹配（paymentservice 同为 50051 但零延迟），而是按目标 Pod 施加并从节点/CNI 层重新下发；无法用只读 K8s API 判定的两种剩余解释：(a) 目标 Pod netns 内的 ingress qdisc/ifb netem；(b) 针对 Service VIP 10.96.106.15:7000 与 10.96.50.166:50051 的节点级 tc/iptables 延时规则。区分需要节点 root/NET_ADMIN 下的 tc、iptables/nft 读取"
+     }
+    ],
+    "actions": [],
+    "explaination": "placeholder",
+    "explanation": "延迟是 Pod 之外（节点/CNI 层，随目标 Pod 重建重新施加）的固定单向延时，两个目标 currencyservice≈200ms、shippingservice≈300ms；允许的操作（restart 已验证两轮无效、set_env/scale/set_cpu_limit/set_service_selector/set_service_target_port）都无法清除它，改 PORT/targetPort 还会让写死在 Deployment 里的 7000/50051 探针失败导致全站 500，故不申请操作，需运维在 tiktok-k8s-lab-control-plane 上对 10.244.0.96、10.244.0.95 的 netns/宿主 veth 及 10.96.106.15:7000、10.96.50.166:50051 相关规则做 tc/iptables 排查并清除（或找到按 Pod 标签重放规则的注入 agent）。",
+    "expect": ""
+   },
+   "plan_error": "",
+   "actions": [],
+   "observation": null
+  }
+ ],
+ "outcome": "agent_stopped",
+ "before": {
+  "since": "2026-11-17T06:11:34Z",
+  "seconds": 45.0,
+  "requests": 142,
+  "slow_180ms": 107,
+  "share_slow": 0.754,
+  "p50_ms": 420,
+  "p90_ms": 1983,
+  "p99_ms": 2127,
+  "http_500": 0,
+  "checkout_attempts": 4,
+  "checkout_failed": 0,
+  "resolved": false
+ },
+ "injector_log": "netem on veth36a7dbb1 (currencyservice-6df4cccbb9-ltrd7 10.244.0.87): delay 200ms 20ms\nqdisc netem 805e: root refcnt 17 limit 1000 delay 200ms  20ms seed 3003907312283925885\nnetem on vethcc157cd1 (shippingservice-78969f44cf-zzkdp 10.244.0.95): delay 300ms 30ms\nqdisc netem 805f: root refcnt 17 limit 1000 delay 300ms  30ms seed 10790342470447688288\nnetem applied: 2\nnetem re-applied on veth17077fb7 (currencyservice 10.244.0.96): delay 200ms 20ms\n",
+ "restored": [],
+ "steps": [
+  {
+   "phase": "verify_healthy",
+   "ok": true,
+   "detail": "healthy",
+   "seconds": 0.25
+  },
+  {
+   "phase": "home_latency",
+   "ok": true,
+   "detail": "GET / ok=True median=0.06s of [0.06] (need >= 0s)",
+   "seconds": 0.0
+  },
+  {
+   "phase": "clean_slate",
+   "ok": true,
+   "detail": "fresh pods",
+   "seconds": 36.01
+  },
+  {
+   "phase": "verify_fresh",
+   "ok": true,
+   "detail": "healthy",
+   "seconds": 0.28
+  },
+  {
+   "phase": "home_latency",
+   "ok": true,
+   "detail": "GET / ok=True median=0.07s of [0.07] (need >= 0s)",
+   "seconds": 0.0
+  },
+  {
+   "phase": "clear_events",
+   "ok": true,
+   "detail": "",
+   "seconds": 0.0
+  },
+  {
+   "phase": "inject",
+   "ok": true,
+   "detail": "-n infra-tools delete pod net-injector --ignore-not-found",
+   "seconds": 0.05
+  },
+  {
+   "phase": "inject",
+   "ok": true,
+   "detail": "apply -f /work/scenarios/netem/injector-boutique-hard-BH05.yaml",
+   "seconds": 0.19
+  },
+  {
+   "phase": "inject",
+   "ok": true,
+   "detail": "-n infra-tools wait --for=condition=Ready pod/net-injector --timeout=180s",
+   "seconds": 2.6
+  },
+  {
+   "phase": "confirm",
+   "ok": true,
+   "detail": "21/29 requests >= 180 ms since 2026-11-17T06:11:34Z; logs(app=net-injector) contain 'netem applied: 2': True",
+   "seconds": 9.56
+  },
+  {
+   "phase": "reset",
+   "ok": true,
+   "detail": "-n infra-tools delete pod net-injector --ignore-not-found",
+   "seconds": 1.86
+  },
+  {
+   "phase": "reset",
+   "ok": true,
+   "detail": "reset steps applied",
+   "seconds": 2.52
+  },
+  {
+   "phase": "verify_recovered",
+   "ok": true,
+   "detail": "healthy",
+   "seconds": 0.25
+  },
+  {
+   "phase": "home_latency",
+   "ok": true,
+   "detail": "GET / ok=True median=0.06s of [0.06] (need >= 0s)",
+   "seconds": 0.0
+  }
+ ],
+ "total_tokens": 3038237
+}

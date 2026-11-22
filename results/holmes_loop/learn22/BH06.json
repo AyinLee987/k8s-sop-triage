@@ -1,0 +1,423 @@
+{
+ "scenario": "BH06",
+ "model": "deepseek-flash",
+ "max_rounds": 3,
+ "frame": "prod",
+ "rounds": [
+  {
+   "round": 1,
+   "wall_s": 288,
+   "exit": 0,
+   "total_tokens": 1053538,
+   "tool_calls": 24,
+   "answer": "## 结论（第 1 轮）\n\n### 排查依据\n\n**基线 vs 现在（同一 frontend Pod 的 `http.resp.took_ms`）**\n\n| 时间 | `/` | `/product/*` | `/cart` | `POST /cart` | `POST /setCurrency` |\n|---|---|---|---|---|---|\n| 06:36:37–06:36:49（故障前） | 15–42 ms | 8–14 ms | 7–13 ms | 1–4 ms | 0 ms |\n| 06:37:21 之后（持续到现在） | **2032–2162 ms** | **375–447 ms** | **406–1253 ms** | 1–2 ms | 0 ms |\n\n**关键：延迟严格按\"调用 currencyservice 的次数\"量化，每次 ≈200 ms**\n\n- `/product/*` ≈ 400 ms = `GetSupportedCurrencies` + 1 次 `Convert`（2×200）\n- `/` ≈ 2040 ms = `GetSupportedCurrencies` + 9 个商品各 1 次 `Convert`（10×200）\n- `/cart` ≈ 406 / 616 / 1020 / 1253 ms = 1+1 / 1+2 / 1+4 / 1+5 次（购物车条目数）\n- `POST /cart`（只调 cartservice）= **1–2 ms**，`/setCurrency` = **0 ms** → frontend 自身处理和后端网络并非普遍变慢\n- `/cart/checkout` 从 19 ms → 819–1016 ms；checkoutservice 日志里 `[PlaceOrder]`→`payment went through` 内部耗时 400–810 ms —— **第二个独立客户端（checkoutservice）也按 currency 调用次数变慢**，说明慢点在 currencyservice 一侧，不是 frontend 的一条坏连接。\n\n**currencyservice 自身日志佐证**：06:35–06:36（故障前）转换请求成簇处理，单个首页的 10 次转换在 ~20 ms 内全部完成（每次 ~2 ms）；从 ~06:36:50 起变成每条日志间隔 ~150–220 ms，即每次 RPC 固定多出约 200 ms。Pod 未重启（创建于 06:35:52，restartCount=0），spec 是原版（cpu limit 200m / request 100m，无任何注入类 env），所以不是 CPU limit 被改或 Pod 挂了，而是该 Pod 的网络路径/进程在 06:36:50 之后被固定延迟（无法进一步确认是 tc/网络延迟还是进程内阻塞：我的 ServiceAccount 读 nodes、cluster 级 pods 都是 Forbidden，也没有 exec 权限）。\n\n**另一个独立故障（不是本次变慢的原因，但确实坏了）**\n- `adservice` Deployment `replicas: 0`，Pod `adservice-6bfc5fc46c-kq7fw` 于 06:36:47 被删除（事件 `Killing: Stopping container server` / `SuccessfulDelete`）；Service `adservice`(10.96.18.53:9555) 无端点。\n- frontend 每个首页/商品页都打出 `\"failed to retrieve ads: ... dial tcp 10.96.18.53:9555: connect: connection refused\"`（120 条日志里大量重复）。\n- 广告调用失败是毫秒级返回的，**并不贡献那 400 ms**（商品页 400 ms 已由两次 currency 调用解释完），所以它造成\"无广告 + 报错日志\"，不是变慢主因。\n\n**已检查、未发现异常**：productcatalogservice、cartservice、redis-cart、recommendationservice、shippingservice、paymentservice、emailservice、frontend 自身（处理开销 0–2 ms，探针 0 ms）；无重启、无 5xx、无 OOM/Evicted、checkout 与 shipping 日志无 error/warn。\n\n### 本轮申请的操作\n1. `restart currencyservice` —— 重建该 Pod（新网络命名空间/新 gRPC 传输），清除 06:36:50 起出现的每调用 ~200 ms 延迟。\n2. `scale adservice → 1` —— 恢复被缩容到 0 的广告服务，停止 connection refused 报错。\n\n若重启后延迟仍在（即延迟是按 label 持续施加的外部网络策略，而非旧 Pod 上的一次性配置），则说明真正的修复在 chao/网络层，需运维在集群侧清除该延迟规则——这超出我当前只读权限范围。\n\n```json\n{\"root_causes\": [{\"object\": \"currencyservice (deployment currencyservice-6df4cccbb9-n7xfq)\", \"cause\": \"从 06:36:50 左右起，currencyservice 每个 gRPC 调用固定多出约 200ms（故障前约 2ms）。Pod 未重启、spec 为原版（cpu limit 200m，无注入类 env），且前端与 checkoutservice 两个独立客户端都按『调用次数×200ms』变慢，因此慢点在 currencyservice 一侧的网络路径或进程内，而非 frontend、而非 CPU limit 或 Pod 异常。所有页面延迟因此按 currency 调用次数被放大：/product 2×200ms、/cart (1+条目数)×200ms、/ 10×200ms。\"}, {\"object\": \"adservice (deployment adservice, 0 replicas)\", \"cause\": \"adservice 被缩容到 0 副本，Pod adservice-6bfc5fc46c-kq7fw 于 06:36:47 被删除（Killing/Stopping container server、SuccessfulDelete），Service 10.96.18.53:9555 无端点，frontend 每个首页/商品页记录 'failed to retrieve ads: ... connect: connection refused'。广告功能完全不可用；该调用毫秒级失败，不是本次变慢的原因。\"}], \"actions\": [{\"op\": \"restart\", \"deployment\": \"currencyservice\"}, {\"op\": \"scale\", \"deployment\": \"adservice\", \"replicas\": 1}], \"expect\": \"currencyservice 每次 RPC 恢复到 ~1-2ms 后：GET / 从 2032-2162ms 降到 ~15-40ms，GET /product/* 从 375-447ms 降到 ~10-20ms，GET /cart 从 406-1253ms 降到 ~10-20ms，POST /cart/checkout 从 819-1016ms 降到 ~20-50ms。用户侧 45 秒窗口：中位数从 411ms 降到约 20-30ms，>180ms 的请求从 104/136(76.5%) 降到 0-2 个，p90 从 1961ms 降到约 40ms，p99 从 2143ms 降到约 60-80ms，500 仍为 0，下单仍全部成功。adservice 重建后约 20-60 秒就绪，'failed to retrieve ads' 日志停止，页面恢复显示广告，并多出几毫秒延迟。\", \"explanation\": \"变慢的唯一放大因素是 currencyservice 每调用约 200ms 的固定延迟（页面延迟精确等于 currency 调用次数×200ms，购物车条目越多越慢），frontend/cartservice/productcatalog/redis/recommendation/shipping/payment/email 均正常；adservice 被缩容到 0 是同时存在的第二个故障（无广告+报错日志），但几乎不贡献延迟。故先重启 currencyservice 恢复延迟，并恢复 adservice 副本数。\"}\n```",
+   "plan": {
+    "root_causes": [
+     {
+      "object": "currencyservice (deployment currencyservice-6df4cccbb9-n7xfq)",
+      "cause": "从 06:36:50 左右起，currencyservice 每个 gRPC 调用固定多出约 200ms（故障前约 2ms）。Pod 未重启、spec 为原版（cpu limit 200m，无注入类 env），且前端与 checkoutservice 两个独立客户端都按『调用次数×200ms』变慢，因此慢点在 currencyservice 一侧的网络路径或进程内，而非 frontend、而非 CPU limit 或 Pod 异常。所有页面延迟因此按 currency 调用次数被放大：/product 2×200ms、/cart (1+条目数)×200ms、/ 10×200ms。"
+     },
+     {
+      "object": "adservice (deployment adservice, 0 replicas)",
+      "cause": "adservice 被缩容到 0 副本，Pod adservice-6bfc5fc46c-kq7fw 于 06:36:47 被删除（Killing/Stopping container server、SuccessfulDelete），Service 10.96.18.53:9555 无端点，frontend 每个首页/商品页记录 'failed to retrieve ads: ... connect: connection refused'。广告功能完全不可用；该调用毫秒级失败，不是本次变慢的原因。"
+     }
+    ],
+    "actions": [
+     {
+      "op": "restart",
+      "deployment": "currencyservice"
+     },
+     {
+      "op": "scale",
+      "deployment": "adservice",
+      "replicas": 1
+     }
+    ],
+    "expect": "currencyservice 每次 RPC 恢复到 ~1-2ms 后：GET / 从 2032-2162ms 降到 ~15-40ms，GET /product/* 从 375-447ms 降到 ~10-20ms，GET /cart 从 406-1253ms 降到 ~10-20ms，POST /cart/checkout 从 819-1016ms 降到 ~20-50ms。用户侧 45 秒窗口：中位数从 411ms 降到约 20-30ms，>180ms 的请求从 104/136(76.5%) 降到 0-2 个，p90 从 1961ms 降到约 40ms，p99 从 2143ms 降到约 60-80ms，500 仍为 0，下单仍全部成功。adservice 重建后约 20-60 秒就绪，'failed to retrieve ads' 日志停止，页面恢复显示广告，并多出几毫秒延迟。",
+    "explanation": "变慢的唯一放大因素是 currencyservice 每调用约 200ms 的固定延迟（页面延迟精确等于 currency 调用次数×200ms，购物车条目越多越慢），frontend/cartservice/productcatalog/redis/recommendation/shipping/payment/email 均正常；adservice 被缩容到 0 是同时存在的第二个故障（无广告+报错日志），但几乎不贡献延迟。故先重启 currencyservice 恢复延迟，并恢复 adservice 副本数。"
+   },
+   "plan_error": "",
+   "actions": [
+    {
+     "action": {
+      "op": "restart",
+      "deployment": "currencyservice"
+     },
+     "accepted": true,
+     "ok": true,
+     "result": "ok: pod \"currencyservice-6df4cccbb9-n7xfq\" deleted from boutique namespace | ok: Waiting for deployment \"currencyservice\" rollout to finish: 0 of 1 updated replicas are available...\ndeployment \"currencyservice\" successfully rolled out"
+    },
+    {
+     "action": {
+      "op": "scale",
+      "deployment": "adservice",
+      "replicas": 1
+     },
+     "accepted": true,
+     "ok": true,
+     "result": "ok: deployment.apps/adservice scaled | ok: Waiting for deployment \"adservice\" rollout to finish: 0 of 1 updated replicas are available...\ndeployment \"adservice\" successfully rolled out"
+    }
+   ],
+   "observation": {
+    "since": "2026-11-17T06:45:15Z",
+    "seconds": 75.0,
+    "requests": 180,
+    "slow_180ms": 138,
+    "share_slow": 0.767,
+    "p50_ms": 418,
+    "p90_ms": 1228,
+    "p99_ms": 2128,
+    "http_500": 0,
+    "checkout_attempts": 8,
+    "checkout_failed": 0,
+    "resolved": false
+   },
+   "kept": false,
+   "observation_first": {
+    "since": "2026-11-17T06:44:00Z",
+    "seconds": 75.0,
+    "requests": 188,
+    "slow_180ms": 143,
+    "share_slow": 0.761,
+    "p50_ms": 417,
+    "p90_ms": 2039,
+    "p99_ms": 2140,
+    "http_500": 0,
+    "checkout_attempts": 5,
+    "checkout_failed": 0,
+    "resolved": false
+   },
+   "undone": [
+    "Deployment/adservice: scale deployment/adservice --replicas=0 -> ok"
+   ]
+  },
+  {
+   "round": 2,
+   "wall_s": 379,
+   "exit": 0,
+   "total_tokens": 989791,
+   "tool_calls": 28,
+   "answer": "## 对照上一轮的预期：哪些被证实、哪些被推翻\n\n**被证实的**\n- 延迟确实**按 currencyservice 调用次数**放大：`GET /` = 10 次 convert + 1 次 getCurrencies ≈ 11 次 RPC → 2025–2162ms；`GET /product/*` = 2 次 RPC → 375–440ms（≈190–215ms/次）；`GET /cart` 随商品数 412–1020ms；下单 630–1016ms（结账内 N 次 convert）。同一页面上 6–8 次 **非** currency 的 RPC（productcatalog、recommendationservice、cartservice）总耗时只有约 0–20ms，`POST /cart`（单次 cartservice RPC）仍是 **1–2ms**。→ 慢点唯一集中在 currency RPC，每次固定多出 ≈190–200ms。\n- adservice 0 副本是并存的真故障（`failed to retrieve ads: ... connect: connection refused` 每个首页/商品页都有），但它**不贡献延迟**（秒连拒绝，毫秒级）。\n\n**被推翻的**\n- “慢点在 currencyservice 一侧的进程内/它的 Pod 里” —— **不成立**。currencyservice Pod 已在 06:42:56 重建（新 Pod `currencyservice-6df4cccbb9-s5xx4`，新 IP `10.244.0.111`，新 netns），延迟**一模一样**（`/` 仍 2025–2162ms）。上一轮“回到 15–40ms”的预期完全没有出现。\n- 也排除了 CPU limit / throttling：spec 与原版清单一致（limits 200m/128Mi，requests 100m/64Mi，QoS Burstable，env 只有 `PORT=7000`、`DISABLE_PROFILER=1`），无 sidecar、无 initContainer、无 volume；而同一客户端向 cartservice 的单次 RPC 只有 1–2ms，说明客户端 CPU 也不缺。\n\n**这次新查到的、能定位位置的关键事实**\n1. 只有两个 currency 客户端：`frontend`(10.244.0.103)、`checkoutservice`(10.244.0.101)，**均创建于 06:35:52，早于 06:36:50 的故障起点、从未重建**；而未重建的 currencyservice 已被重建且依然慢 → 延迟“跟着目的地服务”而不是“跟着 currencyservice 的 Pod 实例”。\n2. Service/EndpointSlice 都是原版：`currencyservice` → ClusterIP `10.96.106.15:7000`，selector `app=currencyservice`，唯一 ready 端点 `10.244.0.111`（kubectl-patch 记录是 11-16 的历史遗留，当前值正确）。没有 Istio sidecar、没有 ConfigMap、没有 virtualservice。\n3. 集群里**没有 chaos-mesh 类 CRD**（`networkchaos` 不存在），也没有任何控制器会重新下发 tc 规则 → 注入的固定延迟规则若是“一次性打在某个 netns 里”，**currency Pod 一重建就该消失**。它没有消失，说明规则不在 currency Pod 里，而是在**仍然存活的两个客户端 Pod（frontend、checkoutservice）的 netns** 里，按目的 `ClusterIP 10.96.106.15:7000` 过滤（ClusterIP 不随 Pod 重建变化，所以重启 currency 无效）。次要可能：节点级按端口 7000 的同类规则（也能在 currency Pod 换 IP 后继续生效）。\n4. loadgenerator 侧当前 `failures/s 0.00`，累计 21 个失败中的 2 个 `GET /` 出现在 06:42:5x（就是上一轮重启 currencyservice 造成的瞬时失败），**无持续报错**——与“页面变慢但不报错”一致。\n\n**尚未解释的**：tc/netem 规则本身在 API 里不可见（我的只读权限也读不到 NetworkPolicy/节点），所以“规则到底在客户端 netns 还是节点端口过滤”无法直接读出，只能用重建客户端 Pod 来做判别性验证。\n\n## 本轮判断与操作\n延迟 = 约 190ms/次的固定网络时延，挂在 frontend 与 checkoutservice 到 currencyservice 的 RPC 路径上；重建这两个客户端 Pod 若能让延迟消失，就证明规则在其 netns 中（这是我目前证据支持度最高的解释）。同时把上一轮被回滚掉的 adservice 副本恢复。\n\n```json\n{\"root_causes\": [{\"object\": \"currencyservice RPC 路径（frontend 10.244.0.103 / checkoutservice 10.244.0.101 → currencyservice ClusterIP 10.96.106.15:7000）\", \"cause\": \"每次 currency gRPC 调用被注入固定约 190–200ms 网络时延（正常 1–2ms），页面延迟 = currency 调用次数 ×190ms；该时延不在 currencyservice 进程内（06:42:56 重建 Pod、新 IP 10.244.0.111、新 netns 后完全不变），也不是 CPU/资源问题（spec 为原版 200m/128Mi，同客户端对 cartservice 的单次 RPC 仅 1–2ms）。集群无 chaos-mesh CRD/控制器可重下发规则，因此规则最可能是打在仍然存活的客户端 Pod 的 netns 上、按目的 ClusterIP:7000 过滤；次可能是节点级按端口 7000 的同类 tc 规则。\"}, {\"object\": \"adservice (deployment, 0 副本；Service 10.96.18.53:9555 无端点)\", \"cause\": \"被缩容到 0 副本（06:36:47 删 Pod），frontend 每个首页/商品页记录 'failed to retrieve ads: connect: connection refused'，广告功能完全不可用；该调用毫秒级失败，不是延迟原因。\"}], \"actions\": [{\"op\": \"restart\", \"deployment\": \"frontend\"}, {\"op\": \"restart\", \"deployment\": \"checkoutservice\"}, {\"op\": \"scale\", \"deployment\": \"adservice\", \"replicas\": 1}], \"expect\": \"若时延规则在这两个客户端 Pod 的 netns 中（当前最可能），重建后 10–30 秒内：GET / 从 2025–2162ms 降到约 20–50ms，GET /product/* 从 375–440ms 降到约 10–25ms，GET /cart 从 412–1020ms 降到约 10–40ms，POST /cart/checkout 从 630–1016ms 降到约 20–60ms；用户侧 45 秒窗口：中位数从 418ms 降到约 20–30ms，>180ms 的请求从 138/180 降到 0–2 个，p90 从 1228ms 降到约 40–50ms，p99 从 2128ms 降到约 60–150ms，500 仍为 0，下单仍全部成功；adservice 约 20–40 秒就绪后 'failed to retrieve ads' 告警停止、页面恢复广告（每次调用多几毫秒）。\", \"explanation\": \"上一轮已证明慢点不在 currencyservice 进程/其 Pod 内（重建后延迟不变），且集群没有会重下发规则的 chaos 控制器，故固定 190ms 时延只能挂在两个未重建的客户端 Pod 的网络路径上——重建它们即可验证并恢复；若这样仍无改善，则时延是节点级/集群外部按端口 7000 的 tc 规则，只能在节点上删除 tc qdisc/filter，需要运维（不在我的只读权限和可申请操作范围内）。\"}\n```",
+   "plan": {
+    "root_causes": [
+     {
+      "object": "currencyservice RPC 路径（frontend 10.244.0.103 / checkoutservice 10.244.0.101 → currencyservice ClusterIP 10.96.106.15:7000）",
+      "cause": "每次 currency gRPC 调用被注入固定约 190–200ms 网络时延（正常 1–2ms），页面延迟 = currency 调用次数 ×190ms；该时延不在 currencyservice 进程内（06:42:56 重建 Pod、新 IP 10.244.0.111、新 netns 后完全不变），也不是 CPU/资源问题（spec 为原版 200m/128Mi，同客户端对 cartservice 的单次 RPC 仅 1–2ms）。集群无 chaos-mesh CRD/控制器可重下发规则，因此规则最可能是打在仍然存活的客户端 Pod 的 netns 上、按目的 ClusterIP:7000 过滤；次可能是节点级按端口 7000 的同类 tc 规则。"
+     },
+     {
+      "object": "adservice (deployment, 0 副本；Service 10.96.18.53:9555 无端点)",
+      "cause": "被缩容到 0 副本（06:36:47 删 Pod），frontend 每个首页/商品页记录 'failed to retrieve ads: connect: connection refused'，广告功能完全不可用；该调用毫秒级失败，不是延迟原因。"
+     }
+    ],
+    "actions": [
+     {
+      "op": "restart",
+      "deployment": "frontend"
+     },
+     {
+      "op": "restart",
+      "deployment": "checkoutservice"
+     },
+     {
+      "op": "scale",
+      "deployment": "adservice",
+      "replicas": 1
+     }
+    ],
+    "expect": "若时延规则在这两个客户端 Pod 的 netns 中（当前最可能），重建后 10–30 秒内：GET / 从 2025–2162ms 降到约 20–50ms，GET /product/* 从 375–440ms 降到约 10–25ms，GET /cart 从 412–1020ms 降到约 10–40ms，POST /cart/checkout 从 630–1016ms 降到约 20–60ms；用户侧 45 秒窗口：中位数从 418ms 降到约 20–30ms，>180ms 的请求从 138/180 降到 0–2 个，p90 从 1228ms 降到约 40–50ms，p99 从 2128ms 降到约 60–150ms，500 仍为 0，下单仍全部成功；adservice 约 20–40 秒就绪后 'failed to retrieve ads' 告警停止、页面恢复广告（每次调用多几毫秒）。",
+    "explanation": "上一轮已证明慢点不在 currencyservice 进程/其 Pod 内（重建后延迟不变），且集群没有会重下发规则的 chaos 控制器，故固定 190ms 时延只能挂在两个未重建的客户端 Pod 的网络路径上——重建它们即可验证并恢复；若这样仍无改善，则时延是节点级/集群外部按端口 7000 的 tc 规则，只能在节点上删除 tc qdisc/filter，需要运维（不在我的只读权限和可申请操作范围内）。"
+   },
+   "plan_error": "",
+   "actions": [
+    {
+     "action": {
+      "op": "restart",
+      "deployment": "frontend"
+     },
+     "accepted": true,
+     "ok": true,
+     "result": "ok: pod \"frontend-fd686dbb-gr8pq\" deleted from boutique namespace | ok: Waiting for deployment \"frontend\" rollout to finish: 0 of 1 updated replicas are available...\ndeployment \"frontend\" successfully rolled out"
+    },
+    {
+     "action": {
+      "op": "restart",
+      "deployment": "checkoutservice"
+     },
+     "accepted": true,
+     "ok": true,
+     "result": "ok: pod \"checkoutservice-5d5f4589c5-sptws\" deleted from boutique namespace | ok: Waiting for deployment \"checkoutservice\" rollout to finish: 0 of 1 updated replicas are available...\ndeployment \"checkoutservice\" successfully rolled out"
+    },
+    {
+     "action": {
+      "op": "scale",
+      "deployment": "adservice",
+      "replicas": 1
+     },
+     "accepted": true,
+     "ok": true,
+     "result": "ok: deployment.apps/adservice scaled | ok: Waiting for deployment \"adservice\" rollout to finish: 0 of 1 updated replicas are available...\ndeployment \"adservice\" successfully rolled out"
+    }
+   ],
+   "observation": {
+    "since": "2026-11-17T06:55:30Z",
+    "seconds": 75.0,
+    "requests": 200,
+    "slow_180ms": 143,
+    "share_slow": 0.715,
+    "p50_ms": 414,
+    "p90_ms": 2021,
+    "p99_ms": 2107,
+    "http_500": 0,
+    "checkout_attempts": 8,
+    "checkout_failed": 0,
+    "resolved": false
+   },
+   "kept": false,
+   "observation_first": {
+    "since": "2026-11-17T06:54:14Z",
+    "seconds": 75.0,
+    "requests": 198,
+    "slow_180ms": 149,
+    "share_slow": 0.753,
+    "p50_ms": 419,
+    "p90_ms": 1993,
+    "p99_ms": 2130,
+    "http_500": 0,
+    "checkout_attempts": 5,
+    "checkout_failed": 0,
+    "resolved": false
+   },
+   "undone": [
+    "Deployment/adservice: scale deployment/adservice --replicas=0 -> ok"
+   ]
+  },
+  {
+   "round": 3,
+   "wall_s": 321,
+   "exit": 0,
+   "total_tokens": 874877,
+   "tool_calls": 20,
+   "answer": "## 第 3 轮排查：对照前两轮的预期\n\n### 一、被证实的（有新证据）\n\n**1. 慢点在 currencyservice 的调用路径上，页面延迟 ≈ currency 调用次数 × 200ms**\n\n刚取的 frontend 日志（`frontend-fd686dbb-xcmv8`，06:57:13–06:57:30，含 `http.resp.took_ms`）：\n\n| 端点 | 每次请求的 currency RPC 数 | 实测 took_ms |\n|---|---|---|\n| `GET /` | 10–11 | 1999, 2108, 2121, 2131, 2173 |\n| `GET /product/*` | 2 | 378, 387, 394, 395, 403, 405, 408, 411, 412, 416, 419, 420, 422, 424, 426, 429, 430, 432, 433, 436, 441, 443, 445, 447 |\n| `GET /cart` | 2 × 条目数 | 393, 416, 579, 606, 612, 644, 650, 839, 847, 1043, 1254 |\n| `POST /cart`（无 currency 调用） | 0 | **1, 2** |\n| `/_healthz` | 0 | **0** |\n\n**2. 延迟发生在「请求进入 currencyservice 之前」，响应方向是快的（这是本轮新获得的关键证据）**\n\n把同一窗口内两边的毫秒时间戳对齐（currencyservice 的 `Getting supported currencies...` 是 handler 的第一条日志）：\n\n```\n06:57:45.4707 frontend \"request started\" GET /product/1YMWWN1N4O\n06:57:45.664  currencyservice \"Getting supported currencies...\"   → +193ms\n06:57:45.871  currencyservice \"conversion request successful\"     → +400ms（第2次RPC到达）\n06:57:45.8759 frontend \"request complete\" took_ms=405\n```\n其余 8 个可干净配对的样本同样得到 +193 / +196 / +204 / +208 / +212 / +215 / +216 / +219 ms。\n\n结论：**每个 RPC 的 ~200ms 全部花在「客户端已进入 handler → 服务端 handler 开始执行」这一段**，响应返回几乎不耗时。所以既不是 currencyservice 在处理里慢，也不是响应路径慢。而 round 1 曾等效地假设过「慢点在 currencyservice 一侧的网络或进程内」，本轮把它收窄为**单方向的入向延迟**。\n\n**3. 规格层面全部是原版**：currencyservice `v0.10.3`、cpu limit 200m/request 100m/mem 128Mi、env 只有 `PORT=7000`+`DISABLE_PROFILER=1`；所有 Pod 单容器无 sidecar，无 `dnsConfig`/`hostAliases` 异常；EndpointSlice 正确（`currencyservice` 10.96.106.15:7000 → 唯一 ready 端点 10.244.0.111:7000，Pod `currencyservice-6df4cccbb9-s5xx4`）。\n\n### 二、被推翻的\n\n1. **round 2 的主假设「时延规则挂在未重建的客户端 Pod（frontend 10.244.0.103 / checkoutservice 10.244.0.101）的 netns 上」——推翻。** 这两个 Pod 已于 06:53:10 / 06:53:21 重建为 `frontend-fd686dbb-xcmv8`（10.244.0.113）和 `checkoutservice-5d5f4589c5-2s8nk`（10.244.0.114），之后数值毫无变化（中位 414ms，p90 2021ms）。同理 currencyservice 在 06:42:56 重建为新 IP 10.244.0.111 后也毫无变化。\n   → 三种「Pod netns 内 tc 规则」的假设（currencyservice 出向、currencyservice 入向、客户端出向）**全部被三次重建排除**。这也是「重建 Pod 类操作」两轮都无效的原因：延迟根本不在这三个 netns 里。\n2. **round 1 的「重启 currencyservice 即可恢复」——推翻**（结果已证实：无变化）。\n3. **CPU/资源/进程内排队**——彻底排除：currencyservice 约 7 RPC/s，200m 配额（每 100ms 20ms）远未饱和；且若是 CFS 节流，`POST /cart`（同进程、1ms）不可能不受影响。\n4. **adservice 是延迟原因**——再次确认不是：它毫秒级 `connection refused` 失败。\n\n### 三、还没解释的\n\n1. **规则挂在哪一层、按什么键匹配，我无法直接观测**：本 SA 无权 `get nodes`、无权 exec、也无法列出 `diag-system`/`kube-system` 的 Pod（都是 Forbidden），所以看不到节点上的 `tc qdisc/filter`、ifb 或 iptables 重定向。\n2. 已排除「按 Pod IP 匹配」（Pod IP 换过，延迟不变）。剩下两个仍自洽、我无法区分的候选：\n   - **按目的端口 7000 匹配**（入向 200ms，出向响应 dport 是临时端口，所以只有请求被延迟——与观测完全吻合）；\n   - **按目的 ClusterIP 10.96.106.15:7000 匹配**（DNAT 前打标，同样只影响请求、且与 Pod 重建无关）。\n   由于 currencyservice 的 liveness/readiness 探针写死 `grpc: 7000`，用「改 PORT + 改 targetPort 换端口绕开」会立刻让探针失败、Pod 变 NotReady、端点被摘除，会造成全量 500，不能采用。\n3. **adservice 仍在 0 副本**：06:36:47 被删，上一轮 scale 到 1 在 06:53:23 建好 Pod、06:56:45 又被撤回到 0（`Scaled down replica-set adservice-6bfc5fc46c from 1 to 0`）。当前 frontend 仍在刷 `failed to retrieve ads: ... dial tcp 10.96.18.53:9555: connect: connection refused`（07:02 仍在发生，600 秒窗口内 497 条）。\n\n### 四、本轮要做的\n\n逐个排除后，唯一还能用允许操作命中的区分点是：**让客户端绕开 ClusterIP，直连 currencyservice 的 Pod IP 10.244.0.111:7000**。若 200ms 是按 ClusterIP 打标（DNAT 前），这条路直接绕开规则、延迟消失；若是按端口 7000 打标或被注入者按 Pod 重新下发，则无改善（此时只能由运维在节点上删除该 qdisc/filter）。同时把 adservice 副本数恢复，修掉「无广告 + 每条日志报错」这个独立故障。\n\n```json\n{\"root_causes\": [{\"object\": \"currencyservice 服务路径（frontend/checkoutservice → ClusterIP 10.96.106.15:7000 → Pod 10.244.0.111:7000）\", \"cause\": \"每次 currency gRPC 调用在「请求」方向被注入固定约 200ms 延迟（正常 1–2ms，响应方向正常）：服务端 handler 首条日志固定出现在客户端 handler 开始后 193–219ms，页面耗时精确等于 currency 调用次数×200ms（GET / 10–11 次≈2.0–2.2s，/product 2 次≈0.38–0.45s，/cart 按条目数 0.39–1.25s，POST /cart 0 次仅 1–2ms）。该延迟不在 currencyservice Pod 内（06:42:56 重建、新 IP 10.244.0.111 后不变），也不在两个客户端 Pod 内（06:53:10/06:53:21 重建后不变），规格为原版 200m/128Mi、无 sidecar/无注入 env、EndpointSlice 正确，因此时延位于节点 tiktok-k8s-lab-control-plane 的转发路径上，按目的端口 7000 或 ClusterIP:7000 匹配（Pod IP 已换过而延迟不变，故不是按 Pod IP）。\"}, {\"object\": \"adservice (deployment, 0 副本；Service 10.96.18.53:9555 无端点)\", \"cause\": \"06:36:47 被缩容到 0 副本（上一轮恢复后在 06:56:45 又被撤回 0）。前端每个首页/商品页记录 failed to retrieve ads: dial tcp 10.96.18.53:9555: connect: connection refused，广告功能完全不可用；该调用毫秒级失败，不贡献延迟。\"}], \"actions\": [{\"op\": \"set_env\", \"deployment\": \"frontend\", \"name\": \"CURRENCY_SERVICE_ADDR\", \"value\": \"10.244.0.111:7000\"}, {\"op\": \"set_env\", \"deployment\": \"checkoutservice\", \"name\": \"CURRENCY_SERVICE_ADDR\", \"value\": \"10.244.0.111:7000\"}, {\"op\": \"scale\", \"deployment\": \"adservice\", \"replicas\": 1}], \"expect\": \"若时延是按 ClusterIP 10.96.106.15:7000 打标（DNAT 前），绕过 ClusterIP 直连 Pod IP 后 10–30 秒内：GET / 从 1999–2173ms 降到约 20–50ms，GET /product/* 从 378–447ms 降到约 10–25ms，GET /cart 从 393–1254ms 降到约 10–60ms，POST /cart/checkout 从约 800–900ms 降到约 60–150ms；用户侧 45 秒窗口：中位数从 414ms 降到约 20–30ms，>180ms 的请求从 143/200(71.5%) 降到 0–3 个，p90 从 2021ms 降到约 40–50ms，p99 从 2107ms 降到约 80–120ms，500 仍为 0，下单仍全部成功。adservice 约 20–40 秒就绪后 failed to retrieve ads 告警停止、页面恢复广告（每个页面多几毫秒）。若 30 秒后中位数仍约 410ms、>180ms 仍占七成，则说明时延是按目的端口 7000 匹配或被注入者按 Pod 重新下发，需要运维在节点 tiktok-k8s-lab-control-plane 上清理 tc qdisc/filter（或按 10.96.106.15:7000 的 iptables 重定向/本地延迟代理）——这一步超出我的只读权限和可申请操作范围。\", \"explanation\": \"三次 Pod 重建（currencyservice、frontend、checkoutservice）都没改变 200ms，说明规则在 Pod 之外、位于节点转发路径上；允许的操作里唯一还能改动的匹配键就是客户端的目的地址，所以先把两个客户端指向 currencyservice 的 Pod IP 做最后一次区分与绕过尝试，同时恢复被缩容到 0 的 adservice。若仍无改善，根因需由运维在节点上删除该 200ms 入向延迟规则（并建议永久修复后把 CURRENCY_SERVICE_ADDR 改回 currencyservice:7000，因为直连 Pod IP 在 currencyservice 重建后会失效）。\"}\n```",
+   "plan": {
+    "root_causes": [
+     {
+      "object": "currencyservice 服务路径（frontend/checkoutservice → ClusterIP 10.96.106.15:7000 → Pod 10.244.0.111:7000）",
+      "cause": "每次 currency gRPC 调用在「请求」方向被注入固定约 200ms 延迟（正常 1–2ms，响应方向正常）：服务端 handler 首条日志固定出现在客户端 handler 开始后 193–219ms，页面耗时精确等于 currency 调用次数×200ms（GET / 10–11 次≈2.0–2.2s，/product 2 次≈0.38–0.45s，/cart 按条目数 0.39–1.25s，POST /cart 0 次仅 1–2ms）。该延迟不在 currencyservice Pod 内（06:42:56 重建、新 IP 10.244.0.111 后不变），也不在两个客户端 Pod 内（06:53:10/06:53:21 重建后不变），规格为原版 200m/128Mi、无 sidecar/无注入 env、EndpointSlice 正确，因此时延位于节点 tiktok-k8s-lab-control-plane 的转发路径上，按目的端口 7000 或 ClusterIP:7000 匹配（Pod IP 已换过而延迟不变，故不是按 Pod IP）。"
+     },
+     {
+      "object": "adservice (deployment, 0 副本；Service 10.96.18.53:9555 无端点)",
+      "cause": "06:36:47 被缩容到 0 副本（上一轮恢复后在 06:56:45 又被撤回 0）。前端每个首页/商品页记录 failed to retrieve ads: dial tcp 10.96.18.53:9555: connect: connection refused，广告功能完全不可用；该调用毫秒级失败，不贡献延迟。"
+     }
+    ],
+    "actions": [
+     {
+      "op": "set_env",
+      "deployment": "frontend",
+      "name": "CURRENCY_SERVICE_ADDR",
+      "value": "10.244.0.111:7000"
+     },
+     {
+      "op": "set_env",
+      "deployment": "checkoutservice",
+      "name": "CURRENCY_SERVICE_ADDR",
+      "value": "10.244.0.111:7000"
+     },
+     {
+      "op": "scale",
+      "deployment": "adservice",
+      "replicas": 1
+     }
+    ],
+    "expect": "若时延是按 ClusterIP 10.96.106.15:7000 打标（DNAT 前），绕过 ClusterIP 直连 Pod IP 后 10–30 秒内：GET / 从 1999–2173ms 降到约 20–50ms，GET /product/* 从 378–447ms 降到约 10–25ms，GET /cart 从 393–1254ms 降到约 10–60ms，POST /cart/checkout 从约 800–900ms 降到约 60–150ms；用户侧 45 秒窗口：中位数从 414ms 降到约 20–30ms，>180ms 的请求从 143/200(71.5%) 降到 0–3 个，p90 从 2021ms 降到约 40–50ms，p99 从 2107ms 降到约 80–120ms，500 仍为 0，下单仍全部成功。adservice 约 20–40 秒就绪后 failed to retrieve ads 告警停止、页面恢复广告（每个页面多几毫秒）。若 30 秒后中位数仍约 410ms、>180ms 仍占七成，则说明时延是按目的端口 7000 匹配或被注入者按 Pod 重新下发，需要运维在节点 tiktok-k8s-lab-control-plane 上清理 tc qdisc/filter（或按 10.96.106.15:7000 的 iptables 重定向/本地延迟代理）——这一步超出我的只读权限和可申请操作范围。",
+    "explanation": "三次 Pod 重建（currencyservice、frontend、checkoutservice）都没改变 200ms，说明规则在 Pod 之外、位于节点转发路径上；允许的操作里唯一还能改动的匹配键就是客户端的目的地址，所以先把两个客户端指向 currencyservice 的 Pod IP 做最后一次区分与绕过尝试，同时恢复被缩容到 0 的 adservice。若仍无改善，根因需由运维在节点上删除该 200ms 入向延迟规则（并建议永久修复后把 CURRENCY_SERVICE_ADDR 改回 currencyservice:7000，因为直连 Pod IP 在 currencyservice 重建后会失效）。"
+   },
+   "plan_error": "",
+   "actions": [
+    {
+     "action": {
+      "op": "set_env",
+      "deployment": "frontend",
+      "name": "CURRENCY_SERVICE_ADDR",
+      "value": "10.244.0.111:7000"
+     },
+     "accepted": true,
+     "ok": true,
+     "result": "ok: deployment.apps/frontend env updated | ok: ollout to finish: 1 old replicas are pending termination...\nWaiting for deployment \"frontend\" rollout to finish: 1 old replicas are pending termination...\ndeployment \"frontend\" successfully rolled out"
+    },
+    {
+     "action": {
+      "op": "set_env",
+      "deployment": "checkoutservice",
+      "name": "CURRENCY_SERVICE_ADDR",
+      "value": "10.244.0.111:7000"
+     },
+     "accepted": true,
+     "ok": true,
+     "result": "ok: deployment.apps/checkoutservice env updated | ok: sh: 1 old replicas are pending termination...\nWaiting for deployment \"checkoutservice\" rollout to finish: 1 old replicas are pending termination...\ndeployment \"checkoutservice\" successfully rolled out"
+    },
+    {
+     "action": {
+      "op": "scale",
+      "deployment": "adservice",
+      "replicas": 1
+     },
+     "accepted": true,
+     "ok": true,
+     "result": "ok: deployment.apps/adservice scaled | ok: Waiting for deployment \"adservice\" rollout to finish: 0 of 1 updated replicas are available...\ndeployment \"adservice\" successfully rolled out"
+    }
+   ],
+   "observation": {
+    "since": "2026-11-17T07:04:47Z",
+    "seconds": 75.0,
+    "requests": 183,
+    "slow_180ms": 139,
+    "share_slow": 0.76,
+    "p50_ms": 414,
+    "p90_ms": 2033,
+    "p99_ms": 2167,
+    "http_500": 0,
+    "checkout_attempts": 5,
+    "checkout_failed": 0,
+    "resolved": false
+   },
+   "kept": false,
+   "observation_first": {
+    "since": "2026-11-17T07:03:31Z",
+    "seconds": 75.0,
+    "requests": 176,
+    "slow_180ms": 132,
+    "share_slow": 0.75,
+    "p50_ms": 418,
+    "p90_ms": 2061,
+    "p99_ms": 2153,
+    "http_500": 0,
+    "checkout_attempts": 6,
+    "checkout_failed": 0,
+    "resolved": false
+   },
+   "undone": [
+    "Deployment/adservice: scale deployment/adservice --replicas=0 -> ok",
+    "Deployment/checkoutservice: set env deployment/checkoutservice -> ok",
+    "Deployment/frontend: set env deployment/frontend -> ok"
+   ]
+  }
+ ],
+ "outcome": "rounds_exhausted",
+ "before": {
+  "since": "2026-11-17T06:37:13Z",
+  "seconds": 45.0,
+  "requests": 136,
+  "slow_180ms": 104,
+  "share_slow": 0.765,
+  "p50_ms": 411,
+  "p90_ms": 1961,
+  "p99_ms": 2143,
+  "http_500": 0,
+  "checkout_attempts": 5,
+  "checkout_failed": 0,
+  "resolved": false
+ },
+ "injector_log": "netem on vethc80b27d8 (currencyservice-6df4cccbb9-n7xfq 10.244.0.102): delay 200ms 20ms\nqdisc netem 8061: root refcnt 17 limit 1000 delay 200ms  20ms seed 17354506933906616404\nnetem applied: 1\nnetem re-applied on vethefceb716 (currencyservice 10.244.0.111): delay 200ms 20ms\n",
+ "restored": [
+  "Deployment/adservice: scale deployment/adservice --replicas=1 -> ok"
+ ],
+ "steps": [
+  {
+   "phase": "verify_healthy",
+   "ok": true,
+   "detail": "healthy",
+   "seconds": 0.24
+  },
+  {
+   "phase": "home_latency",
+   "ok": true,
+   "detail": "GET / ok=True median=0.06s of [0.06] (need >= 0s)",
+   "seconds": 0.0
+  },
+  {
+   "phase": "clean_slate",
+   "ok": true,
+   "detail": "fresh pods",
+   "seconds": 34.28
+  },
+  {
+   "phase": "verify_fresh",
+   "ok": true,
+   "detail": "healthy",
+   "seconds": 0.3
+  },
+  {
+   "phase": "home_latency",
+   "ok": true,
+   "detail": "GET / ok=True median=0.09s of [0.09] (need >= 0s)",
+   "seconds": 0.0
+  },
+  {
+   "phase": "clear_events",
+   "ok": true,
+   "detail": "",
+   "seconds": 0.0
+  },
+  {
+   "phase": "inject",
+   "ok": true,
+   "detail": "-n boutique scale deployment/adservice --replicas=0",
+   "seconds": 0.06
+  },
+  {
+   "phase": "inject",
+   "ok": true,
+   "detail": "-n infra-tools delete pod net-injector --ignore-not-found",
+   "seconds": 0.06
+  },
+  {
+   "phase": "inject",
+   "ok": true,
+   "detail": "apply -f /work/scenarios/netem/injector-boutique-hard-BH06.yaml",
+   "seconds": 0.19
+  },
+  {
+   "phase": "inject",
+   "ok": true,
+   "detail": "-n infra-tools wait --for=condition=Ready pod/net-injector --timeout=180s",
+   "seconds": 1.11
+  },
+  {
+   "phase": "confirm",
+   "ok": true,
+   "detail": "19/27 requests >= 180 ms since 2026-11-17T06:37:13Z; logs(app=net-injector) contain 'netem applied: 1': True",
+   "seconds": 9.48
+  },
+  {
+   "phase": "reset",
+   "ok": true,
+   "detail": "-n infra-tools delete pod net-injector --ignore-not-found",
+   "seconds": 2.47
+  },
+  {
+   "phase": "reset",
+   "ok": true,
+   "detail": "-n boutique scale deployment/adservice --replicas=1",
+   "seconds": 0.05
+  },
+  {
+   "phase": "reset",
+   "ok": true,
+   "detail": "reset steps applied",
+   "seconds": 32.14
+  },
+  {
+   "phase": "verify_recovered",
+   "ok": true,
+   "detail": "healthy",
+   "seconds": 0.24
+  },
+  {
+   "phase": "home_latency",
+   "ok": true,
+   "detail": "GET / ok=True median=0.05s of [0.05] (need >= 0s)",
+   "seconds": 0.0
+  }
+ ],
+ "total_tokens": 2918206
+}

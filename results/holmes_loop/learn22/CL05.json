@@ -1,0 +1,230 @@
+{
+ "scenario": "CL05",
+ "model": "deepseek-flash",
+ "max_rounds": 1,
+ "frame": "prod",
+ "metrics": true,
+ "skills": "holmes/skills/svc-sop-v0",
+ "rounds": [
+  {
+   "round": 1,
+   "wall_s": 384,
+   "exit": 0,
+   "total_tokens": 1324725,
+   "tool_calls": 29,
+   "answer": "I found a skill named **boutique-triage-overview** and **boutique-frontend** and used them to troubleshoot:\n\n1. ✅ *固定用户症状并选入口* — 用户侧：页面变慢、无 5xx、Pod 全 Ready → 从 `frontend` 进入\n2. ✅ *frontend Deployment/ReplicaSet/Pod 与事件* — Deployment 1/1 ready，Pod `frontend-6d7c5db888-zpvk7` Running/Ready/restarts=0；事件里没有 ImagePull/CrashLoop/OOM/FailedScheduling\n3. ✅ *Service + EndpointSlice* — `frontend` selector `app=frontend`、80→8080，EndpointSlice 有 ready 地址（10.244.0.13）；其余 11 个 Service 端口/selector/Endpoint 均正常\n4. ✅ *frontend 日志里的下游错误* — 300 秒内 frontend 日志无 error/timeout/连接失败，全部 200/302；但 `took_ms` 明显偏高\n5. ✅ *探针与运行配置* — `/ _healthz` 返回 200、took_ms=0；PORT/containerPort/探针一致；env 地址与清单一致\n6. ✅ *跨服务比对时延（只读证据）* — 用 currencyservice/cartservice/adservice/checkoutservice/productcatalogservice 日志与 loadgenerator 的 locust 统计交叉定位\n7. ❌ *容器内 exec / 节点指标 / 内核级网络抓包* — 只读权限不足（无 node 权限、无 exec、cilium/hubble 工具集未启用）\n\n## 关键证据\n\n**1) frontend 的 CPU 配置在故障前 2 分钟被改小（唯一一处配置回归）**\n\n| ReplicaSet | revision | 创建时间 | cpu request | cpu limit |\n|---|---|---|---|---|\n| `frontend-fd686dbb`（旧） | 60 | 2026-11-21T15:27:08Z | 100m | **200m** |\n| `frontend-6d7c5db888`（当前） | 61 | **2026-11-22T11:55:39Z** | 25m | **25m** |\n\n两个 RS 的 Pod 模板逐字段对比后，**唯一差异就是 CPU request/limit**（镜像、env、探针、command/args 全部一致）。命名空间内没有 LimitRange、没有 ResourceQuota（所以 25m 不是被默认值或配额压下来的，是显式改的）。事件显示 rev 61 在 11:55:39 扩容、旧 Pod 11:55:52 被杀——正好是用户侧开始变慢的时刻。\n\n**2) 只有 frontend 存在真实 CFS 限流（同一 45 秒窗口）**\n\n- `frontend`：CPU 用量 9m / 上限 25m，**被限流周期 12%（34/293），启动以来 14%**\n- 其余 11 个 Pod：被限流周期 0%（唯一的 cartservice 为 1%），内存均远低于上限，网卡 0 丢包/0 错包\n\n**3) 各页面时延与「是否调用 recommendationservice」严格相关（locust 用户侧统计）**\n\n| 页面 | 是否调 recommendationservice | 用户侧中位数 | 健康期最小值 |\n|---|---|---|---|\n| `GET /`（首页） | 否 | 300ms | 14ms |\n| `GET /product/*` | 是 | 1800ms | 6–9ms |\n| `GET /cart` | 是 | 1700ms | 6ms |\n| `POST /setCurrency`（302→GET /） | 否 | 360ms | 13ms |\n| `POST /cart`（302→GET /cart） | 经 /cart | 2200ms | 9ms |\n\n即：**一进 product/cart 页面就 +1.5s 左右**，而首页/纯跳转类请求只有 ~300ms 量级。\n\n**4) 下游服务自身都是健康的（逐项排除）**\n\n- `productcatalogservice`：checkoutservice 日志显示一次 PlaceOrder 内（含逐商品 `GetProduct`+换算+运费+支付）只用 200–800ms → `GetProduct`/`ListProducts` 不缺时；Pod 无重启、无限流\n- `cartservice`/`redis-cart`：`GetCartAsync`/`AddItemAsync` 正常，无错误；首页也调它却只有 300ms\n- `currencyservice`：同一毫秒内可连续完成 10 次 conversion（RTT <1ms），Pod 无限流\n- `adservice`：ad 请求日志与页面完成时间差 1–2ms（是页面最后一个调用且极快）\n- `checkoutservice`/`paymentservice`/`emailservice`/`shippingservice`：下单 5 次 0 失败，日志无错误\n- 全部 Pod：0 重启、0 OOM、无 5xx，Service/EndpointSlice 全部有且仅有一个 ready endpoint\n\n## 判断\n\n两条解释都能对上部分现象，我无法用只读证据彻底区分，因此都列出：\n\n1. **确认的配置回归（有直接证据）**：`frontend` 是唯一入口进程，CPU request/limit 从 100m/200m 改成 25m/25m（等效 0.025 核），时间点与故障起点重合，且是唯一出现明显 CFS 限流的 Pod。限流会让处理中的 goroutine 在每个 100ms 周期被冻结，表现为“无报错、全面变慢”，且对渲染/调用链更长的页面打击更大（首页 14ms→300ms）。\n2. **recommendationservice 单次调用约 +1.5s（时延主体，机制未确认）**：product/cart 页面相对首页多出的那 1.5s 只可能来自 `ListRecommendations`（首页不调它）。但 rec 的 CPU 4m/200m、限流 0%、内存 42Mi/450Mi、健康探针全过、它的依赖 `productcatalogservice.ListProducts` 从其它调用方测得很快，配置/env/镜像也与清单一致——**从只读视角看不到它是\"为什么\"慢**（可能是进程内状态或它与 productcatalogservice 之间 gRPC 通道卡住，这类用日志看不出来）。\n\n修复申请（1 轮内两条，均低风险）：把 frontend CPU 上限恢复成改动前的 200m（会自动滚动出新 Pod，同时清掉进程内可能的坏状态），并重建 recommendationservice（重建进程与其到 productcatalogservice 的 gRPC 连接状态）。productcatalogservice 有正面的\"快\"证据，不动。\n\n```json\n{\"root_causes\": [{\"object\": \"deployment/frontend\", \"cause\": \"Pod 模板 CPU request/limit 从 100m/200m 被改成 25m/25m（新 ReplicaSet frontend-6d7c5db888，revision 61，2026-11-22T11:55:39Z 创建，与故障起点重合；命名空间无 LimitRange/ResourceQuota，属显式改动）。这是全命名空间唯一被改动的配置，也是唯一出现明显 CFS 限流的 Pod（45 秒窗口内被限流周期 12%，34/293；启动以来 14%；其余 Pod 0–1%），导致入口进程每 100ms 只能获得 2.5ms CPU，所有页面无报错地变慢\"}, {\"object\": \"deployment/recommendationservice\", \"cause\": \"每次 ListRecommendations 约增加 1.5s（product/cart 页面中位 1700–1800ms，而完全不调用它的首页只有 300ms；健康期所有页面为 6–14ms）。该服务 CPU 仅 4m/200m、限流 0%、内存 42Mi/450Mi、探针全过、无错误日志，其依赖 productcatalogservice 从 checkoutservice 侧测得很快，服务/env/镜像/资源均与清单一致，故从只读证据无法确认其内部具体机制（疑似进程或到 productcatalogservice 的 gRPC 通道状态异常）\"}], \"actions\": [{\"op\": \"set_cpu_limit\", \"deployment\": \"frontend\", \"cpu\": \"200m\"}, {\"op\": \"restart\", \"deployment\": \"recommendationservice\"}], \"expect\": \"首页 GET / 中位数由约 300ms 回落到 15–40ms；GET /product/* 与 GET /cart 中位数由 1700–1800ms 回落到 20–60ms；超过 180ms 的请求占比由 82.4%(112/136) 降到 5% 以下（主要为冷启动/抖动），p90 由 2060ms 降到 60ms 以内，p99 由 2306ms 降到 100ms 左右；500 仍为 0，下单 5 次仍全部成功。若只有 CPU 一项是诱因，product/cart 页面会从 1800ms 降到 400–700ms 区间（仍有明显余量偏慢），说明 recommendationservice 仍需继续排查。\", \"explanation\": \"frontend 的 CPU 配额被从 200m 降到 25m（唯一一处配置回归、唯一有明显 CFS 限流的 Pod、时间点与故障重合），同时 recommendationservice 每次调用额外消耗约 1.5s 是 product/cart 页面变慢的主要构成。已申请恢复 frontend CPU 上限并重建 recommendationservice；productcatalogservice、cartservice、currencyservice、adservice、redis-cart、checkout 链路均有正面健康证据，未做改动。\"}\n```",
+   "plan": {
+    "root_causes": [
+     {
+      "object": "deployment/frontend",
+      "cause": "Pod 模板 CPU request/limit 从 100m/200m 被改成 25m/25m（新 ReplicaSet frontend-6d7c5db888，revision 61，2026-11-22T11:55:39Z 创建，与故障起点重合；命名空间无 LimitRange/ResourceQuota，属显式改动）。这是全命名空间唯一被改动的配置，也是唯一出现明显 CFS 限流的 Pod（45 秒窗口内被限流周期 12%，34/293；启动以来 14%；其余 Pod 0–1%），导致入口进程每 100ms 只能获得 2.5ms CPU，所有页面无报错地变慢"
+     },
+     {
+      "object": "deployment/recommendationservice",
+      "cause": "每次 ListRecommendations 约增加 1.5s（product/cart 页面中位 1700–1800ms，而完全不调用它的首页只有 300ms；健康期所有页面为 6–14ms）。该服务 CPU 仅 4m/200m、限流 0%、内存 42Mi/450Mi、探针全过、无错误日志，其依赖 productcatalogservice 从 checkoutservice 侧测得很快，服务/env/镜像/资源均与清单一致，故从只读证据无法确认其内部具体机制（疑似进程或到 productcatalogservice 的 gRPC 通道状态异常）"
+     }
+    ],
+    "actions": [
+     {
+      "op": "set_cpu_limit",
+      "deployment": "frontend",
+      "cpu": "200m"
+     },
+     {
+      "op": "restart",
+      "deployment": "recommendationservice"
+     }
+    ],
+    "expect": "首页 GET / 中位数由约 300ms 回落到 15–40ms；GET /product/* 与 GET /cart 中位数由 1700–1800ms 回落到 20–60ms；超过 180ms 的请求占比由 82.4%(112/136) 降到 5% 以下（主要为冷启动/抖动），p90 由 2060ms 降到 60ms 以内，p99 由 2306ms 降到 100ms 左右；500 仍为 0，下单 5 次仍全部成功。若只有 CPU 一项是诱因，product/cart 页面会从 1800ms 降到 400–700ms 区间（仍有明显余量偏慢），说明 recommendationservice 仍需继续排查。",
+    "explanation": "frontend 的 CPU 配额被从 200m 降到 25m（唯一一处配置回归、唯一有明显 CFS 限流的 Pod、时间点与故障重合），同时 recommendationservice 每次调用额外消耗约 1.5s 是 product/cart 页面变慢的主要构成。已申请恢复 frontend CPU 上限并重建 recommendationservice；productcatalogservice、cartservice、currencyservice、adservice、redis-cart、checkout 链路均有正面健康证据，未做改动。"
+   },
+   "plan_error": "",
+   "actions": [
+    {
+     "action": {
+      "op": "set_cpu_limit",
+      "deployment": "frontend",
+      "cpu": "200m"
+     },
+     "accepted": true,
+     "ok": true,
+     "result": "ok: deployment.apps/frontend resource requirements updated | ok: ollout to finish: 1 old replicas are pending termination...\nWaiting for deployment \"frontend\" rollout to finish: 1 old replicas are pending termination...\ndeployment \"frontend\" successfully rolled out"
+    },
+    {
+     "action": {
+      "op": "restart",
+      "deployment": "recommendationservice"
+     },
+     "accepted": true,
+     "ok": true,
+     "result": "ok: pod \"recommendationservice-6c88b5fb59-dsswc\" deleted from boutique namespace | ok: Waiting for deployment \"recommendationservice\" rollout to finish: 0 of 1 updated replicas are available...\ndeployment \"recommendationservice\" successfully rolled out"
+    }
+   ],
+   "observation": {
+    "since": "2026-11-22T12:05:33Z",
+    "seconds": 75.0,
+    "requests": 159,
+    "slow_180ms": 135,
+    "share_slow": 0.849,
+    "p50_ms": 1755,
+    "p90_ms": 2231,
+    "p99_ms": 2885,
+    "http_500": 0,
+    "checkout_attempts": 3,
+    "checkout_failed": 0,
+    "card_rejected": 0,
+    "resolved": false
+   },
+   "kept": false,
+   "observation_first": {
+    "since": "2026-11-22T12:04:18Z",
+    "seconds": 75.0,
+    "requests": 165,
+    "slow_180ms": 141,
+    "share_slow": 0.855,
+    "p50_ms": 1747,
+    "p90_ms": 2317,
+    "p99_ms": 2915,
+    "http_500": 0,
+    "checkout_attempts": 4,
+    "checkout_failed": 0,
+    "card_rejected": 0,
+    "resolved": false
+   },
+   "undone": [
+    "Deployment/frontend: set resources deployment/frontend -> ok"
+   ]
+  }
+ ],
+ "outcome": "rounds_exhausted",
+ "before": {
+  "since": "2026-11-22T11:56:18Z",
+  "seconds": 45.0,
+  "requests": 136,
+  "slow_180ms": 112,
+  "share_slow": 0.824,
+  "p50_ms": 1698,
+  "p90_ms": 2060,
+  "p99_ms": 2306,
+  "http_500": 0,
+  "checkout_attempts": 5,
+  "checkout_failed": 0,
+  "card_rejected": 0,
+  "resolved": false
+ },
+ "injector_log": "netem on veth2e529627 (productcatalogservice-7457c7c77f-259pz 10.244.0.9): delay 250ms 75ms\nqdisc netem 8031: root refcnt 13 limit 1000 delay 250ms  75ms seed 2334737492587170562\nnetem applied: 1\n",
+ "restored": [
+  "Deployment/frontend: set resources deployment/frontend -> ok"
+ ],
+ "steps": [
+  {
+   "phase": "verify_healthy",
+   "ok": true,
+   "detail": "healthy",
+   "seconds": 0.18
+  },
+  {
+   "phase": "home_latency",
+   "ok": true,
+   "detail": "GET / ok=True median=0.04s of [0.04] (need >= 0s)",
+   "seconds": 0.0
+  },
+  {
+   "phase": "clean_slate",
+   "ok": true,
+   "detail": "fresh pods",
+   "seconds": 32.99
+  },
+  {
+   "phase": "verify_fresh",
+   "ok": true,
+   "detail": "healthy",
+   "seconds": 0.18
+  },
+  {
+   "phase": "home_latency",
+   "ok": true,
+   "detail": "GET / ok=True median=0.05s of [0.05] (need >= 0s)",
+   "seconds": 0.0
+  },
+  {
+   "phase": "clear_events",
+   "ok": true,
+   "detail": "",
+   "seconds": 0.0
+  },
+  {
+   "phase": "prune_history",
+   "ok": true,
+   "detail": "2 old replicasets",
+   "seconds": 0.0
+  },
+  {
+   "phase": "inject",
+   "ok": true,
+   "detail": "-n boutique set resources deployment/frontend --limits=cpu=25m",
+   "seconds": 0.04
+  },
+  {
+   "phase": "inject",
+   "ok": true,
+   "detail": "-n boutique rollout status deployment/frontend --timeout=140s",
+   "seconds": 13.15
+  },
+  {
+   "phase": "inject",
+   "ok": true,
+   "detail": "-n infra-tools delete pod net-injector --ignore-not-found",
+   "seconds": 0.04
+  },
+  {
+   "phase": "inject",
+   "ok": true,
+   "detail": "apply -f /work/scenarios/netem/injector-boutique-hard-CL05.yaml",
+   "seconds": 0.15
+  },
+  {
+   "phase": "inject",
+   "ok": true,
+   "detail": "-n infra-tools wait --for=condition=Ready pod/net-injector --timeout=180s",
+   "seconds": 0.85
+  },
+  {
+   "phase": "confirm",
+   "ok": true,
+   "detail": "19/25 requests >= 110 ms since 2026-11-22T11:56:18Z; logs(app=net-injector) contain 'netem applied: 1': True",
+   "seconds": 12.44
+  },
+  {
+   "phase": "reset",
+   "ok": true,
+   "detail": "-n infra-tools delete pod net-injector --ignore-not-found",
+   "seconds": 0.88
+  },
+  {
+   "phase": "reset",
+   "ok": true,
+   "detail": "-n boutique set resources deployment/frontend --limits=cpu=200m",
+   "seconds": 0.04
+  },
+  {
+   "phase": "reset",
+   "ok": true,
+   "detail": "reset steps applied",
+   "seconds": 11.16
+  },
+  {
+   "phase": "verify_recovered",
+   "ok": true,
+   "detail": "healthy",
+   "seconds": 3.36
+  },
+  {
+   "phase": "home_latency",
+   "ok": true,
+   "detail": "GET / ok=True median=0.05s of [0.05] (need >= 0s)",
+   "seconds": 0.0
+  }
+ ],
+ "total_tokens": 1324725
+}
