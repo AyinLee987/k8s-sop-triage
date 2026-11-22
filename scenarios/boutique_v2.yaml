@@ -16,7 +16,8 @@ scenarios:
     - Cloud-OpsBench
     - k8s.af
     validated: false
-    validate_note: CPU 上限的数值是暂定的：先用 scripts/sweep_cpu_limit.py 找到“明显变慢、但 Pod 仍然 Ready 且不重启”的值。再确认限流指标（scripts/pod_metrics.py）在故障期间不为 0。确认每个故障都生效；延迟和丢包场景确认被注入的 Pod 仍是 Ready、重启次数为 0（丢包会影响探针，留意 Unhealthy 事件）。
+    validate_note: CPU 上限的数值是 2026-11-22 在台式机上用 scripts/sweep_cpu_limit.py 测出来的（明显变慢、Pod 仍然 Ready 且不重启），换机器要重测。再确认限流指标（scripts/pod_metrics.py）在故障期间不为 0。确认每个故障都生效；延迟和丢包场景确认被注入的 Pod 仍是 Ready、重启次数为 0（丢包会影响探针，留意
+      Unhealthy 事件）。
   inject:
   - kubectl:
     - -n
@@ -24,8 +25,8 @@ scenarios:
     - set
     - resources
     - deployment/currencyservice
-    - --limits=cpu=10m
-    - --requests=cpu=10m
+    - --limits=cpu=25m
+    - --requests=cpu=25m
   - kubectl:
     - -n
     - '{ns}'
@@ -79,9 +80,9 @@ scenarios:
       kind: Deployment
       name: currencyservice
     mechanism: cpu
-    explanation: Deployment currencyservice 的 CPU 上限被调到 10m（应为 200m），容器被限流，请求要排队等 CPU 才能被处理；网络没有问题。
+    explanation: Deployment currencyservice 的 CPU 上限被调到 25m（应为 200m），容器被限流，请求要排队等 CPU 才能被处理；网络没有问题。
     key_evidence:
-    - 10m
+    - 25m
     accept_cause_keywords:
     - cpu
     - 限流
@@ -96,34 +97,55 @@ scenarios:
   app: boutique
   split: dev
   kind: cross_service
-  mechanism: cpu
-  hard: cpu
-  root_causes: 1
+  mechanism: double
+  hard: double
+  root_causes: 2
   symptom: 商城页面明显变慢了，但没有报错；Pod 看起来都是正常的。
   realism:
-    pattern: 不是网络：redis-cart 的 CPU 上限被调得很低。变慢出现在调用它的 cartservice 和再上一层的 frontend 上，离故障点隔了两层。
+    pattern: 两个互不相关、机制也不同的故障：cartservice 的 CPU 上限过低，加上 recommendationservice 的 Pod 网络延迟。
     sources:
     - Cloud-OpsBench
     - k8s.af
     validated: false
-    validate_note: CPU 上限的数值是暂定的：先用 scripts/sweep_cpu_limit.py 找到“明显变慢、但 Pod 仍然 Ready 且不重启”的值。再确认限流指标（scripts/pod_metrics.py）在故障期间不为 0。确认每个故障都生效；延迟和丢包场景确认被注入的 Pod 仍是 Ready、重启次数为 0（丢包会影响探针，留意 Unhealthy 事件）。
+    validate_note: CPU 上限的数值是 2026-11-22 在台式机上用 scripts/sweep_cpu_limit.py 测出来的（明显变慢、Pod 仍然 Ready 且不重启），换机器要重测。再确认限流指标（scripts/pod_metrics.py）在故障期间不为 0。确认每个故障都生效；延迟和丢包场景确认被注入的 Pod 仍是 Ready、重启次数为 0（丢包会影响探针，留意
+      Unhealthy 事件）。
   inject:
   - kubectl:
     - -n
     - '{ns}'
     - set
     - resources
-    - deployment/redis-cart
-    - --limits=cpu=3m
-    - --requests=cpu=3m
+    - deployment/cartservice
+    - --limits=cpu=30m
+    - --requests=cpu=30m
   - kubectl:
     - -n
     - '{ns}'
     - rollout
     - status
-    - deployment/redis-cart
+    - deployment/cartservice
     - --timeout=140s
   - sleep: 25
+  - kubectl:
+    - -n
+    - infra-tools
+    - delete
+    - pod
+    - net-injector
+    - --ignore-not-found
+    - --wait=true
+    - --timeout=90s
+  - kubectl:
+    - apply
+    - -f
+    - '{repo}/scenarios/netem/injector-boutique-hard-CL02.yaml'
+  - kubectl:
+    - -n
+    - infra-tools
+    - wait
+    - --for=condition=Ready
+    - pod/net-injector
+    - --timeout=180s
   confirm:
     timeout_s: 180
     checks:
@@ -135,6 +157,10 @@ scenarios:
       min_ms: 110
       count: 15
       since_confirm: true
+    - type: logs_contain
+      namespace: infra-tools
+      selector: app=net-injector
+      text: 'netem applied: 1'
     debug_on_fail:
     - - -n
       - infra-tools
@@ -156,31 +182,56 @@ scenarios:
   reset:
   - kubectl:
     - -n
+    - infra-tools
+    - delete
+    - pod
+    - net-injector
+    - --ignore-not-found
+    - --wait=true
+    - --timeout=90s
+  - kubectl:
+    - -n
     - '{ns}'
     - set
     - resources
-    - deployment/redis-cart
-    - --limits=cpu=125m
-    - --requests=cpu=70m
+    - deployment/cartservice
+    - --limits=cpu=300m
+    - --requests=cpu=200m
   answer:
     status: root_cause_found
     cause_category: other
     object:
       kind: Deployment
-      name: redis-cart
+      name: cartservice
     mechanism: cpu
-    explanation: Deployment redis-cart 的 CPU 上限被调到 3m（应为 125m），容器被限流，请求要排队等 CPU 才能被处理；网络没有问题。
+    explanation: Deployment cartservice 的 CPU 上限被调到 30m（应为 300m），容器被限流，请求要排队等 CPU 才能被处理；网络没有问题。
     key_evidence:
-    - 3m
+    - 30m
     accept_cause_keywords:
     - cpu
     - 限流
     - throttl
     - 上限
     - limit
+    also:
+    - object:
+        kind: Pod
+        name: recommendationservice
+      accept_objects:
+      - recommendationservice
+      explanation: recommendationservice 的 Pod 网络被加了延迟：每个包延迟 119 到 221 毫秒之间的随机值（中心 170 毫秒）；它自身处理不慢，调用它的服务跟着变慢。
+      key_evidence:
+      - recommendationservice
+      accept_cause_keywords:
+      - 网络
+      - network
+      - 延迟
+      - latency
+      - delay
   bank: 2
   mechanisms:
   - cpu
+  - net_delay
 - id: CL03
   pool: learn
   app: boutique
@@ -191,12 +242,13 @@ scenarios:
   root_causes: 1
   symptom: 商城页面明显变慢了，但没有报错；Pod 看起来都是正常的。
   realism:
-    pattern: 真正的原因是 recommendationservice 的 CPU 上限过低。同时 adservice 被缩到 0 副本，是和症状无关的真实异常。
+    pattern: 真正的原因是 currencyservice 的 CPU 上限过低。同时 adservice 被缩到 0 副本，是和症状无关的真实异常。
     sources:
     - Cloud-OpsBench
     - k8s.af
     validated: false
-    validate_note: CPU 上限的数值是暂定的：先用 scripts/sweep_cpu_limit.py 找到“明显变慢、但 Pod 仍然 Ready 且不重启”的值。再确认限流指标（scripts/pod_metrics.py）在故障期间不为 0。确认每个故障都生效；延迟和丢包场景确认被注入的 Pod 仍是 Ready、重启次数为 0（丢包会影响探针，留意 Unhealthy 事件）。
+    validate_note: CPU 上限的数值是 2026-11-22 在台式机上用 scripts/sweep_cpu_limit.py 测出来的（明显变慢、Pod 仍然 Ready 且不重启），换机器要重测。再确认限流指标（scripts/pod_metrics.py）在故障期间不为 0。确认每个故障都生效；延迟和丢包场景确认被注入的 Pod 仍是 Ready、重启次数为 0（丢包会影响探针，留意
+      Unhealthy 事件）。
   inject:
   - kubectl:
     - -n
@@ -209,15 +261,15 @@ scenarios:
     - '{ns}'
     - set
     - resources
-    - deployment/recommendationservice
-    - --limits=cpu=10m
-    - --requests=cpu=10m
+    - deployment/currencyservice
+    - --limits=cpu=25m
+    - --requests=cpu=25m
   - kubectl:
     - -n
     - '{ns}'
     - rollout
     - status
-    - deployment/recommendationservice
+    - deployment/currencyservice
     - --timeout=140s
   - sleep: 25
   confirm:
@@ -261,7 +313,7 @@ scenarios:
     - '{ns}'
     - set
     - resources
-    - deployment/recommendationservice
+    - deployment/currencyservice
     - --limits=cpu=200m
     - --requests=cpu=100m
   answer:
@@ -269,11 +321,11 @@ scenarios:
     cause_category: other
     object:
       kind: Deployment
-      name: recommendationservice
+      name: currencyservice
     mechanism: cpu
-    explanation: Deployment recommendationservice 的 CPU 上限被调到 10m（应为 200m），容器被限流，请求要排队等 CPU 才能被处理；网络没有问题。
+    explanation: Deployment currencyservice 的 CPU 上限被调到 25m（应为 200m），容器被限流，请求要排队等 CPU 才能被处理；网络没有问题。
     key_evidence:
-    - 10m
+    - 25m
     accept_cause_keywords:
     - cpu
     - 限流
@@ -301,7 +353,8 @@ scenarios:
     - Cloud-OpsBench
     - k8s.af
     validated: false
-    validate_note: CPU 上限的数值是暂定的：先用 scripts/sweep_cpu_limit.py 找到“明显变慢、但 Pod 仍然 Ready 且不重启”的值。再确认限流指标（scripts/pod_metrics.py）在故障期间不为 0。确认每个故障都生效；延迟和丢包场景确认被注入的 Pod 仍是 Ready、重启次数为 0（丢包会影响探针，留意 Unhealthy 事件）。
+    validate_note: CPU 上限的数值是 2026-11-22 在台式机上用 scripts/sweep_cpu_limit.py 测出来的（明显变慢、Pod 仍然 Ready 且不重启），换机器要重测。再确认限流指标（scripts/pod_metrics.py）在故障期间不为 0。确认每个故障都生效；延迟和丢包场景确认被注入的 Pod 仍是 Ready、重启次数为 0（丢包会影响探针，留意
+      Unhealthy 事件）。
   inject:
   - kubectl:
     - -n
@@ -309,8 +362,8 @@ scenarios:
     - set
     - resources
     - deployment/currencyservice
-    - --limits=cpu=10m
-    - --requests=cpu=10m
+    - --limits=cpu=25m
+    - --requests=cpu=25m
   - kubectl:
     - -n
     - '{ns}'
@@ -397,9 +450,9 @@ scenarios:
       kind: Deployment
       name: currencyservice
     mechanism: cpu
-    explanation: Deployment currencyservice 的 CPU 上限被调到 10m（应为 200m），容器被限流，请求要排队等 CPU 才能被处理；网络没有问题。
+    explanation: Deployment currencyservice 的 CPU 上限被调到 25m（应为 200m），容器被限流，请求要排队等 CPU 才能被处理；网络没有问题。
     key_evidence:
-    - 10m
+    - 25m
     accept_cause_keywords:
     - cpu
     - 限流
@@ -412,7 +465,7 @@ scenarios:
         name: cartservice
       accept_objects:
       - cartservice
-      explanation: cartservice 的 Pod 网络被加了延迟：每个包延迟 119 到 221 毫秒之间的随机值（中心 170 毫秒）；它自身处理不慢，调用它的服务跟着变慢。
+      explanation: cartservice 的 Pod 网络被加了延迟：每个包延迟 161 到 299 毫秒之间的随机值（中心 230 毫秒）；它自身处理不慢，调用它的服务跟着变慢。
       key_evidence:
       - cartservice
       accept_cause_keywords:
@@ -435,27 +488,28 @@ scenarios:
   root_causes: 2
   symptom: 商城页面明显变慢了，但没有报错；Pod 看起来都是正常的。
   realism:
-    pattern: 两个互不相关、机制也不同的故障：redis-cart 的 CPU 上限过低，加上 productcatalogservice 的 Pod 网络延迟。
+    pattern: 两个互不相关、机制也不同的故障：frontend 的 CPU 上限过低，加上 productcatalogservice 的 Pod 网络延迟。
     sources:
     - Cloud-OpsBench
     - k8s.af
     validated: false
-    validate_note: CPU 上限的数值是暂定的：先用 scripts/sweep_cpu_limit.py 找到“明显变慢、但 Pod 仍然 Ready 且不重启”的值。再确认限流指标（scripts/pod_metrics.py）在故障期间不为 0。确认每个故障都生效；延迟和丢包场景确认被注入的 Pod 仍是 Ready、重启次数为 0（丢包会影响探针，留意 Unhealthy 事件）。
+    validate_note: CPU 上限的数值是 2026-11-22 在台式机上用 scripts/sweep_cpu_limit.py 测出来的（明显变慢、Pod 仍然 Ready 且不重启），换机器要重测。再确认限流指标（scripts/pod_metrics.py）在故障期间不为 0。确认每个故障都生效；延迟和丢包场景确认被注入的 Pod 仍是 Ready、重启次数为 0（丢包会影响探针，留意
+      Unhealthy 事件）。
   inject:
   - kubectl:
     - -n
     - '{ns}'
     - set
     - resources
-    - deployment/redis-cart
-    - --limits=cpu=3m
-    - --requests=cpu=3m
+    - deployment/frontend
+    - --limits=cpu=25m
+    - --requests=cpu=25m
   - kubectl:
     - -n
     - '{ns}'
     - rollout
     - status
-    - deployment/redis-cart
+    - deployment/frontend
     - --timeout=140s
   - sleep: 25
   - kubectl:
@@ -526,19 +580,19 @@ scenarios:
     - '{ns}'
     - set
     - resources
-    - deployment/redis-cart
-    - --limits=cpu=125m
-    - --requests=cpu=70m
+    - deployment/frontend
+    - --limits=cpu=200m
+    - --requests=cpu=100m
   answer:
     status: root_cause_found
     cause_category: other
     object:
       kind: Deployment
-      name: redis-cart
+      name: frontend
     mechanism: cpu
-    explanation: Deployment redis-cart 的 CPU 上限被调到 3m（应为 125m），容器被限流，请求要排队等 CPU 才能被处理；网络没有问题。
+    explanation: Deployment frontend 的 CPU 上限被调到 25m（应为 200m），容器被限流，请求要排队等 CPU 才能被处理；网络没有问题。
     key_evidence:
-    - 3m
+    - 25m
     accept_cause_keywords:
     - cpu
     - 限流
@@ -551,7 +605,7 @@ scenarios:
         name: productcatalogservice
       accept_objects:
       - productcatalogservice
-      explanation: productcatalogservice 的 Pod 网络被加了延迟：每个包延迟 203 到 377 毫秒之间的随机值（中心 290 毫秒）；它自身处理不慢，调用它的服务跟着变慢。
+      explanation: productcatalogservice 的 Pod 网络被加了延迟：每个包延迟 175 到 325 毫秒之间的随机值（中心 250 毫秒）；它自身处理不慢，调用它的服务跟着变慢。
       key_evidence:
       - productcatalogservice
       accept_cause_keywords:
@@ -830,7 +884,7 @@ scenarios:
       name: recommendationservice
     accept_objects:
     - recommendationservice
-    explanation: recommendationservice 的 Pod 网络被加了延迟：每个包延迟 133 到 247 毫秒之间的随机值（中心 190 毫秒）；它自身处理不慢，调用它的服务跟着变慢。
+    explanation: recommendationservice 的 Pod 网络被加了延迟：每个包延迟 182 到 338 毫秒之间的随机值（中心 260 毫秒）；它自身处理不慢，调用它的服务跟着变慢。
     key_evidence:
     - recommendationservice
     accept_cause_keywords:
@@ -852,27 +906,28 @@ scenarios:
   root_causes: 1
   symptom: 商城页面明显变慢了，但没有报错；Pod 看起来都是正常的。
   realism:
-    pattern: 不是网络：recommendationservice 的 CPU 上限过低，只有这一个故障。
+    pattern: 不是网络：cartservice 的 CPU 上限过低，只有这一个故障。
     sources:
     - Cloud-OpsBench
     - k8s.af
     validated: false
-    validate_note: CPU 上限的数值是暂定的：先用 scripts/sweep_cpu_limit.py 找到“明显变慢、但 Pod 仍然 Ready 且不重启”的值。再确认限流指标（scripts/pod_metrics.py）在故障期间不为 0。确认每个故障都生效；延迟和丢包场景确认被注入的 Pod 仍是 Ready、重启次数为 0（丢包会影响探针，留意 Unhealthy 事件）。
+    validate_note: CPU 上限的数值是 2026-11-22 在台式机上用 scripts/sweep_cpu_limit.py 测出来的（明显变慢、Pod 仍然 Ready 且不重启），换机器要重测。再确认限流指标（scripts/pod_metrics.py）在故障期间不为 0。确认每个故障都生效；延迟和丢包场景确认被注入的 Pod 仍是 Ready、重启次数为 0（丢包会影响探针，留意
+      Unhealthy 事件）。
   inject:
   - kubectl:
     - -n
     - '{ns}'
     - set
     - resources
-    - deployment/recommendationservice
-    - --limits=cpu=10m
-    - --requests=cpu=10m
+    - deployment/cartservice
+    - --limits=cpu=30m
+    - --requests=cpu=30m
   - kubectl:
     - -n
     - '{ns}'
     - rollout
     - status
-    - deployment/recommendationservice
+    - deployment/cartservice
     - --timeout=140s
   - sleep: 25
   confirm:
@@ -910,19 +965,19 @@ scenarios:
     - '{ns}'
     - set
     - resources
-    - deployment/recommendationservice
-    - --limits=cpu=200m
-    - --requests=cpu=100m
+    - deployment/cartservice
+    - --limits=cpu=300m
+    - --requests=cpu=200m
   answer:
     status: root_cause_found
     cause_category: other
     object:
       kind: Deployment
-      name: recommendationservice
+      name: cartservice
     mechanism: cpu
-    explanation: Deployment recommendationservice 的 CPU 上限被调到 10m（应为 200m），容器被限流，请求要排队等 CPU 才能被处理；网络没有问题。
+    explanation: Deployment cartservice 的 CPU 上限被调到 30m（应为 300m），容器被限流，请求要排队等 CPU 才能被处理；网络没有问题。
     key_evidence:
-    - 10m
+    - 30m
     accept_cause_keywords:
     - cpu
     - 限流
@@ -947,7 +1002,8 @@ scenarios:
     - Cloud-OpsBench
     - k8s.af
     validated: false
-    validate_note: CPU 上限的数值是暂定的：先用 scripts/sweep_cpu_limit.py 找到“明显变慢、但 Pod 仍然 Ready 且不重启”的值。再确认限流指标（scripts/pod_metrics.py）在故障期间不为 0。确认每个故障都生效；延迟和丢包场景确认被注入的 Pod 仍是 Ready、重启次数为 0（丢包会影响探针，留意 Unhealthy 事件）。
+    validate_note: CPU 上限的数值是 2026-11-22 在台式机上用 scripts/sweep_cpu_limit.py 测出来的（明显变慢、Pod 仍然 Ready 且不重启），换机器要重测。再确认限流指标（scripts/pod_metrics.py）在故障期间不为 0。确认每个故障都生效；延迟和丢包场景确认被注入的 Pod 仍是 Ready、重启次数为 0（丢包会影响探针，留意
+      Unhealthy 事件）。
   inject:
   - kubectl:
     - -n
@@ -980,8 +1036,8 @@ scenarios:
     - set
     - resources
     - deployment/currencyservice
-    - --limits=cpu=10m
-    - --requests=cpu=10m
+    - --limits=cpu=25m
+    - --requests=cpu=25m
   - kubectl:
     - -n
     - '{ns}'
@@ -1044,9 +1100,9 @@ scenarios:
       kind: Deployment
       name: currencyservice
     mechanism: cpu
-    explanation: Deployment currencyservice 的 CPU 上限被调到 10m（应为 200m），容器被限流，请求要排队等 CPU 才能被处理；网络没有问题。
+    explanation: Deployment currencyservice 的 CPU 上限被调到 25m（应为 200m），容器被限流，请求要排队等 CPU 才能被处理；网络没有问题。
     key_evidence:
-    - 10m
+    - 25m
     accept_cause_keywords:
     - cpu
     - 限流
@@ -1198,27 +1254,28 @@ scenarios:
   root_causes: 2
   symptom: 商城页面明显变慢了，但没有报错；Pod 看起来都是正常的。
   realism:
-    pattern: 两个互不相关、机制也不同的故障：redis-cart 的 CPU 上限过低，加上 currencyservice 的 Pod 网络延迟。
+    pattern: 两个互不相关、机制也不同的故障：frontend 的 CPU 上限过低，加上 currencyservice 的 Pod 网络延迟。
     sources:
     - Cloud-OpsBench
     - k8s.af
     validated: false
-    validate_note: CPU 上限的数值是暂定的：先用 scripts/sweep_cpu_limit.py 找到“明显变慢、但 Pod 仍然 Ready 且不重启”的值。再确认限流指标（scripts/pod_metrics.py）在故障期间不为 0。确认每个故障都生效；延迟和丢包场景确认被注入的 Pod 仍是 Ready、重启次数为 0（丢包会影响探针，留意 Unhealthy 事件）。
+    validate_note: CPU 上限的数值是 2026-11-22 在台式机上用 scripts/sweep_cpu_limit.py 测出来的（明显变慢、Pod 仍然 Ready 且不重启），换机器要重测。再确认限流指标（scripts/pod_metrics.py）在故障期间不为 0。确认每个故障都生效；延迟和丢包场景确认被注入的 Pod 仍是 Ready、重启次数为 0（丢包会影响探针，留意
+      Unhealthy 事件）。
   inject:
   - kubectl:
     - -n
     - '{ns}'
     - set
     - resources
-    - deployment/redis-cart
-    - --limits=cpu=3m
-    - --requests=cpu=3m
+    - deployment/frontend
+    - --limits=cpu=25m
+    - --requests=cpu=25m
   - kubectl:
     - -n
     - '{ns}'
     - rollout
     - status
-    - deployment/redis-cart
+    - deployment/frontend
     - --timeout=140s
   - sleep: 25
   - kubectl:
@@ -1289,19 +1346,19 @@ scenarios:
     - '{ns}'
     - set
     - resources
-    - deployment/redis-cart
-    - --limits=cpu=125m
-    - --requests=cpu=70m
+    - deployment/frontend
+    - --limits=cpu=200m
+    - --requests=cpu=100m
   answer:
     status: root_cause_found
     cause_category: other
     object:
       kind: Deployment
-      name: redis-cart
+      name: frontend
     mechanism: cpu
-    explanation: Deployment redis-cart 的 CPU 上限被调到 3m（应为 125m），容器被限流，请求要排队等 CPU 才能被处理；网络没有问题。
+    explanation: Deployment frontend 的 CPU 上限被调到 25m（应为 200m），容器被限流，请求要排队等 CPU 才能被处理；网络没有问题。
     key_evidence:
-    - 3m
+    - 25m
     accept_cause_keywords:
     - cpu
     - 限流
@@ -1314,7 +1371,7 @@ scenarios:
         name: currencyservice
       accept_objects:
       - currencyservice
-      explanation: currencyservice 的 Pod 网络被加了延迟：每个包延迟 182 到 338 毫秒之间的随机值（中心 260 毫秒）；它自身处理不慢，调用它的服务跟着变慢。
+      explanation: currencyservice 的 Pod 网络被加了延迟：每个包延迟 147 到 273 毫秒之间的随机值（中心 210 毫秒）；它自身处理不慢，调用它的服务跟着变慢。
       key_evidence:
       - currencyservice
       accept_cause_keywords:
@@ -1533,27 +1590,28 @@ scenarios:
   root_causes: 2
   symptom: 有用户反馈商城变慢了，另外还有人说下单失败、订单提交不了。
   realism:
-    pattern: 两个互不相关的故障：recommendationservice 的 CPU 上限过低，加上 checkoutservice 的购物车服务地址配置错误。
+    pattern: 两个互不相关的故障：frontend 的 CPU 上限过低，加上 checkoutservice 的购物车服务地址配置错误。
     sources:
     - Cloud-OpsBench
     - k8s.af
     validated: false
-    validate_note: CPU 上限的数值是暂定的：先用 scripts/sweep_cpu_limit.py 找到“明显变慢、但 Pod 仍然 Ready 且不重启”的值。再确认限流指标（scripts/pod_metrics.py）在故障期间不为 0。确认每个故障都生效；延迟和丢包场景确认被注入的 Pod 仍是 Ready、重启次数为 0（丢包会影响探针，留意 Unhealthy 事件）。
+    validate_note: CPU 上限的数值是 2026-11-22 在台式机上用 scripts/sweep_cpu_limit.py 测出来的（明显变慢、Pod 仍然 Ready 且不重启），换机器要重测。再确认限流指标（scripts/pod_metrics.py）在故障期间不为 0。确认每个故障都生效；延迟和丢包场景确认被注入的 Pod 仍是 Ready、重启次数为 0（丢包会影响探针，留意
+      Unhealthy 事件）。
   inject:
   - kubectl:
     - -n
     - '{ns}'
     - set
     - resources
-    - deployment/recommendationservice
-    - --limits=cpu=10m
-    - --requests=cpu=10m
+    - deployment/frontend
+    - --limits=cpu=25m
+    - --requests=cpu=25m
   - kubectl:
     - -n
     - '{ns}'
     - rollout
     - status
-    - deployment/recommendationservice
+    - deployment/frontend
     - --timeout=140s
   - kubectl:
     - -n
@@ -1606,7 +1664,7 @@ scenarios:
     - '{ns}'
     - set
     - resources
-    - deployment/recommendationservice
+    - deployment/frontend
     - --limits=cpu=200m
     - --requests=cpu=100m
   - kubectl:
@@ -1621,11 +1679,11 @@ scenarios:
     cause_category: other
     object:
       kind: Deployment
-      name: recommendationservice
+      name: frontend
     mechanism: cpu
-    explanation: Deployment recommendationservice 的 CPU 上限被调到 10m（应为 200m），容器被限流，请求要排队等 CPU 才能被处理；网络没有问题。
+    explanation: Deployment frontend 的 CPU 上限被调到 25m（应为 200m），容器被限流，请求要排队等 CPU 才能被处理；网络没有问题。
     key_evidence:
-    - 10m
+    - 25m
     accept_cause_keywords:
     - cpu
     - 限流
@@ -1735,7 +1793,7 @@ scenarios:
       name: cartservice
     accept_objects:
     - cartservice
-    explanation: cartservice 的 Pod 网络被加了延迟：每个包延迟 147 到 273 毫秒之间的随机值（中心 210 毫秒）；它自身处理不慢，调用它的服务跟着变慢。
+    explanation: cartservice 的 Pod 网络被加了延迟：每个包延迟 175 到 325 毫秒之间的随机值（中心 250 毫秒）；它自身处理不慢，调用它的服务跟着变慢。
     key_evidence:
     - cartservice
     accept_cause_keywords:
@@ -1870,7 +1928,7 @@ scenarios:
       name: productcatalogservice
     accept_objects:
     - productcatalogservice
-    explanation: productcatalogservice 的 Pod 网络被加了延迟：每个包延迟 217 到 403 毫秒之间的随机值（中心 310 毫秒）；它自身处理不慢，调用它的服务跟着变慢。
+    explanation: productcatalogservice 的 Pod 网络被加了延迟：每个包延迟 168 到 312 毫秒之间的随机值（中心 240 毫秒）；它自身处理不慢，调用它的服务跟着变慢。
     key_evidence:
     - productcatalogservice
     accept_cause_keywords:
@@ -2119,27 +2177,28 @@ scenarios:
   root_causes: 1
   symptom: 商城页面明显变慢了，但没有报错；Pod 看起来都是正常的。
   realism:
-    pattern: 不是网络：productcatalogservice 的 CPU 上限过低，只有这一个故障。
+    pattern: 不是网络：frontend 的 CPU 上限过低，只有这一个故障。
     sources:
     - Cloud-OpsBench
     - k8s.af
     validated: false
-    validate_note: CPU 上限的数值是暂定的：先用 scripts/sweep_cpu_limit.py 找到“明显变慢、但 Pod 仍然 Ready 且不重启”的值。再确认限流指标（scripts/pod_metrics.py）在故障期间不为 0。确认每个故障都生效；延迟和丢包场景确认被注入的 Pod 仍是 Ready、重启次数为 0（丢包会影响探针，留意 Unhealthy 事件）。
+    validate_note: CPU 上限的数值是 2026-11-22 在台式机上用 scripts/sweep_cpu_limit.py 测出来的（明显变慢、Pod 仍然 Ready 且不重启），换机器要重测。再确认限流指标（scripts/pod_metrics.py）在故障期间不为 0。确认每个故障都生效；延迟和丢包场景确认被注入的 Pod 仍是 Ready、重启次数为 0（丢包会影响探针，留意
+      Unhealthy 事件）。
   inject:
   - kubectl:
     - -n
     - '{ns}'
     - set
     - resources
-    - deployment/productcatalogservice
-    - --limits=cpu=5m
-    - --requests=cpu=5m
+    - deployment/frontend
+    - --limits=cpu=25m
+    - --requests=cpu=25m
   - kubectl:
     - -n
     - '{ns}'
     - rollout
     - status
-    - deployment/productcatalogservice
+    - deployment/frontend
     - --timeout=140s
   - sleep: 25
   confirm:
@@ -2177,7 +2236,7 @@ scenarios:
     - '{ns}'
     - set
     - resources
-    - deployment/productcatalogservice
+    - deployment/frontend
     - --limits=cpu=200m
     - --requests=cpu=100m
   answer:
@@ -2185,11 +2244,11 @@ scenarios:
     cause_category: other
     object:
       kind: Deployment
-      name: productcatalogservice
+      name: frontend
     mechanism: cpu
-    explanation: Deployment productcatalogservice 的 CPU 上限被调到 5m（应为 200m），容器被限流，请求要排队等 CPU 才能被处理；网络没有问题。
+    explanation: Deployment frontend 的 CPU 上限被调到 25m（应为 200m），容器被限流，请求要排队等 CPU 才能被处理；网络没有问题。
     key_evidence:
-    - 5m
+    - 25m
     accept_cause_keywords:
     - cpu
     - 限流
@@ -2214,7 +2273,8 @@ scenarios:
     - Cloud-OpsBench
     - k8s.af
     validated: false
-    validate_note: CPU 上限的数值是暂定的：先用 scripts/sweep_cpu_limit.py 找到“明显变慢、但 Pod 仍然 Ready 且不重启”的值。再确认限流指标（scripts/pod_metrics.py）在故障期间不为 0。确认每个故障都生效；延迟和丢包场景确认被注入的 Pod 仍是 Ready、重启次数为 0（丢包会影响探针，留意 Unhealthy 事件）。
+    validate_note: CPU 上限的数值是 2026-11-22 在台式机上用 scripts/sweep_cpu_limit.py 测出来的（明显变慢、Pod 仍然 Ready 且不重启），换机器要重测。再确认限流指标（scripts/pod_metrics.py）在故障期间不为 0。确认每个故障都生效；延迟和丢包场景确认被注入的 Pod 仍是 Ready、重启次数为 0（丢包会影响探针，留意
+      Unhealthy 事件）。
   inject:
   - kubectl:
     - -n
@@ -2228,8 +2288,8 @@ scenarios:
     - set
     - resources
     - deployment/cartservice
-    - --limits=cpu=20m
-    - --requests=cpu=20m
+    - --limits=cpu=30m
+    - --requests=cpu=30m
   - kubectl:
     - -n
     - '{ns}'
@@ -2289,9 +2349,9 @@ scenarios:
       kind: Deployment
       name: cartservice
     mechanism: cpu
-    explanation: Deployment cartservice 的 CPU 上限被调到 20m（应为 300m），容器被限流，请求要排队等 CPU 才能被处理；网络没有问题。
+    explanation: Deployment cartservice 的 CPU 上限被调到 30m（应为 300m），容器被限流，请求要排队等 CPU 才能被处理；网络没有问题。
     key_evidence:
-    - 20m
+    - 30m
     accept_cause_keywords:
     - cpu
     - 限流
@@ -2314,27 +2374,28 @@ scenarios:
   root_causes: 2
   symptom: 商城时快时慢：大部分请求正常，偶尔有页面要等很久，没有报错。
   realism:
-    pattern: 两个互不相关、机制也不同的故障：redis-cart 的 CPU 上限过低，加上 currencyservice 的 Pod 网络丢包。
+    pattern: 两个互不相关、机制也不同的故障：cartservice 的 CPU 上限过低，加上 currencyservice 的 Pod 网络丢包。
     sources:
     - Cloud-OpsBench
     - k8s.af
     validated: false
-    validate_note: CPU 上限的数值是暂定的：先用 scripts/sweep_cpu_limit.py 找到“明显变慢、但 Pod 仍然 Ready 且不重启”的值。再确认限流指标（scripts/pod_metrics.py）在故障期间不为 0。确认每个故障都生效；延迟和丢包场景确认被注入的 Pod 仍是 Ready、重启次数为 0（丢包会影响探针，留意 Unhealthy 事件）。
+    validate_note: CPU 上限的数值是 2026-11-22 在台式机上用 scripts/sweep_cpu_limit.py 测出来的（明显变慢、Pod 仍然 Ready 且不重启），换机器要重测。再确认限流指标（scripts/pod_metrics.py）在故障期间不为 0。确认每个故障都生效；延迟和丢包场景确认被注入的 Pod 仍是 Ready、重启次数为 0（丢包会影响探针，留意
+      Unhealthy 事件）。
   inject:
   - kubectl:
     - -n
     - '{ns}'
     - set
     - resources
-    - deployment/redis-cart
-    - --limits=cpu=3m
-    - --requests=cpu=3m
+    - deployment/cartservice
+    - --limits=cpu=30m
+    - --requests=cpu=30m
   - kubectl:
     - -n
     - '{ns}'
     - rollout
     - status
-    - deployment/redis-cart
+    - deployment/cartservice
     - --timeout=140s
   - sleep: 25
   - kubectl:
@@ -2405,19 +2466,19 @@ scenarios:
     - '{ns}'
     - set
     - resources
-    - deployment/redis-cart
-    - --limits=cpu=125m
-    - --requests=cpu=70m
+    - deployment/cartservice
+    - --limits=cpu=300m
+    - --requests=cpu=200m
   answer:
     status: root_cause_found
     cause_category: other
     object:
       kind: Deployment
-      name: redis-cart
+      name: cartservice
     mechanism: cpu
-    explanation: Deployment redis-cart 的 CPU 上限被调到 3m（应为 125m），容器被限流，请求要排队等 CPU 才能被处理；网络没有问题。
+    explanation: Deployment cartservice 的 CPU 上限被调到 30m（应为 300m），容器被限流，请求要排队等 CPU 才能被处理；网络没有问题。
     key_evidence:
-    - 3m
+    - 30m
     accept_cause_keywords:
     - cpu
     - 限流
@@ -2457,27 +2518,28 @@ scenarios:
   root_causes: 2
   symptom: 商城页面明显变慢了，但没有报错；Pod 看起来都是正常的。
   realism:
-    pattern: 两个互不相关、机制也不同的故障：productcatalogservice 的 CPU 上限过低，加上 currencyservice 的 Pod 网络延迟。
+    pattern: 两个互不相关、机制也不同的故障：frontend 的 CPU 上限过低，加上 recommendationservice 的 Pod 网络延迟。
     sources:
     - Cloud-OpsBench
     - k8s.af
     validated: false
-    validate_note: CPU 上限的数值是暂定的：先用 scripts/sweep_cpu_limit.py 找到“明显变慢、但 Pod 仍然 Ready 且不重启”的值。再确认限流指标（scripts/pod_metrics.py）在故障期间不为 0。确认每个故障都生效；延迟和丢包场景确认被注入的 Pod 仍是 Ready、重启次数为 0（丢包会影响探针，留意 Unhealthy 事件）。
+    validate_note: CPU 上限的数值是 2026-11-22 在台式机上用 scripts/sweep_cpu_limit.py 测出来的（明显变慢、Pod 仍然 Ready 且不重启），换机器要重测。再确认限流指标（scripts/pod_metrics.py）在故障期间不为 0。确认每个故障都生效；延迟和丢包场景确认被注入的 Pod 仍是 Ready、重启次数为 0（丢包会影响探针，留意
+      Unhealthy 事件）。
   inject:
   - kubectl:
     - -n
     - '{ns}'
     - set
     - resources
-    - deployment/productcatalogservice
-    - --limits=cpu=5m
-    - --requests=cpu=5m
+    - deployment/frontend
+    - --limits=cpu=25m
+    - --requests=cpu=25m
   - kubectl:
     - -n
     - '{ns}'
     - rollout
     - status
-    - deployment/productcatalogservice
+    - deployment/frontend
     - --timeout=140s
   - sleep: 25
   - kubectl:
@@ -2548,7 +2610,7 @@ scenarios:
     - '{ns}'
     - set
     - resources
-    - deployment/productcatalogservice
+    - deployment/frontend
     - --limits=cpu=200m
     - --requests=cpu=100m
   answer:
@@ -2556,11 +2618,11 @@ scenarios:
     cause_category: other
     object:
       kind: Deployment
-      name: productcatalogservice
+      name: frontend
     mechanism: cpu
-    explanation: Deployment productcatalogservice 的 CPU 上限被调到 5m（应为 200m），容器被限流，请求要排队等 CPU 才能被处理；网络没有问题。
+    explanation: Deployment frontend 的 CPU 上限被调到 25m（应为 200m），容器被限流，请求要排队等 CPU 才能被处理；网络没有问题。
     key_evidence:
-    - 5m
+    - 25m
     accept_cause_keywords:
     - cpu
     - 限流
@@ -2570,12 +2632,12 @@ scenarios:
     also:
     - object:
         kind: Pod
-        name: currencyservice
+        name: recommendationservice
       accept_objects:
-      - currencyservice
-      explanation: currencyservice 的 Pod 网络被加了延迟：每个包延迟 126 到 234 毫秒之间的随机值（中心 180 毫秒）；它自身处理不慢，调用它的服务跟着变慢。
+      - recommendationservice
+      explanation: recommendationservice 的 Pod 网络被加了延迟：每个包延迟 189 到 351 毫秒之间的随机值（中心 270 毫秒）；它自身处理不慢，调用它的服务跟着变慢。
       key_evidence:
-      - currencyservice
+      - recommendationservice
       accept_cause_keywords:
       - 网络
       - network
@@ -2596,27 +2658,28 @@ scenarios:
   root_causes: 2
   symptom: 商城页面明显变慢了，但没有报错；Pod 看起来都是正常的。
   realism:
-    pattern: 两个互不相关、机制也不同的故障：recommendationservice 的 CPU 上限过低，加上 cartservice 的 Pod 网络延迟。
+    pattern: 两个互不相关、机制也不同的故障：currencyservice 的 CPU 上限过低，加上 productcatalogservice 的 Pod 网络延迟。
     sources:
     - Cloud-OpsBench
     - k8s.af
     validated: false
-    validate_note: CPU 上限的数值是暂定的：先用 scripts/sweep_cpu_limit.py 找到“明显变慢、但 Pod 仍然 Ready 且不重启”的值。再确认限流指标（scripts/pod_metrics.py）在故障期间不为 0。确认每个故障都生效；延迟和丢包场景确认被注入的 Pod 仍是 Ready、重启次数为 0（丢包会影响探针，留意 Unhealthy 事件）。
+    validate_note: CPU 上限的数值是 2026-11-22 在台式机上用 scripts/sweep_cpu_limit.py 测出来的（明显变慢、Pod 仍然 Ready 且不重启），换机器要重测。再确认限流指标（scripts/pod_metrics.py）在故障期间不为 0。确认每个故障都生效；延迟和丢包场景确认被注入的 Pod 仍是 Ready、重启次数为 0（丢包会影响探针，留意
+      Unhealthy 事件）。
   inject:
   - kubectl:
     - -n
     - '{ns}'
     - set
     - resources
-    - deployment/recommendationservice
-    - --limits=cpu=10m
-    - --requests=cpu=10m
+    - deployment/currencyservice
+    - --limits=cpu=25m
+    - --requests=cpu=25m
   - kubectl:
     - -n
     - '{ns}'
     - rollout
     - status
-    - deployment/recommendationservice
+    - deployment/currencyservice
     - --timeout=140s
   - sleep: 25
   - kubectl:
@@ -2687,7 +2750,7 @@ scenarios:
     - '{ns}'
     - set
     - resources
-    - deployment/recommendationservice
+    - deployment/currencyservice
     - --limits=cpu=200m
     - --requests=cpu=100m
   answer:
@@ -2695,11 +2758,11 @@ scenarios:
     cause_category: other
     object:
       kind: Deployment
-      name: recommendationservice
+      name: currencyservice
     mechanism: cpu
-    explanation: Deployment recommendationservice 的 CPU 上限被调到 10m（应为 200m），容器被限流，请求要排队等 CPU 才能被处理；网络没有问题。
+    explanation: Deployment currencyservice 的 CPU 上限被调到 25m（应为 200m），容器被限流，请求要排队等 CPU 才能被处理；网络没有问题。
     key_evidence:
-    - 10m
+    - 25m
     accept_cause_keywords:
     - cpu
     - 限流
@@ -2709,12 +2772,12 @@ scenarios:
     also:
     - object:
         kind: Pod
-        name: cartservice
+        name: productcatalogservice
       accept_objects:
-      - cartservice
-      explanation: cartservice 的 Pod 网络被加了延迟：每个包延迟 189 到 351 毫秒之间的随机值（中心 270 毫秒）；它自身处理不慢，调用它的服务跟着变慢。
+      - productcatalogservice
+      explanation: productcatalogservice 的 Pod 网络被加了延迟：每个包延迟 196 到 364 毫秒之间的随机值（中心 280 毫秒）；它自身处理不慢，调用它的服务跟着变慢。
       key_evidence:
-      - cartservice
+      - productcatalogservice
       accept_cause_keywords:
       - 网络
       - network
@@ -2740,7 +2803,8 @@ scenarios:
     - Cloud-OpsBench
     - k8s.af
     validated: false
-    validate_note: CPU 上限的数值是暂定的：先用 scripts/sweep_cpu_limit.py 找到“明显变慢、但 Pod 仍然 Ready 且不重启”的值。再确认限流指标（scripts/pod_metrics.py）在故障期间不为 0。确认每个故障都生效；延迟和丢包场景确认被注入的 Pod 仍是 Ready、重启次数为 0（丢包会影响探针，留意 Unhealthy 事件）。
+    validate_note: CPU 上限的数值是 2026-11-22 在台式机上用 scripts/sweep_cpu_limit.py 测出来的（明显变慢、Pod 仍然 Ready 且不重启），换机器要重测。再确认限流指标（scripts/pod_metrics.py）在故障期间不为 0。确认每个故障都生效；延迟和丢包场景确认被注入的 Pod 仍是 Ready、重启次数为 0（丢包会影响探针，留意
+      Unhealthy 事件）。
   inject:
   - kubectl:
     - -n
@@ -2748,8 +2812,8 @@ scenarios:
     - set
     - resources
     - deployment/cartservice
-    - --limits=cpu=20m
-    - --requests=cpu=20m
+    - --limits=cpu=30m
+    - --requests=cpu=30m
   - kubectl:
     - -n
     - '{ns}'
@@ -2825,9 +2889,9 @@ scenarios:
       kind: Deployment
       name: cartservice
     mechanism: cpu
-    explanation: Deployment cartservice 的 CPU 上限被调到 20m（应为 300m），容器被限流，请求要排队等 CPU 才能被处理；网络没有问题。
+    explanation: Deployment cartservice 的 CPU 上限被调到 30m（应为 300m），容器被限流，请求要排队等 CPU 才能被处理；网络没有问题。
     key_evidence:
-    - 20m
+    - 30m
     accept_cause_keywords:
     - cpu
     - 限流
@@ -2986,7 +3050,7 @@ scenarios:
         name: recommendationservice
       accept_objects:
       - recommendationservice
-      explanation: recommendationservice 的 Pod 网络被加了延迟：每个包延迟 154 到 286 毫秒之间的随机值（中心 220 毫秒）；它自身处理不慢，调用它的服务跟着变慢。
+      explanation: recommendationservice 的 Pod 网络被加了延迟：每个包延迟 112 到 208 毫秒之间的随机值（中心 160 毫秒）；它自身处理不慢，调用它的服务跟着变慢。
       key_evidence:
       - recommendationservice
       accept_cause_keywords:
@@ -3409,7 +3473,7 @@ scenarios:
         name: cartservice
       accept_objects:
       - cartservice
-      explanation: cartservice 的 Pod 网络被加了延迟：每个包延迟 112 到 208 毫秒之间的随机值（中心 160 毫秒）；它自身处理不慢，调用它的服务跟着变慢。
+      explanation: cartservice 的 Pod 网络被加了延迟：每个包延迟 196 到 364 毫秒之间的随机值（中心 280 毫秒）；它自身处理不慢，调用它的服务跟着变慢。
       key_evidence:
       - cartservice
       accept_cause_keywords:
@@ -3432,12 +3496,13 @@ scenarios:
   root_causes: 2
   symptom: 商城页面明显变慢了，但没有报错；Pod 看起来都是正常的。
   realism:
-    pattern: 两个服务的 CPU 上限同时过低：currencyservice 和 redis-cart。没有任何网络故障。
+    pattern: 两个服务的 CPU 上限同时过低：currencyservice 和 frontend。没有任何网络故障。
     sources:
     - Cloud-OpsBench
     - k8s.af
     validated: false
-    validate_note: CPU 上限的数值是暂定的：先用 scripts/sweep_cpu_limit.py 找到“明显变慢、但 Pod 仍然 Ready 且不重启”的值。再确认限流指标（scripts/pod_metrics.py）在故障期间不为 0。确认每个故障都生效；延迟和丢包场景确认被注入的 Pod 仍是 Ready、重启次数为 0（丢包会影响探针，留意 Unhealthy 事件）。
+    validate_note: CPU 上限的数值是 2026-11-22 在台式机上用 scripts/sweep_cpu_limit.py 测出来的（明显变慢、Pod 仍然 Ready 且不重启），换机器要重测。再确认限流指标（scripts/pod_metrics.py）在故障期间不为 0。确认每个故障都生效；延迟和丢包场景确认被注入的 Pod 仍是 Ready、重启次数为 0（丢包会影响探针，留意
+      Unhealthy 事件）。
   inject:
   - kubectl:
     - -n
@@ -3445,8 +3510,8 @@ scenarios:
     - set
     - resources
     - deployment/currencyservice
-    - --limits=cpu=10m
-    - --requests=cpu=10m
+    - --limits=cpu=25m
+    - --requests=cpu=25m
   - kubectl:
     - -n
     - '{ns}'
@@ -3459,15 +3524,15 @@ scenarios:
     - '{ns}'
     - set
     - resources
-    - deployment/redis-cart
-    - --limits=cpu=3m
-    - --requests=cpu=3m
+    - deployment/frontend
+    - --limits=cpu=25m
+    - --requests=cpu=25m
   - kubectl:
     - -n
     - '{ns}'
     - rollout
     - status
-    - deployment/redis-cart
+    - deployment/frontend
     - --timeout=140s
   - sleep: 25
   confirm:
@@ -3513,9 +3578,9 @@ scenarios:
     - '{ns}'
     - set
     - resources
-    - deployment/redis-cart
-    - --limits=cpu=125m
-    - --requests=cpu=70m
+    - deployment/frontend
+    - --limits=cpu=200m
+    - --requests=cpu=100m
   answer:
     status: root_cause_found
     cause_category: other
@@ -3523,9 +3588,9 @@ scenarios:
       kind: Deployment
       name: currencyservice
     mechanism: cpu
-    explanation: Deployment currencyservice 的 CPU 上限被调到 10m（应为 200m），容器被限流，请求要排队等 CPU 才能被处理；网络没有问题。
+    explanation: Deployment currencyservice 的 CPU 上限被调到 25m（应为 200m），容器被限流，请求要排队等 CPU 才能被处理；网络没有问题。
     key_evidence:
-    - 10m
+    - 25m
     accept_cause_keywords:
     - cpu
     - 限流
@@ -3535,11 +3600,11 @@ scenarios:
     also:
     - object:
         kind: Deployment
-        name: redis-cart
+        name: frontend
       mechanism: cpu
-      explanation: Deployment redis-cart 的 CPU 上限被调到 3m（应为 125m），容器被限流，请求要排队等 CPU 才能被处理；网络没有问题。
+      explanation: Deployment frontend 的 CPU 上限被调到 25m（应为 200m），容器被限流，请求要排队等 CPU 才能被处理；网络没有问题。
       key_evidence:
-      - 3m
+      - 25m
       accept_cause_keywords:
       - cpu
       - 限流
