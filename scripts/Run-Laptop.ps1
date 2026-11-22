@@ -20,7 +20,7 @@
 # no WSL shutdown; no PVC, namespace or cluster deletion.
 [CmdletBinding()]
 param(
-    [ValidateSet('check', 'pilot', 'batch', 'loop', 'fix', 'metrics', 'validate', 'noise', 'shell', 'sweep')][string]$Action = 'check',
+    [ValidateSet('check', 'pilot', 'batch', 'loop', 'fix', 'metrics', 'validate', 'noise', 'shell', 'sweep', 'admission')][string]$Action = 'check',
     [string]$Scenario = 'R06',
     [string]$Scenarios = '',
     [int]$Repeats = 3,
@@ -207,6 +207,8 @@ switch ($Action) {
     'metrics'  { $runArgs = @('metrics') }   # no agent: print the metrics table the agent's tool would return
     'shell'    { $runArgs = @('shell') }
     'sweep'    { $runArgs = @('sweep') }
+    # admission check: -Skills is the ONE library to test, each run gets a random half of its entries (scripts/admission.py)
+    'admission' { $runArgs = @('admission', '--lib', $Skills, '--scenarios', $Scenarios, '--repeats', "$Repeats"); if ($Tag) { $runArgs += @('--tag', $Tag) }; if ($MaxSteps -gt 0) { $runArgs += @('--max-steps', "$MaxSteps") }; if ($Metrics) { $runArgs += '--metrics' } }
     'batch'    {
         $runArgs = @('batch', '--repeats', "$Repeats")
         if ($Scenarios) { $runArgs += @('--scenarios', $Scenarios) }
