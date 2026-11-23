@@ -81,3 +81,84 @@ def test_review_flow_on_a_simulated_cluster(tmp_path, monkeypatch, verdict, call
     assert rec["root_causes"] == [{"object": f"svc{calls}", "cause": "c"}] and rec["total_tokens"] == 1000 * calls + 100
     if calls == 2:
         assert "质疑" in asked[1] and '"object": "svc1"' in asked[1] and asked[0] == holmes_pilot.build_prompt(SC["BH01"], "boutique", "prod", rec["before"])
+
+
+def _patch_run(monkeypatch, tmp_path, asked, reviewer):
+    def fake_holmes(cmd, **kw):
+        asked.append(cmd[2])
+        with open(cmd[cmd.index("--json-output-file") + 1], "w", encoding="utf-8") as fh:
+            json.dump({"result": f"第 {len(asked)} 次\n```json\n" + json.dumps({"root_causes": [{"object": f"svc{len(asked)}", "cause": "c"}]}) + "\n```",
+                       "total_tokens": 1000, "num_llm_calls": 3}, fh)
+        return types.SimpleNamespace(returncode=0, stdout="", stderr="")
+
+    observe = remediate.observe
+    monkeypatch.setattr(remediate, "observe", lambda lc, since, **kw: observe(lc, since, **{**kw, "sleep": lambda s: None, "min_seconds": 0}))
+    slept = []
+    monkeypatch.setattr(ap.time, "sleep", slept.append)
+    monkeypatch.setattr(ap.subprocess, "run", fake_holmes)
+    monkeypatch.setattr(ap, "ask_reviewer", reviewer)
+    monkeypatch.setattr(ap, "REPO", tmp_path)
+    return slept
+
+
+def test_second_look_control_has_no_review(tmp_path, monkeypatch):
+    asked = []
+
+    def no_reviewer(*a):
+        raise AssertionError("the re arm must not call a reviewer")
+
+    _patch_run(monkeypatch, tmp_path, asked, no_reviewer)
+    out = tmp_path / "BH01-re-r1.json"
+    rec = ap.run_one(SC["BH01"], "re", out, types.SimpleNamespace(max_steps=5, metrics=False), {}, "m", Sim())
+    assert len(asked) == 2 and [s["stage"] for s in rec["stages"]] == ["agent", "agent2"]
+    assert '"object": "svc1"' in asked[1] and "质疑" not in asked[1] and "资深" not in asked[1] and asked[1].endswith(holmes_pilot.FORMAT)
+    final = json.loads(out.read_text(encoding="utf-8"))
+    assert final["review"] is None and "第 2 次" in final["result"] and rec["root_causes"] == [{"object": "svc2", "cause": "c"}]
+
+
+def test_a_review_without_text_fails_the_run(tmp_path, monkeypatch):
+    asked = []
+
+    def silent(system, user, model):
+        raise RuntimeError("the reviewer returned no text twice (finish_reason=length)")
+
+    _patch_run(monkeypatch, tmp_path, asked, silent)
+    rec = ap.run_one(SC["BH01"], "m5", tmp_path / "BH01-m5-r1.json", types.SimpleNamespace(max_steps=5, metrics=False), {}, "m", Sim())
+    assert len(asked) == 1 and "no text" in rec["error"] and rec["stages"][-1]["verdict"] == "error"   # not counted as a result
+
+
+def test_reviewer_retries_an_empty_reply_and_is_told_the_limits(monkeypatch):
+    replies = []
+
+    class FakeClient:
+        def __init__(self, **kw):
+            self.chat = types.SimpleNamespace(completions=types.SimpleNamespace(create=self.create))
+
+        def create(self, **kw):
+            assert kw["max_tokens"] >= 20000
+            text = replies.pop(0)
+            return types.SimpleNamespace(usage=types.SimpleNamespace(total_tokens=7),
+                                         choices=[types.SimpleNamespace(message=types.SimpleNamespace(content=text), finish_reason="length" if not text else "stop")])
+
+    monkeypatch.setitem(sys.modules, "openai", types.SimpleNamespace(OpenAI=FakeClient))
+    monkeypatch.setattr(ap, "cfg", lambda k, d=None: d or "x")
+    replies[:] = ["", "有内容"]
+    assert ap.ask_reviewer("s", "u", "m") == ("有内容", 14)
+    replies[:] = ["", None]
+    with pytest.raises(RuntimeError, match="no text"):
+        ap.ask_reviewer("s", "u", "m")
+    for prompt in (ap.DEVIL, ap.SENIOR):   # reviewers must only ask for checks a read-only agent can make
+        assert "只读权限" in prompt and "不能进容器执行命令" in prompt and "没有链路追踪" in prompt
+
+
+def test_settle_gives_healthy_traffic_before_the_fault(tmp_path, monkeypatch):
+    asked = []
+    slept = _patch_run(monkeypatch, tmp_path, asked, None)
+    sim = Sim()
+    ap.run_one(SC["BH01"], "base", tmp_path / "BH01-base-r1.json", types.SimpleNamespace(max_steps=5, metrics=False, settle=120), {}, "m", sim)
+    wipes = [i for i, c in enumerate(sim.calls) if "delete pods --all" in c]
+    faults = [i for i, c in enumerate(sim.calls) if "managedFields" not in c and (" apply " in c or " set env " in c or " set resources " in c or " scale " in c or "patch service" in c)]
+    assert len(wipes) == 1 and faults and wipes[0] < faults[0] and 120 in slept      # fresh pods once, the wait, and the fault after them
+    sim2, n = Sim(), len(slept)
+    ap.run_one(SC["BH01"], "base", tmp_path / "BH01-base-r2.json", types.SimpleNamespace(max_steps=5, metrics=False), {}, "m", sim2)
+    assert sum("delete pods --all" in c for c in sim2.calls) == 1 and 120 not in slept[n:]

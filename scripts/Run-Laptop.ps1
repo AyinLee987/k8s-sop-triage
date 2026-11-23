@@ -32,7 +32,8 @@ param(
     [string]$Frame = '',        # loop/batch: empty = the default framing (a real production incident, judge from evidence only); 'none' = the bare prompt
     [int]$Rounds = 3,           # loop: how many diagnose-fix-verify rounds the agent gets
     [int]$Observe = 0,          # validate: keep each fault this many more seconds and record the frontend's latency meanwhile
-    [string]$Arms = '',         # anchoring: comma-separated arms (base,m2,m6,m5); empty = all four
+    [int]$Settle = 0,           # anchoring: seconds of healthy traffic between the fresh pods and the fault
+    [string]$Arms = '',         # anchoring: comma-separated arms (base,m2,m6,m5,re); empty = all
     [switch]$Metrics,           # batch/pilot/loop: also give the agent the boutique_pod_metrics tool (CPU throttling, memory, pod network counters)
     [string]$Cluster = '',          # kind cluster name; empty = from .env / default (scripts\_cluster.ps1)
     [string]$KindExe = '',          # path to kind.exe; empty = lab copy or kind on PATH
@@ -209,7 +210,7 @@ switch ($Action) {
     'shell'    { $runArgs = @('shell') }
     'sweep'    { $runArgs = @('sweep') }
     # single-cause anchoring experiment (scripts/anchoring_pilot.py): learning and validation scenarios only
-    'anchoring' { $runArgs = @('anchoring', '--scenarios', $Scenarios, '--repeats', "$Repeats"); if ($Arms) { $runArgs += @('--arms', $Arms) }; if ($Tag) { $runArgs += @('--tag', $Tag) }; if ($Skills) { $runArgs += @('--skills', $Skills) }; if ($MaxSteps -gt 0) { $runArgs += @('--max-steps', "$MaxSteps") }; if ($Metrics) { $runArgs += '--metrics' } }
+    'anchoring' { $runArgs = @('anchoring', '--scenarios', $Scenarios, '--repeats', "$Repeats"); if ($Arms) { $runArgs += @('--arms', $Arms) }; if ($Settle -gt 0) { $runArgs += @('--settle', "$Settle") }; if ($Tag) { $runArgs += @('--tag', $Tag) }; if ($Skills) { $runArgs += @('--skills', $Skills) }; if ($MaxSteps -gt 0) { $runArgs += @('--max-steps', "$MaxSteps") }; if ($Metrics) { $runArgs += '--metrics' } }
     # admission check: -Skills is the ONE library to test, each run gets a random half of its entries (scripts/admission.py)
     'admission' { $runArgs = @('admission', '--lib', $Skills, '--scenarios', $Scenarios, '--repeats', "$Repeats"); if ($Tag) { $runArgs += @('--tag', $Tag) }; if ($MaxSteps -gt 0) { $runArgs += @('--max-steps', "$MaxSteps") }; if ($Metrics) { $runArgs += '--metrics' } }
     'batch'    {
