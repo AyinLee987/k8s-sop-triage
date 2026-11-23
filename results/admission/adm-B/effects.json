@@ -1,0 +1,143 @@
+{
+ "threshold": -0.15,
+ "rows": [
+  {
+   "entry": "boutique-cartservice:E1",
+   "with": "20/30",
+   "without": "24/30",
+   "effect": -0.133
+  },
+  {
+   "entry": "boutique-checkoutservice:E1",
+   "with": "22/30",
+   "without": "22/30",
+   "effect": 0.0
+  },
+  {
+   "entry": "boutique-checkoutservice:E2",
+   "with": "21/30",
+   "without": "23/30",
+   "effect": -0.067
+  },
+  {
+   "entry": "boutique-currencyservice:E1",
+   "with": "22/30",
+   "without": "22/30",
+   "effect": 0.0
+  },
+  {
+   "entry": "boutique-currencyservice:E2",
+   "with": "24/30",
+   "without": "20/30",
+   "effect": 0.133
+  },
+  {
+   "entry": "boutique-frontend:E1",
+   "with": "22/30",
+   "without": "22/30",
+   "effect": 0.0
+  },
+  {
+   "entry": "boutique-productcatalogservice:E1",
+   "with": "21/30",
+   "without": "23/30",
+   "effect": -0.067
+  },
+  {
+   "entry": "boutique-recommendationservice:E1",
+   "with": "21/30",
+   "without": "23/30",
+   "effect": -0.067
+  },
+  {
+   "entry": "boutique-redis-cart:E1",
+   "with": "22/30",
+   "without": "22/30",
+   "effect": 0.0
+  },
+  {
+   "entry": "boutique-shippingservice:E1",
+   "with": "21/30",
+   "without": "23/30",
+   "effect": -0.067
+  },
+  {
+   "entry": "boutique-triage-overview:E1",
+   "with": "23/30",
+   "without": "21/30",
+   "effect": 0.067
+  },
+  {
+   "entry": "boutique-triage-overview:E2",
+   "with": "23/30",
+   "without": "21/30",
+   "effect": 0.067
+  },
+  {
+   "entry": "boutique-triage-overview:E3",
+   "with": "23/30",
+   "without": "21/30",
+   "effect": 0.067
+  },
+  {
+   "entry": "boutique-triage-overview:E4",
+   "with": "21/30",
+   "without": "23/30",
+   "effect": -0.067
+  },
+  {
+   "entry": "boutique-triage-overview:E5",
+   "with": "21/30",
+   "without": "23/30",
+   "effect": -0.067
+  },
+  {
+   "entry": "boutique-triage-overview:E6",
+   "with": "22/30",
+   "without": "22/30",
+   "effect": 0.0
+  },
+  {
+   "entry": "boutique-triage-overview:E7",
+   "with": "22/30",
+   "without": "22/30",
+   "effect": 0.0
+  },
+  {
+   "entry": "boutique-triage-overview:E8",
+   "with": "22/30",
+   "without": "22/30",
+   "effect": 0.0
+  },
+  {
+   "entry": "boutique-triage-overview:E9",
+   "with": "22/30",
+   "without": "22/30",
+   "effect": 0.0
+  },
+  {
+   "entry": "boutique-triage-overview:E10",
+   "with": "21/30",
+   "without": "23/30",
+   "effect": -0.067
+  },
+  {
+   "entry": "boutique-triage-overview:E11",
+   "with": "23/30",
+   "without": "21/30",
+   "effect": 0.067
+  },
+  {
+   "entry": "boutique-triage-overview:E12",
+   "with": "23/30",
+   "without": "21/30",
+   "effect": 0.067
+  },
+  {
+   "entry": "boutique-triage-overview:E13",
+   "with": "23/30",
+   "without": "21/30",
+   "effect": 0.067
+  }
+ ]
+}

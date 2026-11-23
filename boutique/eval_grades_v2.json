@@ -748,6 +748,42 @@
       "说明": "延迟在请求到达之前的网络路径上：入向，或 rec 到 productcatalog 那一跳，两者没分开；没有归到自身处理",
       "tokens": 1669113,
       "llm_calls": 17
+     },
+     {
+      "结果": "通过",
+      "严格通过": false,
+      "原因": [
+       {
+        "对象": "recommendationservice",
+        "位置": "对",
+        "机制": "倾向对"
+       }
+      ],
+      "多报": 0,
+      "说明": "",
+      "blind_id": "G069",
+      "repeat": 4,
+      "tokens": 923436,
+      "llm_calls": 13,
+      "判分": "2026-11-23 混入准入运行、遮住组别后判"
+     },
+     {
+      "结果": "通过",
+      "严格通过": false,
+      "原因": [
+       {
+        "对象": "recommendationservice",
+        "位置": "对",
+        "机制": "倾向对"
+       }
+      ],
+      "多报": 0,
+      "说明": "",
+      "blind_id": "G056",
+      "repeat": 5,
+      "tokens": 921403,
+      "llm_calls": 15,
+      "判分": "2026-11-23 混入准入运行、遮住组别后判"
      }
     ],
     "CV02": [
@@ -782,6 +818,57 @@
       "说明": "",
       "tokens": 553385,
       "llm_calls": 11
+     },
+     {
+      "结果": "通过",
+      "严格通过": true,
+      "原因": [
+       {
+        "位置": "对",
+        "机制": "对"
+       }
+      ],
+      "多报": 0,
+      "说明": "",
+      "blind_id": "G013",
+      "repeat": 3,
+      "tokens": 528392,
+      "llm_calls": 12,
+      "判分": "2026-11-23 混入准入运行、遮住组别后判"
+     },
+     {
+      "结果": "通过",
+      "严格通过": true,
+      "原因": [
+       {
+        "位置": "对",
+        "机制": "对"
+       }
+      ],
+      "多报": 0,
+      "说明": "",
+      "blind_id": "G091",
+      "repeat": 4,
+      "tokens": 633735,
+      "llm_calls": 14,
+      "判分": "2026-11-23 混入准入运行、遮住组别后判"
+     },
+     {
+      "结果": "通过",
+      "严格通过": true,
+      "原因": [
+       {
+        "位置": "对",
+        "机制": "对"
+       }
+      ],
+      "多报": 0,
+      "说明": "",
+      "blind_id": "G065",
+      "repeat": 5,
+      "tokens": 724441,
+      "llm_calls": 19,
+      "判分": "2026-11-23 混入准入运行、遮住组别后判"
      }
     ],
     "CV03": [
@@ -850,6 +937,60 @@
       "说明": "丢包或 redis 单线程停顿，说无法区分",
       "tokens": 1325501,
       "llm_calls": 17
+     },
+     {
+      "结果": "部分",
+      "严格通过": false,
+      "原因": [
+       {
+        "对象": "redis-cart",
+        "位置": "没定",
+        "机制": "对"
+       }
+      ],
+      "多报": 0,
+      "说明": "redis-cart 链路与整节点网络并列，说无法区分",
+      "blind_id": "G002",
+      "repeat": 3,
+      "tokens": 2920986,
+      "llm_calls": 28,
+      "判分": "2026-11-23 混入准入运行、遮住组别后判"
+     },
+     {
+      "结果": "通过",
+      "严格通过": true,
+      "原因": [
+       {
+        "对象": "redis-cart",
+        "位置": "对",
+        "机制": "对"
+       }
+      ],
+      "多报": 0,
+      "说明": "",
+      "blind_id": "G126",
+      "repeat": 4,
+      "tokens": 3184250,
+      "llm_calls": 31,
+      "判分": "2026-11-23 混入准入运行、遮住组别后判"
+     },
+     {
+      "结果": "通过",
+      "严格通过": true,
+      "原因": [
+       {
+        "对象": "redis-cart",
+        "位置": "对",
+        "机制": "对"
+       }
+      ],
+      "多报": 0,
+      "说明": "",
+      "blind_id": "G092",
+      "repeat": 5,
+      "tokens": 1682115,
+      "llm_calls": 23,
+      "判分": "2026-11-23 混入准入运行、遮住组别后判"
      }
     ],
     "CV05": [
@@ -894,6 +1035,75 @@
       "说明": "漏了 currencyservice 网络延迟，并写明可排除下游与网络",
       "tokens": 615308,
       "llm_calls": 13
+     },
+     {
+      "结果": "部分",
+      "严格通过": false,
+      "原因": [
+       {
+        "对象": "frontend",
+        "位置": "对",
+        "机制": "对"
+       },
+       {
+        "对象": "currencyservice",
+        "位置": "对",
+        "机制": "没定"
+       }
+      ],
+      "多报": 0,
+      "说明": "currency 机制没定",
+      "blind_id": "G127",
+      "repeat": 3,
+      "tokens": 967212,
+      "llm_calls": 17,
+      "判分": "2026-11-23 混入准入运行、遮住组别后判"
+     },
+     {
+      "结果": "部分",
+      "严格通过": false,
+      "原因": [
+       {
+        "对象": "frontend",
+        "位置": "对",
+        "机制": "对"
+       },
+       {
+        "对象": "currencyservice",
+        "位置": "错",
+        "机制": "-"
+       }
+      ],
+      "多报": 0,
+      "说明": "漏 currency",
+      "blind_id": "G131",
+      "repeat": 4,
+      "tokens": 598230,
+      "llm_calls": 14,
+      "判分": "2026-11-23 混入准入运行、遮住组别后判"
+     },
+     {
+      "结果": "部分",
+      "严格通过": false,
+      "原因": [
+       {
+        "对象": "frontend",
+        "位置": "对",
+        "机制": "对"
+       },
+       {
+        "对象": "currencyservice",
+        "位置": "错",
+        "机制": "-"
+       }
+      ],
+      "多报": 0,
+      "说明": "漏 currency",
+      "blind_id": "G015",
+      "repeat": 5,
+      "tokens": 990014,
+      "llm_calls": 16,
+      "判分": "2026-11-23 混入准入运行、遮住组别后判"
      }
     ],
     "CV06": [
@@ -928,6 +1138,57 @@
       "说明": "",
       "tokens": 357880,
       "llm_calls": 11
+     },
+     {
+      "结果": "通过",
+      "严格通过": true,
+      "原因": [
+       {
+        "位置": "对",
+        "机制": "对"
+       }
+      ],
+      "多报": 0,
+      "说明": "",
+      "blind_id": "G008",
+      "repeat": 3,
+      "tokens": 494523,
+      "llm_calls": 11,
+      "判分": "2026-11-23 混入准入运行、遮住组别后判"
+     },
+     {
+      "结果": "通过",
+      "严格通过": true,
+      "原因": [
+       {
+        "位置": "对",
+        "机制": "对"
+       }
+      ],
+      "多报": 0,
+      "说明": "",
+      "blind_id": "G004",
+      "repeat": 4,
+      "tokens": 382506,
+      "llm_calls": 10,
+      "判分": "2026-11-23 混入准入运行、遮住组别后判"
+     },
+     {
+      "结果": "通过",
+      "严格通过": true,
+      "原因": [
+       {
+        "位置": "对",
+        "机制": "对"
+       }
+      ],
+      "多报": 0,
+      "说明": "",
+      "blind_id": "G038",
+      "repeat": 5,
+      "tokens": 629332,
+      "llm_calls": 15,
+      "判分": "2026-11-23 混入准入运行、遮住组别后判"
      }
     ],
     "CV07": [
@@ -1006,6 +1267,3532 @@
       "说明": "",
       "tokens": 507018,
       "llm_calls": 12
+     },
+     {
+      "结果": "通过",
+      "严格通过": true,
+      "原因": [
+       {
+        "位置": "对",
+        "机制": "对"
+       },
+       {
+        "位置": "对",
+        "机制": "对"
+       }
+      ],
+      "多报": 0,
+      "说明": "",
+      "blind_id": "G110",
+      "repeat": 3,
+      "tokens": 313922,
+      "llm_calls": 11,
+      "判分": "2026-11-23 混入准入运行、遮住组别后判"
+     },
+     {
+      "结果": "通过",
+      "严格通过": true,
+      "原因": [
+       {
+        "位置": "对",
+        "机制": "对"
+       },
+       {
+        "位置": "对",
+        "机制": "对"
+       }
+      ],
+      "多报": 0,
+      "说明": "",
+      "blind_id": "G085",
+      "repeat": 4,
+      "tokens": 700601,
+      "llm_calls": 21,
+      "判分": "2026-11-23 混入准入运行、遮住组别后判"
+     },
+     {
+      "结果": "通过",
+      "严格通过": true,
+      "原因": [
+       {
+        "位置": "对",
+        "机制": "对"
+       },
+       {
+        "位置": "对",
+        "机制": "对"
+       }
+      ],
+      "多报": 0,
+      "说明": "",
+      "blind_id": "G124",
+      "repeat": 5,
+      "tokens": 466978,
+      "llm_calls": 12,
+      "判分": "2026-11-23 混入准入运行、遮住组别后判"
+     }
+    ]
+   },
+   "note_2026-11-23": "CV01、02、04、05、06、08 补到每题 5 遍（阶段 5 的基线，新增 17 次）；下面的 cost/tokens/passes 汇总数字仍是阶段 3 的 51 次。"
+  },
+  "adm-D": {
+   "lib": "holmes/skills/xinc-D-cand",
+   "what": "阶段 5 准入检查：每次运行带上该库随机一半的条目（scripts/admission.py，种子 2026-11-22）",
+   "metrics_tool": true,
+   "max_steps": 100,
+   "graded": "2026-11-23，和基线补跑、另一个库的运行混在一起打乱、遮住组别和所带条目后人工判",
+   "grades": {
+    "CV06": [
+     {
+      "结果": "通过",
+      "严格通过": true,
+      "原因": [
+       {
+        "位置": "对",
+        "机制": "对"
+       }
+      ],
+      "多报": 0,
+      "说明": "",
+      "blind_id": "G094",
+      "repeat": 1,
+      "tokens": 405387,
+      "llm_calls": 12,
+      "entries_present": [
+       "boutique-triage-overview:E10",
+       "boutique-triage-overview:E4",
+       "boutique-triage-overview:E5",
+       "boutique-triage-overview:E7",
+       "boutique-triage-overview:E9"
+      ]
+     },
+     {
+      "结果": "通过",
+      "严格通过": true,
+      "原因": [
+       {
+        "位置": "对",
+        "机制": "对"
+       }
+      ],
+      "多报": 0,
+      "说明": "",
+      "blind_id": "G033",
+      "repeat": 2,
+      "tokens": 323509,
+      "llm_calls": 9,
+      "entries_present": [
+       "boutique-triage-overview:E1",
+       "boutique-triage-overview:E11",
+       "boutique-triage-overview:E2",
+       "boutique-triage-overview:E3",
+       "boutique-triage-overview:E6",
+       "boutique-triage-overview:E8"
+      ]
+     },
+     {
+      "结果": "通过",
+      "严格通过": true,
+      "原因": [
+       {
+        "位置": "对",
+        "机制": "对"
+       }
+      ],
+      "多报": 0,
+      "说明": "",
+      "blind_id": "G027",
+      "repeat": 3,
+      "tokens": 369854,
+      "llm_calls": 10,
+      "entries_present": [
+       "boutique-triage-overview:E2",
+       "boutique-triage-overview:E4",
+       "boutique-triage-overview:E5",
+       "boutique-triage-overview:E6",
+       "boutique-triage-overview:E7",
+       "boutique-triage-overview:E9"
+      ]
+     },
+     {
+      "结果": "通过",
+      "严格通过": true,
+      "原因": [
+       {
+        "位置": "对",
+        "机制": "对"
+       }
+      ],
+      "多报": 0,
+      "说明": "",
+      "blind_id": "G089",
+      "repeat": 4,
+      "tokens": 526140,
+      "llm_calls": 12,
+      "entries_present": [
+       "boutique-triage-overview:E1",
+       "boutique-triage-overview:E10",
+       "boutique-triage-overview:E11",
+       "boutique-triage-overview:E3",
+       "boutique-triage-overview:E8"
+      ]
+     },
+     {
+      "结果": "通过",
+      "严格通过": true,
+      "原因": [
+       {
+        "位置": "对",
+        "机制": "对"
+       }
+      ],
+      "多报": 0,
+      "说明": "",
+      "blind_id": "G129",
+      "repeat": 5,
+      "tokens": 607100,
+      "llm_calls": 14,
+      "entries_present": [
+       "boutique-triage-overview:E1",
+       "boutique-triage-overview:E11",
+       "boutique-triage-overview:E5",
+       "boutique-triage-overview:E7",
+       "boutique-triage-overview:E8"
+      ]
+     },
+     {
+      "结果": "通过",
+      "严格通过": true,
+      "原因": [
+       {
+        "位置": "对",
+        "机制": "对"
+       }
+      ],
+      "多报": 0,
+      "说明": "",
+      "blind_id": "G012",
+      "repeat": 6,
+      "tokens": 322097,
+      "llm_calls": 9,
+      "entries_present": [
+       "boutique-triage-overview:E10",
+       "boutique-triage-overview:E2",
+       "boutique-triage-overview:E3",
+       "boutique-triage-overview:E4",
+       "boutique-triage-overview:E6",
+       "boutique-triage-overview:E9"
+      ]
+     },
+     {
+      "结果": "通过",
+      "严格通过": true,
+      "原因": [
+       {
+        "位置": "对",
+        "机制": "对"
+       }
+      ],
+      "多报": 0,
+      "说明": "",
+      "blind_id": "G113",
+      "repeat": 7,
+      "tokens": 571313,
+      "llm_calls": 15,
+      "entries_present": [
+       "boutique-triage-overview:E1",
+       "boutique-triage-overview:E10",
+       "boutique-triage-overview:E2",
+       "boutique-triage-overview:E3",
+       "boutique-triage-overview:E4",
+       "boutique-triage-overview:E6"
+      ]
+     },
+     {
+      "结果": "通过",
+      "严格通过": true,
+      "原因": [
+       {
+        "位置": "对",
+        "机制": "对"
+       }
+      ],
+      "多报": 0,
+      "说明": "",
+      "blind_id": "G087",
+      "repeat": 8,
+      "tokens": 692274,
+      "llm_calls": 14,
+      "entries_present": [
+       "boutique-triage-overview:E11",
+       "boutique-triage-overview:E5",
+       "boutique-triage-overview:E7",
+       "boutique-triage-overview:E8",
+       "boutique-triage-overview:E9"
+      ]
+     },
+     {
+      "结果": "通过",
+      "严格通过": true,
+      "原因": [
+       {
+        "位置": "对",
+        "机制": "对"
+       }
+      ],
+      "多报": 0,
+      "说明": "",
+      "blind_id": "G059",
+      "repeat": 9,
+      "tokens": 429124,
+      "llm_calls": 11,
+      "entries_present": [
+       "boutique-triage-overview:E1",
+       "boutique-triage-overview:E11",
+       "boutique-triage-overview:E2",
+       "boutique-triage-overview:E3",
+       "boutique-triage-overview:E8"
+      ]
+     },
+     {
+      "结果": "通过",
+      "严格通过": true,
+      "原因": [
+       {
+        "位置": "对",
+        "机制": "对"
+       }
+      ],
+      "多报": 0,
+      "说明": "",
+      "blind_id": "G106",
+      "repeat": 10,
+      "tokens": 344263,
+      "llm_calls": 11,
+      "entries_present": [
+       "boutique-triage-overview:E10",
+       "boutique-triage-overview:E4",
+       "boutique-triage-overview:E5",
+       "boutique-triage-overview:E6",
+       "boutique-triage-overview:E7",
+       "boutique-triage-overview:E9"
+      ]
+     }
+    ],
+    "CV02": [
+     {
+      "结果": "通过",
+      "严格通过": true,
+      "原因": [
+       {
+        "位置": "对",
+        "机制": "对"
+       }
+      ],
+      "多报": 0,
+      "说明": "",
+      "blind_id": "G100",
+      "repeat": 1,
+      "tokens": 789598,
+      "llm_calls": 16,
+      "entries_present": [
+       "boutique-triage-overview:E1",
+       "boutique-triage-overview:E10",
+       "boutique-triage-overview:E11",
+       "boutique-triage-overview:E3",
+       "boutique-triage-overview:E5"
+      ]
+     },
+     {
+      "结果": "通过",
+      "严格通过": true,
+      "原因": [
+       {
+        "位置": "对",
+        "机制": "对"
+       }
+      ],
+      "多报": 0,
+      "说明": "",
+      "blind_id": "G022",
+      "repeat": 2,
+      "tokens": 508814,
+      "llm_calls": 13,
+      "entries_present": [
+       "boutique-triage-overview:E2",
+       "boutique-triage-overview:E4",
+       "boutique-triage-overview:E6",
+       "boutique-triage-overview:E7",
+       "boutique-triage-overview:E8",
+       "boutique-triage-overview:E9"
+      ]
+     },
+     {
+      "结果": "通过",
+      "严格通过": true,
+      "原因": [
+       {
+        "位置": "对",
+        "机制": "对"
+       }
+      ],
+      "多报": 0,
+      "说明": "",
+      "blind_id": "G104",
+      "repeat": 3,
+      "tokens": 363126,
+      "llm_calls": 8,
+      "entries_present": [
+       "boutique-triage-overview:E1",
+       "boutique-triage-overview:E2",
+       "boutique-triage-overview:E3",
+       "boutique-triage-overview:E4",
+       "boutique-triage-overview:E5",
+       "boutique-triage-overview:E9"
+      ]
+     },
+     {
+      "结果": "通过",
+      "严格通过": false,
+      "原因": [
+       {
+        "位置": "对",
+        "机制": "倾向对"
+       }
+      ],
+      "多报": 0,
+      "说明": "主因 CPU 限流，另列网络延迟为无法排除",
+      "blind_id": "G112",
+      "repeat": 4,
+      "tokens": 663410,
+      "llm_calls": 13,
+      "entries_present": [
+       "boutique-triage-overview:E10",
+       "boutique-triage-overview:E11",
+       "boutique-triage-overview:E6",
+       "boutique-triage-overview:E7",
+       "boutique-triage-overview:E8"
+      ]
+     },
+     {
+      "结果": "通过",
+      "严格通过": true,
+      "原因": [
+       {
+        "位置": "对",
+        "机制": "对"
+       }
+      ],
+      "多报": 0,
+      "说明": "",
+      "blind_id": "G029",
+      "repeat": 5,
+      "tokens": 771752,
+      "llm_calls": 15,
+      "entries_present": [
+       "boutique-triage-overview:E1",
+       "boutique-triage-overview:E10",
+       "boutique-triage-overview:E2",
+       "boutique-triage-overview:E5",
+       "boutique-triage-overview:E9"
+      ]
+     },
+     {
+      "结果": "通过",
+      "严格通过": true,
+      "原因": [
+       {
+        "位置": "对",
+        "机制": "对"
+       }
+      ],
+      "多报": 0,
+      "说明": "",
+      "blind_id": "G128",
+      "repeat": 6,
+      "tokens": 762586,
+      "llm_calls": 16,
+      "entries_present": [
+       "boutique-triage-overview:E11",
+       "boutique-triage-overview:E3",
+       "boutique-triage-overview:E4",
+       "boutique-triage-overview:E6",
+       "boutique-triage-overview:E7",
+       "boutique-triage-overview:E8"
+      ]
+     },
+     {
+      "结果": "通过",
+      "严格通过": true,
+      "原因": [
+       {
+        "位置": "对",
+        "机制": "对"
+       }
+      ],
+      "多报": 0,
+      "说明": "",
+      "blind_id": "G050",
+      "repeat": 7,
+      "tokens": 570211,
+      "llm_calls": 13,
+      "entries_present": [
+       "boutique-triage-overview:E10",
+       "boutique-triage-overview:E2",
+       "boutique-triage-overview:E3",
+       "boutique-triage-overview:E4",
+       "boutique-triage-overview:E6",
+       "boutique-triage-overview:E8"
+      ]
+     },
+     {
+      "结果": "通过",
+      "严格通过": true,
+      "原因": [
+       {
+        "位置": "对",
+        "机制": "对"
+       }
+      ],
+      "多报": 0,
+      "说明": "",
+      "blind_id": "G099",
+      "repeat": 8,
+      "tokens": 475480,
+      "llm_calls": 13,
+      "entries_present": [
+       "boutique-triage-overview:E1",
+       "boutique-triage-overview:E11",
+       "boutique-triage-overview:E5",
+       "boutique-triage-overview:E7",
+       "boutique-triage-overview:E9"
+      ]
+     },
+     {
+      "结果": "通过",
+      "严格通过": true,
+      "原因": [
+       {
+        "位置": "对",
+        "机制": "对"
+       }
+      ],
+      "多报": 0,
+      "说明": "",
+      "blind_id": "G052",
+      "repeat": 9,
+      "tokens": 795989,
+      "llm_calls": 15,
+      "entries_present": [
+       "boutique-triage-overview:E1",
+       "boutique-triage-overview:E11",
+       "boutique-triage-overview:E3",
+       "boutique-triage-overview:E4",
+       "boutique-triage-overview:E8"
+      ]
+     },
+     {
+      "结果": "通过",
+      "严格通过": true,
+      "原因": [
+       {
+        "位置": "对",
+        "机制": "对"
+       }
+      ],
+      "多报": 0,
+      "说明": "",
+      "blind_id": "G064",
+      "repeat": 10,
+      "tokens": 700709,
+      "llm_calls": 12,
+      "entries_present": [
+       "boutique-triage-overview:E10",
+       "boutique-triage-overview:E2",
+       "boutique-triage-overview:E5",
+       "boutique-triage-overview:E6",
+       "boutique-triage-overview:E7",
+       "boutique-triage-overview:E9"
+      ]
+     }
+    ],
+    "CV08": [
+     {
+      "结果": "通过",
+      "严格通过": true,
+      "原因": [
+       {
+        "位置": "对",
+        "机制": "对"
+       },
+       {
+        "位置": "对",
+        "机制": "对"
+       }
+      ],
+      "多报": 0,
+      "说明": "",
+      "blind_id": "G043",
+      "repeat": 1,
+      "tokens": 499482,
+      "llm_calls": 13,
+      "entries_present": [
+       "boutique-triage-overview:E1",
+       "boutique-triage-overview:E11",
+       "boutique-triage-overview:E4",
+       "boutique-triage-overview:E5",
+       "boutique-triage-overview:E8"
+      ]
+     },
+     {
+      "结果": "通过",
+      "严格通过": true,
+      "原因": [
+       {
+        "位置": "对",
+        "机制": "对"
+       },
+       {
+        "位置": "对",
+        "机制": "对"
+       }
+      ],
+      "多报": 0,
+      "说明": "",
+      "blind_id": "G137",
+      "repeat": 2,
+      "tokens": 393218,
+      "llm_calls": 13,
+      "entries_present": [
+       "boutique-triage-overview:E10",
+       "boutique-triage-overview:E2",
+       "boutique-triage-overview:E3",
+       "boutique-triage-overview:E6",
+       "boutique-triage-overview:E7",
+       "boutique-triage-overview:E9"
+      ]
+     },
+     {
+      "结果": "通过",
+      "严格通过": true,
+      "原因": [
+       {
+        "位置": "对",
+        "机制": "对"
+       },
+       {
+        "位置": "对",
+        "机制": "对"
+       }
+      ],
+      "多报": 0,
+      "说明": "",
+      "blind_id": "G130",
+      "repeat": 3,
+      "tokens": 450524,
+      "llm_calls": 13,
+      "entries_present": [
+       "boutique-triage-overview:E1",
+       "boutique-triage-overview:E11",
+       "boutique-triage-overview:E2",
+       "boutique-triage-overview:E6",
+       "boutique-triage-overview:E7",
+       "boutique-triage-overview:E8"
+      ]
+     },
+     {
+      "结果": "通过",
+      "严格通过": true,
+      "原因": [
+       {
+        "位置": "对",
+        "机制": "对"
+       },
+       {
+        "位置": "对",
+        "机制": "对"
+       }
+      ],
+      "多报": 0,
+      "说明": "",
+      "blind_id": "G098",
+      "repeat": 4,
+      "tokens": 876182,
+      "llm_calls": 17,
+      "entries_present": [
+       "boutique-triage-overview:E10",
+       "boutique-triage-overview:E3",
+       "boutique-triage-overview:E4",
+       "boutique-triage-overview:E5",
+       "boutique-triage-overview:E9"
+      ]
+     },
+     {
+      "结果": "通过",
+      "严格通过": true,
+      "原因": [
+       {
+        "位置": "对",
+        "机制": "对"
+       },
+       {
+        "位置": "对",
+        "机制": "对"
+       }
+      ],
+      "多报": 0,
+      "说明": "",
+      "blind_id": "G049",
+      "repeat": 5,
+      "tokens": 842769,
+      "llm_calls": 16,
+      "entries_present": [
+       "boutique-triage-overview:E11",
+       "boutique-triage-overview:E3",
+       "boutique-triage-overview:E4",
+       "boutique-triage-overview:E6",
+       "boutique-triage-overview:E9"
+      ]
+     },
+     {
+      "结果": "通过",
+      "严格通过": true,
+      "原因": [
+       {
+        "位置": "对",
+        "机制": "对"
+       },
+       {
+        "位置": "对",
+        "机制": "对"
+       }
+      ],
+      "多报": 0,
+      "说明": "",
+      "blind_id": "G034",
+      "repeat": 6,
+      "tokens": 469425,
+      "llm_calls": 10,
+      "entries_present": [
+       "boutique-triage-overview:E1",
+       "boutique-triage-overview:E10",
+       "boutique-triage-overview:E2",
+       "boutique-triage-overview:E5",
+       "boutique-triage-overview:E7",
+       "boutique-triage-overview:E8"
+      ]
+     },
+     {
+      "结果": "通过",
+      "严格通过": true,
+      "原因": [
+       {
+        "位置": "对",
+        "机制": "对"
+       },
+       {
+        "位置": "对",
+        "机制": "对"
+       }
+      ],
+      "多报": 0,
+      "说明": "",
+      "blind_id": "G084",
+      "repeat": 7,
+      "tokens": 333770,
+      "llm_calls": 10,
+      "entries_present": [
+       "boutique-triage-overview:E11",
+       "boutique-triage-overview:E3",
+       "boutique-triage-overview:E4",
+       "boutique-triage-overview:E5",
+       "boutique-triage-overview:E6",
+       "boutique-triage-overview:E9"
+      ]
+     },
+     {
+      "结果": "通过",
+      "严格通过": true,
+      "原因": [
+       {
+        "位置": "对",
+        "机制": "对"
+       },
+       {
+        "位置": "对",
+        "机制": "对"
+       }
+      ],
+      "多报": 0,
+      "说明": "",
+      "blind_id": "G102",
+      "repeat": 8,
+      "tokens": 635982,
+      "llm_calls": 16,
+      "entries_present": [
+       "boutique-triage-overview:E1",
+       "boutique-triage-overview:E10",
+       "boutique-triage-overview:E2",
+       "boutique-triage-overview:E7",
+       "boutique-triage-overview:E8"
+      ]
+     },
+     {
+      "结果": "通过",
+      "严格通过": true,
+      "原因": [
+       {
+        "位置": "对",
+        "机制": "对"
+       },
+       {
+        "位置": "对",
+        "机制": "对"
+       }
+      ],
+      "多报": 0,
+      "说明": "",
+      "blind_id": "G005",
+      "repeat": 9,
+      "tokens": 718655,
+      "llm_calls": 15,
+      "entries_present": [
+       "boutique-triage-overview:E3",
+       "boutique-triage-overview:E4",
+       "boutique-triage-overview:E5",
+       "boutique-triage-overview:E6",
+       "boutique-triage-overview:E8"
+      ]
+     },
+     {
+      "结果": "通过",
+      "严格通过": true,
+      "原因": [
+       {
+        "位置": "对",
+        "机制": "对"
+       },
+       {
+        "位置": "对",
+        "机制": "对"
+       }
+      ],
+      "多报": 0,
+      "说明": "",
+      "blind_id": "G116",
+      "repeat": 10,
+      "tokens": 454683,
+      "llm_calls": 11,
+      "entries_present": [
+       "boutique-triage-overview:E1",
+       "boutique-triage-overview:E10",
+       "boutique-triage-overview:E11",
+       "boutique-triage-overview:E2",
+       "boutique-triage-overview:E7",
+       "boutique-triage-overview:E9"
+      ]
+     }
+    ],
+    "CV01": [
+     {
+      "结果": "通过",
+      "严格通过": true,
+      "原因": [
+       {
+        "对象": "recommendationservice",
+        "位置": "对",
+        "机制": "对"
+       }
+      ],
+      "多报": 0,
+      "说明": "",
+      "blind_id": "G037",
+      "repeat": 1,
+      "tokens": 904140,
+      "llm_calls": 14,
+      "entries_present": [
+       "boutique-triage-overview:E1",
+       "boutique-triage-overview:E10",
+       "boutique-triage-overview:E3",
+       "boutique-triage-overview:E4",
+       "boutique-triage-overview:E7"
+      ]
+     },
+     {
+      "结果": "通过",
+      "严格通过": true,
+      "原因": [
+       {
+        "对象": "recommendationservice",
+        "位置": "对",
+        "机制": "对"
+       }
+      ],
+      "多报": 0,
+      "说明": "",
+      "blind_id": "G093",
+      "repeat": 2,
+      "tokens": 879043,
+      "llm_calls": 15,
+      "entries_present": [
+       "boutique-triage-overview:E11",
+       "boutique-triage-overview:E2",
+       "boutique-triage-overview:E5",
+       "boutique-triage-overview:E6",
+       "boutique-triage-overview:E8",
+       "boutique-triage-overview:E9"
+      ]
+     },
+     {
+      "结果": "通过",
+      "严格通过": true,
+      "原因": [
+       {
+        "对象": "recommendationservice",
+        "位置": "对",
+        "机制": "对"
+       }
+      ],
+      "多报": 0,
+      "说明": "",
+      "blind_id": "G044",
+      "repeat": 3,
+      "tokens": 845033,
+      "llm_calls": 14,
+      "entries_present": [
+       "boutique-triage-overview:E11",
+       "boutique-triage-overview:E3",
+       "boutique-triage-overview:E6",
+       "boutique-triage-overview:E7",
+       "boutique-triage-overview:E8",
+       "boutique-triage-overview:E9"
+      ]
+     },
+     {
+      "结果": "通过",
+      "严格通过": true,
+      "原因": [
+       {
+        "对象": "recommendationservice",
+        "位置": "对",
+        "机制": "对"
+       }
+      ],
+      "多报": 0,
+      "说明": "",
+      "blind_id": "G109",
+      "repeat": 4,
+      "tokens": 637811,
+      "llm_calls": 12,
+      "entries_present": [
+       "boutique-triage-overview:E1",
+       "boutique-triage-overview:E10",
+       "boutique-triage-overview:E2",
+       "boutique-triage-overview:E4",
+       "boutique-triage-overview:E5"
+      ]
+     },
+     {
+      "结果": "通过",
+      "严格通过": true,
+      "原因": [
+       {
+        "对象": "recommendationservice",
+        "位置": "对",
+        "机制": "对"
+       }
+      ],
+      "多报": 0,
+      "说明": "",
+      "blind_id": "G121",
+      "repeat": 5,
+      "tokens": 1314985,
+      "llm_calls": 18,
+      "entries_present": [
+       "boutique-triage-overview:E1",
+       "boutique-triage-overview:E11",
+       "boutique-triage-overview:E5",
+       "boutique-triage-overview:E8",
+       "boutique-triage-overview:E9"
+      ]
+     },
+     {
+      "结果": "部分",
+      "严格通过": false,
+      "原因": [
+       {
+        "对象": "recommendationservice",
+        "位置": "对",
+        "机制": "没定"
+       }
+      ],
+      "多报": 0,
+      "说明": "网络路径和自身处理并列，说无法区分",
+      "blind_id": "G036",
+      "repeat": 6,
+      "tokens": 2128991,
+      "llm_calls": 27,
+      "entries_present": [
+       "boutique-triage-overview:E10",
+       "boutique-triage-overview:E2",
+       "boutique-triage-overview:E3",
+       "boutique-triage-overview:E4",
+       "boutique-triage-overview:E6",
+       "boutique-triage-overview:E7"
+      ]
+     },
+     {
+      "结果": "通过",
+      "严格通过": true,
+      "原因": [
+       {
+        "对象": "recommendationservice",
+        "位置": "对",
+        "机制": "对"
+       }
+      ],
+      "多报": 0,
+      "说明": "",
+      "blind_id": "G003",
+      "repeat": 7,
+      "tokens": 1111256,
+      "llm_calls": 15,
+      "entries_present": [
+       "boutique-triage-overview:E1",
+       "boutique-triage-overview:E11",
+       "boutique-triage-overview:E2",
+       "boutique-triage-overview:E4",
+       "boutique-triage-overview:E5",
+       "boutique-triage-overview:E9"
+      ]
+     },
+     {
+      "结果": "通过",
+      "严格通过": false,
+      "原因": [
+       {
+        "对象": "recommendationservice",
+        "位置": "对",
+        "机制": "倾向对"
+       }
+      ],
+      "多报": 0,
+      "说明": "",
+      "blind_id": "G010",
+      "repeat": 8,
+      "tokens": 804397,
+      "llm_calls": 13,
+      "entries_present": [
+       "boutique-triage-overview:E10",
+       "boutique-triage-overview:E3",
+       "boutique-triage-overview:E6",
+       "boutique-triage-overview:E7",
+       "boutique-triage-overview:E8"
+      ]
+     },
+     {
+      "结果": "通过",
+      "严格通过": false,
+      "原因": [
+       {
+        "对象": "recommendationservice",
+        "位置": "对",
+        "机制": "倾向对"
+       }
+      ],
+      "多报": 0,
+      "说明": "",
+      "blind_id": "G067",
+      "repeat": 9,
+      "tokens": 1309539,
+      "llm_calls": 18,
+      "entries_present": [
+       "boutique-triage-overview:E11",
+       "boutique-triage-overview:E2",
+       "boutique-triage-overview:E4",
+       "boutique-triage-overview:E5",
+       "boutique-triage-overview:E6"
+      ]
+     },
+     {
+      "结果": "通过",
+      "严格通过": true,
+      "原因": [
+       {
+        "对象": "recommendationservice",
+        "位置": "对",
+        "机制": "对"
+       }
+      ],
+      "多报": 0,
+      "说明": "",
+      "blind_id": "G016",
+      "repeat": 10,
+      "tokens": 1580057,
+      "llm_calls": 19,
+      "entries_present": [
+       "boutique-triage-overview:E1",
+       "boutique-triage-overview:E10",
+       "boutique-triage-overview:E3",
+       "boutique-triage-overview:E7",
+       "boutique-triage-overview:E8",
+       "boutique-triage-overview:E9"
+      ]
+     }
+    ],
+    "CV04": [
+     {
+      "结果": "通过",
+      "严格通过": true,
+      "原因": [
+       {
+        "对象": "redis-cart",
+        "位置": "对",
+        "机制": "对"
+       }
+      ],
+      "多报": 0,
+      "说明": "",
+      "blind_id": "G081",
+      "repeat": 1,
+      "tokens": 1368779,
+      "llm_calls": 18,
+      "entries_present": [
+       "boutique-triage-overview:E1",
+       "boutique-triage-overview:E2",
+       "boutique-triage-overview:E6",
+       "boutique-triage-overview:E8",
+       "boutique-triage-overview:E9"
+      ]
+     },
+     {
+      "结果": "通过",
+      "严格通过": true,
+      "原因": [
+       {
+        "对象": "redis-cart",
+        "位置": "对",
+        "机制": "对"
+       }
+      ],
+      "多报": 0,
+      "说明": "",
+      "blind_id": "G046",
+      "repeat": 2,
+      "tokens": 988720,
+      "llm_calls": 16,
+      "entries_present": [
+       "boutique-triage-overview:E10",
+       "boutique-triage-overview:E11",
+       "boutique-triage-overview:E3",
+       "boutique-triage-overview:E4",
+       "boutique-triage-overview:E5",
+       "boutique-triage-overview:E7"
+      ]
+     },
+     {
+      "结果": "错",
+      "严格通过": false,
+      "原因": [
+       {
+        "对象": "redis-cart",
+        "位置": "错",
+        "机制": "-"
+       }
+      ],
+      "多报": 0,
+      "说明": "判给节点 Pod 网络",
+      "blind_id": "G053",
+      "repeat": 3,
+      "tokens": 2492491,
+      "llm_calls": 29,
+      "entries_present": [
+       "boutique-triage-overview:E1",
+       "boutique-triage-overview:E11",
+       "boutique-triage-overview:E3",
+       "boutique-triage-overview:E5",
+       "boutique-triage-overview:E6",
+       "boutique-triage-overview:E8"
+      ]
+     },
+     {
+      "结果": "通过",
+      "严格通过": true,
+      "原因": [
+       {
+        "对象": "redis-cart",
+        "位置": "对",
+        "机制": "对"
+       }
+      ],
+      "多报": 0,
+      "说明": "",
+      "blind_id": "G058",
+      "repeat": 4,
+      "tokens": 1182832,
+      "llm_calls": 18,
+      "entries_present": [
+       "boutique-triage-overview:E10",
+       "boutique-triage-overview:E2",
+       "boutique-triage-overview:E4",
+       "boutique-triage-overview:E7",
+       "boutique-triage-overview:E9"
+      ]
+     },
+     {
+      "结果": "通过",
+      "严格通过": true,
+      "原因": [
+       {
+        "对象": "redis-cart",
+        "位置": "对",
+        "机制": "对"
+       }
+      ],
+      "多报": 0,
+      "说明": "",
+      "blind_id": "G017",
+      "repeat": 5,
+      "tokens": 1369932,
+      "llm_calls": 18,
+      "entries_present": [
+       "boutique-triage-overview:E10",
+       "boutique-triage-overview:E11",
+       "boutique-triage-overview:E3",
+       "boutique-triage-overview:E5",
+       "boutique-triage-overview:E7"
+      ]
+     },
+     {
+      "结果": "通过",
+      "严格通过": true,
+      "原因": [
+       {
+        "对象": "redis-cart",
+        "位置": "对",
+        "机制": "对"
+       }
+      ],
+      "多报": 0,
+      "说明": "",
+      "blind_id": "G076",
+      "repeat": 6,
+      "tokens": 1140064,
+      "llm_calls": 19,
+      "entries_present": [
+       "boutique-triage-overview:E1",
+       "boutique-triage-overview:E2",
+       "boutique-triage-overview:E4",
+       "boutique-triage-overview:E6",
+       "boutique-triage-overview:E8",
+       "boutique-triage-overview:E9"
+      ]
+     },
+     {
+      "结果": "通过",
+      "严格通过": true,
+      "原因": [
+       {
+        "对象": "redis-cart",
+        "位置": "对",
+        "机制": "对"
+       }
+      ],
+      "多报": 0,
+      "说明": "",
+      "blind_id": "G073",
+      "repeat": 7,
+      "tokens": 1920098,
+      "llm_calls": 26,
+      "entries_present": [
+       "boutique-triage-overview:E11",
+       "boutique-triage-overview:E3",
+       "boutique-triage-overview:E4",
+       "boutique-triage-overview:E5",
+       "boutique-triage-overview:E7",
+       "boutique-triage-overview:E8"
+      ]
+     },
+     {
+      "结果": "通过",
+      "严格通过": true,
+      "原因": [
+       {
+        "对象": "redis-cart",
+        "位置": "对",
+        "机制": "对"
+       }
+      ],
+      "多报": 0,
+      "说明": "",
+      "blind_id": "G108",
+      "repeat": 8,
+      "tokens": 786858,
+      "llm_calls": 17,
+      "entries_present": [
+       "boutique-triage-overview:E1",
+       "boutique-triage-overview:E10",
+       "boutique-triage-overview:E2",
+       "boutique-triage-overview:E6",
+       "boutique-triage-overview:E9"
+      ]
+     },
+     {
+      "结果": "错",
+      "严格通过": false,
+      "原因": [
+       {
+        "对象": "redis-cart",
+        "位置": "没定",
+        "机制": "-"
+       }
+      ],
+      "多报": 1,
+      "说明": "currencyservice 一跳加 cart-redis 一跳，没指到 redis-cart；多报",
+      "blind_id": "G054",
+      "repeat": 9,
+      "tokens": 1793425,
+      "llm_calls": 18,
+      "entries_present": [
+       "boutique-triage-overview:E1",
+       "boutique-triage-overview:E10",
+       "boutique-triage-overview:E2",
+       "boutique-triage-overview:E6",
+       "boutique-triage-overview:E7"
+      ]
+     },
+     {
+      "结果": "通过",
+      "严格通过": false,
+      "原因": [
+       {
+        "对象": "redis-cart",
+        "位置": "对",
+        "机制": "倾向对"
+       }
+      ],
+      "多报": 0,
+      "说明": "",
+      "blind_id": "G074",
+      "repeat": 10,
+      "tokens": 626990,
+      "llm_calls": 11,
+      "entries_present": [
+       "boutique-triage-overview:E11",
+       "boutique-triage-overview:E3",
+       "boutique-triage-overview:E4",
+       "boutique-triage-overview:E5",
+       "boutique-triage-overview:E8",
+       "boutique-triage-overview:E9"
+      ]
+     }
+    ],
+    "CV05": [
+     {
+      "结果": "部分",
+      "严格通过": false,
+      "原因": [
+       {
+        "对象": "frontend",
+        "位置": "对",
+        "机制": "对"
+       },
+       {
+        "对象": "currencyservice",
+        "位置": "错",
+        "机制": "-"
+       }
+      ],
+      "多报": 0,
+      "说明": "漏 currency",
+      "blind_id": "G020",
+      "repeat": 1,
+      "tokens": 572075,
+      "llm_calls": 12,
+      "entries_present": [
+       "boutique-triage-overview:E1",
+       "boutique-triage-overview:E2",
+       "boutique-triage-overview:E4",
+       "boutique-triage-overview:E8",
+       "boutique-triage-overview:E9"
+      ]
+     },
+     {
+      "结果": "部分",
+      "严格通过": false,
+      "原因": [
+       {
+        "对象": "frontend",
+        "位置": "错",
+        "机制": "-"
+       },
+       {
+        "对象": "currencyservice",
+        "位置": "对",
+        "机制": "对"
+       }
+      ],
+      "多报": 0,
+      "说明": "currency 对/对；frontend 的 CPU 限流被明确说不是原因",
+      "blind_id": "G024",
+      "repeat": 2,
+      "tokens": 1484972,
+      "llm_calls": 18,
+      "entries_present": [
+       "boutique-triage-overview:E10",
+       "boutique-triage-overview:E11",
+       "boutique-triage-overview:E3",
+       "boutique-triage-overview:E5",
+       "boutique-triage-overview:E6",
+       "boutique-triage-overview:E7"
+      ]
+     },
+     {
+      "结果": "通过",
+      "严格通过": true,
+      "原因": [
+       {
+        "对象": "frontend",
+        "位置": "对",
+        "机制": "对"
+       },
+       {
+        "对象": "currencyservice",
+        "位置": "对",
+        "机制": "对"
+       }
+      ],
+      "多报": 0,
+      "说明": "都对",
+      "blind_id": "G070",
+      "repeat": 3,
+      "tokens": 2363090,
+      "llm_calls": 22,
+      "entries_present": [
+       "boutique-triage-overview:E1",
+       "boutique-triage-overview:E10",
+       "boutique-triage-overview:E2",
+       "boutique-triage-overview:E6",
+       "boutique-triage-overview:E7",
+       "boutique-triage-overview:E8"
+      ]
+     },
+     {
+      "结果": "部分",
+      "严格通过": false,
+      "原因": [
+       {
+        "对象": "frontend",
+        "位置": "对",
+        "机制": "对"
+       },
+       {
+        "对象": "currencyservice",
+        "位置": "错",
+        "机制": "-"
+       }
+      ],
+      "多报": 0,
+      "说明": "漏 currency",
+      "blind_id": "G009",
+      "repeat": 4,
+      "tokens": 1316868,
+      "llm_calls": 17,
+      "entries_present": [
+       "boutique-triage-overview:E11",
+       "boutique-triage-overview:E3",
+       "boutique-triage-overview:E4",
+       "boutique-triage-overview:E5",
+       "boutique-triage-overview:E9"
+      ]
+     },
+     {
+      "结果": "部分",
+      "严格通过": false,
+      "原因": [
+       {
+        "对象": "frontend",
+        "位置": "对",
+        "机制": "对"
+       },
+       {
+        "对象": "currencyservice",
+        "位置": "错",
+        "机制": "-"
+       }
+      ],
+      "多报": 0,
+      "说明": "漏 currency",
+      "blind_id": "G096",
+      "repeat": 5,
+      "tokens": 931086,
+      "llm_calls": 16,
+      "entries_present": [
+       "boutique-triage-overview:E10",
+       "boutique-triage-overview:E11",
+       "boutique-triage-overview:E2",
+       "boutique-triage-overview:E4",
+       "boutique-triage-overview:E7"
+      ]
+     },
+     {
+      "结果": "部分",
+      "严格通过": false,
+      "原因": [
+       {
+        "对象": "frontend",
+        "位置": "对",
+        "机制": "对"
+       },
+       {
+        "对象": "currencyservice",
+        "位置": "错",
+        "机制": "-"
+       }
+      ],
+      "多报": 0,
+      "说明": "漏 currency",
+      "blind_id": "G018",
+      "repeat": 6,
+      "tokens": 948472,
+      "llm_calls": 17,
+      "entries_present": [
+       "boutique-triage-overview:E1",
+       "boutique-triage-overview:E3",
+       "boutique-triage-overview:E5",
+       "boutique-triage-overview:E6",
+       "boutique-triage-overview:E8",
+       "boutique-triage-overview:E9"
+      ]
+     },
+     {
+      "结果": "部分",
+      "严格通过": false,
+      "原因": [
+       {
+        "对象": "frontend",
+        "位置": "对",
+        "机制": "对"
+       },
+       {
+        "对象": "currencyservice",
+        "位置": "对",
+        "机制": "没定"
+       }
+      ],
+      "多报": 0,
+      "说明": "currency 机制没定",
+      "blind_id": "G103",
+      "repeat": 7,
+      "tokens": 856473,
+      "llm_calls": 14,
+      "entries_present": [
+       "boutique-triage-overview:E3",
+       "boutique-triage-overview:E4",
+       "boutique-triage-overview:E5",
+       "boutique-triage-overview:E6",
+       "boutique-triage-overview:E7",
+       "boutique-triage-overview:E9"
+      ]
+     },
+     {
+      "结果": "通过",
+      "严格通过": true,
+      "原因": [
+       {
+        "对象": "frontend",
+        "位置": "对",
+        "机制": "对"
+       },
+       {
+        "对象": "currencyservice",
+        "位置": "对",
+        "机制": "对"
+       }
+      ],
+      "多报": 0,
+      "说明": "frontend 对/对；currency 对/对",
+      "blind_id": "G001",
+      "repeat": 8,
+      "tokens": 869776,
+      "llm_calls": 18,
+      "entries_present": [
+       "boutique-triage-overview:E1",
+       "boutique-triage-overview:E10",
+       "boutique-triage-overview:E11",
+       "boutique-triage-overview:E2",
+       "boutique-triage-overview:E8"
+      ]
+     },
+     {
+      "结果": "部分",
+      "严格通过": false,
+      "原因": [
+       {
+        "对象": "frontend",
+        "位置": "对",
+        "机制": "对"
+       },
+       {
+        "对象": "currencyservice",
+        "位置": "错",
+        "机制": "-"
+       }
+      ],
+      "多报": 0,
+      "说明": "漏 currency",
+      "blind_id": "G115",
+      "repeat": 9,
+      "tokens": 423531,
+      "llm_calls": 11,
+      "entries_present": [
+       "boutique-triage-overview:E1",
+       "boutique-triage-overview:E10",
+       "boutique-triage-overview:E11",
+       "boutique-triage-overview:E6",
+       "boutique-triage-overview:E8"
+      ]
+     },
+     {
+      "结果": "通过",
+      "严格通过": true,
+      "原因": [
+       {
+        "对象": "frontend",
+        "位置": "对",
+        "机制": "对"
+       },
+       {
+        "对象": "currencyservice",
+        "位置": "对",
+        "机制": "对"
+       }
+      ],
+      "多报": 0,
+      "说明": "都对",
+      "blind_id": "G055",
+      "repeat": 10,
+      "tokens": 974727,
+      "llm_calls": 14,
+      "entries_present": [
+       "boutique-triage-overview:E2",
+       "boutique-triage-overview:E3",
+       "boutique-triage-overview:E4",
+       "boutique-triage-overview:E5",
+       "boutique-triage-overview:E7",
+       "boutique-triage-overview:E9"
+      ]
+     }
+    ]
+   }
+  },
+  "adm-B": {
+   "lib": "holmes/skills/xinc-B-cand",
+   "what": "阶段 5 准入检查：每次运行带上该库随机一半的条目（scripts/admission.py，种子 2026-11-22）",
+   "metrics_tool": true,
+   "max_steps": 100,
+   "graded": "2026-11-23，和基线补跑、另一个库的运行混在一起打乱、遮住组别和所带条目后人工判",
+   "grades": {
+    "CV06": [
+     {
+      "结果": "通过",
+      "严格通过": true,
+      "原因": [
+       {
+        "位置": "对",
+        "机制": "对"
+       }
+      ],
+      "多报": 0,
+      "说明": "",
+      "blind_id": "G061",
+      "repeat": 1,
+      "tokens": 640907,
+      "llm_calls": 14,
+      "entries_present": [
+       "boutique-cartservice:E1",
+       "boutique-currencyservice:E1",
+       "boutique-frontend:E1",
+       "boutique-recommendationservice:E1",
+       "boutique-redis-cart:E1",
+       "boutique-shippingservice:E1",
+       "boutique-triage-overview:E12",
+       "boutique-triage-overview:E13",
+       "boutique-triage-overview:E2",
+       "boutique-triage-overview:E5",
+       "boutique-triage-overview:E6"
+      ]
+     },
+     {
+      "结果": "通过",
+      "严格通过": true,
+      "原因": [
+       {
+        "位置": "对",
+        "机制": "对"
+       }
+      ],
+      "多报": 0,
+      "说明": "",
+      "blind_id": "G107",
+      "repeat": 2,
+      "tokens": 292400,
+      "llm_calls": 8,
+      "entries_present": [
+       "boutique-checkoutservice:E1",
+       "boutique-checkoutservice:E2",
+       "boutique-currencyservice:E2",
+       "boutique-productcatalogservice:E1",
+       "boutique-triage-overview:E1",
+       "boutique-triage-overview:E10",
+       "boutique-triage-overview:E11",
+       "boutique-triage-overview:E3",
+       "boutique-triage-overview:E4",
+       "boutique-triage-overview:E7",
+       "boutique-triage-overview:E8",
+       "boutique-triage-overview:E9"
+      ]
+     },
+     {
+      "结果": "通过",
+      "严格通过": true,
+      "原因": [
+       {
+        "位置": "对",
+        "机制": "对"
+       }
+      ],
+      "多报": 0,
+      "说明": "",
+      "blind_id": "G066",
+      "repeat": 3,
+      "tokens": 420200,
+      "llm_calls": 11,
+      "entries_present": [
+       "boutique-checkoutservice:E1",
+       "boutique-currencyservice:E2",
+       "boutique-frontend:E1",
+       "boutique-productcatalogservice:E1",
+       "boutique-redis-cart:E1",
+       "boutique-triage-overview:E12",
+       "boutique-triage-overview:E13",
+       "boutique-triage-overview:E5",
+       "boutique-triage-overview:E6",
+       "boutique-triage-overview:E7",
+       "boutique-triage-overview:E8",
+       "boutique-triage-overview:E9"
+      ]
+     },
+     {
+      "结果": "通过",
+      "严格通过": true,
+      "原因": [
+       {
+        "位置": "对",
+        "机制": "对"
+       }
+      ],
+      "多报": 0,
+      "说明": "",
+      "blind_id": "G101",
+      "repeat": 4,
+      "tokens": 427075,
+      "llm_calls": 11,
+      "entries_present": [
+       "boutique-cartservice:E1",
+       "boutique-checkoutservice:E2",
+       "boutique-currencyservice:E1",
+       "boutique-recommendationservice:E1",
+       "boutique-shippingservice:E1",
+       "boutique-triage-overview:E1",
+       "boutique-triage-overview:E10",
+       "boutique-triage-overview:E11",
+       "boutique-triage-overview:E2",
+       "boutique-triage-overview:E3",
+       "boutique-triage-overview:E4"
+      ]
+     },
+     {
+      "结果": "通过",
+      "严格通过": true,
+      "原因": [
+       {
+        "位置": "对",
+        "机制": "对"
+       }
+      ],
+      "多报": 0,
+      "说明": "",
+      "blind_id": "G025",
+      "repeat": 5,
+      "tokens": 843561,
+      "llm_calls": 16,
+      "entries_present": [
+       "boutique-cartservice:E1",
+       "boutique-checkoutservice:E2",
+       "boutique-currencyservice:E1",
+       "boutique-frontend:E1",
+       "boutique-productcatalogservice:E1",
+       "boutique-recommendationservice:E1",
+       "boutique-redis-cart:E1",
+       "boutique-triage-overview:E10",
+       "boutique-triage-overview:E11",
+       "boutique-triage-overview:E12",
+       "boutique-triage-overview:E5"
+      ]
+     },
+     {
+      "结果": "通过",
+      "严格通过": true,
+      "原因": [
+       {
+        "位置": "对",
+        "机制": "对"
+       }
+      ],
+      "多报": 0,
+      "说明": "",
+      "blind_id": "G041",
+      "repeat": 6,
+      "tokens": 655089,
+      "llm_calls": 16,
+      "entries_present": [
+       "boutique-checkoutservice:E1",
+       "boutique-currencyservice:E2",
+       "boutique-shippingservice:E1",
+       "boutique-triage-overview:E1",
+       "boutique-triage-overview:E13",
+       "boutique-triage-overview:E2",
+       "boutique-triage-overview:E3",
+       "boutique-triage-overview:E4",
+       "boutique-triage-overview:E6",
+       "boutique-triage-overview:E7",
+       "boutique-triage-overview:E8",
+       "boutique-triage-overview:E9"
+      ]
+     },
+     {
+      "结果": "通过",
+      "严格通过": true,
+      "原因": [
+       {
+        "位置": "对",
+        "机制": "对"
+       }
+      ],
+      "多报": 0,
+      "说明": "",
+      "blind_id": "G042",
+      "repeat": 7,
+      "tokens": 447700,
+      "llm_calls": 10,
+      "entries_present": [
+       "boutique-cartservice:E1",
+       "boutique-checkoutservice:E1",
+       "boutique-checkoutservice:E2",
+       "boutique-currencyservice:E1",
+       "boutique-frontend:E1",
+       "boutique-redis-cart:E1",
+       "boutique-triage-overview:E11",
+       "boutique-triage-overview:E13",
+       "boutique-triage-overview:E2",
+       "boutique-triage-overview:E3",
+       "boutique-triage-overview:E5",
+       "boutique-triage-overview:E7"
+      ]
+     },
+     {
+      "结果": "通过",
+      "严格通过": true,
+      "原因": [
+       {
+        "位置": "对",
+        "机制": "对"
+       }
+      ],
+      "多报": 0,
+      "说明": "",
+      "blind_id": "G057",
+      "repeat": 8,
+      "tokens": 378865,
+      "llm_calls": 10,
+      "entries_present": [
+       "boutique-currencyservice:E2",
+       "boutique-productcatalogservice:E1",
+       "boutique-recommendationservice:E1",
+       "boutique-shippingservice:E1",
+       "boutique-triage-overview:E1",
+       "boutique-triage-overview:E10",
+       "boutique-triage-overview:E12",
+       "boutique-triage-overview:E4",
+       "boutique-triage-overview:E6",
+       "boutique-triage-overview:E8",
+       "boutique-triage-overview:E9"
+      ]
+     },
+     {
+      "结果": "通过",
+      "严格通过": true,
+      "原因": [
+       {
+        "位置": "对",
+        "机制": "对"
+       }
+      ],
+      "多报": 0,
+      "说明": "",
+      "blind_id": "G028",
+      "repeat": 9,
+      "tokens": 335828,
+      "llm_calls": 9,
+      "entries_present": [
+       "boutique-currencyservice:E2",
+       "boutique-frontend:E1",
+       "boutique-redis-cart:E1",
+       "boutique-shippingservice:E1",
+       "boutique-triage-overview:E1",
+       "boutique-triage-overview:E11",
+       "boutique-triage-overview:E12",
+       "boutique-triage-overview:E13",
+       "boutique-triage-overview:E3",
+       "boutique-triage-overview:E4",
+       "boutique-triage-overview:E5"
+      ]
+     },
+     {
+      "结果": "通过",
+      "严格通过": true,
+      "原因": [
+       {
+        "位置": "对",
+        "机制": "对"
+       }
+      ],
+      "多报": 0,
+      "说明": "",
+      "blind_id": "G118",
+      "repeat": 10,
+      "tokens": 521350,
+      "llm_calls": 11,
+      "entries_present": [
+       "boutique-cartservice:E1",
+       "boutique-checkoutservice:E1",
+       "boutique-checkoutservice:E2",
+       "boutique-currencyservice:E1",
+       "boutique-productcatalogservice:E1",
+       "boutique-recommendationservice:E1",
+       "boutique-triage-overview:E10",
+       "boutique-triage-overview:E2",
+       "boutique-triage-overview:E6",
+       "boutique-triage-overview:E7",
+       "boutique-triage-overview:E8",
+       "boutique-triage-overview:E9"
+      ]
+     }
+    ],
+    "CV02": [
+     {
+      "结果": "通过",
+      "严格通过": true,
+      "原因": [
+       {
+        "位置": "对",
+        "机制": "对"
+       }
+      ],
+      "多报": 0,
+      "说明": "",
+      "blind_id": "G072",
+      "repeat": 1,
+      "tokens": 962582,
+      "llm_calls": 14,
+      "entries_present": [
+       "boutique-cartservice:E1",
+       "boutique-checkoutservice:E1",
+       "boutique-checkoutservice:E2",
+       "boutique-frontend:E1",
+       "boutique-redis-cart:E1",
+       "boutique-triage-overview:E1",
+       "boutique-triage-overview:E10",
+       "boutique-triage-overview:E11",
+       "boutique-triage-overview:E13",
+       "boutique-triage-overview:E5",
+       "boutique-triage-overview:E6"
+      ]
+     },
+     {
+      "结果": "通过",
+      "严格通过": true,
+      "原因": [
+       {
+        "位置": "对",
+        "机制": "对"
+       }
+      ],
+      "多报": 0,
+      "说明": "",
+      "blind_id": "G133",
+      "repeat": 2,
+      "tokens": 1796287,
+      "llm_calls": 21,
+      "entries_present": [
+       "boutique-currencyservice:E1",
+       "boutique-currencyservice:E2",
+       "boutique-productcatalogservice:E1",
+       "boutique-recommendationservice:E1",
+       "boutique-shippingservice:E1",
+       "boutique-triage-overview:E12",
+       "boutique-triage-overview:E2",
+       "boutique-triage-overview:E3",
+       "boutique-triage-overview:E4",
+       "boutique-triage-overview:E7",
+       "boutique-triage-overview:E8",
+       "boutique-triage-overview:E9"
+      ]
+     },
+     {
+      "结果": "通过",
+      "严格通过": true,
+      "原因": [
+       {
+        "位置": "对",
+        "机制": "对"
+       }
+      ],
+      "多报": 0,
+      "说明": "",
+      "blind_id": "G011",
+      "repeat": 3,
+      "tokens": 873039,
+      "llm_calls": 16,
+      "entries_present": [
+       "boutique-checkoutservice:E1",
+       "boutique-currencyservice:E1",
+       "boutique-currencyservice:E2",
+       "boutique-redis-cart:E1",
+       "boutique-shippingservice:E1",
+       "boutique-triage-overview:E1",
+       "boutique-triage-overview:E11",
+       "boutique-triage-overview:E12",
+       "boutique-triage-overview:E13",
+       "boutique-triage-overview:E5",
+       "boutique-triage-overview:E6",
+       "boutique-triage-overview:E9"
+      ]
+     },
+     {
+      "结果": "通过",
+      "严格通过": true,
+      "原因": [
+       {
+        "位置": "对",
+        "机制": "对"
+       }
+      ],
+      "多报": 0,
+      "说明": "",
+      "blind_id": "G040",
+      "repeat": 4,
+      "tokens": 545727,
+      "llm_calls": 11,
+      "entries_present": [
+       "boutique-cartservice:E1",
+       "boutique-checkoutservice:E2",
+       "boutique-frontend:E1",
+       "boutique-productcatalogservice:E1",
+       "boutique-recommendationservice:E1",
+       "boutique-triage-overview:E10",
+       "boutique-triage-overview:E2",
+       "boutique-triage-overview:E3",
+       "boutique-triage-overview:E4",
+       "boutique-triage-overview:E7",
+       "boutique-triage-overview:E8"
+      ]
+     },
+     {
+      "结果": "通过",
+      "严格通过": true,
+      "原因": [
+       {
+        "位置": "对",
+        "机制": "对"
+       }
+      ],
+      "多报": 0,
+      "说明": "",
+      "blind_id": "G006",
+      "repeat": 5,
+      "tokens": 638402,
+      "llm_calls": 12,
+      "entries_present": [
+       "boutique-checkoutservice:E1",
+       "boutique-checkoutservice:E2",
+       "boutique-currencyservice:E1",
+       "boutique-currencyservice:E2",
+       "boutique-frontend:E1",
+       "boutique-redis-cart:E1",
+       "boutique-triage-overview:E12",
+       "boutique-triage-overview:E2",
+       "boutique-triage-overview:E4",
+       "boutique-triage-overview:E6",
+       "boutique-triage-overview:E8"
+      ]
+     },
+     {
+      "结果": "通过",
+      "严格通过": true,
+      "原因": [
+       {
+        "位置": "对",
+        "机制": "对"
+       }
+      ],
+      "多报": 0,
+      "说明": "",
+      "blind_id": "G134",
+      "repeat": 6,
+      "tokens": 769685,
+      "llm_calls": 12,
+      "entries_present": [
+       "boutique-cartservice:E1",
+       "boutique-productcatalogservice:E1",
+       "boutique-recommendationservice:E1",
+       "boutique-shippingservice:E1",
+       "boutique-triage-overview:E1",
+       "boutique-triage-overview:E10",
+       "boutique-triage-overview:E11",
+       "boutique-triage-overview:E13",
+       "boutique-triage-overview:E3",
+       "boutique-triage-overview:E5",
+       "boutique-triage-overview:E7",
+       "boutique-triage-overview:E9"
+      ]
+     },
+     {
+      "结果": "通过",
+      "严格通过": true,
+      "原因": [
+       {
+        "位置": "对",
+        "机制": "对"
+       }
+      ],
+      "多报": 0,
+      "说明": "",
+      "blind_id": "G082",
+      "repeat": 7,
+      "tokens": 437167,
+      "llm_calls": 11,
+      "entries_present": [
+       "boutique-cartservice:E1",
+       "boutique-checkoutservice:E1",
+       "boutique-checkoutservice:E2",
+       "boutique-currencyservice:E2",
+       "boutique-frontend:E1",
+       "boutique-triage-overview:E13",
+       "boutique-triage-overview:E2",
+       "boutique-triage-overview:E3",
+       "boutique-triage-overview:E4",
+       "boutique-triage-overview:E5",
+       "boutique-triage-overview:E6",
+       "boutique-triage-overview:E9"
+      ]
+     },
+     {
+      "结果": "通过",
+      "严格通过": true,
+      "原因": [
+       {
+        "位置": "对",
+        "机制": "对"
+       }
+      ],
+      "多报": 0,
+      "说明": "",
+      "blind_id": "G048",
+      "repeat": 8,
+      "tokens": 486136,
+      "llm_calls": 10,
+      "entries_present": [
+       "boutique-currencyservice:E1",
+       "boutique-productcatalogservice:E1",
+       "boutique-recommendationservice:E1",
+       "boutique-redis-cart:E1",
+       "boutique-shippingservice:E1",
+       "boutique-triage-overview:E1",
+       "boutique-triage-overview:E10",
+       "boutique-triage-overview:E11",
+       "boutique-triage-overview:E12",
+       "boutique-triage-overview:E7",
+       "boutique-triage-overview:E8"
+      ]
+     },
+     {
+      "结果": "通过",
+      "严格通过": true,
+      "原因": [
+       {
+        "位置": "对",
+        "机制": "对"
+       }
+      ],
+      "多报": 0,
+      "说明": "",
+      "blind_id": "G021",
+      "repeat": 9,
+      "tokens": 751622,
+      "llm_calls": 15,
+      "entries_present": [
+       "boutique-cartservice:E1",
+       "boutique-checkoutservice:E1",
+       "boutique-checkoutservice:E2",
+       "boutique-currencyservice:E2",
+       "boutique-recommendationservice:E1",
+       "boutique-redis-cart:E1",
+       "boutique-triage-overview:E1",
+       "boutique-triage-overview:E11",
+       "boutique-triage-overview:E4",
+       "boutique-triage-overview:E6",
+       "boutique-triage-overview:E9"
+      ]
+     },
+     {
+      "结果": "通过",
+      "严格通过": true,
+      "原因": [
+       {
+        "位置": "对",
+        "机制": "对"
+       }
+      ],
+      "多报": 0,
+      "说明": "",
+      "blind_id": "G079",
+      "repeat": 10,
+      "tokens": 821694,
+      "llm_calls": 11,
+      "entries_present": [
+       "boutique-currencyservice:E1",
+       "boutique-frontend:E1",
+       "boutique-productcatalogservice:E1",
+       "boutique-shippingservice:E1",
+       "boutique-triage-overview:E10",
+       "boutique-triage-overview:E12",
+       "boutique-triage-overview:E13",
+       "boutique-triage-overview:E2",
+       "boutique-triage-overview:E3",
+       "boutique-triage-overview:E5",
+       "boutique-triage-overview:E7",
+       "boutique-triage-overview:E8"
+      ]
+     }
+    ],
+    "CV08": [
+     {
+      "结果": "通过",
+      "严格通过": true,
+      "原因": [
+       {
+        "位置": "对",
+        "机制": "对"
+       },
+       {
+        "位置": "对",
+        "机制": "对"
+       }
+      ],
+      "多报": 0,
+      "说明": "",
+      "blind_id": "G090",
+      "repeat": 1,
+      "tokens": 785534,
+      "llm_calls": 15,
+      "entries_present": [
+       "boutique-checkoutservice:E1",
+       "boutique-checkoutservice:E2",
+       "boutique-frontend:E1",
+       "boutique-recommendationservice:E1",
+       "boutique-redis-cart:E1",
+       "boutique-shippingservice:E1",
+       "boutique-triage-overview:E10",
+       "boutique-triage-overview:E2",
+       "boutique-triage-overview:E4",
+       "boutique-triage-overview:E5",
+       "boutique-triage-overview:E6"
+      ]
+     },
+     {
+      "结果": "通过",
+      "严格通过": true,
+      "原因": [
+       {
+        "位置": "对",
+        "机制": "对"
+       },
+       {
+        "位置": "对",
+        "机制": "对"
+       }
+      ],
+      "多报": 0,
+      "说明": "",
+      "blind_id": "G077",
+      "repeat": 2,
+      "tokens": 646778,
+      "llm_calls": 15,
+      "entries_present": [
+       "boutique-cartservice:E1",
+       "boutique-currencyservice:E1",
+       "boutique-currencyservice:E2",
+       "boutique-productcatalogservice:E1",
+       "boutique-triage-overview:E1",
+       "boutique-triage-overview:E11",
+       "boutique-triage-overview:E12",
+       "boutique-triage-overview:E13",
+       "boutique-triage-overview:E3",
+       "boutique-triage-overview:E7",
+       "boutique-triage-overview:E8",
+       "boutique-triage-overview:E9"
+      ]
+     },
+     {
+      "结果": "通过",
+      "严格通过": true,
+      "原因": [
+       {
+        "位置": "对",
+        "机制": "对"
+       },
+       {
+        "位置": "对",
+        "机制": "对"
+       }
+      ],
+      "多报": 0,
+      "说明": "",
+      "blind_id": "G019",
+      "repeat": 3,
+      "tokens": 611747,
+      "llm_calls": 14,
+      "entries_present": [
+       "boutique-cartservice:E1",
+       "boutique-currencyservice:E2",
+       "boutique-redis-cart:E1",
+       "boutique-triage-overview:E1",
+       "boutique-triage-overview:E10",
+       "boutique-triage-overview:E11",
+       "boutique-triage-overview:E12",
+       "boutique-triage-overview:E2",
+       "boutique-triage-overview:E6",
+       "boutique-triage-overview:E7",
+       "boutique-triage-overview:E8",
+       "boutique-triage-overview:E9"
+      ]
+     },
+     {
+      "结果": "通过",
+      "严格通过": true,
+      "原因": [
+       {
+        "位置": "对",
+        "机制": "对"
+       },
+       {
+        "位置": "对",
+        "机制": "对"
+       }
+      ],
+      "多报": 0,
+      "说明": "",
+      "blind_id": "G135",
+      "repeat": 4,
+      "tokens": 557652,
+      "llm_calls": 12,
+      "entries_present": [
+       "boutique-checkoutservice:E1",
+       "boutique-checkoutservice:E2",
+       "boutique-currencyservice:E1",
+       "boutique-frontend:E1",
+       "boutique-productcatalogservice:E1",
+       "boutique-recommendationservice:E1",
+       "boutique-shippingservice:E1",
+       "boutique-triage-overview:E13",
+       "boutique-triage-overview:E3",
+       "boutique-triage-overview:E4",
+       "boutique-triage-overview:E5"
+      ]
+     },
+     {
+      "结果": "通过",
+      "严格通过": true,
+      "原因": [
+       {
+        "位置": "对",
+        "机制": "对"
+       },
+       {
+        "位置": "对",
+        "机制": "对"
+       }
+      ],
+      "多报": 0,
+      "说明": "",
+      "blind_id": "G063",
+      "repeat": 5,
+      "tokens": 581376,
+      "llm_calls": 12,
+      "entries_present": [
+       "boutique-currencyservice:E1",
+       "boutique-currencyservice:E2",
+       "boutique-productcatalogservice:E1",
+       "boutique-triage-overview:E10",
+       "boutique-triage-overview:E12",
+       "boutique-triage-overview:E13",
+       "boutique-triage-overview:E2",
+       "boutique-triage-overview:E6",
+       "boutique-triage-overview:E7",
+       "boutique-triage-overview:E8",
+       "boutique-triage-overview:E9"
+      ]
+     },
+     {
+      "结果": "通过",
+      "严格通过": true,
+      "原因": [
+       {
+        "位置": "对",
+        "机制": "对"
+       },
+       {
+        "位置": "对",
+        "机制": "对"
+       }
+      ],
+      "多报": 0,
+      "说明": "",
+      "blind_id": "G088",
+      "repeat": 6,
+      "tokens": 745851,
+      "llm_calls": 18,
+      "entries_present": [
+       "boutique-cartservice:E1",
+       "boutique-checkoutservice:E1",
+       "boutique-checkoutservice:E2",
+       "boutique-frontend:E1",
+       "boutique-recommendationservice:E1",
+       "boutique-redis-cart:E1",
+       "boutique-shippingservice:E1",
+       "boutique-triage-overview:E1",
+       "boutique-triage-overview:E11",
+       "boutique-triage-overview:E3",
+       "boutique-triage-overview:E4",
+       "boutique-triage-overview:E5"
+      ]
+     },
+     {
+      "结果": "通过",
+      "严格通过": true,
+      "原因": [
+       {
+        "位置": "对",
+        "机制": "对"
+       },
+       {
+        "位置": "对",
+        "机制": "对"
+       }
+      ],
+      "多报": 0,
+      "说明": "",
+      "blind_id": "G125",
+      "repeat": 7,
+      "tokens": 719155,
+      "llm_calls": 13,
+      "entries_present": [
+       "boutique-cartservice:E1",
+       "boutique-checkoutservice:E2",
+       "boutique-currencyservice:E1",
+       "boutique-currencyservice:E2",
+       "boutique-productcatalogservice:E1",
+       "boutique-recommendationservice:E1",
+       "boutique-triage-overview:E1",
+       "boutique-triage-overview:E11",
+       "boutique-triage-overview:E2",
+       "boutique-triage-overview:E6",
+       "boutique-triage-overview:E8",
+       "boutique-triage-overview:E9"
+      ]
+     },
+     {
+      "结果": "通过",
+      "严格通过": true,
+      "原因": [
+       {
+        "位置": "对",
+        "机制": "对"
+       },
+       {
+        "位置": "对",
+        "机制": "对"
+       }
+      ],
+      "多报": 0,
+      "说明": "",
+      "blind_id": "G117",
+      "repeat": 8,
+      "tokens": 705600,
+      "llm_calls": 15,
+      "entries_present": [
+       "boutique-checkoutservice:E1",
+       "boutique-frontend:E1",
+       "boutique-redis-cart:E1",
+       "boutique-shippingservice:E1",
+       "boutique-triage-overview:E10",
+       "boutique-triage-overview:E12",
+       "boutique-triage-overview:E13",
+       "boutique-triage-overview:E3",
+       "boutique-triage-overview:E4",
+       "boutique-triage-overview:E5",
+       "boutique-triage-overview:E7"
+      ]
+     },
+     {
+      "结果": "通过",
+      "严格通过": true,
+      "原因": [
+       {
+        "位置": "对",
+        "机制": "对"
+       },
+       {
+        "位置": "对",
+        "机制": "对"
+       }
+      ],
+      "多报": 0,
+      "说明": "",
+      "blind_id": "G062",
+      "repeat": 9,
+      "tokens": 529270,
+      "llm_calls": 11,
+      "entries_present": [
+       "boutique-checkoutservice:E1",
+       "boutique-frontend:E1",
+       "boutique-productcatalogservice:E1",
+       "boutique-recommendationservice:E1",
+       "boutique-triage-overview:E1",
+       "boutique-triage-overview:E11",
+       "boutique-triage-overview:E12",
+       "boutique-triage-overview:E2",
+       "boutique-triage-overview:E3",
+       "boutique-triage-overview:E5",
+       "boutique-triage-overview:E8"
+      ]
+     },
+     {
+      "结果": "通过",
+      "严格通过": true,
+      "原因": [
+       {
+        "位置": "对",
+        "机制": "对"
+       },
+       {
+        "位置": "对",
+        "机制": "对"
+       }
+      ],
+      "多报": 0,
+      "说明": "",
+      "blind_id": "G075",
+      "repeat": 10,
+      "tokens": 497886,
+      "llm_calls": 12,
+      "entries_present": [
+       "boutique-cartservice:E1",
+       "boutique-checkoutservice:E2",
+       "boutique-currencyservice:E1",
+       "boutique-currencyservice:E2",
+       "boutique-redis-cart:E1",
+       "boutique-shippingservice:E1",
+       "boutique-triage-overview:E10",
+       "boutique-triage-overview:E13",
+       "boutique-triage-overview:E4",
+       "boutique-triage-overview:E6",
+       "boutique-triage-overview:E7",
+       "boutique-triage-overview:E9"
+      ]
+     }
+    ],
+    "CV01": [
+     {
+      "结果": "部分",
+      "严格通过": false,
+      "原因": [
+       {
+        "对象": "recommendationservice",
+        "位置": "对",
+        "机制": "没定"
+       }
+      ],
+      "多报": 0,
+      "说明": "网络路径和自身处理并列，说无法区分",
+      "blind_id": "G083",
+      "repeat": 1,
+      "tokens": 841178,
+      "llm_calls": 13,
+      "entries_present": [
+       "boutique-cartservice:E1",
+       "boutique-checkoutservice:E1",
+       "boutique-redis-cart:E1",
+       "boutique-triage-overview:E1",
+       "boutique-triage-overview:E10",
+       "boutique-triage-overview:E12",
+       "boutique-triage-overview:E13",
+       "boutique-triage-overview:E4",
+       "boutique-triage-overview:E5",
+       "boutique-triage-overview:E6",
+       "boutique-triage-overview:E7"
+      ]
+     },
+     {
+      "结果": "通过",
+      "严格通过": false,
+      "原因": [
+       {
+        "对象": "recommendationservice",
+        "位置": "对",
+        "机制": "倾向对"
+       }
+      ],
+      "多报": 0,
+      "说明": "",
+      "blind_id": "G097",
+      "repeat": 2,
+      "tokens": 1318948,
+      "llm_calls": 16,
+      "entries_present": [
+       "boutique-checkoutservice:E2",
+       "boutique-currencyservice:E1",
+       "boutique-currencyservice:E2",
+       "boutique-frontend:E1",
+       "boutique-productcatalogservice:E1",
+       "boutique-recommendationservice:E1",
+       "boutique-shippingservice:E1",
+       "boutique-triage-overview:E11",
+       "boutique-triage-overview:E2",
+       "boutique-triage-overview:E3",
+       "boutique-triage-overview:E8",
+       "boutique-triage-overview:E9"
+      ]
+     },
+     {
+      "结果": "通过",
+      "严格通过": false,
+      "原因": [
+       {
+        "对象": "recommendationservice",
+        "位置": "对",
+        "机制": "倾向对"
+       }
+      ],
+      "多报": 0,
+      "说明": "",
+      "blind_id": "G086",
+      "repeat": 3,
+      "tokens": 1764930,
+      "llm_calls": 20,
+      "entries_present": [
+       "boutique-checkoutservice:E1",
+       "boutique-checkoutservice:E2",
+       "boutique-currencyservice:E1",
+       "boutique-currencyservice:E2",
+       "boutique-frontend:E1",
+       "boutique-productcatalogservice:E1",
+       "boutique-triage-overview:E1",
+       "boutique-triage-overview:E12",
+       "boutique-triage-overview:E13",
+       "boutique-triage-overview:E5",
+       "boutique-triage-overview:E6",
+       "boutique-triage-overview:E8"
+      ]
+     },
+     {
+      "结果": "通过",
+      "严格通过": false,
+      "原因": [
+       {
+        "对象": "recommendationservice",
+        "位置": "对",
+        "机制": "倾向对"
+       }
+      ],
+      "多报": 0,
+      "说明": "",
+      "blind_id": "G007",
+      "repeat": 4,
+      "tokens": 914929,
+      "llm_calls": 14,
+      "entries_present": [
+       "boutique-cartservice:E1",
+       "boutique-recommendationservice:E1",
+       "boutique-redis-cart:E1",
+       "boutique-shippingservice:E1",
+       "boutique-triage-overview:E10",
+       "boutique-triage-overview:E11",
+       "boutique-triage-overview:E2",
+       "boutique-triage-overview:E3",
+       "boutique-triage-overview:E4",
+       "boutique-triage-overview:E7",
+       "boutique-triage-overview:E9"
+      ]
+     },
+     {
+      "结果": "通过",
+      "严格通过": false,
+      "原因": [
+       {
+        "对象": "recommendationservice",
+        "位置": "对",
+        "机制": "倾向对"
+       }
+      ],
+      "多报": 0,
+      "说明": "",
+      "blind_id": "G045",
+      "repeat": 5,
+      "tokens": 743109,
+      "llm_calls": 12,
+      "entries_present": [
+       "boutique-cartservice:E1",
+       "boutique-currencyservice:E2",
+       "boutique-frontend:E1",
+       "boutique-redis-cart:E1",
+       "boutique-triage-overview:E11",
+       "boutique-triage-overview:E12",
+       "boutique-triage-overview:E13",
+       "boutique-triage-overview:E2",
+       "boutique-triage-overview:E3",
+       "boutique-triage-overview:E4",
+       "boutique-triage-overview:E8"
+      ]
+     },
+     {
+      "结果": "通过",
+      "严格通过": false,
+      "原因": [
+       {
+        "对象": "recommendationservice",
+        "位置": "对",
+        "机制": "倾向对"
+       }
+      ],
+      "多报": 0,
+      "说明": "",
+      "blind_id": "G080",
+      "repeat": 6,
+      "tokens": 1358123,
+      "llm_calls": 17,
+      "entries_present": [
+       "boutique-checkoutservice:E1",
+       "boutique-checkoutservice:E2",
+       "boutique-currencyservice:E1",
+       "boutique-productcatalogservice:E1",
+       "boutique-recommendationservice:E1",
+       "boutique-shippingservice:E1",
+       "boutique-triage-overview:E1",
+       "boutique-triage-overview:E10",
+       "boutique-triage-overview:E5",
+       "boutique-triage-overview:E6",
+       "boutique-triage-overview:E7",
+       "boutique-triage-overview:E9"
+      ]
+     },
+     {
+      "结果": "通过",
+      "严格通过": false,
+      "原因": [
+       {
+        "对象": "recommendationservice",
+        "位置": "对",
+        "机制": "倾向对"
+       }
+      ],
+      "多报": 0,
+      "说明": "",
+      "blind_id": "G051",
+      "repeat": 7,
+      "tokens": 724790,
+      "llm_calls": 12,
+      "entries_present": [
+       "boutique-cartservice:E1",
+       "boutique-currencyservice:E1",
+       "boutique-frontend:E1",
+       "boutique-recommendationservice:E1",
+       "boutique-redis-cart:E1",
+       "boutique-triage-overview:E1",
+       "boutique-triage-overview:E11",
+       "boutique-triage-overview:E13",
+       "boutique-triage-overview:E2",
+       "boutique-triage-overview:E3",
+       "boutique-triage-overview:E4",
+       "boutique-triage-overview:E6"
+      ]
+     },
+     {
+      "结果": "通过",
+      "严格通过": false,
+      "原因": [
+       {
+        "对象": "recommendationservice",
+        "位置": "对",
+        "机制": "倾向对"
+       }
+      ],
+      "多报": 0,
+      "说明": "",
+      "blind_id": "G095",
+      "repeat": 8,
+      "tokens": 1078007,
+      "llm_calls": 14,
+      "entries_present": [
+       "boutique-checkoutservice:E1",
+       "boutique-checkoutservice:E2",
+       "boutique-currencyservice:E2",
+       "boutique-productcatalogservice:E1",
+       "boutique-shippingservice:E1",
+       "boutique-triage-overview:E10",
+       "boutique-triage-overview:E12",
+       "boutique-triage-overview:E5",
+       "boutique-triage-overview:E7",
+       "boutique-triage-overview:E8",
+       "boutique-triage-overview:E9"
+      ]
+     },
+     {
+      "结果": "通过",
+      "严格通过": false,
+      "原因": [
+       {
+        "对象": "recommendationservice",
+        "位置": "对",
+        "机制": "倾向对"
+       }
+      ],
+      "多报": 0,
+      "说明": "",
+      "blind_id": "G136",
+      "repeat": 9,
+      "tokens": 758977,
+      "llm_calls": 12,
+      "entries_present": [
+       "boutique-checkoutservice:E1",
+       "boutique-frontend:E1",
+       "boutique-productcatalogservice:E1",
+       "boutique-shippingservice:E1",
+       "boutique-triage-overview:E1",
+       "boutique-triage-overview:E10",
+       "boutique-triage-overview:E13",
+       "boutique-triage-overview:E6",
+       "boutique-triage-overview:E7",
+       "boutique-triage-overview:E8",
+       "boutique-triage-overview:E9"
+      ]
+     },
+     {
+      "结果": "通过",
+      "严格通过": false,
+      "原因": [
+       {
+        "对象": "recommendationservice",
+        "位置": "对",
+        "机制": "倾向对"
+       }
+      ],
+      "多报": 0,
+      "说明": "",
+      "blind_id": "G120",
+      "repeat": 10,
+      "tokens": 1123903,
+      "llm_calls": 15,
+      "entries_present": [
+       "boutique-cartservice:E1",
+       "boutique-checkoutservice:E2",
+       "boutique-currencyservice:E1",
+       "boutique-currencyservice:E2",
+       "boutique-recommendationservice:E1",
+       "boutique-redis-cart:E1",
+       "boutique-triage-overview:E11",
+       "boutique-triage-overview:E12",
+       "boutique-triage-overview:E2",
+       "boutique-triage-overview:E3",
+       "boutique-triage-overview:E4",
+       "boutique-triage-overview:E5"
+      ]
+     }
+    ],
+    "CV04": [
+     {
+      "结果": "通过",
+      "严格通过": false,
+      "原因": [
+       {
+        "对象": "redis-cart",
+        "位置": "对",
+        "机制": "倾向对"
+       }
+      ],
+      "多报": 0,
+      "说明": "",
+      "blind_id": "G111",
+      "repeat": 1,
+      "tokens": 1742044,
+      "llm_calls": 21,
+      "entries_present": [
+       "boutique-checkoutservice:E1",
+       "boutique-currencyservice:E2",
+       "boutique-frontend:E1",
+       "boutique-triage-overview:E1",
+       "boutique-triage-overview:E11",
+       "boutique-triage-overview:E12",
+       "boutique-triage-overview:E13",
+       "boutique-triage-overview:E2",
+       "boutique-triage-overview:E3",
+       "boutique-triage-overview:E4",
+       "boutique-triage-overview:E8"
+      ]
+     },
+     {
+      "结果": "错",
+      "严格通过": false,
+      "原因": [
+       {
+        "对象": "redis-cart",
+        "位置": "错",
+        "机制": "-"
+       }
+      ],
+      "多报": 0,
+      "说明": "判给节点侧 Pod 网络",
+      "blind_id": "G071",
+      "repeat": 2,
+      "tokens": 1490979,
+      "llm_calls": 22,
+      "entries_present": [
+       "boutique-cartservice:E1",
+       "boutique-checkoutservice:E2",
+       "boutique-currencyservice:E1",
+       "boutique-productcatalogservice:E1",
+       "boutique-recommendationservice:E1",
+       "boutique-redis-cart:E1",
+       "boutique-shippingservice:E1",
+       "boutique-triage-overview:E10",
+       "boutique-triage-overview:E5",
+       "boutique-triage-overview:E6",
+       "boutique-triage-overview:E7",
+       "boutique-triage-overview:E9"
+      ]
+     },
+     {
+      "结果": "通过",
+      "严格通过": true,
+      "原因": [
+       {
+        "对象": "redis-cart",
+        "位置": "对",
+        "机制": "对"
+       }
+      ],
+      "多报": 0,
+      "说明": "",
+      "blind_id": "G032",
+      "repeat": 3,
+      "tokens": 1402219,
+      "llm_calls": 24,
+      "entries_present": [
+       "boutique-cartservice:E1",
+       "boutique-checkoutservice:E1",
+       "boutique-currencyservice:E1",
+       "boutique-currencyservice:E2",
+       "boutique-redis-cart:E1",
+       "boutique-shippingservice:E1",
+       "boutique-triage-overview:E11",
+       "boutique-triage-overview:E2",
+       "boutique-triage-overview:E3",
+       "boutique-triage-overview:E4",
+       "boutique-triage-overview:E6",
+       "boutique-triage-overview:E9"
+      ]
+     },
+     {
+      "结果": "通过",
+      "严格通过": true,
+      "原因": [
+       {
+        "对象": "redis-cart",
+        "位置": "对",
+        "机制": "对"
+       }
+      ],
+      "多报": 0,
+      "说明": "",
+      "blind_id": "G030",
+      "repeat": 4,
+      "tokens": 4677017,
+      "llm_calls": 44,
+      "entries_present": [
+       "boutique-checkoutservice:E2",
+       "boutique-frontend:E1",
+       "boutique-productcatalogservice:E1",
+       "boutique-recommendationservice:E1",
+       "boutique-triage-overview:E1",
+       "boutique-triage-overview:E10",
+       "boutique-triage-overview:E12",
+       "boutique-triage-overview:E13",
+       "boutique-triage-overview:E5",
+       "boutique-triage-overview:E7",
+       "boutique-triage-overview:E8"
+      ]
+     },
+     {
+      "结果": "错",
+      "严格通过": false,
+      "原因": [
+       {
+        "对象": "redis-cart",
+        "位置": "没定",
+        "机制": "-"
+       }
+      ],
+      "多报": 1,
+      "说明": "把 cartservice 的无害发布当主因（多报），redis-cart 只列为候选",
+      "blind_id": "G132",
+      "repeat": 5,
+      "tokens": 1177002,
+      "llm_calls": 15,
+      "entries_present": [
+       "boutique-checkoutservice:E1",
+       "boutique-checkoutservice:E2",
+       "boutique-productcatalogservice:E1",
+       "boutique-recommendationservice:E1",
+       "boutique-redis-cart:E1",
+       "boutique-triage-overview:E10",
+       "boutique-triage-overview:E12",
+       "boutique-triage-overview:E13",
+       "boutique-triage-overview:E2",
+       "boutique-triage-overview:E4",
+       "boutique-triage-overview:E6"
+      ]
+     },
+     {
+      "结果": "错",
+      "严格通过": false,
+      "原因": [
+       {
+        "对象": "redis-cart",
+        "位置": "错",
+        "机制": "-"
+       }
+      ],
+      "多报": 0,
+      "说明": "判给命名空间 Pod 间网络",
+      "blind_id": "G035",
+      "repeat": 6,
+      "tokens": 2069000,
+      "llm_calls": 24,
+      "entries_present": [
+       "boutique-cartservice:E1",
+       "boutique-currencyservice:E1",
+       "boutique-currencyservice:E2",
+       "boutique-frontend:E1",
+       "boutique-shippingservice:E1",
+       "boutique-triage-overview:E1",
+       "boutique-triage-overview:E11",
+       "boutique-triage-overview:E3",
+       "boutique-triage-overview:E5",
+       "boutique-triage-overview:E7",
+       "boutique-triage-overview:E8",
+       "boutique-triage-overview:E9"
+      ]
+     },
+     {
+      "结果": "错",
+      "严格通过": false,
+      "原因": [
+       {
+        "对象": "redis-cart",
+        "位置": "错",
+        "机制": "-"
+       }
+      ],
+      "多报": 0,
+      "说明": "判给节点上全部 Pod 的网络",
+      "blind_id": "G014",
+      "repeat": 7,
+      "tokens": 3421266,
+      "llm_calls": 29,
+      "entries_present": [
+       "boutique-cartservice:E1",
+       "boutique-checkoutservice:E1",
+       "boutique-checkoutservice:E2",
+       "boutique-frontend:E1",
+       "boutique-productcatalogservice:E1",
+       "boutique-recommendationservice:E1",
+       "boutique-shippingservice:E1",
+       "boutique-triage-overview:E10",
+       "boutique-triage-overview:E2",
+       "boutique-triage-overview:E4",
+       "boutique-triage-overview:E8",
+       "boutique-triage-overview:E9"
+      ]
+     },
+     {
+      "结果": "通过",
+      "严格通过": false,
+      "原因": [
+       {
+        "对象": "redis-cart",
+        "位置": "对",
+        "机制": "倾向对"
+       }
+      ],
+      "多报": 0,
+      "说明": "",
+      "blind_id": "G114",
+      "repeat": 8,
+      "tokens": 1601471,
+      "llm_calls": 23,
+      "entries_present": [
+       "boutique-currencyservice:E1",
+       "boutique-currencyservice:E2",
+       "boutique-redis-cart:E1",
+       "boutique-triage-overview:E1",
+       "boutique-triage-overview:E11",
+       "boutique-triage-overview:E12",
+       "boutique-triage-overview:E13",
+       "boutique-triage-overview:E3",
+       "boutique-triage-overview:E5",
+       "boutique-triage-overview:E6",
+       "boutique-triage-overview:E7"
+      ]
+     },
+     {
+      "结果": "通过",
+      "严格通过": false,
+      "原因": [
+       {
+        "对象": "redis-cart",
+        "位置": "对",
+        "机制": "倾向对"
+       }
+      ],
+      "多报": 0,
+      "说明": "",
+      "blind_id": "G039",
+      "repeat": 9,
+      "tokens": 2074257,
+      "llm_calls": 21,
+      "entries_present": [
+       "boutique-checkoutservice:E1",
+       "boutique-currencyservice:E2",
+       "boutique-redis-cart:E1",
+       "boutique-triage-overview:E1",
+       "boutique-triage-overview:E10",
+       "boutique-triage-overview:E12",
+       "boutique-triage-overview:E13",
+       "boutique-triage-overview:E2",
+       "boutique-triage-overview:E6",
+       "boutique-triage-overview:E7",
+       "boutique-triage-overview:E9"
+      ]
+     },
+     {
+      "结果": "错",
+      "严格通过": false,
+      "原因": [
+       {
+        "对象": "redis-cart",
+        "位置": "错",
+        "机制": "-"
+       }
+      ],
+      "多报": 0,
+      "说明": "判给节点上全部 Pod 的网络",
+      "blind_id": "G122",
+      "repeat": 10,
+      "tokens": 2397641,
+      "llm_calls": 26,
+      "entries_present": [
+       "boutique-cartservice:E1",
+       "boutique-checkoutservice:E2",
+       "boutique-currencyservice:E1",
+       "boutique-frontend:E1",
+       "boutique-productcatalogservice:E1",
+       "boutique-recommendationservice:E1",
+       "boutique-shippingservice:E1",
+       "boutique-triage-overview:E11",
+       "boutique-triage-overview:E3",
+       "boutique-triage-overview:E4",
+       "boutique-triage-overview:E5",
+       "boutique-triage-overview:E8"
+      ]
+     }
+    ],
+    "CV05": [
+     {
+      "结果": "部分",
+      "严格通过": false,
+      "原因": [
+       {
+        "对象": "frontend",
+        "位置": "对",
+        "机制": "对"
+       },
+       {
+        "对象": "currencyservice",
+        "位置": "对",
+        "机制": "没定"
+       }
+      ],
+      "多报": 0,
+      "说明": "currency 机制没定",
+      "blind_id": "G105",
+      "repeat": 1,
+      "tokens": 969916,
+      "llm_calls": 15,
+      "entries_present": [
+       "boutique-cartservice:E1",
+       "boutique-currencyservice:E2",
+       "boutique-frontend:E1",
+       "boutique-productcatalogservice:E1",
+       "boutique-recommendationservice:E1",
+       "boutique-triage-overview:E1",
+       "boutique-triage-overview:E10",
+       "boutique-triage-overview:E2",
+       "boutique-triage-overview:E3",
+       "boutique-triage-overview:E6",
+       "boutique-triage-overview:E8"
+      ]
+     },
+     {
+      "结果": "部分",
+      "严格通过": false,
+      "原因": [
+       {
+        "对象": "frontend",
+        "位置": "对",
+        "机制": "对"
+       },
+       {
+        "对象": "currencyservice",
+        "位置": "错",
+        "机制": "-"
+       }
+      ],
+      "多报": 0,
+      "说明": "漏 currency",
+      "blind_id": "G023",
+      "repeat": 2,
+      "tokens": 549844,
+      "llm_calls": 14,
+      "entries_present": [
+       "boutique-checkoutservice:E1",
+       "boutique-checkoutservice:E2",
+       "boutique-currencyservice:E1",
+       "boutique-redis-cart:E1",
+       "boutique-shippingservice:E1",
+       "boutique-triage-overview:E11",
+       "boutique-triage-overview:E12",
+       "boutique-triage-overview:E13",
+       "boutique-triage-overview:E4",
+       "boutique-triage-overview:E5",
+       "boutique-triage-overview:E7",
+       "boutique-triage-overview:E9"
+      ]
+     },
+     {
+      "结果": "部分",
+      "严格通过": false,
+      "原因": [
+       {
+        "对象": "frontend",
+        "位置": "对",
+        "机制": "对"
+       },
+       {
+        "对象": "currencyservice",
+        "位置": "对",
+        "机制": "没定"
+       }
+      ],
+      "多报": 0,
+      "说明": "currency 机制没定（应用内 sleep 还是网络）",
+      "blind_id": "G026",
+      "repeat": 3,
+      "tokens": 1313006,
+      "llm_calls": 18,
+      "entries_present": [
+       "boutique-checkoutservice:E1",
+       "boutique-checkoutservice:E2",
+       "boutique-currencyservice:E1",
+       "boutique-productcatalogservice:E1",
+       "boutique-triage-overview:E1",
+       "boutique-triage-overview:E12",
+       "boutique-triage-overview:E2",
+       "boutique-triage-overview:E3",
+       "boutique-triage-overview:E4",
+       "boutique-triage-overview:E5",
+       "boutique-triage-overview:E7",
+       "boutique-triage-overview:E9"
+      ]
+     },
+     {
+      "结果": "部分",
+      "严格通过": false,
+      "原因": [
+       {
+        "对象": "frontend",
+        "位置": "对",
+        "机制": "对"
+       },
+       {
+        "对象": "currencyservice",
+        "位置": "错",
+        "机制": "-"
+       }
+      ],
+      "多报": 0,
+      "说明": "漏 currency",
+      "blind_id": "G123",
+      "repeat": 4,
+      "tokens": 643408,
+      "llm_calls": 14,
+      "entries_present": [
+       "boutique-cartservice:E1",
+       "boutique-currencyservice:E2",
+       "boutique-frontend:E1",
+       "boutique-recommendationservice:E1",
+       "boutique-redis-cart:E1",
+       "boutique-shippingservice:E1",
+       "boutique-triage-overview:E10",
+       "boutique-triage-overview:E11",
+       "boutique-triage-overview:E13",
+       "boutique-triage-overview:E6",
+       "boutique-triage-overview:E8"
+      ]
+     },
+     {
+      "结果": "部分",
+      "严格通过": false,
+      "原因": [
+       {
+        "对象": "frontend",
+        "位置": "对",
+        "机制": "对"
+       },
+       {
+        "对象": "currencyservice",
+        "位置": "对",
+        "机制": "没定"
+       }
+      ],
+      "多报": 0,
+      "说明": "currency 机制没定",
+      "blind_id": "G078",
+      "repeat": 5,
+      "tokens": 1689401,
+      "llm_calls": 18,
+      "entries_present": [
+       "boutique-currencyservice:E2",
+       "boutique-frontend:E1",
+       "boutique-recommendationservice:E1",
+       "boutique-shippingservice:E1",
+       "boutique-triage-overview:E1",
+       "boutique-triage-overview:E10",
+       "boutique-triage-overview:E11",
+       "boutique-triage-overview:E3",
+       "boutique-triage-overview:E5",
+       "boutique-triage-overview:E6",
+       "boutique-triage-overview:E9"
+      ]
+     },
+     {
+      "结果": "部分",
+      "严格通过": false,
+      "原因": [
+       {
+        "对象": "frontend",
+        "位置": "对",
+        "机制": "对"
+       },
+       {
+        "对象": "currencyservice",
+        "位置": "对",
+        "机制": "没定"
+       }
+      ],
+      "多报": 0,
+      "说明": "currency 机制没定",
+      "blind_id": "G060",
+      "repeat": 6,
+      "tokens": 1558318,
+      "llm_calls": 21,
+      "entries_present": [
+       "boutique-cartservice:E1",
+       "boutique-checkoutservice:E1",
+       "boutique-checkoutservice:E2",
+       "boutique-currencyservice:E1",
+       "boutique-productcatalogservice:E1",
+       "boutique-redis-cart:E1",
+       "boutique-triage-overview:E12",
+       "boutique-triage-overview:E13",
+       "boutique-triage-overview:E2",
+       "boutique-triage-overview:E4",
+       "boutique-triage-overview:E7",
+       "boutique-triage-overview:E8"
+      ]
+     },
+     {
+      "结果": "部分",
+      "严格通过": false,
+      "原因": [
+       {
+        "对象": "frontend",
+        "位置": "对",
+        "机制": "对"
+       },
+       {
+        "对象": "currencyservice",
+        "位置": "对",
+        "机制": "没定"
+       }
+      ],
+      "多报": 0,
+      "说明": "currency 机制没定",
+      "blind_id": "G068",
+      "repeat": 7,
+      "tokens": 1115171,
+      "llm_calls": 16,
+      "entries_present": [
+       "boutique-cartservice:E1",
+       "boutique-checkoutservice:E2",
+       "boutique-recommendationservice:E1",
+       "boutique-shippingservice:E1",
+       "boutique-triage-overview:E11",
+       "boutique-triage-overview:E2",
+       "boutique-triage-overview:E4",
+       "boutique-triage-overview:E5",
+       "boutique-triage-overview:E6",
+       "boutique-triage-overview:E7",
+       "boutique-triage-overview:E8",
+       "boutique-triage-overview:E9"
+      ]
+     },
+     {
+      "结果": "部分",
+      "严格通过": false,
+      "原因": [
+       {
+        "对象": "frontend",
+        "位置": "对",
+        "机制": "对"
+       },
+       {
+        "对象": "currencyservice",
+        "位置": "错",
+        "机制": "-"
+       }
+      ],
+      "多报": 0,
+      "说明": "漏 currency",
+      "blind_id": "G119",
+      "repeat": 8,
+      "tokens": 605136,
+      "llm_calls": 11,
+      "entries_present": [
+       "boutique-checkoutservice:E1",
+       "boutique-currencyservice:E1",
+       "boutique-currencyservice:E2",
+       "boutique-frontend:E1",
+       "boutique-productcatalogservice:E1",
+       "boutique-redis-cart:E1",
+       "boutique-triage-overview:E1",
+       "boutique-triage-overview:E10",
+       "boutique-triage-overview:E12",
+       "boutique-triage-overview:E13",
+       "boutique-triage-overview:E3"
+      ]
+     },
+     {
+      "结果": "部分",
+      "严格通过": false,
+      "原因": [
+       {
+        "对象": "frontend",
+        "位置": "对",
+        "机制": "对"
+       },
+       {
+        "对象": "currencyservice",
+        "位置": "错",
+        "机制": "-"
+       }
+      ],
+      "多报": 0,
+      "说明": "漏 currency",
+      "blind_id": "G031",
+      "repeat": 9,
+      "tokens": 1888224,
+      "llm_calls": 20,
+      "entries_present": [
+       "boutique-checkoutservice:E1",
+       "boutique-currencyservice:E1",
+       "boutique-currencyservice:E2",
+       "boutique-frontend:E1",
+       "boutique-productcatalogservice:E1",
+       "boutique-recommendationservice:E1",
+       "boutique-shippingservice:E1",
+       "boutique-triage-overview:E1",
+       "boutique-triage-overview:E10",
+       "boutique-triage-overview:E7",
+       "boutique-triage-overview:E9"
+      ]
+     },
+     {
+      "结果": "部分",
+      "严格通过": false,
+      "原因": [
+       {
+        "对象": "frontend",
+        "位置": "对",
+        "机制": "对"
+       },
+       {
+        "对象": "currencyservice",
+        "位置": "对",
+        "机制": "没定"
+       }
+      ],
+      "多报": 0,
+      "说明": "currency 机制没定",
+      "blind_id": "G047",
+      "repeat": 10,
+      "tokens": 1034684,
+      "llm_calls": 12,
+      "entries_present": [
+       "boutique-cartservice:E1",
+       "boutique-checkoutservice:E2",
+       "boutique-redis-cart:E1",
+       "boutique-triage-overview:E11",
+       "boutique-triage-overview:E12",
+       "boutique-triage-overview:E13",
+       "boutique-triage-overview:E2",
+       "boutique-triage-overview:E3",
+       "boutique-triage-overview:E4",
+       "boutique-triage-overview:E5",
+       "boutique-triage-overview:E6",
+       "boutique-triage-overview:E8"
+      ]
      }
     ]
    }

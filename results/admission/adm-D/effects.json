@@ -1,0 +1,71 @@
+{
+ "threshold": -0.15,
+ "rows": [
+  {
+   "entry": "boutique-triage-overview:E1",
+   "with": "25/30",
+   "without": "25/30",
+   "effect": -0.0
+  },
+  {
+   "entry": "boutique-triage-overview:E2",
+   "with": "26/30",
+   "without": "24/30",
+   "effect": 0.067
+  },
+  {
+   "entry": "boutique-triage-overview:E3",
+   "with": "24/30",
+   "without": "26/30",
+   "effect": -0.067
+  },
+  {
+   "entry": "boutique-triage-overview:E4",
+   "with": "25/30",
+   "without": "25/30",
+   "effect": 0.0
+  },
+  {
+   "entry": "boutique-triage-overview:E5",
+   "with": "25/30",
+   "without": "25/30",
+   "effect": -0.0
+  },
+  {
+   "entry": "boutique-triage-overview:E6",
+   "with": "23/30",
+   "without": "27/30",
+   "effect": -0.133
+  },
+  {
+   "entry": "boutique-triage-overview:E7",
+   "with": "25/30",
+   "without": "25/30",
+   "effect": 0.0
+  },
+  {
+   "entry": "boutique-triage-overview:E8",
+   "with": "26/30",
+   "without": "24/30",
+   "effect": 0.067
+  },
+  {
+   "entry": "boutique-triage-overview:E9",
+   "with": "26/30",
+   "without": "24/30",
+   "effect": 0.067
+  },
+  {
+   "entry": "boutique-triage-overview:E10",
+   "with": "25/30",
+   "without": "25/30",
+   "effect": 0.0
+  },
+  {
+   "entry": "boutique-triage-overview:E11",
+   "with": "25/30",
+   "without": "25/30",
+   "effect": -0.0
+  }
+ ]
+}
