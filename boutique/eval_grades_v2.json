@@ -4796,6 +4796,1154 @@
      }
     ]
    }
+  },
+  "v2-B": {
+   "lib": "holmes/skills/xinc-B-cand",
+   "what": "阶段 6（v2）在 2026-11-23 暂停时已完成的部分运行，整库。探索性结果：运行没跑完，判分后按组别看过。",
+   "metrics_tool": true,
+   "max_steps": 100,
+   "graded": "2026-11-23，Fable 5.2，三组 54 次混在一起打乱、遮住组别后人工判",
+   "runs": 24,
+   "passes": 16,
+   "grades": {
+    "CT01": [
+     {
+      "结果": "通过",
+      "严格通过": false,
+      "原因": [
+       {
+        "对象": "cartservice",
+        "位置": "对",
+        "机制": "倾向对"
+       }
+      ],
+      "多报": 0,
+      "说明": "最匹配 cartservice Pod 网络侧；进程内固定停顿列为分不开的备选",
+      "blind_id": "H027",
+      "repeat": 1,
+      "tokens": 1721014,
+      "llm_calls": 19
+     },
+     {
+      "结果": "通过",
+      "严格通过": true,
+      "原因": [
+       {
+        "对象": "cartservice",
+        "位置": "对",
+        "机制": "对"
+       }
+      ],
+      "多报": 0,
+      "说明": "对称网络延迟；redis-cart 备选并说明可能性更低",
+      "blind_id": "H040",
+      "repeat": 2,
+      "tokens": 1036578,
+      "llm_calls": 16
+     }
+    ],
+    "CT02": [
+     {
+      "结果": "部分",
+      "严格通过": false,
+      "原因": [
+       {
+        "对象": "productcatalogservice",
+        "位置": "对",
+        "机制": "对"
+       }
+      ],
+      "多报": 2,
+      "说明": "把 productcatalog、cartservice、recommendationservice 三跳一起判成被加了延迟",
+      "blind_id": "H053",
+      "repeat": 1,
+      "tokens": 1715807,
+      "llm_calls": 17
+     },
+     {
+      "结果": "通过",
+      "严格通过": true,
+      "原因": [
+       {
+        "对象": "productcatalogservice",
+        "位置": "对",
+        "机制": "对"
+       }
+      ],
+      "多报": 0,
+      "说明": "边界：另把 recommendationservice 那一跳的 1.2–1.4 秒单列，但归因写的是“它与 productcatalog 的往返和/或返回路径”，没有当成确定的独立原因；adservice 说明不贡献延迟",
+      "blind_id": "H011",
+      "repeat": 2,
+      "tokens": 1118080,
+      "llm_calls": 17
+     }
+    ],
+    "CT03": [
+     {
+      "结果": "通过",
+      "严格通过": true,
+      "原因": [
+       {
+        "对象": "recommendationservice",
+        "位置": "对",
+        "机制": "对"
+       }
+      ],
+      "多报": 0,
+      "说明": "入向网络丢包；进程冻结的备选被指出与证据不符",
+      "blind_id": "H019",
+      "repeat": 1,
+      "tokens": 1188187,
+      "llm_calls": 16
+     },
+     {
+      "结果": "通过",
+      "严格通过": false,
+      "原因": [
+       {
+        "对象": "recommendationservice",
+        "位置": "对",
+        "机制": "倾向对"
+       }
+      ],
+      "多报": 0,
+      "说明": "丢包重传为主，进程停顿列为未排除",
+      "blind_id": "H017",
+      "repeat": 2,
+      "tokens": 2413495,
+      "llm_calls": 22
+     }
+    ],
+    "CT04": [
+     {
+      "结果": "通过",
+      "严格通过": true,
+      "原因": [
+       {
+        "对象": "frontend",
+        "位置": "对",
+        "机制": "对"
+       }
+      ],
+      "多报": 0,
+      "说明": "emailservice 说明是独立缺陷",
+      "blind_id": "H003",
+      "repeat": 1,
+      "tokens": 1595304,
+      "llm_calls": 21
+     },
+     {
+      "结果": "通过",
+      "严格通过": true,
+      "原因": [
+       {
+        "对象": "frontend",
+        "位置": "对",
+        "机制": "对"
+       }
+      ],
+      "多报": 0,
+      "说明": "",
+      "blind_id": "H012",
+      "repeat": 2,
+      "tokens": 1429504,
+      "llm_calls": 14
+     }
+    ],
+    "CT05": [
+     {
+      "结果": "通过",
+      "严格通过": true,
+      "原因": [
+       {
+        "对象": "frontend",
+        "位置": "对",
+        "机制": "对"
+       }
+      ],
+      "多报": 0,
+      "说明": "",
+      "blind_id": "H030",
+      "repeat": 1,
+      "tokens": 499576,
+      "llm_calls": 11
+     },
+     {
+      "结果": "通过",
+      "严格通过": true,
+      "原因": [
+       {
+        "对象": "frontend",
+        "位置": "对",
+        "机制": "对"
+       }
+      ],
+      "多报": 0,
+      "说明": "",
+      "blind_id": "H052",
+      "repeat": 2,
+      "tokens": 629709,
+      "llm_calls": 13
+     }
+    ],
+    "CT07": [
+     {
+      "结果": "部分",
+      "严格通过": false,
+      "原因": [
+       {
+        "对象": "cartservice",
+        "位置": "对",
+        "机制": "对"
+       },
+       {
+        "对象": "currencyservice",
+        "位置": "错",
+        "机制": "-"
+       }
+      ],
+      "多报": 0,
+      "说明": "只报 cartservice CPU 限流，漏 currencyservice 丢包；写明网络无异常证据",
+      "blind_id": "H001",
+      "repeat": 1,
+      "tokens": 567107,
+      "llm_calls": 12
+     },
+     {
+      "结果": "部分",
+      "严格通过": false,
+      "原因": [
+       {
+        "对象": "cartservice",
+        "位置": "对",
+        "机制": "对"
+       },
+       {
+        "对象": "currencyservice",
+        "位置": "错",
+        "机制": "-"
+       }
+      ],
+      "多报": 0,
+      "说明": "漏 currencyservice 丢包；把约 200ms 的台阶解释成两个限流周期，并说不是丢包",
+      "blind_id": "H022",
+      "repeat": 2,
+      "tokens": 723470,
+      "llm_calls": 11
+     }
+    ],
+    "CT08": [
+     {
+      "结果": "部分",
+      "严格通过": false,
+      "原因": [
+       {
+        "对象": "frontend",
+        "位置": "对",
+        "机制": "对"
+       },
+       {
+        "对象": "recommendationservice",
+        "位置": "错",
+        "机制": "-"
+       }
+      ],
+      "多报": 0,
+      "说明": "只报 frontend CPU 限流，漏 recommendationservice 网络延迟；写明下游都正常",
+      "blind_id": "H002",
+      "repeat": 1,
+      "tokens": 629229,
+      "llm_calls": 12
+     },
+     {
+      "结果": "通过",
+      "严格通过": false,
+      "原因": [
+       {
+        "对象": "frontend",
+        "位置": "对",
+        "机制": "对"
+       },
+       {
+        "对象": "recommendationservice",
+        "位置": "对",
+        "机制": "倾向对"
+       }
+      ],
+      "多报": 0,
+      "说明": "延迟在请求到达 rec 之前的途中，或 rec 调 productcatalog 那一跳；没有归到自身处理（按阶段 5 的口径）",
+      "blind_id": "H023",
+      "repeat": 2,
+      "tokens": 2531224,
+      "llm_calls": 25
+     }
+    ],
+    "CT09": [
+     {
+      "结果": "部分",
+      "严格通过": false,
+      "原因": [
+       {
+        "对象": "currencyservice",
+        "位置": "对",
+        "机制": "对"
+       },
+       {
+        "对象": "productcatalogservice",
+        "位置": "错",
+        "机制": "-"
+       }
+      ],
+      "多报": 1,
+      "说明": "把 recommendationservice 的阻塞当主因；productcatalog 被说成对其他调用方很快",
+      "blind_id": "H018",
+      "repeat": 1,
+      "tokens": 1525275,
+      "llm_calls": 18
+     },
+     {
+      "结果": "部分",
+      "严格通过": false,
+      "原因": [
+       {
+        "对象": "currencyservice",
+        "位置": "对",
+        "机制": "对"
+       },
+       {
+        "对象": "productcatalogservice",
+        "位置": "错",
+        "机制": "-"
+       }
+      ],
+      "多报": 0,
+      "说明": "把 2 秒全归给 currencyservice 限流；加购的延迟猜在 cartservice 路径上（未确认，不算多报）",
+      "blind_id": "H038",
+      "repeat": 2,
+      "tokens": 1665346,
+      "llm_calls": 19
+     }
+    ],
+    "CT11": [
+     {
+      "结果": "通过",
+      "严格通过": false,
+      "原因": [
+       {
+        "对象": "paymentservice Service",
+        "位置": "对",
+        "机制": "对"
+       },
+       {
+        "对象": "recommendationservice",
+        "位置": "对",
+        "机制": "倾向对"
+       }
+      ],
+      "多报": 0,
+      "说明": "延迟在 frontend→rec 的请求方向，或 rec→productcatalog 的调用上，两者没分开",
+      "blind_id": "H005",
+      "repeat": 1,
+      "tokens": 1747580,
+      "llm_calls": 20
+     },
+     {
+      "结果": "通过",
+      "严格通过": false,
+      "原因": [
+       {
+        "对象": "paymentservice Service",
+        "位置": "对",
+        "机制": "对"
+       },
+       {
+        "对象": "recommendationservice",
+        "位置": "对",
+        "机制": "倾向对"
+       }
+      ],
+      "多报": 0,
+      "说明": "Pod 网络路径丢包重传，或它到 productcatalog 的连接被阻塞",
+      "blind_id": "H006",
+      "repeat": 2,
+      "tokens": 2149959,
+      "llm_calls": 23
+     }
+    ],
+    "CT12": [
+     {
+      "结果": "通过",
+      "严格通过": true,
+      "原因": [
+       {
+        "对象": "checkoutservice",
+        "位置": "对",
+        "机制": "对"
+       }
+      ],
+      "多报": 0,
+      "说明": "",
+      "blind_id": "H050",
+      "repeat": 1,
+      "tokens": 451306,
+      "llm_calls": 13
+     },
+     {
+      "结果": "通过",
+      "严格通过": true,
+      "原因": [
+       {
+        "对象": "checkoutservice",
+        "位置": "对",
+        "机制": "对"
+       }
+      ],
+      "多报": 0,
+      "说明": "",
+      "blind_id": "H020",
+      "repeat": 2,
+      "tokens": 414302,
+      "llm_calls": 12
+     }
+    ],
+    "CT15": [
+     {
+      "结果": "部分",
+      "严格通过": false,
+      "原因": [
+       {
+        "对象": "productcatalogservice",
+        "位置": "对",
+        "机制": "对"
+       },
+       {
+        "对象": "cartservice",
+        "位置": "没定",
+        "机制": "-"
+       }
+      ],
+      "多报": 0,
+      "说明": "同上：cartservice↔redis-cart 路径的固定延迟或 redis-cart 进程停顿",
+      "blind_id": "H026",
+      "repeat": 1,
+      "tokens": 2520565,
+      "llm_calls": 24
+     },
+     {
+      "结果": "部分",
+      "严格通过": false,
+      "原因": [
+       {
+        "对象": "productcatalogservice",
+        "位置": "对",
+        "机制": "对"
+       },
+       {
+        "对象": "cartservice",
+        "位置": "没定",
+        "机制": "-"
+       }
+      ],
+      "多报": 0,
+      "说明": "第二个原因定在 cartservice→redis-cart 这一段，哪一端、是网络还是 redis 进程内都没定",
+      "blind_id": "H015",
+      "repeat": 2,
+      "tokens": 850426,
+      "llm_calls": 12
+     }
+    ],
+    "CT16": [
+     {
+      "结果": "通过",
+      "严格通过": true,
+      "原因": [
+       {
+        "对象": "currencyservice",
+        "位置": "对",
+        "机制": "对"
+       },
+       {
+        "对象": "frontend",
+        "位置": "对",
+        "机制": "对"
+       }
+      ],
+      "多报": 0,
+      "说明": "",
+      "blind_id": "H024",
+      "repeat": 1,
+      "tokens": 787568,
+      "llm_calls": 11
+     },
+     {
+      "结果": "通过",
+      "严格通过": true,
+      "原因": [
+       {
+        "对象": "currencyservice",
+        "位置": "对",
+        "机制": "对"
+       },
+       {
+        "对象": "frontend",
+        "位置": "对",
+        "机制": "对"
+       }
+      ],
+      "多报": 0,
+      "说明": "",
+      "blind_id": "H037",
+      "repeat": 2,
+      "tokens": 1003358,
+      "llm_calls": 13
+     }
+    ]
+   }
+  },
+  "v2-D": {
+   "lib": "holmes/skills/xinc-D-cand",
+   "what": "阶段 6（v2）在 2026-11-23 暂停时已完成的部分运行，整库。探索性结果：运行没跑完，判分后按组别看过。",
+   "metrics_tool": true,
+   "max_steps": 100,
+   "graded": "2026-11-23，Fable 5.2，三组 54 次混在一起打乱、遮住组别后人工判",
+   "runs": 18,
+   "passes": 9,
+   "grades": {
+    "CT01": [
+     {
+      "结果": "错",
+      "严格通过": false,
+      "原因": [
+       {
+        "对象": "cartservice",
+        "位置": "没定",
+        "机制": "-"
+       }
+      ],
+      "多报": 0,
+      "说明": "延迟归到 cartservice 与 redis-cart 之间的一跳，两端并列，说这一端归属缺证据",
+      "blind_id": "H004",
+      "repeat": 1,
+      "tokens": 1692506,
+      "llm_calls": 22
+     },
+     {
+      "结果": "通过",
+      "严格通过": true,
+      "原因": [
+       {
+        "对象": "cartservice",
+        "位置": "对",
+        "机制": "对"
+       }
+      ],
+      "多报": 0,
+      "说明": "",
+      "blind_id": "H029",
+      "repeat": 2,
+      "tokens": 1015798,
+      "llm_calls": 17
+     }
+    ],
+    "CT02": [
+     {
+      "结果": "部分",
+      "严格通过": false,
+      "原因": [
+       {
+        "对象": "productcatalogservice",
+        "位置": "对",
+        "机制": "没定"
+       }
+      ],
+      "多报": 0,
+      "说明": "网络路径或其进程内；recommendationservice 一跳同样没定",
+      "blind_id": "H034",
+      "repeat": 1,
+      "tokens": 2119264,
+      "llm_calls": 21
+     },
+     {
+      "结果": "部分",
+      "严格通过": false,
+      "原因": [
+       {
+        "对象": "productcatalogservice",
+        "位置": "对",
+        "机制": "对"
+       }
+      ],
+      "多报": 1,
+      "说明": "另把 cartservice 一跳当成确定原因（加购其实先查了商品目录）",
+      "blind_id": "H051",
+      "repeat": 2,
+      "tokens": 1621259,
+      "llm_calls": 16
+     }
+    ],
+    "CT03": [
+     {
+      "结果": "通过",
+      "严格通过": true,
+      "原因": [
+       {
+        "对象": "recommendationservice",
+        "位置": "对",
+        "机制": "对"
+       }
+      ],
+      "多报": 0,
+      "说明": "判成网络固定延迟（实际是丢包，大类对）",
+      "blind_id": "H049",
+      "repeat": 1,
+      "tokens": 615122,
+      "llm_calls": 12
+     },
+     {
+      "结果": "部分",
+      "严格通过": false,
+      "原因": [
+       {
+        "对象": "recommendationservice",
+        "位置": "对",
+        "机制": "没定"
+       }
+      ],
+      "多报": 0,
+      "说明": "网络路径或容器突发停顿，说无法区分",
+      "blind_id": "H035",
+      "repeat": 2,
+      "tokens": 912272,
+      "llm_calls": 14
+     }
+    ],
+    "CT04": [
+     {
+      "结果": "通过",
+      "严格通过": true,
+      "原因": [
+       {
+        "对象": "frontend",
+        "位置": "对",
+        "机制": "对"
+       }
+      ],
+      "多报": 0,
+      "说明": "",
+      "blind_id": "H033",
+      "repeat": 1,
+      "tokens": 1417245,
+      "llm_calls": 19
+     },
+     {
+      "结果": "通过",
+      "严格通过": true,
+      "原因": [
+       {
+        "对象": "frontend",
+        "位置": "对",
+        "机制": "对"
+       }
+      ],
+      "多报": 0,
+      "说明": "判成固定延迟（实际是丢包，大类对）；提到也可能在各下游出方向，主结论在 frontend 入向",
+      "blind_id": "H041",
+      "repeat": 2,
+      "tokens": 2256586,
+      "llm_calls": 22
+     }
+    ],
+    "CT05": [
+     {
+      "结果": "通过",
+      "严格通过": true,
+      "原因": [
+       {
+        "对象": "frontend",
+        "位置": "对",
+        "机制": "对"
+       }
+      ],
+      "多报": 0,
+      "说明": "",
+      "blind_id": "H016",
+      "repeat": 1,
+      "tokens": 599685,
+      "llm_calls": 12
+     },
+     {
+      "结果": "通过",
+      "严格通过": true,
+      "原因": [
+       {
+        "对象": "frontend",
+        "位置": "对",
+        "机制": "对"
+       }
+      ],
+      "多报": 0,
+      "说明": "",
+      "blind_id": "H009",
+      "repeat": 2,
+      "tokens": 859691,
+      "llm_calls": 15
+     }
+    ],
+    "CT07": [
+     {
+      "结果": "部分",
+      "严格通过": false,
+      "原因": [
+       {
+        "对象": "cartservice",
+        "位置": "对",
+        "机制": "对"
+       },
+       {
+        "对象": "currencyservice",
+        "位置": "错",
+        "机制": "-"
+       }
+      ],
+      "多报": 0,
+      "说明": "漏 currencyservice 丢包",
+      "blind_id": "H031",
+      "repeat": 1,
+      "tokens": 977987,
+      "llm_calls": 15
+     },
+     {
+      "结果": "部分",
+      "严格通过": false,
+      "原因": [
+       {
+        "对象": "cartservice",
+        "位置": "对",
+        "机制": "对"
+       },
+       {
+        "对象": "currencyservice",
+        "位置": "错",
+        "机制": "-"
+       }
+      ],
+      "多报": 0,
+      "说明": "漏 currencyservice 丢包",
+      "blind_id": "H042",
+      "repeat": 2,
+      "tokens": 874682,
+      "llm_calls": 14
+     }
+    ],
+    "CT08": [
+     {
+      "结果": "通过",
+      "严格通过": false,
+      "原因": [
+       {
+        "对象": "frontend",
+        "位置": "对",
+        "机制": "对"
+       },
+       {
+        "对象": "recommendationservice",
+        "位置": "对",
+        "机制": "倾向对"
+       }
+      ],
+      "多报": 0,
+      "说明": "延迟在投递到 rec 的网络路径上，或 rec 调 productcatalog 那一跳，两者没分开",
+      "blind_id": "H010",
+      "repeat": 1,
+      "tokens": 1334772,
+      "llm_calls": 17
+     }
+    ],
+    "CT09": [
+     {
+      "结果": "部分",
+      "严格通过": false,
+      "原因": [
+       {
+        "对象": "currencyservice",
+        "位置": "对",
+        "机制": "对"
+       },
+       {
+        "对象": "productcatalogservice",
+        "位置": "对",
+        "机制": "没定"
+       }
+      ],
+      "多报": 0,
+      "说明": "productcatalog 每次调用多 290ms，网络路径或进程内说分不开",
+      "blind_id": "H054",
+      "repeat": 1,
+      "tokens": 1385018,
+      "llm_calls": 18
+     }
+    ],
+    "CT11": [
+     {
+      "结果": "部分",
+      "严格通过": false,
+      "原因": [
+       {
+        "对象": "paymentservice Service",
+        "位置": "对",
+        "机制": "对"
+       },
+       {
+        "对象": "recommendationservice",
+        "位置": "对",
+        "机制": "没定"
+       }
+      ],
+      "多报": 0,
+      "说明": "网络路径延迟或进程内阻塞，说无法区分",
+      "blind_id": "H007",
+      "repeat": 1,
+      "tokens": 1089061,
+      "llm_calls": 18
+     }
+    ],
+    "CT12": [
+     {
+      "结果": "通过",
+      "严格通过": true,
+      "原因": [
+       {
+        "对象": "checkoutservice",
+        "位置": "对",
+        "机制": "对"
+       }
+      ],
+      "多报": 0,
+      "说明": "",
+      "blind_id": "H032",
+      "repeat": 1,
+      "tokens": 347605,
+      "llm_calls": 11
+     }
+    ],
+    "CT15": [
+     {
+      "结果": "部分",
+      "严格通过": false,
+      "原因": [
+       {
+        "对象": "productcatalogservice",
+        "位置": "对",
+        "机制": "对"
+       },
+       {
+        "对象": "cartservice",
+        "位置": "错",
+        "机制": "-"
+       }
+      ],
+      "多报": 0,
+      "说明": "只报 EXTRA_LATENCY，漏 cartservice 网络延迟",
+      "blind_id": "H044",
+      "repeat": 1,
+      "tokens": 967113,
+      "llm_calls": 15
+     }
+    ],
+    "CT16": [
+     {
+      "结果": "通过",
+      "严格通过": true,
+      "原因": [
+       {
+        "对象": "currencyservice",
+        "位置": "对",
+        "机制": "对"
+       },
+       {
+        "对象": "frontend",
+        "位置": "对",
+        "机制": "对"
+       }
+      ],
+      "多报": 0,
+      "说明": "",
+      "blind_id": "H025",
+      "repeat": 1,
+      "tokens": 724093,
+      "llm_calls": 13
+     }
+    ]
+   }
+  },
+  "v2-Dds": {
+   "lib": "holmes/skills/xinc-D-ds",
+   "what": "阶段 6（v2）在 2026-11-23 暂停时已完成的部分运行，整库。探索性结果：运行没跑完，判分后按组别看过。",
+   "metrics_tool": true,
+   "max_steps": 100,
+   "graded": "2026-11-23，Fable 5.2，三组 54 次混在一起打乱、遮住组别后人工判",
+   "runs": 12,
+   "passes": 7,
+   "grades": {
+    "CT01": [
+     {
+      "结果": "通过",
+      "严格通过": true,
+      "原因": [
+       {
+        "对象": "cartservice",
+        "位置": "对",
+        "机制": "对"
+       }
+      ],
+      "多报": 0,
+      "说明": "cartservice Pod 出向网络的固定延迟；redis-cart 侧列为备选，但写明最可能是 cartservice",
+      "blind_id": "H028",
+      "repeat": 1,
+      "tokens": 745578,
+      "llm_calls": 12
+     }
+    ],
+    "CT02": [
+     {
+      "结果": "错",
+      "严格通过": false,
+      "原因": [
+       {
+        "对象": "productcatalogservice",
+        "位置": "错",
+        "机制": "-"
+       }
+      ],
+      "多报": 1,
+      "说明": "判给 recommendationservice 的出向链路，productcatalog 只作为它的内部调用提到",
+      "blind_id": "H048",
+      "repeat": 1,
+      "tokens": 1855478,
+      "llm_calls": 22
+     }
+    ],
+    "CT03": [
+     {
+      "结果": "通过",
+      "严格通过": true,
+      "原因": [
+       {
+        "对象": "recommendationservice",
+        "位置": "对",
+        "机制": "对"
+       }
+      ],
+      "多报": 0,
+      "说明": "进程停顿备选被说明不太可能",
+      "blind_id": "H039",
+      "repeat": 1,
+      "tokens": 840218,
+      "llm_calls": 13
+     }
+    ],
+    "CT04": [
+     {
+      "结果": "通过",
+      "严格通过": true,
+      "原因": [
+       {
+        "对象": "frontend",
+        "位置": "对",
+        "机制": "对"
+       }
+      ],
+      "多报": 0,
+      "说明": "丢包还是固定延迟分不开，但都在网络大类里",
+      "blind_id": "H021",
+      "repeat": 1,
+      "tokens": 1560431,
+      "llm_calls": 18
+     }
+    ],
+    "CT05": [
+     {
+      "结果": "通过",
+      "严格通过": true,
+      "原因": [
+       {
+        "对象": "frontend",
+        "位置": "对",
+        "机制": "对"
+       }
+      ],
+      "多报": 0,
+      "说明": "",
+      "blind_id": "H036",
+      "repeat": 1,
+      "tokens": 321740,
+      "llm_calls": 11
+     }
+    ],
+    "CT07": [
+     {
+      "结果": "部分",
+      "严格通过": false,
+      "原因": [
+       {
+        "对象": "cartservice",
+        "位置": "对",
+        "机制": "对"
+       },
+       {
+        "对象": "currencyservice",
+        "位置": "错",
+        "机制": "-"
+       }
+      ],
+      "多报": 0,
+      "说明": "漏 currencyservice 丢包；把约 200ms 的台阶解释成两个限流周期",
+      "blind_id": "H045",
+      "repeat": 1,
+      "tokens": 721336,
+      "llm_calls": 17
+     }
+    ],
+    "CT08": [
+     {
+      "结果": "部分",
+      "严格通过": false,
+      "原因": [
+       {
+        "对象": "frontend",
+        "位置": "对",
+        "机制": "对"
+       },
+       {
+        "对象": "recommendationservice",
+        "位置": "错",
+        "机制": "-"
+       }
+      ],
+      "多报": 0,
+      "说明": "只报 frontend CPU 限流，漏 recommendationservice 网络延迟",
+      "blind_id": "H047",
+      "repeat": 1,
+      "tokens": 970674,
+      "llm_calls": 19
+     }
+    ],
+    "CT09": [
+     {
+      "结果": "部分",
+      "严格通过": false,
+      "原因": [
+       {
+        "对象": "currencyservice",
+        "位置": "对",
+        "机制": "对"
+       },
+       {
+        "对象": "productcatalogservice",
+        "位置": "错",
+        "机制": "-"
+       }
+      ],
+      "多报": 1,
+      "说明": "把 recommendationservice 的网络路径当成 1.4 秒的原因",
+      "blind_id": "H046",
+      "repeat": 1,
+      "tokens": 1868817,
+      "llm_calls": 20
+     }
+    ],
+    "CT11": [
+     {
+      "结果": "通过",
+      "严格通过": true,
+      "原因": [
+       {
+        "对象": "paymentservice Service",
+        "位置": "对",
+        "机制": "对"
+       },
+       {
+        "对象": "recommendationservice",
+        "位置": "对",
+        "机制": "对"
+       }
+      ],
+      "多报": 0,
+      "说明": "入口方向网络路径",
+      "blind_id": "H014",
+      "repeat": 1,
+      "tokens": 1351865,
+      "llm_calls": 18
+     }
+    ],
+    "CT12": [
+     {
+      "结果": "通过",
+      "严格通过": true,
+      "原因": [
+       {
+        "对象": "checkoutservice",
+        "位置": "对",
+        "机制": "对"
+       }
+      ],
+      "多报": 0,
+      "说明": "",
+      "blind_id": "H043",
+      "repeat": 1,
+      "tokens": 352927,
+      "llm_calls": 11
+     }
+    ],
+    "CT15": [
+     {
+      "结果": "部分",
+      "严格通过": false,
+      "原因": [
+       {
+        "对象": "productcatalogservice",
+        "位置": "对",
+        "机制": "对"
+       },
+       {
+        "对象": "cartservice",
+        "位置": "错",
+        "机制": "-"
+       }
+      ],
+      "多报": 0,
+      "说明": "只报 EXTRA_LATENCY，漏 cartservice 网络延迟",
+      "blind_id": "H013",
+      "repeat": 1,
+      "tokens": 1534217,
+      "llm_calls": 20
+     }
+    ],
+    "CT16": [
+     {
+      "结果": "通过",
+      "严格通过": true,
+      "原因": [
+       {
+        "对象": "currencyservice",
+        "位置": "对",
+        "机制": "对"
+       },
+       {
+        "对象": "frontend",
+        "位置": "对",
+        "机制": "对"
+       }
+      ],
+      "多报": 0,
+      "说明": "",
+      "blind_id": "H008",
+      "repeat": 1,
+      "tokens": 459828,
+      "llm_calls": 11
+     }
+    ]
+   }
   }
  }
 }
