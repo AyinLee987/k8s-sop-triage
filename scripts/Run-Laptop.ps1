@@ -20,7 +20,7 @@
 # no WSL shutdown; no PVC, namespace or cluster deletion.
 [CmdletBinding()]
 param(
-    [ValidateSet('check', 'pilot', 'batch', 'loop', 'fix', 'metrics', 'validate', 'noise', 'shell', 'sweep', 'admission')][string]$Action = 'check',
+    [ValidateSet('check', 'pilot', 'batch', 'loop', 'fix', 'metrics', 'validate', 'noise', 'shell', 'sweep', 'admission', 'anchoring')][string]$Action = 'check',
     [string]$Scenario = 'R06',
     [string]$Scenarios = '',
     [int]$Repeats = 3,
@@ -32,6 +32,7 @@ param(
     [string]$Frame = '',        # loop/batch: empty = the default framing (a real production incident, judge from evidence only); 'none' = the bare prompt
     [int]$Rounds = 3,           # loop: how many diagnose-fix-verify rounds the agent gets
     [int]$Observe = 0,          # validate: keep each fault this many more seconds and record the frontend's latency meanwhile
+    [string]$Arms = '',         # anchoring: comma-separated arms (base,m2,m6,m5); empty = all four
     [switch]$Metrics,           # batch/pilot/loop: also give the agent the boutique_pod_metrics tool (CPU throttling, memory, pod network counters)
     [string]$Cluster = '',          # kind cluster name; empty = from .env / default (scripts\_cluster.ps1)
     [string]$KindExe = '',          # path to kind.exe; empty = lab copy or kind on PATH
@@ -42,7 +43,7 @@ param(
 # probe) becomes a terminating error under 'Stop'. Every native call below checks $LASTEXITCODE instead.
 $ErrorActionPreference = 'Continue'
 # 'a,b' typed unquoted reaches a [string] parameter as 'a b'; put the commas back.
-$Scenarios = $Scenarios -replace '\s+', ','; $Noise = $Noise -replace '\s+', ','; $Skills = $Skills -replace '\s+', ','
+$Scenarios = $Scenarios -replace '\s+', ','; $Noise = $Noise -replace '\s+', ','; $Skills = $Skills -replace '\s+', ','; $Arms = $Arms -replace '\s+', ','
 $Repo = Split-Path -Parent $PSScriptRoot
 . (Join-Path $PSScriptRoot '_cluster.ps1')
 $cc = Resolve-ClusterConfig $Repo $Cluster $KindExe $AdminKubeconfig
@@ -207,6 +208,8 @@ switch ($Action) {
     'metrics'  { $runArgs = @('metrics') }   # no agent: print the metrics table the agent's tool would return
     'shell'    { $runArgs = @('shell') }
     'sweep'    { $runArgs = @('sweep') }
+    # single-cause anchoring experiment (scripts/anchoring_pilot.py): learning and validation scenarios only
+    'anchoring' { $runArgs = @('anchoring', '--scenarios', $Scenarios, '--repeats', "$Repeats"); if ($Arms) { $runArgs += @('--arms', $Arms) }; if ($Tag) { $runArgs += @('--tag', $Tag) }; if ($Skills) { $runArgs += @('--skills', $Skills) }; if ($MaxSteps -gt 0) { $runArgs += @('--max-steps', "$MaxSteps") }; if ($Metrics) { $runArgs += '--metrics' } }
     # admission check: -Skills is the ONE library to test, each run gets a random half of its entries (scripts/admission.py)
     'admission' { $runArgs = @('admission', '--lib', $Skills, '--scenarios', $Scenarios, '--repeats', "$Repeats"); if ($Tag) { $runArgs += @('--tag', $Tag) }; if ($MaxSteps -gt 0) { $runArgs += @('--max-steps', "$MaxSteps") }; if ($Metrics) { $runArgs += '--metrics' } }
     'batch'    {

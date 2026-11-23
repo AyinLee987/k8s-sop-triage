@@ -50,10 +50,11 @@ case "$cmd" in
   metrics)  mint_diag; mint_metrics; KUBECONFIG="$DIAG_KUBECONFIG" python scripts/pod_metrics.py "$@" ;;
   loop)     mint_diag; if wants_metrics "$@"; then mint_metrics; fi; python scripts/holmes_loop.py "$@" ;;
   fix)      python scripts/fix_records.py "$@" ;;
+  anchoring) mint_diag; if wants_metrics "$@"; then mint_metrics; fi; python scripts/anchoring_pilot.py "$@" ;;
   admission) mint_diag; if wants_metrics "$@"; then mint_metrics; fi; python scripts/admission.py run "$@" ;;
   validate) python scripts/validate_injection.py "$@" ;;
   noise)    python scripts/validate_noise.py "$@" ;;
   sweep)    python scripts/sweep_cpu_limit.py "$@" ;;
   shell)    exec bash ;;
-  *) echo "unknown command: $cmd (check | pilot | batch | loop | fix | admission | metrics | validate | noise | sweep | shell)" >&2; exit 2 ;;
+  *) echo "unknown command: $cmd (check | pilot | batch | loop | fix | admission | anchoring | metrics | validate | noise | sweep | shell)" >&2; exit 2 ;;
 esac
