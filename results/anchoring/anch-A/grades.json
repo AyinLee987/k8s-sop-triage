@@ -1,0 +1,154 @@
+{
+ "CV05": {
+  "base": {
+   "结果": "部分",
+   "第二原因": "机制没定",
+   "说明": "currency 找到，网络层还是应用内说分不开",
+   "blind_id": "K04",
+   "tokens": 408448,
+   "wall_s": 289,
+   "review": null
+  },
+  "m2": {
+   "结果": "部分",
+   "第二原因": "机制没定",
+   "说明": "currency 找到，进程内还是网络说分不开",
+   "blind_id": "K02",
+   "tokens": 2358282,
+   "wall_s": 535,
+   "review": null
+  },
+  "m6": {
+   "结果": "部分",
+   "第二原因": "漏",
+   "说明": "只报 frontend CPU；症状表里把延迟全部归给它，只有 60 秒超时标了未解释",
+   "blind_id": "(未遮)",
+   "tokens": 1061621,
+   "wall_s": 338,
+   "review": null
+  },
+  "m5": {
+   "结果": "部分",
+   "第二原因": "机制没定",
+   "说明": "currency 找到，进程内排队还是网络说分不开",
+   "blind_id": "K07",
+   "tokens": 2027451,
+   "wall_s": 763,
+   "review": "reinvestigate"
+  }
+ },
+ "CL02": {
+  "base": {
+   "结果": "部分",
+   "第二原因": "机制没定",
+   "说明": "rec 找到，自身处理等待还是 rec→productcatalog 一段说分不开",
+   "blind_id": "K01",
+   "tokens": 2261803,
+   "wall_s": 476,
+   "review": null
+  },
+  "m2": {
+   "结果": "部分",
+   "第二原因": "机制没定",
+   "说明": "rec 找到，服务内部还是网络说缺证据",
+   "blind_id": "K11",
+   "tokens": 2076986,
+   "wall_s": 498,
+   "review": null
+  },
+  "m6": {
+   "结果": "部分",
+   "第二原因": "漏",
+   "说明": "只报 cartservice CPU；症状 8 条全部标为已解释",
+   "blind_id": "(未遮)",
+   "tokens": 1901280,
+   "wall_s": 532,
+   "review": null
+  },
+  "m5": {
+   "结果": "通过",
+   "第二原因": "找到",
+   "说明": "rec 请求方向的延迟，备选是 rec→productcatalog 那一跳",
+   "blind_id": "K12",
+   "tokens": 2668984,
+   "wall_s": 870,
+   "review": "reinvestigate"
+  }
+ },
+ "CL04": {
+  "base": {
+   "结果": "部分",
+   "第二原因": "漏",
+   "说明": "只报 currency CPU",
+   "blind_id": "K06",
+   "tokens": 389777,
+   "wall_s": 222,
+   "review": null
+  },
+  "m2": {
+   "结果": "部分",
+   "第二原因": "位置没定",
+   "说明": "currency CPU 对；cart/redis 路径列为未定论，另把 checkout→email 一跳列为未定论",
+   "blind_id": "K03",
+   "tokens": 3031455,
+   "wall_s": 591,
+   "review": null
+  },
+  "m6": {
+   "结果": "通过",
+   "第二原因": "找到",
+   "说明": "cartservice 网络 + currencyservice CPU，两个都标为独立根因",
+   "blind_id": "(未遮)",
+   "tokens": 2856705,
+   "wall_s": 670,
+   "review": null
+  },
+  "m5": {
+   "结果": "通过",
+   "第二原因": "找到",
+   "说明": "cartservice 网络/链路延迟为主因，currency CPU 限流列为真实的次要问题",
+   "blind_id": "K05",
+   "tokens": 2559090,
+   "wall_s": 933,
+   "review": "reinvestigate"
+  }
+ },
+ "CV02": {
+  "base": {
+   "结果": "通过",
+   "第二原因": "-",
+   "说明": "",
+   "blind_id": "K10",
+   "tokens": 706381,
+   "wall_s": 262,
+   "review": null
+  },
+  "m2": {
+   "结果": "通过",
+   "第二原因": "-",
+   "说明": "",
+   "blind_id": "K08",
+   "tokens": 722951,
+   "wall_s": 301,
+   "review": null
+  },
+  "m6": {
+   "结果": "通过",
+   "第二原因": "-",
+   "说明": "只报 cartservice CPU，frontend、checkout 标为派生",
+   "blind_id": "(未遮)",
+   "tokens": 559723,
+   "wall_s": 238,
+   "review": null
+  },
+  "m5": {
+   "结果": "通过",
+   "第二原因": "-",
+   "说明": "另提了两个同链路备选，写明只是不能完全排除",
+   "blind_id": "K09",
+   "tokens": 2570697,
+   "wall_s": 696,
+   "review": "reinvestigate"
+  }
+ }
+}
