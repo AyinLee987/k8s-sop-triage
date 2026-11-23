@@ -174,15 +174,16 @@ def ask_reviewer(system: str, user: str, model: str) -> tuple[str, int]:
     from openai import OpenAI
     client = OpenAI(api_key=cfg("LLM_API_KEY"), base_url=cfg("LLM_BASE_URL", "https://api.deepseek.com").rstrip("/") + "/v1")
     used = 0
-    for _ in range(2):   # the model reasons before it answers: with a small limit the whole budget went into reasoning and
-        # the visible reply was empty (all four devil's-advocate replies of the first run, 2026-11-23, max_tokens=8000)
-        r = client.chat.completions.create(model=model, temperature=0, max_tokens=20000,
+    for _ in range(2):   # the model reasons before it answers, and the limit covers both. With 8000 the reply was empty
+        # (all four devil's-advocate replies of 2026-11-23); with 20000 it was cut off after 314 characters (2026-11-24).
+        # Measured on that report: about 11000 tokens of reasoning and 5500 of answer.
+        r = client.chat.completions.create(model=model, temperature=0, max_tokens=64000,
                                            messages=[{"role": "system", "content": system}, {"role": "user", "content": user}])
         used += int(getattr(r.usage, "total_tokens", 0) or 0)
         text = (r.choices[0].message.content or "").strip()
-        if text:
+        if text and r.choices[0].finish_reason != "length":
             return text, used
-    raise RuntimeError(f"the reviewer returned no text twice (finish_reason={r.choices[0].finish_reason})")
+    raise RuntimeError(f"the reviewer returned no complete text twice (finish_reason={r.choices[0].finish_reason}, {len(text)} characters)")
 
 
 def run_one(sc: dict, arm: str, out: Path, args, env: dict, model: str, admin) -> dict:

@@ -120,11 +120,11 @@ def test_a_review_without_text_fails_the_run(tmp_path, monkeypatch):
     asked = []
 
     def silent(system, user, model):
-        raise RuntimeError("the reviewer returned no text twice (finish_reason=length)")
+        raise RuntimeError("the reviewer returned no complete text twice (finish_reason=length, 0 characters)")
 
     _patch_run(monkeypatch, tmp_path, asked, silent)
     rec = ap.run_one(SC["BH01"], "m5", tmp_path / "BH01-m5-r1.json", types.SimpleNamespace(max_steps=5, metrics=False), {}, "m", Sim())
-    assert len(asked) == 1 and "no text" in rec["error"] and rec["stages"][-1]["verdict"] == "error"   # not counted as a result
+    assert len(asked) == 1 and "no complete text" in rec["error"] and rec["stages"][-1]["verdict"] == "error"   # not counted as a result
 
 
 def test_reviewer_retries_an_empty_reply_and_is_told_the_limits(monkeypatch):
@@ -132,7 +132,7 @@ def test_reviewer_retries_an_empty_reply_and_is_told_the_limits(monkeypatch):
 
     class FakeClient:
         def __init__(self, **kw):
-            self.chat = types.SimpleNamespace(completions=types.SimpleNamespace(create=self.create))
+            self.chat = types.SimpleNamespace(completions=types.SimpleNamespace(create=lambda **kw: type(self).create(self, **kw)))
 
         def create(self, **kw):
             assert kw["max_tokens"] >= 20000
@@ -145,8 +145,16 @@ def test_reviewer_retries_an_empty_reply_and_is_told_the_limits(monkeypatch):
     replies[:] = ["", "有内容"]
     assert ap.ask_reviewer("s", "u", "m") == ("有内容", 14)
     replies[:] = ["", None]
-    with pytest.raises(RuntimeError, match="no text"):
+    with pytest.raises(RuntimeError, match="no complete text"):
         ap.ask_reviewer("s", "u", "m")
+    cut = iter([("被截断的开头", "length"), ("完整的回答", "stop")])   # a reply cut off by the token limit is not a review either
+
+    def create(self, **kw):
+        text, why = next(cut)
+        return types.SimpleNamespace(usage=types.SimpleNamespace(total_tokens=7), choices=[types.SimpleNamespace(message=types.SimpleNamespace(content=text), finish_reason=why)])
+
+    monkeypatch.setattr(FakeClient, "create", create)
+    assert ap.ask_reviewer("s", "u", "m") == ("完整的回答", 14)
     for prompt in (ap.DEVIL, ap.SENIOR):   # reviewers must only ask for checks a read-only agent can make
         assert "只读权限" in prompt and "不能进容器执行命令" in prompt and "没有链路追踪" in prompt
 
