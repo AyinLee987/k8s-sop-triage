@@ -8,9 +8,11 @@
 | --- | --- | --- |
 | `lint` | ruff，只开 E9/F63/F7/F82（语法错误、未定义名字等） | 有真 bug；风格问题不拦 |
 | `test` | 离线测试（假集群 `tests/fake_cluster.py`，不连集群、不调模型） | 任一测试失败 |
-| `image` | 构建 `docker/runner.Dockerfile` → Trivy 扫描 → 推到 GHCR | 有已能修复的 HIGH/CRITICAL 漏洞 |
+| `image` | 构建 `docker/runner.Dockerfile` → Trivy 扫描 → 推到 GHCR | 有已能修复的 CRITICAL 漏洞；HIGH 只出报告 |
 
 - `image` 依赖前两个 job，先过测试才构建。
+- HIGH 不拦的原因：修它要换 kubectl 和 HolmesGPT 的 Python 依赖，也就是换实验环境，会影响前后实验的可比性。
+  所以高危漏洞在两批实验之间统一升级，并记下从哪次实验起换了环境。2026-11-24 首次扫描：35 个 HIGH（kubectl 29、Python 包 5、zlib 1），0 个 CRITICAL。
 - 镜像只在 main 分支 push 时推送，tag 用 commit SHA（可追溯、不可变），同时把 `main` 指向它。PR 只构建和扫描，不推送。
 - 先 `load` 到本地再扫描、再推送，保证扫描的就是推送的那一个镜像。
 

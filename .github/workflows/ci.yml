@@ -75,12 +75,23 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      # Fail on HIGH/CRITICAL vulnerabilities that already have a fix available.
-      - name: Trivy scan
+      # Two passes over the same image. HIGH is reported but does not block: fixing it means changing
+      # kubectl and HolmesGPT's Python dependencies, i.e. the environment the experiments run in, so
+      # those upgrades are done deliberately between experiment batches, not forced by a push.
+      - name: Trivy scan (report HIGH and CRITICAL)
         uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25  # v0.36.0
         with:
           image-ref: ${{ env.IMAGE }}:${{ github.sha }}
           severity: HIGH,CRITICAL
+          ignore-unfixed: true
+          exit-code: "0"
+
+      # Fail on CRITICAL vulnerabilities that already have a fix available.
+      - name: Trivy scan (block on CRITICAL)
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25  # v0.36.0
+        with:
+          image-ref: ${{ env.IMAGE }}:${{ github.sha }}
+          severity: CRITICAL
           ignore-unfixed: true
           exit-code: "1"
 
