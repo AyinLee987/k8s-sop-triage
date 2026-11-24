@@ -34,6 +34,8 @@ param(
     [int]$Observe = 0,          # validate: keep each fault this many more seconds and record the frontend's latency meanwhile
     [int]$Settle = 0,           # anchoring: seconds of healthy traffic between the fresh pods and the fault
     [string]$Arms = '',         # anchoring: comma-separated arms (base,m2,m6,m5,re); empty = all
+    [string]$Prompt = '',       # batch/pilot: auto (default) | v2 | v3; auto = v3 for the third bank (docs/V3.md)
+    [switch]$Finalize,          # batch: allow holdout scenarios and the third bank's test scenarios (only once the method is fixed)
     [switch]$Metrics,           # batch/pilot/loop: also give the agent the boutique_pod_metrics tool (CPU throttling, memory, pod network counters)
     [string]$Cluster = '',          # kind cluster name; empty = from .env / default (scripts\_cluster.ps1)
     [string]$KindExe = '',          # path to kind.exe; empty = lab copy or kind on PATH
@@ -201,7 +203,7 @@ if ($HasLab -and ($Rebuild -or $nodeImages -notmatch 'tiktok-k8s-lab\s+v3\s' -or
 $runArgs = @()
 switch ($Action) {
     'check'    { $runArgs = @('check') }
-    'pilot'    { $runArgs = @('pilot', $Scenario); if ($Noise) { $runArgs += @('--noise', $Noise) }; if ($Skills) { $runArgs += @('--skills', $Skills) }; if ($MaxSteps -gt 0) { $runArgs += @('--max-steps', "$MaxSteps") }; if ($Metrics) { $runArgs += '--metrics' } }
+    'pilot'    { $runArgs = @('pilot', $Scenario); if ($Noise) { $runArgs += @('--noise', $Noise) }; if ($Prompt) { $runArgs += @('--prompt', $Prompt) }; if ($Skills) { $runArgs += @('--skills', $Skills) }; if ($MaxSteps -gt 0) { $runArgs += @('--max-steps', "$MaxSteps") }; if ($Metrics) { $runArgs += '--metrics' } }
     'noise'    { $runArgs = @('noise') }
     'validate' { $runArgs = @('validate'); if ($Scenarios) { $runArgs += ($Scenarios -split ',') } else { $runArgs += $Scenario }; if ($Observe -gt 0) { $runArgs += @('--observe', "$Observe") } }
     'loop'     { $runArgs = @('loop'); if ($Scenarios) { $runArgs += ($Scenarios -split ',') } else { $runArgs += $Scenario }; $runArgs += @('--rounds', "$Rounds"); if ($Frame) { $runArgs += @('--frame', $Frame) }; if ($Tag) { $runArgs += @('--tag', $Tag) }; if ($Skills) { $runArgs += @('--skills', $Skills) }; if ($MaxSteps -gt 0) { $runArgs += @('--max-steps', "$MaxSteps") }; if ($Metrics) { $runArgs += '--metrics' } }
@@ -222,6 +224,8 @@ switch ($Action) {
         if ($Source) { $runArgs += @('--source', $Source) }
         if ($MaxSteps -gt 0) { $runArgs += @('--max-steps', "$MaxSteps") }
         if ($Frame) { $runArgs += @('--frame', $Frame) }
+        if ($Prompt) { $runArgs += @('--prompt', $Prompt) }
+        if ($Finalize) { $runArgs += '--finalize' }
         if ($Metrics) { $runArgs += '--metrics' }
     }
 }

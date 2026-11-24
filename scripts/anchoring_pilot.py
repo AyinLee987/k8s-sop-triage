@@ -199,7 +199,7 @@ def run_one(sc: dict, arm: str, out: Path, args, env: dict, model: str, admin) -
         if settle and hasattr(lc, "clean_slate"):
             # lc.inject() replaces every pod and injects at once, so the logs hold almost no healthy traffic to compare
             # with and the start-up noise (cold caches, .NET start-up throttling, refused connections) is seconds old.
-            lc.clean_slate(log)
+            lc.clean_slate(log, sc)
             time.sleep(settle)
             Lifecycle.inject(lc, sc, log)
         else:

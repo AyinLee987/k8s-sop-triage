@@ -67,11 +67,13 @@ def grade(answer_text: str, expected: dict, noise_ids: list[str] | None = None) 
     return out
 
 
-def run_one(sc_id: str, out: Path, max_steps: int, noise_ids: list[str], skills: str = "", frame: str = "prod", metrics: bool = False) -> dict:
+def run_one(sc_id: str, out: Path, max_steps: int, noise_ids: list[str], skills: str = "", frame: str = "prod", metrics: bool = False,
+            prompt: str = "auto", allow_test: bool = False) -> dict:
     started = time.monotonic()
     proc = subprocess.run([sys.executable, str(REPO / "scripts" / "holmes_pilot.py"), sc_id,
                            "--max-steps", str(max_steps), "--out", str(out), "--noise", ",".join(noise_ids),
-                           "--skills", skills, "--frame", frame, *(["--metrics"] if metrics else [])],
+                           "--skills", skills, "--frame", frame, "--prompt", prompt, *(["--metrics"] if metrics else []),
+                           *(["--allow-test"] if allow_test else [])],
                           capture_output=True, text=True, timeout=2400)
     rec = {"scenario": sc_id, "noise": noise_ids, "exit": proc.returncode, "wall_s": round(time.monotonic() - started),
            "answer_file": str(out.relative_to(REPO))}
@@ -87,6 +89,7 @@ def run_one(sc_id: str, out: Path, max_steps: int, noise_ids: list[str], skills:
                              if t.get("tool_name") == "fetch_skill"]
     rec["answer"] = data.get("result") or ""
     rec["frame"], rec["before"], rec["metrics"] = data.get("frame"), data.get("before"), data.get("metrics")
+    rec["prompt_version"] = data.get("prompt_version")
     rec["metrics_calls"] = sum(1 for t in data.get("tool_calls") or [] if t.get("tool_name") == "boutique_pod_metrics")
     plan, _ = remediate.parse_plan(rec["answer"])   # the JSON block the Online Boutique prompt asks for
     rec["root_causes"] = (plan or {}).get("root_causes")
@@ -131,7 +134,8 @@ def main() -> int:
     ap.add_argument("--frame", default="prod", choices=["prod", "none"])
     ap.add_argument("--metrics", action="store_true", help="give the agent the boutique_pod_metrics tool")
     ap.add_argument("--tag", default=time.strftime("%Y%m%d-%H%M%S"))
-    ap.add_argument("--finalize", action="store_true", help="required to run holdout scenarios")
+    ap.add_argument("--prompt", default="auto", choices=["auto", "v2", "v3"], help="see holmes_pilot.py --prompt")
+    ap.add_argument("--finalize", action="store_true", help="required to run holdout scenarios and the third bank's test scenarios")
     args = ap.parse_args()
 
     all_sc = {s["id"]: s for s in load_scenarios(split="all", source="all")}
@@ -141,6 +145,9 @@ def main() -> int:
     holdout = [i for i in ids if all_sc[i].get("split") == "holdout"]
     if holdout and not args.finalize:
         sys.exit(f"refusing holdout scenarios {holdout} without --finalize (keeps the held-out set clean)")
+    test_v3 = [i for i in ids if int(all_sc[i].get("bank") or 0) >= 3 and all_sc[i].get("pool") == "test"]
+    if test_v3 and not args.finalize:
+        sys.exit(f"refusing the third bank's test scenarios {test_v3} without --finalize (not run until the method is fixed)")
 
     out_dir = REPO / "results" / "holmes_batch" / args.tag
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -156,7 +163,8 @@ def main() -> int:
         print(f"[{n}/{len(plan)}] {sc_id} repeat {rep} ...", flush=True)
         noise_ids = pick_noise(args.noise, sc_id, rep)
         print(f"    noise: {noise_ids or 'none'}", flush=True)
-        rec = run_one(sc_id, out_dir / f"{sc_id}-r{rep}.json", args.max_steps, noise_ids, args.skills, args.frame, args.metrics)
+        rec = run_one(sc_id, out_dir / f"{sc_id}-r{rep}.json", args.max_steps, noise_ids, args.skills, args.frame, args.metrics,
+                      args.prompt, allow_test=args.finalize)
         rec["repeat"] = rep
         rec["grade"] = grade(rec.get("answer", ""), all_sc[sc_id]["answer"], noise_ids) if not rec.get("error") else None
         status = "ERROR" if rec.get("error") else ("ok" if rec["grade"]["auto_correct"] else "WRONG?")

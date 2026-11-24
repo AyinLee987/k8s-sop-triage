@@ -36,6 +36,12 @@ def load_boutique_v2() -> list[dict]:
     return yaml.safe_load(path.read_text(encoding="utf-8"))["scenarios"] if path.exists() else []
 
 
+def load_boutique_v3() -> list[dict]:
+    """The third bank (boutique/make_v3_scenarios.py): EL = learning, EV = validation, ET = test. Told apart by `pool`."""
+    path = BOUTIQUE_FILE.with_name("boutique_v3.yaml")
+    return yaml.safe_load(path.read_text(encoding="utf-8"))["scenarios"] if path.exists() else []
+
+
 def load_noises(ids: list[str] | None = None, path: Path | None = None) -> list[dict]:
     """Ambient noise definitions (scenarios/noise.yaml), in the order asked for; unknown ids are an error."""
     items = {n["id"]: n for n in yaml.safe_load((path or REPO / "scenarios" / "noise.yaml").read_text(encoding="utf-8"))["noises"]}
@@ -57,7 +63,7 @@ def load_scenarios(path: Path = SCENARIO_FILE, split: str | None = None, ids: li
         from triage.generator import expand
         items += expand(max_per_template=max_per_template)
     if source == "all":
-        items += load_boutique() + load_boutique(generated=True) + load_boutique(hard=True) + load_boutique_v2()
+        items += load_boutique() + load_boutique(generated=True) + load_boutique(hard=True) + load_boutique_v2() + load_boutique_v3()
     if ids:
         source_ids = {s["id"] for s in items}
         missing = set(ids) - source_ids
@@ -396,10 +402,16 @@ class BoutiqueLifecycle(Lifecycle):
         self.verify_healthy(log, phase="verify_recovered")
 
     def inject(self, scenario: dict, log: StepLog, noises: list[dict] | None = None) -> str:
-        self.clean_slate(log)
+        self.clean_slate(log, scenario)
+        # Third bank: normal traffic between the fresh pods and the fault, so the logs hold a healthy baseline and the
+        # start-up noise of the fresh pods (cold caches, refused connections) is minutes old, not seconds.
+        settle = float(scenario.get("settle_s") or 0)
+        if settle:
+            time.sleep(settle)
+            log.add("settle", True, f"{settle:.0f}s of healthy traffic before the fault", settle)
         return super().inject(scenario, log, noises)
 
-    def clean_slate(self, log: StepLog) -> None:
+    def clean_slate(self, log: StepLog, scenario: dict | None = None) -> None:
         """Remove what earlier runs left behind, so the agent only sees this run's fault (ISSUES E-021).
         Pods keep their logs until they are replaced, and HolmesGPT reads an hour of them: errors from the
         previous scenario were being reported as the cause of the next one. Also removed: the restartedAt
@@ -413,6 +425,13 @@ class BoutiqueLifecycle(Lifecycle):
                 res = self._run(["-n", self.ns, "patch", "deployment", d["metadata"]["name"], "--type=json", "-p",
                                  '[{"op":"remove","path":"/spec/template/metadata/annotations/kubectl.kubernetes.io~1restartedAt"}]'], 30)
                 notes.append(f"restartedAt removed from {d['metadata']['name']}" if res.ok else f"restartedAt {d['metadata']['name']}: {res.stderr.strip()[:80]}")
+        # Third bank (docs/V3.md): the kubectl last-applied annotation no longer tells which spec field was changed by
+        # hand. On the second bank it was the agent's shortcut (an annotation that disagrees with the live spec). Many
+        # real clusters do not have it either (Helm, server-side apply). Idempotent; rollout history is kept.
+        if int((scenario or {}).get("bank") or 0) >= 3:
+            for kind in ("deployments", "services"):
+                res = self._run(["-n", self.ns, "annotate", kind, "--all", "kubectl.kubernetes.io/last-applied-configuration-"], 60)
+                notes.append(f"last-applied removed from {kind}" if res.ok else f"last-applied {kind}: {res.stderr.strip()[:80]}")
         # an empty entry is the documented way to reset managedFields
         for target in [f"deployment/{n}" for n in BOUTIQUE_DEPLOYMENTS] + ["service/productcatalogservice", "service/redis-cart"]:
             self._run(["-n", self.ns, "patch", target, "--type=merge", "-p", '{"metadata":{"managedFields":[{}]}}'], 30)

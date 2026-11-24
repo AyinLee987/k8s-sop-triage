@@ -147,7 +147,9 @@ def observe(lc, since: str, min_seconds: float = 75, max_seconds: float = 180, s
     out = {"since": since, "seconds": waited, "requests": len(rows), "slow_180ms": slow,
            "share_slow": round(slow / len(rows), 3) if rows else None, "p50_ms": pick(0.5), "p90_ms": pick(0.9), "p99_ms": pick(0.99),
            "http_500": sum(int(r.get("http.resp.status") or 0) >= 500 for r in rows),
-           "checkout_attempts": len(checkouts), "checkout_failed": sum(int(r.get("http.resp.status") or 0) >= 500 for r in checkouts)}
+           "checkout_attempts": len(checkouts), "checkout_failed": sum(int(r.get("http.resp.status") or 0) >= 500 for r in checkouts),
+           # how long an order takes (third bank: some faults only slow the checkout page, about 5% of the traffic)
+           "checkout_p50_ms": round(sorted(float(r.get("http.resp.took_ms") or 0) for r in checkouts)[len(checkouts) // 2]) if checkouts else None}
     # The load generator pays with random card numbers, and the payment service refuses a few of them by card type
     # ("cannot process visa_electron credit cards"): about 2% of orders fail on a healthy system (fix-v1: 2 of 97 orders
     # after everything was fixed). The frontend answers 500 for them. They are counted, reported, and not held against a fix.
@@ -166,13 +168,16 @@ def _failed_orders(obs: dict) -> int:
     return obs["checkout_failed"] - obs.get("card_rejected", 0)
 
 
-def describe(obs: dict) -> str:
-    """The observation as a user/on-call would report it: numbers only, no hint about causes."""
+def describe(obs: dict, checkout: bool = False) -> str:
+    """The observation as a user/on-call would report it: numbers only, no hint about causes.
+    checkout=True (the third bank's prompt) also gives the median time of an order."""
     if not obs["requests"]:
         return f"最近 {obs['seconds']:.0f} 秒前端没有处理任何请求。"
+    order = (f"下单请求耗时中位数 {obs['checkout_p50_ms']} 毫秒（正常时约 10 到 20 毫秒）；"
+             if checkout and obs.get("checkout_p50_ms") is not None else "")
     return (f"最近 {obs['seconds']:.0f} 秒前端处理了 {obs['requests']} 个请求：{obs['slow_180ms']} 个超过 180 毫秒（占 {obs['share_slow']:.1%}；"
             f"这个系统正常时没有请求超过 180 毫秒），中位数 {obs['p50_ms']} 毫秒，90 分位 {obs['p90_ms']} 毫秒，99 分位 {obs['p99_ms']} 毫秒；"
-            f"返回 500 的请求 {obs['http_500']} 个；下单 {obs['checkout_attempts']} 次，失败 {obs['checkout_failed']} 次"
+            f"返回 500 的请求 {obs['http_500']} 个；{order}下单 {obs['checkout_attempts']} 次，失败 {obs['checkout_failed']} 次"
             + (f"（其中 {obs['card_rejected']} 次是支付服务拒收卡种，返回 400：只接受 VISA 或 MasterCard）" if obs.get("card_rejected") else "") + "。")
 
 
