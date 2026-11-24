@@ -40,6 +40,12 @@
 - 补充实验：拿阶段 2 带偏向条目的 `xinc-D-opus` 过一次准入检查，看这道门能不能发现已知的坏条目（约 60 次）。
 - 判分：抽 20% 由第二个判分人盲判，算一致率。判分由 Fable 5.2 做。
 
+### 待办：CI 跑通之后（2026-11-24 用户指定）
+
+- CI（`.github/workflows/ci.yml`、`e2e.yml`，说明见 `docs/CI.md`）在 GitHub 上跑通后再做：
+  在 sg-prod-01 上装 kube-prometheus-stack，给 Online Boutique 做 Grafana 看板（请求量、错误率、延迟），
+  写告警规则（错误率、Pod 频繁重启），Alertmanager 用 webhook 触发排查 Agent 并回传结论。
+
 ### 目标
 
 回答一个问题：经验入库前先做"准入检查"（在验证题上带和不带各跑几遍，没帮助的不留），是否比写完直接用更好。

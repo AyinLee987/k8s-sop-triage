@@ -1,0 +1,105 @@
+# CI: every push and pull request.
+#   lint  -> ruff, only the rules that catch real bugs (syntax errors, undefined names)
+#   test  -> the offline test suite (fake cluster, no model calls, no API key)
+#   image -> build the runner image, scan it with Trivy, push to GHCR (main branch only)
+# Nothing here calls the LLM or needs a cluster; the cluster test is e2e.yml.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# A newer push to the same branch cancels the older run.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - run: pip install ruff
+      # E9/F63/F7/F82: syntax errors, invalid comparisons, misplaced statements, undefined names.
+      # Style rules are left out on purpose: this job should only fail on bugs.
+      - run: ruff check --select E9,F63,F7,F82 --output-format github .
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+      - run: pip install -r requirements.txt
+      # The tests read config from the environment and .env; the example file has placeholder values only
+      # (no real key). Exported as well, because a few tests reload config after .env has been consumed.
+      - name: Test config from .env.example
+        run: |
+          cp .env.example .env
+          grep -vE '^\s*(#|$)' .env.example >> "$GITHUB_ENV"
+      - run: python -m pytest
+
+  image:
+    needs: [lint, test]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write      # push to ghcr.io
+    env:
+      IMAGE: ghcr.io/${{ github.repository_owner }}/k8s-sop-runner
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Lower-case image name (GHCR requires it)
+        run: echo "IMAGE=${IMAGE,,}" >> "$GITHUB_ENV"
+
+      - uses: docker/setup-buildx-action@v3
+
+      # Build once and load it into the local Docker, so the scan checks exactly what gets pushed.
+      - name: Build
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: docker/runner.Dockerfile
+          load: true
+          tags: ${{ env.IMAGE }}:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      # Two passes over the same image. HIGH is reported but does not block: fixing it means changing
+      # kubectl and HolmesGPT's Python dependencies, i.e. the environment the experiments run in, so
+      # those upgrades are done deliberately between experiment batches, not forced by a push.
+      - name: Trivy scan (report HIGH and CRITICAL)
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25  # v0.36.0
+        with:
+          image-ref: ${{ env.IMAGE }}:${{ github.sha }}
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
+          exit-code: "0"
+
+      # Fail on CRITICAL vulnerabilities that already have a fix available.
+      - name: Trivy scan (block on CRITICAL)
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25  # v0.36.0
+        with:
+          image-ref: ${{ env.IMAGE }}:${{ github.sha }}
+          severity: CRITICAL
+          ignore-unfixed: true
+          exit-code: "1"
+
+      # Only main pushes: tag with the commit SHA (traceable, immutable) and move "main" to it.
+      - name: Push to GHCR
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+          docker tag "$IMAGE:${{ github.sha }}" "$IMAGE:main"
+          docker push "$IMAGE:${{ github.sha }}"
+          docker push "$IMAGE:main"

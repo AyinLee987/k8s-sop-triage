@@ -9,6 +9,11 @@
 
 ---
 
+## E-023 两个测试依赖配置的加载顺序：只有 .env 文件、没有导出环境变量时报 missing config
+- 现象：CI 里只放 `.env`（从 `.env.example` 复制）时，`test_anchoring_pilot.py` 的两个用例报 `missing config LAB_K8S_DIR`；同样的值导出成环境变量就全部通过。说明某处先消费了 `.env`、之后又按环境变量重新读配置。
+- 处理：CI 暂时把 `.env.example` 同时写入 `.env` 和 `$GITHUB_ENV` 绕过（`.github/workflows/ci.yml`）。根因还没查。
+- 状态：已绕过，待查根因
+
 ## E-022 tiktok-k8s-lab 的脚本在 Windows PowerShell 5.1 下归属检查必然失败
 - 现象：台式机上用 `powershell.exe` 跑 lab 的 `Setup.ps1`，集群建好后报 `template parsing error: function "io" not defined`，
   接着 `Project kind node ownership check failed.`。节点标签实际是对的。
