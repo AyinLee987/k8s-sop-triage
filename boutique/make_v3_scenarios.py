@@ -186,7 +186,9 @@ def main() -> None:
 
     def cpu_ok(t, lim):
         return {"changes": {t: {"cpu": lim}}, "harmless": t, "change": f"cpu limit {lim}",
-                "why_harmless": f"CPU 上限从 {cpu[t]['limits']['cpu']} 调到 {lim}，仍远高于它的用量，不被限流"}
+                # validation 2026-11-24: shipping/checkout/email/payment at these limits are not throttled, except paymentservice at
+                # 80m, which has a few throttled periods per minute (bursts of a single charge); it is on no slow request's path
+                "why_harmless": f"CPU 上限从 {cpu[t]['limits']['cpu']} 调到 {lim}，仍远高于它的平均用量，最多有零星几次限流，解释不了用户看到的症状"}
 
     def zero(t, why="它的失败被调用方吞掉了，用户报告的症状不是它引起的"):
         return {"steps": [K("-n", "{ns}", "scale", f"deployment/{t}", "--replicas=0")], "reset": [K("-n", "{ns}", "scale", f"deployment/{t}", "--replicas=1")],

@@ -30,7 +30,7 @@ scenarios:
   - lookalike
   evidence_chain:
   - currencyservice（cpu）：Deployment currencyservice 的 CPU 上限是 25m，上一版 ReplicaSet 里是 200m；指标表：currencyservice 的 CPU 用量顶在上限附近，被限流的周期占比明显大于 0；别的服务不被限流或只有零星几次；调用 currencyservice 次数多的页面慢得多，不调用它的请求不慢
-  - 排除 shippingservice 的改动（cpu limit 80m）：CPU 上限从 200m 调到 80m，仍远高于它的用量，不被限流
+  - 排除 shippingservice 的改动（cpu limit 80m）：CPU 上限从 200m 调到 80m，仍远高于它的平均用量，最多有零星几次限流，解释不了用户看到的症状
   - 排除 adservice 的改动（RELEASE_TAG）：只是滚动发布了同一个版本（RELEASE_TAG 变了），配置和资源都没变
   realism:
     pattern: currencyservice 的 CPU 上限在一次多服务发布里被改小；同一批里 shippingservice 的上限也调低了，但仍够用。
@@ -178,13 +178,13 @@ scenarios:
     harmless_changes:
     - object: shippingservice
       change: cpu limit 80m
-      why: CPU 上限从 200m 调到 80m，仍远高于它的用量，不被限流
+      why: CPU 上限从 200m 调到 80m，仍远高于它的平均用量，最多有零星几次限流，解释不了用户看到的症状
     - object: adservice
       change: RELEASE_TAG
       why: 只是滚动发布了同一个版本（RELEASE_TAG 变了），配置和资源都没变
     not_cause:
     - name: shippingservice
-      why: CPU 上限从 200m 调到 80m，仍远高于它的用量，不被限流
+      why: CPU 上限从 200m 调到 80m，仍远高于它的平均用量，最多有零星几次限流，解释不了用户看到的症状
     - name: adservice
       why: 只是滚动发布了同一个版本（RELEASE_TAG 变了），配置和资源都没变
   mechanisms:
@@ -219,7 +219,7 @@ scenarios:
   - cartservice（network）：调用 cartservice 的请求每次多出 137 到 253 毫秒左右，不随并发增长；cartservice 的 CPU、限流、重启都正常，没有报错；按操作比较：cartservice 的不同操作多出来的时间之比，等于各自进入 cartservice 的包（请求加下游回包）的次数之比
   - 排除 productcatalogservice 的改动（RELEASE_TAG）：只是滚动发布了同一个版本（RELEASE_TAG 变了），配置和资源都没变
   - 排除 emailservice 的改动（RELEASE_TAG）：只是滚动发布了同一个版本（RELEASE_TAG 变了），配置和资源都没变
-  - 排除 paymentservice 的改动（cpu limit 80m）：CPU 上限从 200m 调到 80m，仍远高于它的用量，不被限流
+  - 排除 paymentservice 的改动（cpu limit 80m）：CPU 上限从 200m 调到 80m，仍远高于它的平均用量，最多有零星几次限流，解释不了用户看到的症状
   realism:
     pattern: cartservice 的 Pod 网络延迟。同一时段有一批无害的发布。
     sources:
@@ -391,14 +391,14 @@ scenarios:
       why: 只是滚动发布了同一个版本（RELEASE_TAG 变了），配置和资源都没变
     - object: paymentservice
       change: cpu limit 80m
-      why: CPU 上限从 200m 调到 80m，仍远高于它的用量，不被限流
+      why: CPU 上限从 200m 调到 80m，仍远高于它的平均用量，最多有零星几次限流，解释不了用户看到的症状
     not_cause:
     - name: productcatalogservice
       why: 只是滚动发布了同一个版本（RELEASE_TAG 变了），配置和资源都没变
     - name: emailservice
       why: 只是滚动发布了同一个版本（RELEASE_TAG 变了），配置和资源都没变
     - name: paymentservice
-      why: CPU 上限从 200m 调到 80m，仍远高于它的用量，不被限流
+      why: CPU 上限从 200m 调到 80m，仍远高于它的平均用量，最多有零星几次限流，解释不了用户看到的症状
   mechanisms:
   - net_delay
 - id: EL03
@@ -607,7 +607,7 @@ scenarios:
   - frontend（cpu）：Deployment frontend 的 CPU 上限是 25m，上一版 ReplicaSet 里是 200m；指标表：frontend 的 CPU 用量顶在上限附近，被限流的周期占比明显大于 0；别的服务不被限流或只有零星几次；所有页面都变慢，一个页面要调的后端越多、要渲染的越多就慢得越多；frontend 自己被限流，后端不被限流
   - productcatalogservice（network）：推荐服务慢得最明显（每次要取整个商品列表），但前端直接查商品、加购（先查一次商品）也都多出同样量级的时间；调用 productcatalogservice 的请求每次多出 165 到 305 毫秒左右，不随并发增长；productcatalogservice 的 CPU、限流、重启都正常，没有报错
   - 排除 recommendationservice 的改动（RELEASE_TAG）：只是滚动发布了同一个版本（RELEASE_TAG 变了），配置和资源都没变
-  - 排除 checkoutservice 的改动（cpu limit 120m）：CPU 上限从 200m 调到 120m，仍远高于它的用量，不被限流
+  - 排除 checkoutservice 的改动（cpu limit 120m）：CPU 上限从 200m 调到 120m，仍远高于它的平均用量，最多有零星几次限流，解释不了用户看到的症状
   realism:
     pattern: 两个互不相关、机制也不同的故障：frontend 的 CPU 上限过低，加上 productcatalogservice 的 Pod 网络延迟（推荐服务会被当成原因）。
     sources:
@@ -799,12 +799,12 @@ scenarios:
       why: 只是滚动发布了同一个版本（RELEASE_TAG 变了），配置和资源都没变
     - object: checkoutservice
       change: cpu limit 120m
-      why: CPU 上限从 200m 调到 120m，仍远高于它的用量，不被限流
+      why: CPU 上限从 200m 调到 120m，仍远高于它的平均用量，最多有零星几次限流，解释不了用户看到的症状
     not_cause:
     - name: recommendationservice
       why: 只是滚动发布了同一个版本（RELEASE_TAG 变了），配置和资源都没变
     - name: checkoutservice
-      why: CPU 上限从 200m 调到 120m，仍远高于它的用量，不被限流
+      why: CPU 上限从 200m 调到 120m，仍远高于它的平均用量，最多有零星几次限流，解释不了用户看到的症状
   mechanisms:
   - cpu
   - net_delay
@@ -982,7 +982,7 @@ scenarios:
   evidence_chain:
   - shippingservice（config）：调用 shippingservice 的服务日志里请求失败（对方不认识这个接口）；Service shippingservice 的 selector 是 app=paymentservice，EndpointSlice 里的地址是 paymentservice 的 Pod；shippingservice 自己的 Pod 正常，日志里没有收到这些请求
   - 排除 frontend 的改动（RELEASE_TAG）：只是滚动发布了同一个版本（RELEASE_TAG 变了），配置和资源都没变
-  - 排除 checkoutservice 的改动（cpu limit 120m）：CPU 上限从 200m 调到 120m，仍远高于它的用量，不被限流
+  - 排除 checkoutservice 的改动（cpu limit 120m）：CPU 上限从 200m 调到 120m，仍远高于它的平均用量，最多有零星几次限流，解释不了用户看到的症状
   realism:
     pattern: shippingservice 的 Service 选中了 paymentservice 的 Pod。同一时段有一批无害的发布，工单猜是前端。
     sources:
@@ -1162,12 +1162,12 @@ scenarios:
       why: 只是滚动发布了同一个版本（RELEASE_TAG 变了），配置和资源都没变
     - object: checkoutservice
       change: cpu limit 120m
-      why: CPU 上限从 200m 调到 120m，仍远高于它的用量，不被限流
+      why: CPU 上限从 200m 调到 120m，仍远高于它的平均用量，最多有零星几次限流，解释不了用户看到的症状
     not_cause:
     - name: frontend
       why: 只是滚动发布了同一个版本（RELEASE_TAG 变了），配置和资源都没变
     - name: checkoutservice
-      why: CPU 上限从 200m 调到 120m，仍远高于它的用量，不被限流
+      why: CPU 上限从 200m 调到 120m，仍远高于它的平均用量，最多有零星几次限流，解释不了用户看到的症状
   mechanisms:
   - config
 - id: EL07
@@ -1611,7 +1611,7 @@ scenarios:
   evidence_chain:
   - productcatalogservice（app）：Deployment productcatalogservice 多了 EXTRA_LATENCY=290ms，上一版没有；调用 productcatalogservice 的每一跳都多了约 290 毫秒，productcatalogservice 不被限流
   - 排除 currencyservice 的改动（RELEASE_TAG）：只是滚动发布了同一个版本（RELEASE_TAG 变了），配置和资源都没变
-  - 排除 emailservice 的改动（cpu limit 120m）：CPU 上限从 200m 调到 120m，仍远高于它的用量，不被限流
+  - 排除 emailservice 的改动（cpu limit 120m）：CPU 上限从 200m 调到 120m，仍远高于它的平均用量，最多有零星几次限流，解释不了用户看到的症状
   realism:
     pattern: 不是网络：productcatalogservice 被配置了人为延迟（EXTRA_LATENCY）。工单猜是网络。
     sources:
@@ -1745,12 +1745,12 @@ scenarios:
       why: 只是滚动发布了同一个版本（RELEASE_TAG 变了），配置和资源都没变
     - object: emailservice
       change: cpu limit 120m
-      why: CPU 上限从 200m 调到 120m，仍远高于它的用量，不被限流
+      why: CPU 上限从 200m 调到 120m，仍远高于它的平均用量，最多有零星几次限流，解释不了用户看到的症状
     not_cause:
     - name: currencyservice
       why: 只是滚动发布了同一个版本（RELEASE_TAG 变了），配置和资源都没变
     - name: emailservice
-      why: CPU 上限从 200m 调到 120m，仍远高于它的用量，不被限流
+      why: CPU 上限从 200m 调到 120m，仍远高于它的平均用量，最多有零星几次限流，解释不了用户看到的症状
   mechanisms:
   - app_delay
 - id: EL10
@@ -1965,7 +1965,7 @@ scenarios:
   - paired
   evidence_chain:
   - frontend（cpu）：Deployment frontend 的 CPU 上限是 25m，上一版 ReplicaSet 里是 200m；指标表：frontend 的 CPU 用量顶在上限附近，被限流的周期占比明显大于 0；别的服务不被限流或只有零星几次；所有页面都变慢，一个页面要调的后端越多、要渲染的越多就慢得越多；frontend 自己被限流，后端不被限流
-  - 排除 checkoutservice 的改动（cpu limit 120m）：CPU 上限从 200m 调到 120m，仍远高于它的用量，不被限流
+  - 排除 checkoutservice 的改动（cpu limit 120m）：CPU 上限从 200m 调到 120m，仍远高于它的平均用量，最多有零星几次限流，解释不了用户看到的症状
   - 排除 emailservice 的改动（RELEASE_TAG）：只是滚动发布了同一个版本（RELEASE_TAG 变了），配置和资源都没变
   realism:
     pattern: frontend 的 CPU 上限过低，只有这一个故障。和 EV02 成对：症状相同、少一个网络故障。
@@ -2105,13 +2105,13 @@ scenarios:
     harmless_changes:
     - object: checkoutservice
       change: cpu limit 120m
-      why: CPU 上限从 200m 调到 120m，仍远高于它的用量，不被限流
+      why: CPU 上限从 200m 调到 120m，仍远高于它的平均用量，最多有零星几次限流，解释不了用户看到的症状
     - object: emailservice
       change: RELEASE_TAG
       why: 只是滚动发布了同一个版本（RELEASE_TAG 变了），配置和资源都没变
     not_cause:
     - name: checkoutservice
-      why: CPU 上限从 200m 调到 120m，仍远高于它的用量，不被限流
+      why: CPU 上限从 200m 调到 120m，仍远高于它的平均用量，最多有零星几次限流，解释不了用户看到的症状
     - name: emailservice
       why: 只是滚动发布了同一个版本（RELEASE_TAG 变了），配置和资源都没变
   mechanisms:
@@ -2147,7 +2147,7 @@ scenarios:
   evidence_chain:
   - frontend（cpu）：Deployment frontend 的 CPU 上限是 25m，上一版 ReplicaSet 里是 200m；指标表：frontend 的 CPU 用量顶在上限附近，被限流的周期占比明显大于 0；别的服务不被限流或只有零星几次；所有页面都变慢，一个页面要调的后端越多、要渲染的越多就慢得越多；frontend 自己被限流，后端不被限流
   - currencyservice（network）：调用 currencyservice 的请求每次多出 129 到 241 毫秒左右，不随并发增长；currencyservice 的 CPU、限流、重启都正常，没有报错
-  - 排除 checkoutservice 的改动（cpu limit 120m）：CPU 上限从 200m 调到 120m，仍远高于它的用量，不被限流
+  - 排除 checkoutservice 的改动（cpu limit 120m）：CPU 上限从 200m 调到 120m，仍远高于它的平均用量，最多有零星几次限流，解释不了用户看到的症状
   - 排除 emailservice 的改动（RELEASE_TAG）：只是滚动发布了同一个版本（RELEASE_TAG 变了），配置和资源都没变
   realism:
     pattern: 两个互不相关、机制也不同的故障：frontend 的 CPU 上限过低，加上 currencyservice 的 Pod 网络延迟。和 EV01 成对。
@@ -2336,13 +2336,13 @@ scenarios:
     harmless_changes:
     - object: checkoutservice
       change: cpu limit 120m
-      why: CPU 上限从 200m 调到 120m，仍远高于它的用量，不被限流
+      why: CPU 上限从 200m 调到 120m，仍远高于它的平均用量，最多有零星几次限流，解释不了用户看到的症状
     - object: emailservice
       change: RELEASE_TAG
       why: 只是滚动发布了同一个版本（RELEASE_TAG 变了），配置和资源都没变
     not_cause:
     - name: checkoutservice
-      why: CPU 上限从 200m 调到 120m，仍远高于它的用量，不被限流
+      why: CPU 上限从 200m 调到 120m，仍远高于它的平均用量，最多有零星几次限流，解释不了用户看到的症状
     - name: emailservice
       why: 只是滚动发布了同一个版本（RELEASE_TAG 变了），配置和资源都没变
   mechanisms:
@@ -2376,7 +2376,7 @@ scenarios:
   evidence_chain:
   - checkoutservice（network）：调用 checkoutservice 的请求每次多出 207 到 383 毫秒左右，不随并发增长；checkoutservice 的 CPU、限流、重启都正常，没有报错；按操作比较：checkoutservice 的不同操作多出来的时间之比，等于各自进入 checkoutservice 的包（请求加下游回包）的次数之比
   - 排除 paymentservice 的改动（RELEASE_TAG）：只是滚动发布了同一个版本（RELEASE_TAG 变了），配置和资源都没变
-  - 排除 shippingservice 的改动（cpu limit 80m）：CPU 上限从 200m 调到 80m，仍远高于它的用量，不被限流
+  - 排除 shippingservice 的改动（cpu limit 80m）：CPU 上限从 200m 调到 80m，仍远高于它的平均用量，最多有零星几次限流，解释不了用户看到的症状
   realism:
     pattern: checkoutservice 的 Pod 网络延迟：下单要等它的每一个下游回包，慢得很明显；机制可以靠“多出来的时间和回包次数成正比”判断。
     sources:
@@ -2522,12 +2522,12 @@ scenarios:
       why: 只是滚动发布了同一个版本（RELEASE_TAG 变了），配置和资源都没变
     - object: shippingservice
       change: cpu limit 80m
-      why: CPU 上限从 200m 调到 80m，仍远高于它的用量，不被限流
+      why: CPU 上限从 200m 调到 80m，仍远高于它的平均用量，最多有零星几次限流，解释不了用户看到的症状
     not_cause:
     - name: paymentservice
       why: 只是滚动发布了同一个版本（RELEASE_TAG 变了），配置和资源都没变
     - name: shippingservice
-      why: CPU 上限从 200m 调到 80m，仍远高于它的用量，不被限流
+      why: CPU 上限从 200m 调到 80m，仍远高于它的平均用量，最多有零星几次限流，解释不了用户看到的症状
   mechanisms:
   - net_delay
 - id: EV04
@@ -2701,7 +2701,7 @@ scenarios:
   evidence_chain:
   - productcatalogservice（network）：推荐服务慢得最明显（每次要取整个商品列表），但前端直接查商品、加购（先查一次商品）也都多出同样量级的时间；调用 productcatalogservice 的请求每次多出 221 到 409 毫秒左右，不随并发增长；productcatalogservice 的 CPU、限流、重启都正常，没有报错
   - 排除 recommendationservice 的改动（RELEASE_TAG）：只是滚动发布了同一个版本（RELEASE_TAG 变了），配置和资源都没变
-  - 排除 paymentservice 的改动（cpu limit 80m）：CPU 上限从 200m 调到 80m，仍远高于它的用量，不被限流
+  - 排除 paymentservice 的改动（cpu limit 80m）：CPU 上限从 200m 调到 80m，仍远高于它的平均用量，最多有零星几次限流，解释不了用户看到的症状
   realism:
     pattern: productcatalogservice 的 Pod 网络延迟（二级依赖：推荐服务最慢，最容易被当成原因）。推荐服务在同一批发布里。
     sources:
@@ -2847,12 +2847,12 @@ scenarios:
       why: 只是滚动发布了同一个版本（RELEASE_TAG 变了），配置和资源都没变
     - object: paymentservice
       change: cpu limit 80m
-      why: CPU 上限从 200m 调到 80m，仍远高于它的用量，不被限流
+      why: CPU 上限从 200m 调到 80m，仍远高于它的平均用量，最多有零星几次限流，解释不了用户看到的症状
     not_cause:
     - name: recommendationservice
       why: 只是滚动发布了同一个版本（RELEASE_TAG 变了），配置和资源都没变
     - name: paymentservice
-      why: CPU 上限从 200m 调到 80m，仍远高于它的用量，不被限流
+      why: CPU 上限从 200m 调到 80m，仍远高于它的平均用量，最多有零星几次限流，解释不了用户看到的症状
   mechanisms:
   - net_delay
 - id: EV06
@@ -3065,7 +3065,7 @@ scenarios:
   - currencyservice（cpu）：Deployment currencyservice 的 CPU 上限是 25m，上一版 ReplicaSet 里是 200m；指标表：currencyservice 的 CPU 用量顶在上限附近，被限流的周期占比明显大于 0；别的服务不被限流或只有零星几次；调用 currencyservice 次数多的页面慢得多，不调用它的请求不慢
   - emailservice（network）：checkoutservice 的日志里，从上一步到 emailservice 收到请求（emailservice 自己日志的时间）隔了一段，emailservice 自己处理只要几毫秒；调用 emailservice 的请求每次多出 143 到 267 毫秒左右，不随并发增长；emailservice 的 CPU、限流、重启都正常，没有报错
   - 排除 checkoutservice 的改动（RELEASE_TAG）：只是滚动发布了同一个版本（RELEASE_TAG 变了），配置和资源都没变
-  - 排除 paymentservice 的改动（cpu limit 100m）：CPU 上限从 200m 调到 100m，仍远高于它的用量，不被限流
+  - 排除 paymentservice 的改动（cpu limit 100m）：CPU 上限从 200m 调到 100m，仍远高于它的平均用量，最多有零星几次限流，解释不了用户看到的症状
   realism:
     pattern: 两个互不相关的故障：currencyservice 的 CPU 上限过低（页面变慢），加上 emailservice 的 Pod 网络延迟（下单更慢，二级依赖）。
     sources:
@@ -3266,12 +3266,12 @@ scenarios:
       why: 只是滚动发布了同一个版本（RELEASE_TAG 变了），配置和资源都没变
     - object: paymentservice
       change: cpu limit 100m
-      why: CPU 上限从 200m 调到 100m，仍远高于它的用量，不被限流
+      why: CPU 上限从 200m 调到 100m，仍远高于它的平均用量，最多有零星几次限流，解释不了用户看到的症状
     not_cause:
     - name: checkoutservice
       why: 只是滚动发布了同一个版本（RELEASE_TAG 变了），配置和资源都没变
     - name: paymentservice
-      why: CPU 上限从 200m 调到 100m，仍远高于它的用量，不被限流
+      why: CPU 上限从 200m 调到 100m，仍远高于它的平均用量，最多有零星几次限流，解释不了用户看到的症状
   mechanisms:
   - cpu
   - net_delay
@@ -3307,7 +3307,7 @@ scenarios:
   evidence_chain:
   - cartservice（cpu）：Deployment cartservice 的 CPU 上限是 30m，上一版 ReplicaSet 里是 300m；指标表：cartservice 的 CPU 用量顶在上限附近，被限流的周期占比明显大于 0；别的服务不被限流或只有零星几次；调用 cartservice 次数多的页面慢得多，不调用它的请求不慢
   - 排除 recommendationservice 的改动（RELEASE_TAG）：只是滚动发布了同一个版本（RELEASE_TAG 变了），配置和资源都没变
-  - 排除 paymentservice 的改动（cpu limit 80m）：CPU 上限从 200m 调到 80m，仍远高于它的用量，不被限流
+  - 排除 paymentservice 的改动（cpu limit 80m）：CPU 上限从 200m 调到 80m，仍远高于它的平均用量，最多有零星几次限流，解释不了用户看到的症状
   - 排除 adservice 的改动（replicas 0）：它的失败被调用方吞掉了，用户报告的症状不是它引起的
   realism:
     pattern: cartservice 的 CPU 上限过低，只有这一个故障。同一批里 adservice 被缩到 0（取广告失败会被前端吞掉）。和 EL08 成对。
@@ -3462,7 +3462,7 @@ scenarios:
       why: 只是滚动发布了同一个版本（RELEASE_TAG 变了），配置和资源都没变
     - object: paymentservice
       change: cpu limit 80m
-      why: CPU 上限从 200m 调到 80m，仍远高于它的用量，不被限流
+      why: CPU 上限从 200m 调到 80m，仍远高于它的平均用量，最多有零星几次限流，解释不了用户看到的症状
     - object: adservice
       change: replicas 0
       why: 它的失败被调用方吞掉了，用户报告的症状不是它引起的
@@ -3470,7 +3470,7 @@ scenarios:
     - name: recommendationservice
       why: 只是滚动发布了同一个版本（RELEASE_TAG 变了），配置和资源都没变
     - name: paymentservice
-      why: CPU 上限从 200m 调到 80m，仍远高于它的用量，不被限流
+      why: CPU 上限从 200m 调到 80m，仍远高于它的平均用量，最多有零星几次限流，解释不了用户看到的症状
     - name: adservice
       why: 它的失败被调用方吞掉了，用户报告的症状不是它引起的
   mechanisms:
@@ -3502,7 +3502,7 @@ scenarios:
   - wrong_guess
   evidence_chain:
   - frontend（network）：调用 frontend 的请求每次多出 157 到 293 毫秒左右，不随并发增长；frontend 的 CPU、限流、重启都正常，没有报错；按操作比较：frontend 的不同操作多出来的时间之比，等于各自进入 frontend 的包（请求加下游回包）的次数之比
-  - 排除 shippingservice 的改动（cpu limit 80m）：CPU 上限从 200m 调到 80m，仍远高于它的用量，不被限流
+  - 排除 shippingservice 的改动（cpu limit 80m）：CPU 上限从 200m 调到 80m，仍远高于它的平均用量，最多有零星几次限流，解释不了用户看到的症状
   - 排除 productcatalogservice 的改动（RELEASE_TAG）：只是滚动发布了同一个版本（RELEASE_TAG 变了），配置和资源都没变
   realism:
     pattern: frontend 的 Pod 网络延迟：每个后端的回包都经过它的网卡，页面越复杂越慢；机制可以靠“多出来的时间和 RPC 次数成正比”判断，CPU 不被限流。
@@ -3646,13 +3646,13 @@ scenarios:
     harmless_changes:
     - object: shippingservice
       change: cpu limit 80m
-      why: CPU 上限从 200m 调到 80m，仍远高于它的用量，不被限流
+      why: CPU 上限从 200m 调到 80m，仍远高于它的平均用量，最多有零星几次限流，解释不了用户看到的症状
     - object: productcatalogservice
       change: RELEASE_TAG
       why: 只是滚动发布了同一个版本（RELEASE_TAG 变了），配置和资源都没变
     not_cause:
     - name: shippingservice
-      why: CPU 上限从 200m 调到 80m，仍远高于它的用量，不被限流
+      why: CPU 上限从 200m 调到 80m，仍远高于它的平均用量，最多有零星几次限流，解释不了用户看到的症状
     - name: productcatalogservice
       why: 只是滚动发布了同一个版本（RELEASE_TAG 变了），配置和资源都没变
   mechanisms:
@@ -3858,7 +3858,7 @@ scenarios:
   evidence_chain:
   - emailservice（network）：checkoutservice 的日志里，从上一步到 emailservice 收到请求（emailservice 自己日志的时间）隔了一段，emailservice 自己处理只要几毫秒；调用 emailservice 的请求每次多出 157 到 293 毫秒左右，不随并发增长；emailservice 的 CPU、限流、重启都正常，没有报错
   - 排除 checkoutservice 的改动（RELEASE_TAG）：只是滚动发布了同一个版本（RELEASE_TAG 变了），配置和资源都没变
-  - 排除 paymentservice 的改动（cpu limit 80m）：CPU 上限从 200m 调到 80m，仍远高于它的用量，不被限流
+  - 排除 paymentservice 的改动（cpu limit 80m）：CPU 上限从 200m 调到 80m，仍远高于它的平均用量，最多有零星几次限流，解释不了用户看到的症状
   realism:
     pattern: emailservice 的 Pod 网络延迟（二级依赖，只有下单经过它）。checkoutservice 在同一批发布里。
     sources:
@@ -4004,12 +4004,12 @@ scenarios:
       why: 只是滚动发布了同一个版本（RELEASE_TAG 变了），配置和资源都没变
     - object: paymentservice
       change: cpu limit 80m
-      why: CPU 上限从 200m 调到 80m，仍远高于它的用量，不被限流
+      why: CPU 上限从 200m 调到 80m，仍远高于它的平均用量，最多有零星几次限流，解释不了用户看到的症状
     not_cause:
     - name: checkoutservice
       why: 只是滚动发布了同一个版本（RELEASE_TAG 变了），配置和资源都没变
     - name: paymentservice
-      why: CPU 上限从 200m 调到 80m，仍远高于它的用量，不被限流
+      why: CPU 上限从 200m 调到 80m，仍远高于它的平均用量，最多有零星几次限流，解释不了用户看到的症状
   mechanisms:
   - net_delay
 - id: ET04
@@ -4217,7 +4217,7 @@ scenarios:
   evidence_chain:
   - cartservice（cpu）：Deployment cartservice 的 CPU 上限是 30m，上一版 ReplicaSet 里是 300m；指标表：cartservice 的 CPU 用量顶在上限附近，被限流的周期占比明显大于 0；别的服务不被限流或只有零星几次；调用 cartservice 次数多的页面慢得多，不调用它的请求不慢
   - 排除 frontend 的改动（CURRENCY_SERVICE_ADDR=currencyservice.boutique.svc.cluster.local:7000）：CURRENCY_SERVICE_ADDR 从 currencyservice:7000 改成了完整域名 currencyservice.boutique.svc.cluster.local:7000，指向的是同一个 Service，调用正常
-  - 排除 shippingservice 的改动（cpu limit 80m）：CPU 上限从 200m 调到 80m，仍远高于它的用量，不被限流
+  - 排除 shippingservice 的改动（cpu limit 80m）：CPU 上限从 200m 调到 80m，仍远高于它的平均用量，最多有零星几次限流，解释不了用户看到的症状
   realism:
     pattern: cartservice 的 CPU 上限过低，只有这一个故障。同一批里还有一个看着可疑的地址改写和一个调低但够用的 CPU 上限。和 ET16 成对。
     sources:
@@ -4360,12 +4360,12 @@ scenarios:
       why: CURRENCY_SERVICE_ADDR 从 currencyservice:7000 改成了完整域名 currencyservice.boutique.svc.cluster.local:7000，指向的是同一个 Service，调用正常
     - object: shippingservice
       change: cpu limit 80m
-      why: CPU 上限从 200m 调到 80m，仍远高于它的用量，不被限流
+      why: CPU 上限从 200m 调到 80m，仍远高于它的平均用量，最多有零星几次限流，解释不了用户看到的症状
     not_cause:
     - name: frontend
       why: CURRENCY_SERVICE_ADDR 从 currencyservice:7000 改成了完整域名 currencyservice.boutique.svc.cluster.local:7000，指向的是同一个 Service，调用正常
     - name: shippingservice
-      why: CPU 上限从 200m 调到 80m，仍远高于它的用量，不被限流
+      why: CPU 上限从 200m 调到 80m，仍远高于它的平均用量，最多有零星几次限流，解释不了用户看到的症状
   mechanisms:
   - cpu
 - id: ET06
@@ -4400,7 +4400,7 @@ scenarios:
   evidence_chain:
   - frontend（cpu）：Deployment frontend 的 CPU 上限是 25m，上一版 ReplicaSet 里是 200m；指标表：frontend 的 CPU 用量顶在上限附近，被限流的周期占比明显大于 0；别的服务不被限流或只有零星几次；所有页面都变慢，一个页面要调的后端越多、要渲染的越多就慢得越多；frontend 自己被限流，后端不被限流
   - 排除 currencyservice 的改动（RELEASE_TAG）：只是滚动发布了同一个版本（RELEASE_TAG 变了），配置和资源都没变
-  - 排除 emailservice 的改动（cpu limit 120m）：CPU 上限从 200m 调到 120m，仍远高于它的用量，不被限流
+  - 排除 emailservice 的改动（cpu limit 120m）：CPU 上限从 200m 调到 120m，仍远高于它的平均用量，最多有零星几次限流，解释不了用户看到的症状
   realism:
     pattern: frontend 的 CPU 上限过低，只有这一个故障。工单猜是货币服务。和 ET11 成对。
     sources:
@@ -4542,12 +4542,12 @@ scenarios:
       why: 只是滚动发布了同一个版本（RELEASE_TAG 变了），配置和资源都没变
     - object: emailservice
       change: cpu limit 120m
-      why: CPU 上限从 200m 调到 120m，仍远高于它的用量，不被限流
+      why: CPU 上限从 200m 调到 120m，仍远高于它的平均用量，最多有零星几次限流，解释不了用户看到的症状
     not_cause:
     - name: currencyservice
       why: 只是滚动发布了同一个版本（RELEASE_TAG 变了），配置和资源都没变
     - name: emailservice
-      why: CPU 上限从 200m 调到 120m，仍远高于它的用量，不被限流
+      why: CPU 上限从 200m 调到 120m，仍远高于它的平均用量，最多有零星几次限流，解释不了用户看到的症状
   mechanisms:
   - cpu
 - id: ET07
@@ -4773,7 +4773,7 @@ scenarios:
   - frontend（config）：frontend 的日志里调用 currencyservice 的请求报错（对方不认识这个接口）；Deployment frontend 的 CURRENCY_SERVICE_ADDR=productcatalogservice:3550，指向的是 productcatalogservice 的 Service；上一版 ReplicaSet 里是 currencyservice:7000；currencyservice
     自己的日志里没有收到这些请求
   - 排除 cartservice 的改动（RELEASE_TAG）：只是滚动发布了同一个版本（RELEASE_TAG 变了），配置和资源都没变
-  - 排除 paymentservice 的改动（cpu limit 80m）：CPU 上限从 200m 调到 80m，仍远高于它的用量，不被限流
+  - 排除 paymentservice 的改动（cpu limit 80m）：CPU 上限从 200m 调到 80m，仍远高于它的平均用量，最多有零星几次限流，解释不了用户看到的症状
   realism:
     pattern: frontend 的货币服务地址被指到 productcatalogservice。
     sources:
@@ -4909,12 +4909,12 @@ scenarios:
       why: 只是滚动发布了同一个版本（RELEASE_TAG 变了），配置和资源都没变
     - object: paymentservice
       change: cpu limit 80m
-      why: CPU 上限从 200m 调到 80m，仍远高于它的用量，不被限流
+      why: CPU 上限从 200m 调到 80m，仍远高于它的平均用量，最多有零星几次限流，解释不了用户看到的症状
     not_cause:
     - name: cartservice
       why: 只是滚动发布了同一个版本（RELEASE_TAG 变了），配置和资源都没变
     - name: paymentservice
-      why: CPU 上限从 200m 调到 80m，仍远高于它的用量，不被限流
+      why: CPU 上限从 200m 调到 80m，仍远高于它的平均用量，最多有零星几次限流，解释不了用户看到的症状
   mechanisms:
   - config
 - id: ET09
@@ -5153,7 +5153,7 @@ scenarios:
   - productcatalogservice（app）：Deployment productcatalogservice 多了 EXTRA_LATENCY=290ms，上一版没有；调用 productcatalogservice 的每一跳都多了约 290 毫秒，productcatalogservice 不被限流
   - cartservice（network）：调用 cartservice 的请求每次多出 137 到 253 毫秒左右，不随并发增长；cartservice 的 CPU、限流、重启都正常，没有报错；按操作比较：cartservice 的不同操作多出来的时间之比，等于各自进入 cartservice 的包（请求加下游回包）的次数之比
   - 排除 currencyservice 的改动（RELEASE_TAG）：只是滚动发布了同一个版本（RELEASE_TAG 变了），配置和资源都没变
-  - 排除 shippingservice 的改动（cpu limit 100m）：CPU 上限从 200m 调到 100m，仍远高于它的用量，不被限流
+  - 排除 shippingservice 的改动（cpu limit 100m）：CPU 上限从 200m 调到 100m，仍远高于它的平均用量，最多有零星几次限流，解释不了用户看到的症状
   realism:
     pattern: 两个机制不同的故障：productcatalogservice 被配置了人为延迟，加上 cartservice 的 Pod 网络延迟。
     sources:
@@ -5337,12 +5337,12 @@ scenarios:
       why: 只是滚动发布了同一个版本（RELEASE_TAG 变了），配置和资源都没变
     - object: shippingservice
       change: cpu limit 100m
-      why: CPU 上限从 200m 调到 100m，仍远高于它的用量，不被限流
+      why: CPU 上限从 200m 调到 100m，仍远高于它的平均用量，最多有零星几次限流，解释不了用户看到的症状
     not_cause:
     - name: currencyservice
       why: 只是滚动发布了同一个版本（RELEASE_TAG 变了），配置和资源都没变
     - name: shippingservice
-      why: CPU 上限从 200m 调到 100m，仍远高于它的用量，不被限流
+      why: CPU 上限从 200m 调到 100m，仍远高于它的平均用量，最多有零星几次限流，解释不了用户看到的症状
   mechanisms:
   - app_delay
   - net_delay
@@ -5378,7 +5378,7 @@ scenarios:
   - frontend（cpu）：Deployment frontend 的 CPU 上限是 25m，上一版 ReplicaSet 里是 200m；指标表：frontend 的 CPU 用量顶在上限附近，被限流的周期占比明显大于 0；别的服务不被限流或只有零星几次；所有页面都变慢，一个页面要调的后端越多、要渲染的越多就慢得越多；frontend 自己被限流，后端不被限流
   - recommendationservice（network）：调用 recommendationservice 的请求每次多出 171 到 319 毫秒左右，不随并发增长；recommendationservice 的 CPU、限流、重启都正常，没有报错
   - 排除 currencyservice 的改动（RELEASE_TAG）：只是滚动发布了同一个版本（RELEASE_TAG 变了），配置和资源都没变
-  - 排除 emailservice 的改动（cpu limit 120m）：CPU 上限从 200m 调到 120m，仍远高于它的用量，不被限流
+  - 排除 emailservice 的改动（cpu limit 120m）：CPU 上限从 200m 调到 120m，仍远高于它的平均用量，最多有零星几次限流，解释不了用户看到的症状
   realism:
     pattern: 两个互不相关、机制也不同的故障：frontend 的 CPU 上限过低，加上 recommendationservice 的 Pod 网络延迟。和 ET06 成对。
     sources:
@@ -5569,12 +5569,12 @@ scenarios:
       why: 只是滚动发布了同一个版本（RELEASE_TAG 变了），配置和资源都没变
     - object: emailservice
       change: cpu limit 120m
-      why: CPU 上限从 200m 调到 120m，仍远高于它的用量，不被限流
+      why: CPU 上限从 200m 调到 120m，仍远高于它的平均用量，最多有零星几次限流，解释不了用户看到的症状
     not_cause:
     - name: currencyservice
       why: 只是滚动发布了同一个版本（RELEASE_TAG 变了），配置和资源都没变
     - name: emailservice
-      why: CPU 上限从 200m 调到 120m，仍远高于它的用量，不被限流
+      why: CPU 上限从 200m 调到 120m，仍远高于它的平均用量，最多有零星几次限流，解释不了用户看到的症状
   mechanisms:
   - cpu
   - net_delay
@@ -5611,7 +5611,7 @@ scenarios:
   - currencyservice（cpu）：Deployment currencyservice 的 CPU 上限是 25m，上一版 ReplicaSet 里是 200m；指标表：currencyservice 的 CPU 用量顶在上限附近，被限流的周期占比明显大于 0；别的服务不被限流或只有零星几次；调用 currencyservice 次数多的页面慢得多，不调用它的请求不慢
   - productcatalogservice（network）：推荐服务慢得最明显（每次要取整个商品列表），但前端直接查商品、加购（先查一次商品）也都多出同样量级的时间；调用 productcatalogservice 的请求每次多出 165 到 305 毫秒左右，不随并发增长；productcatalogservice 的 CPU、限流、重启都正常，没有报错
   - 排除 recommendationservice 的改动（RELEASE_TAG）：只是滚动发布了同一个版本（RELEASE_TAG 变了），配置和资源都没变
-  - 排除 emailservice 的改动（cpu limit 120m）：CPU 上限从 200m 调到 120m，仍远高于它的用量，不被限流
+  - 排除 emailservice 的改动（cpu limit 120m）：CPU 上限从 200m 调到 120m，仍远高于它的平均用量，最多有零星几次限流，解释不了用户看到的症状
   realism:
     pattern: 两个互不相关、机制也不同的故障：currencyservice 的 CPU 上限过低，加上 productcatalogservice 的 Pod 网络延迟（推荐服务会被当成原因）。
     sources:
@@ -5803,12 +5803,12 @@ scenarios:
       why: 只是滚动发布了同一个版本（RELEASE_TAG 变了），配置和资源都没变
     - object: emailservice
       change: cpu limit 120m
-      why: CPU 上限从 200m 调到 120m，仍远高于它的用量，不被限流
+      why: CPU 上限从 200m 调到 120m，仍远高于它的平均用量，最多有零星几次限流，解释不了用户看到的症状
     not_cause:
     - name: recommendationservice
       why: 只是滚动发布了同一个版本（RELEASE_TAG 变了），配置和资源都没变
     - name: emailservice
-      why: CPU 上限从 200m 调到 120m，仍远高于它的用量，不被限流
+      why: CPU 上限从 200m 调到 120m，仍远高于它的平均用量，最多有零星几次限流，解释不了用户看到的症状
   mechanisms:
   - cpu
   - net_delay
@@ -6044,7 +6044,7 @@ scenarios:
   - frontend（cpu）：Deployment frontend 的 CPU 上限是 25m，上一版 ReplicaSet 里是 200m；指标表：frontend 的 CPU 用量顶在上限附近，被限流的周期占比明显大于 0；别的服务不被限流或只有零星几次；所有页面都变慢，一个页面要调的后端越多、要渲染的越多就慢得越多；frontend 自己被限流，后端不被限流
   - checkoutservice（network）：调用 checkoutservice 的请求每次多出 227 到 423 毫秒左右，不随并发增长；checkoutservice 的 CPU、限流、重启都正常，没有报错；按操作比较：checkoutservice 的不同操作多出来的时间之比，等于各自进入 checkoutservice 的包（请求加下游回包）的次数之比
   - 排除 paymentservice 的改动（RELEASE_TAG）：只是滚动发布了同一个版本（RELEASE_TAG 变了），配置和资源都没变
-  - 排除 shippingservice 的改动（cpu limit 100m）：CPU 上限从 200m 调到 100m，仍远高于它的用量，不被限流
+  - 排除 shippingservice 的改动（cpu limit 100m）：CPU 上限从 200m 调到 100m，仍远高于它的平均用量，最多有零星几次限流，解释不了用户看到的症状
   realism:
     pattern: 两个互不相关的故障：frontend 的 CPU 上限过低，加上 checkoutservice 的 Pod 网络延迟。
     sources:
@@ -6237,12 +6237,12 @@ scenarios:
       why: 只是滚动发布了同一个版本（RELEASE_TAG 变了），配置和资源都没变
     - object: shippingservice
       change: cpu limit 100m
-      why: CPU 上限从 200m 调到 100m，仍远高于它的用量，不被限流
+      why: CPU 上限从 200m 调到 100m，仍远高于它的平均用量，最多有零星几次限流，解释不了用户看到的症状
     not_cause:
     - name: paymentservice
       why: 只是滚动发布了同一个版本（RELEASE_TAG 变了），配置和资源都没变
     - name: shippingservice
-      why: CPU 上限从 200m 调到 100m，仍远高于它的用量，不被限流
+      why: CPU 上限从 200m 调到 100m，仍远高于它的平均用量，最多有零星几次限流，解释不了用户看到的症状
   mechanisms:
   - cpu
   - net_delay
@@ -6278,7 +6278,7 @@ scenarios:
   evidence_chain:
   - currencyservice（cpu）：Deployment currencyservice 的 CPU 上限是 25m，上一版 ReplicaSet 里是 200m；指标表：currencyservice 的 CPU 用量顶在上限附近，被限流的周期占比明显大于 0；别的服务不被限流或只有零星几次；调用 currencyservice 次数多的页面慢得多，不调用它的请求不慢
   - frontend（cpu）：Deployment frontend 的 CPU 上限是 25m，上一版 ReplicaSet 里是 200m；指标表：frontend 的 CPU 用量顶在上限附近，被限流的周期占比明显大于 0；别的服务不被限流或只有零星几次；所有页面都变慢，一个页面要调的后端越多、要渲染的越多就慢得越多；frontend 自己被限流，后端不被限流
-  - 排除 shippingservice 的改动（cpu limit 80m）：CPU 上限从 200m 调到 80m，仍远高于它的用量，不被限流
+  - 排除 shippingservice 的改动（cpu limit 80m）：CPU 上限从 200m 调到 80m，仍远高于它的平均用量，最多有零星几次限流，解释不了用户看到的症状
   realism:
     pattern: 两个服务的 CPU 上限在同一次发布里过低：currencyservice 和 frontend。没有网络故障。
     sources:
@@ -6440,10 +6440,10 @@ scenarios:
     harmless_changes:
     - object: shippingservice
       change: cpu limit 80m
-      why: CPU 上限从 200m 调到 80m，仍远高于它的用量，不被限流
+      why: CPU 上限从 200m 调到 80m，仍远高于它的平均用量，最多有零星几次限流，解释不了用户看到的症状
     not_cause:
     - name: shippingservice
-      why: CPU 上限从 200m 调到 80m，仍远高于它的用量，不被限流
+      why: CPU 上限从 200m 调到 80m，仍远高于它的平均用量，最多有零星几次限流，解释不了用户看到的症状
   mechanisms:
   - cpu
 - id: ET16
@@ -6480,7 +6480,7 @@ scenarios:
   - cartservice（cpu）：Deployment cartservice 的 CPU 上限是 30m，上一版 ReplicaSet 里是 300m；指标表：cartservice 的 CPU 用量顶在上限附近，被限流的周期占比明显大于 0；别的服务不被限流或只有零星几次；调用 cartservice 次数多的页面慢得多，不调用它的请求不慢
   - currencyservice（network）：变慢的只是一部分请求，慢的那些多出来的时间成一个个台阶（重传等待），不是平均地都慢一点；慢的请求都经过 currencyservice；currencyservice 的 CPU、限流、重启都正常
   - 排除 frontend 的改动（CURRENCY_SERVICE_ADDR=currencyservice.boutique.svc.cluster.local:7000）：CURRENCY_SERVICE_ADDR 从 currencyservice:7000 改成了完整域名 currencyservice.boutique.svc.cluster.local:7000，指向的是同一个 Service，调用正常
-  - 排除 shippingservice 的改动（cpu limit 80m）：CPU 上限从 200m 调到 80m，仍远高于它的用量，不被限流
+  - 排除 shippingservice 的改动（cpu limit 80m）：CPU 上限从 200m 调到 80m，仍远高于它的平均用量，最多有零星几次限流，解释不了用户看到的症状
   realism:
     pattern: 两个互不相关、机制也不同的故障：cartservice 的 CPU 上限过低，加上 currencyservice 的 Pod 网络丢包。和 ET05 成对。
     sources:
@@ -6672,12 +6672,12 @@ scenarios:
       why: CURRENCY_SERVICE_ADDR 从 currencyservice:7000 改成了完整域名 currencyservice.boutique.svc.cluster.local:7000，指向的是同一个 Service，调用正常
     - object: shippingservice
       change: cpu limit 80m
-      why: CPU 上限从 200m 调到 80m，仍远高于它的用量，不被限流
+      why: CPU 上限从 200m 调到 80m，仍远高于它的平均用量，最多有零星几次限流，解释不了用户看到的症状
     not_cause:
     - name: frontend
       why: CURRENCY_SERVICE_ADDR 从 currencyservice:7000 改成了完整域名 currencyservice.boutique.svc.cluster.local:7000，指向的是同一个 Service，调用正常
     - name: shippingservice
-      why: CPU 上限从 200m 调到 80m，仍远高于它的用量，不被限流
+      why: CPU 上限从 200m 调到 80m，仍远高于它的平均用量，最多有零星几次限流，解释不了用户看到的症状
   mechanisms:
   - cpu
   - net_loss
