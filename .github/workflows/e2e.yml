@@ -1,0 +1,102 @@
+# End-to-end check on a real (throwaway) Kubernetes cluster, without any model calls:
+#   kind cluster -> deploy Online Boutique -> for each smoke scenario:
+#   verify healthy -> inject -> confirm the fault is active -> reset -> verify recovered
+# This is scripts/validate_injection.py, the same lifecycle the experiments use, so a change
+# that breaks injection or reset is caught before it wastes a paid experiment run.
+name: E2E (kind)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "triage/**"
+      - "scenarios/**"
+      - "boutique/**"
+      - "scripts/validate_injection.py"
+      - "scripts/ci_check_validation.py"
+      - ".github/workflows/e2e.yml"
+  pull_request:
+    paths:
+      - "triage/**"
+      - "scenarios/**"
+      - "boutique/**"
+      - "scripts/validate_injection.py"
+      - "scripts/ci_check_validation.py"
+      - ".github/workflows/e2e.yml"
+  workflow_dispatch:
+    inputs:
+      scenarios:
+        description: "Scenario ids to run (space separated)"
+        default: "B01 B02"
+
+concurrency:
+  group: e2e-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  CLUSTER: ci
+  SCENARIOS: ${{ inputs.scenarios || 'B01 B02' }}
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+      - run: pip install -r requirements.txt
+
+      - name: Create kind cluster
+        uses: helm/kind-action@v1
+        with:
+          cluster_name: ${{ env.CLUSTER }}
+          wait: 120s
+
+      - name: Deploy Online Boutique v0.10.3
+        run: |
+          kubectl create namespace boutique
+          kubectl -n boutique apply -f boutique/kubernetes-manifests-v0.10.3.yaml
+          kubectl apply -f k8s/rbac-diag-boutique.yaml
+          # First image pulls are the slow part; wait for every Deployment.
+          for d in $(kubectl -n boutique get deploy -o jsonpath='{.items[*].metadata.name}'); do
+            kubectl -n boutique rollout status "deployment/$d" --timeout=600s
+          done
+          kubectl get --raw /api/v1/namespaces/boutique/services/frontend:80/proxy/ | grep -q "Online Boutique"
+
+      # Same config the experiments read, pointed at the CI cluster. No LLM key: nothing here calls a model.
+      - name: Write .env
+        run: |
+          cat > .env <<EOF
+          NAMESPACE=boutique
+          LAB_K8S_DIR=${GITHUB_WORKSPACE}/k8s
+          ADMIN_KUBECONFIG=
+          ADMIN_CONTEXT=kind-${CLUSTER}
+          EOF
+
+      - name: Inject, confirm, reset
+        run: python scripts/validate_injection.py $SCENARIOS --settle 10
+
+      # validate_injection.py exits 0 even when a fault did not take effect; CI must not.
+      - name: Check every fault was confirmed and reset cleanly
+        run: python scripts/ci_check_validation.py $SCENARIOS
+
+      - name: Cluster state on failure
+        if: failure()
+        run: |
+          kubectl get nodes -o wide
+          kubectl -n boutique get pods -o wide
+          kubectl -n boutique get events --sort-by=.lastTimestamp | tail -n 60
+
+      - name: Upload validation records
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: validation-${{ github.run_id }}
+          path: results/validation/
+          if-no-files-found: ignore
