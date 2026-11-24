@@ -1,0 +1,369 @@
+{
+ "说明": "第三版题库小规模试跑（2026-11-24）的判分。规则：boutique/eval_grades_v3.json。判分人 Fable 5.2。20 次运行打乱后按题判；新旧提示词的回答格式不同，看得出是哪一组，所以只遮住了是第几遍。这批运行不算进任何评估基线。",
+ "标签": {
+  "v3-pilot-p3": "v3 提示词",
+  "v3-pilot-p2": "v2 提示词"
+ },
+ "runs": {
+  "v3-pilot-p2": {
+   "EV01": {
+    "1": {
+     "结果": "通过",
+     "原因": {
+      "frontend": [
+       "对",
+       "对"
+      ]
+     },
+     "多报": 0,
+     "说明": "frontend CPU 25m 限流；checkoutservice 的 120m 查过、排除",
+     "blind_id": "P07",
+     "prompt_version": "v2",
+     "tokens": 354062,
+     "wall_s": 466,
+     "tool_calls": 22
+    },
+    "2": {
+     "结果": "通过",
+     "原因": {
+      "frontend": [
+       "对",
+       "对"
+      ]
+     },
+     "多报": 0,
+     "说明": "同上；checkoutservice、emailservice 列为次要观察并说明无贡献",
+     "blind_id": "P12",
+     "prompt_version": "v2",
+     "tokens": 513453,
+     "wall_s": 458,
+     "tool_calls": 22
+    }
+   },
+   "EV04": {
+    "1": {
+     "结果": "部分",
+     "原因": {
+      "frontend": [
+       "对",
+       "对"
+      ]
+     },
+     "多报": 1,
+     "说明": "frontend 地址配错说对；另把 adservice 滚动发布时约 20 秒无端点列为第二条根因（同批无害成员）",
+     "blind_id": "P02",
+     "prompt_version": "v2",
+     "tokens": 433790,
+     "wall_s": 436,
+     "tool_calls": 16
+    },
+    "2": {
+     "结果": "通过",
+     "原因": {
+      "frontend": [
+       "对",
+       "对"
+      ]
+     },
+     "多报": 0,
+     "说明": "frontend SHIPPING_SERVICE_ADDR 指到 cartservice；adservice 发布查过、排除",
+     "blind_id": "P04",
+     "prompt_version": "v2",
+     "tokens": 466859,
+     "wall_s": 428,
+     "tool_calls": 20
+    }
+   },
+   "EV03": {
+    "2": {
+     "结果": "部分",
+     "原因": {
+      "checkoutservice": [
+       "对",
+       "如实未定"
+      ]
+     },
+     "多报": 0,
+     "说明": "定位到 checkoutservice Pod 的入向；机制写“网络入向延迟或进程停顿，无法区分”，并说需要 tc/抓包。这个原因标的是能分清，不表态不算对",
+     "blind_id": "P08",
+     "prompt_version": "v2",
+     "tokens": 846361,
+     "wall_s": 572,
+     "tool_calls": 27
+    },
+    "1": {
+     "结果": "通过",
+     "原因": {
+      "checkoutservice": [
+       "对",
+       "对"
+      ]
+     },
+     "多报": 0,
+     "说明": "checkoutservice 入向网络路径；没分开的是“固定延迟还是丢包重传”，两者同属网络",
+     "blind_id": "P13",
+     "prompt_version": "v2",
+     "tokens": 1668521,
+     "wall_s": 578,
+     "tool_calls": 39
+    }
+   },
+   "EV05": {
+    "1": {
+     "结果": "通过",
+     "原因": {
+      "productcatalogservice": [
+       "对",
+       "如实未定"
+      ]
+     },
+     "多报": 0,
+     "说明": "只报 productcatalogservice，推荐服务说成被它拖累；机制写进程内还是 Pod 网络分不开，并说明要看节点 tc",
+     "blind_id": "P01",
+     "prompt_version": "v2",
+     "tokens": 1805561,
+     "wall_s": 828,
+     "tool_calls": 38
+    },
+    "2": {
+     "结果": "部分",
+     "原因": {
+      "productcatalogservice": [
+       "对",
+       "对"
+      ]
+     },
+     "多报": 2,
+     "说明": "报了三个：recommendationservice（排第一）、productcatalogservice、cartservice；后两个里只有 productcatalogservice 是真的。机制倾向网络（“更像请求路径被加了延迟”）",
+     "blind_id": "P05",
+     "prompt_version": "v2",
+     "tokens": 1943950,
+     "wall_s": 771,
+     "tool_calls": 37
+    }
+   },
+   "EV02": {
+    "2": {
+     "结果": "通过",
+     "原因": {
+      "frontend": [
+       "对",
+       "对"
+      ],
+      "currencyservice": [
+       "对",
+       "如实未定"
+      ]
+     },
+     "多报": 0,
+     "说明": "currencyservice 为主因，机制写网络还是进程内分不开并说明缺什么；frontend CPU 25m 列为第二条根因（次要，叠加抖动）。边界判定：按“列为次要、承认有贡献算报了”",
+     "blind_id": "P06",
+     "prompt_version": "v2",
+     "tokens": 1491649,
+     "wall_s": 656,
+     "tool_calls": 35
+    },
+    "1": {
+     "结果": "通过",
+     "原因": {
+      "frontend": [
+       "对",
+       "对"
+      ],
+      "currencyservice": [
+       "对",
+       "如实未定"
+      ]
+     },
+     "多报": 0,
+     "说明": "currencyservice 为主因，机制分不开并说明缺什么；frontend CPU 列为第二条根因（叠加因素，0 到 100 毫秒级停顿）",
+     "blind_id": "P16",
+     "prompt_version": "v2",
+     "tokens": 1771428,
+     "wall_s": 858,
+     "tool_calls": 39
+    }
+   }
+  },
+  "v3-pilot-p3": {
+   "EV01": {
+    "1": {
+     "结果": "部分",
+     "原因": {
+      "frontend": [
+       "对",
+       "对"
+      ]
+     },
+     "多报": 1,
+     "说明": "frontend CPU 说对、把握高；但把“发布替换 Pod 时 1 个请求挂 60 秒”另列为一条根因（network，中等把握，自己写明不解释变慢）。边界判定：按“root_causes 里写了就算报了”记多报",
+     "blind_id": "P19",
+     "prompt_version": "v3",
+     "tokens": 2022263,
+     "wall_s": 600,
+     "tool_calls": 45
+    },
+    "2": {
+     "结果": "通过",
+     "原因": {
+      "frontend": [
+       "对",
+       "对"
+      ]
+     },
+     "多报": 0,
+     "说明": "frontend CPU，把握高；checkoutservice 120m 进了 not_causes",
+     "blind_id": "P20",
+     "prompt_version": "v3",
+     "tokens": 944857,
+     "wall_s": 513,
+     "tool_calls": 34
+    }
+   },
+   "EV04": {
+    "2": {
+     "结果": "通过",
+     "原因": {
+      "frontend": [
+       "对",
+       "对"
+      ]
+     },
+     "多报": 0,
+     "说明": "config，把握高；完整域名的改动进了 not_causes，并核对过商品页正常",
+     "blind_id": "P11",
+     "prompt_version": "v3",
+     "tokens": 1018560,
+     "wall_s": 511,
+     "tool_calls": 39
+    },
+    "1": {
+     "结果": "通过",
+     "原因": {
+      "frontend": [
+       "对",
+       "对"
+      ]
+     },
+     "多报": 0,
+     "说明": "config，把握高；完整域名的改动进了 not_causes",
+     "blind_id": "P18",
+     "prompt_version": "v3",
+     "tokens": 1077404,
+     "wall_s": 519,
+     "tool_calls": 37
+    }
+   },
+   "EV03": {
+    "1": {
+     "结果": "通过",
+     "原因": {
+      "checkoutservice": [
+       "对",
+       "对"
+      ]
+     },
+     "多报": 0,
+     "说明": "network，把握高；依据：进来的包晚约 305 毫秒、出去的包 0.35 毫秒，按 (2N+8) 条入向腿逐单复算误差 <0.2%",
+     "blind_id": "P14",
+     "prompt_version": "v3",
+     "tokens": 1126464,
+     "wall_s": 575,
+     "tool_calls": 34
+    },
+    "2": {
+     "结果": "通过",
+     "原因": {
+      "checkoutservice": [
+       "对",
+       "对"
+      ]
+     },
+     "多报": 0,
+     "说明": "network，把握高；依据同上（入向慢、出向亚毫秒，按腿数累加）",
+     "blind_id": "P15",
+     "prompt_version": "v3",
+     "tokens": 1654794,
+     "wall_s": 643,
+     "tool_calls": 43
+    }
+   },
+   "EV05": {
+    "2": {
+     "结果": "部分",
+     "原因": {
+      "productcatalogservice": [
+       "对",
+       "对"
+      ]
+     },
+     "多报": 1,
+     "说明": "productcatalogservice network（中等把握）说对；但把 recommendationservice 另列为一条根因（mechanism unknown，约 1.5 秒“发生在它自身”），它其实是被拖累的",
+     "blind_id": "P03",
+     "prompt_version": "v3",
+     "tokens": 2254684,
+     "wall_s": 774,
+     "tool_calls": 36
+    },
+    "1": {
+     "结果": "通过",
+     "原因": {
+      "productcatalogservice": [
+       "对",
+       "对"
+      ]
+     },
+     "多报": 0,
+     "说明": "network，把握高；推荐服务进了 not_causes。依据里用了“新建连接的探针超过 1 秒”",
+     "blind_id": "P09",
+     "prompt_version": "v3",
+     "tokens": 2341627,
+     "wall_s": 906,
+     "tool_calls": 39
+    }
+   },
+   "EV02": {
+    "2": {
+     "结果": "部分",
+     "原因": {
+      "frontend": [
+       "错",
+       "-"
+      ],
+      "currencyservice": [
+       "对",
+       "对"
+      ]
+     },
+     "多报": 0,
+     "说明": "currencyservice network，把握高；frontend 的 25m 限流看到了，但放进 not_causes（“不是本次主因”）",
+     "blind_id": "P10",
+     "prompt_version": "v3",
+     "tokens": 2068835,
+     "wall_s": 813,
+     "tool_calls": 35
+    },
+    "1": {
+     "结果": "部分",
+     "原因": {
+      "frontend": [
+       "错",
+       "-"
+      ],
+      "currencyservice": [
+       "对",
+       "对"
+      ]
+     },
+     "多报": 0,
+     "说明": "currencyservice network，中等把握；frontend 的 25m 限流放进 not_causes（“最多只能解释残余几毫秒”）",
+     "blind_id": "P17",
+     "prompt_version": "v3",
+     "tokens": 1048111,
+     "wall_s": 592,
+     "tool_calls": 32
+    }
+   }
+  }
+ }
+}
