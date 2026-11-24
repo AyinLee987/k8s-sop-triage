@@ -1,0 +1,710 @@
+{
+ "CV02": {
+  "m2": {
+   "2": {
+    "结果": "通过",
+    "第二原因": "-",
+    "多报": 0,
+    "说明": "",
+    "blind_id": "N04",
+    "tokens": 1264941,
+    "wall_s": 371,
+    "first_tokens": 1264941,
+    "review": null
+   },
+   "1": {
+    "结果": "通过",
+    "第二原因": "-",
+    "多报": 0,
+    "说明": "",
+    "blind_id": "N23",
+    "tokens": 1035803,
+    "wall_s": 313,
+    "first_tokens": 1035803,
+    "review": null
+   },
+   "3": {
+    "结果": "通过",
+    "第二原因": "-",
+    "多报": 0,
+    "说明": "第二条是同一原因下的端点空档",
+    "blind_id": "N29",
+    "tokens": 854281,
+    "wall_s": 295,
+    "first_tokens": 854281,
+    "review": null
+   }
+  },
+  "base": {
+   "1": {
+    "结果": "通过",
+    "第二原因": "-",
+    "多报": 0,
+    "说明": "",
+    "blind_id": "N05",
+    "tokens": 424681,
+    "wall_s": 172,
+    "first_tokens": 424681,
+    "review": null
+   },
+   "2": {
+    "结果": "通过",
+    "第二原因": "-",
+    "多报": 0,
+    "说明": "",
+    "blind_id": "N18",
+    "tokens": 399831,
+    "wall_s": 220,
+    "first_tokens": 399831,
+    "review": null
+   },
+   "3": {
+    "结果": "通过",
+    "第二原因": "-",
+    "多报": 0,
+    "说明": "",
+    "blind_id": "N48",
+    "tokens": 718736,
+    "wall_s": 250,
+    "first_tokens": 718736,
+    "review": null
+   }
+  },
+  "m5": {
+   "1": {
+    "结果": "部分",
+    "第二原因": "-",
+    "多报": 1,
+    "说明": "边界：把滚动更新时约 27 秒的不可用单列成一个原因，说是 Service 数据面的问题、与 CPU 限流无关（实际是同一个 CPU 改动的后果）",
+    "blind_id": "N13",
+    "tokens": 1754154,
+    "wall_s": 699,
+    "first_tokens": 612318,
+    "review": "reinvestigate"
+   },
+   "3": {
+    "结果": "通过",
+    "第二原因": "-",
+    "多报": 0,
+    "说明": "第二条写明是同一次发布的瞬时停顿",
+    "blind_id": "N22",
+    "tokens": 1139539,
+    "wall_s": 552,
+    "first_tokens": 342407,
+    "review": "reinvestigate"
+   },
+   "2": {
+    "结果": "通过",
+    "第二原因": "-",
+    "多报": 0,
+    "说明": "提到 Redis 和连接重建不能完全排除，没有当成原因",
+    "blind_id": "N31",
+    "tokens": 1329897,
+    "wall_s": 628,
+    "first_tokens": 394869,
+    "review": "reinvestigate"
+   }
+  },
+  "re": {
+   "1": {
+    "结果": "通过",
+    "第二原因": "-",
+    "多报": 0,
+    "说明": "第二条写明是同一次改动引起的",
+    "blind_id": "N15",
+    "tokens": 2287559,
+    "wall_s": 464,
+    "first_tokens": 581616,
+    "review": null
+   },
+   "3": {
+    "结果": "通过",
+    "第二原因": "-",
+    "多报": 0,
+    "说明": "",
+    "blind_id": "N25",
+    "tokens": 978457,
+    "wall_s": 386,
+    "first_tokens": 545780,
+    "review": null
+   },
+   "2": {
+    "结果": "通过",
+    "第二原因": "-",
+    "多报": 0,
+    "说明": "",
+    "blind_id": "N45",
+    "tokens": 783746,
+    "wall_s": 379,
+    "first_tokens": 331379,
+    "review": null
+   }
+  },
+  "m6": {
+   "1": {
+    "结果": "通过",
+    "第二原因": "-",
+    "多报": 0,
+    "说明": "",
+    "blind_id": "(未遮)",
+    "tokens": 958665,
+    "wall_s": 266,
+    "first_tokens": 958665,
+    "review": null
+   },
+   "2": {
+    "结果": "通过",
+    "第二原因": "-",
+    "多报": 0,
+    "说明": "",
+    "blind_id": "(未遮)",
+    "tokens": 690531,
+    "wall_s": 312,
+    "first_tokens": 690531,
+    "review": null
+   },
+   "3": {
+    "结果": "通过",
+    "第二原因": "-",
+    "多报": 0,
+    "说明": "",
+    "blind_id": "(未遮)",
+    "tokens": 359910,
+    "wall_s": 300,
+    "first_tokens": 359910,
+    "review": null
+   }
+  }
+ },
+ "CV05": {
+  "m5": {
+   "2": {
+    "结果": "部分",
+    "第二原因": "机制没定",
+    "多报": 0,
+    "说明": "currency 找到；进程内等待还是网络说分不开",
+    "blind_id": "N09",
+    "tokens": 3957269,
+    "wall_s": 1013,
+    "first_tokens": 2702216,
+    "review": "reinvestigate"
+   },
+   "1": {
+    "结果": "部分",
+    "第二原因": "机制没定",
+    "多报": 1,
+    "说明": "currency 找到但没说机制；另报 productcatalog 每次 50ms（多报）；写明延迟不在 frontend 的 CPU 上（把第一个原因排除了）",
+    "blind_id": "N16",
+    "tokens": 2664913,
+    "wall_s": 835,
+    "first_tokens": 574788,
+    "review": "reinvestigate"
+   },
+   "3": {
+    "结果": "部分",
+    "第二原因": "机制没定",
+    "多报": 0,
+    "说明": "currency 找到；自身处理还是网络路径没分开",
+    "blind_id": "N30",
+    "tokens": 2008431,
+    "wall_s": 844,
+    "first_tokens": 352719,
+    "review": "reinvestigate"
+   }
+  },
+  "m2": {
+   "3": {
+    "结果": "部分",
+    "第二原因": "机制没定",
+    "多报": 0,
+    "说明": "currency 找到；进程内还是网络说分不开",
+    "blind_id": "N10",
+    "tokens": 2037728,
+    "wall_s": 717,
+    "first_tokens": 2037728,
+    "review": null
+   },
+   "2": {
+    "结果": "部分",
+    "第二原因": "机制没定",
+    "多报": 0,
+    "说明": "currency 找到，只说每次多 220ms，没给机制",
+    "blind_id": "N36",
+    "tokens": 1743586,
+    "wall_s": 567,
+    "first_tokens": 1743586,
+    "review": null
+   },
+   "1": {
+    "结果": "部分",
+    "第二原因": "机制没定",
+    "多报": 0,
+    "说明": "currency 找到；处理逻辑还是网络出口说分不开",
+    "blind_id": "N47",
+    "tokens": 2818389,
+    "wall_s": 640,
+    "first_tokens": 2818389,
+    "review": null
+   }
+  },
+  "base": {
+   "1": {
+    "结果": "部分",
+    "第二原因": "机制没定",
+    "多报": 0,
+    "说明": "currency 找到；网络链路还是进程内说分不开",
+    "blind_id": "N20",
+    "tokens": 1355437,
+    "wall_s": 348,
+    "first_tokens": 1355437,
+    "review": null
+   },
+   "2": {
+    "结果": "部分",
+    "第二原因": "漏",
+    "多报": 0,
+    "说明": "只报 frontend CPU",
+    "blind_id": "N35",
+    "tokens": 457127,
+    "wall_s": 228,
+    "first_tokens": 457127,
+    "review": null
+   },
+   "3": {
+    "结果": "部分",
+    "第二原因": "漏",
+    "多报": 0,
+    "说明": "只报 frontend CPU",
+    "blind_id": "N42",
+    "tokens": 850890,
+    "wall_s": 303,
+    "first_tokens": 850890,
+    "review": null
+   }
+  },
+  "re": {
+   "2": {
+    "结果": "部分",
+    "第二原因": "机制没定",
+    "多报": 0,
+    "说明": "currency 找到；两种机制二选一说分不开",
+    "blind_id": "N26",
+    "tokens": 1563801,
+    "wall_s": 513,
+    "first_tokens": 989899,
+    "review": null
+   },
+   "1": {
+    "结果": "部分",
+    "第二原因": "漏",
+    "多报": 0,
+    "说明": "只报 frontend CPU",
+    "blind_id": "N37",
+    "tokens": 1740923,
+    "wall_s": 457,
+    "first_tokens": 633603,
+    "review": null
+   },
+   "3": {
+    "结果": "部分",
+    "第二原因": "机制没定",
+    "多报": 0,
+    "说明": "currency 找到；网络入向还是进程内说分不开；frontend 的限流被明确说不是原因",
+    "blind_id": "N43",
+    "tokens": 3395543,
+    "wall_s": 813,
+    "first_tokens": 2078035,
+    "review": null
+   }
+  },
+  "m6": {
+   "1": {
+    "结果": "部分",
+    "第二原因": "漏",
+    "多报": 0,
+    "说明": "只报 frontend CPU",
+    "blind_id": "(未遮)",
+    "tokens": 771571,
+    "wall_s": 281,
+    "first_tokens": 771571,
+    "review": null
+   },
+   "2": {
+    "结果": "部分",
+    "第二原因": "漏",
+    "多报": 0,
+    "说明": "只报 frontend CPU；症状表里把“未被限流的下单服务也慢”标成未解释，没有往下归因",
+    "blind_id": "(未遮)",
+    "tokens": 2319086,
+    "wall_s": 557,
+    "first_tokens": 2319086,
+    "review": null
+   },
+   "3": {
+    "结果": "部分",
+    "第二原因": "漏",
+    "多报": 0,
+    "说明": "只报 frontend CPU，症状全部标为已解释",
+    "blind_id": "(未遮)",
+    "tokens": 482356,
+    "wall_s": 216,
+    "first_tokens": 482356,
+    "review": null
+   }
+  }
+ },
+ "CL02": {
+  "m5": {
+   "3": {
+    "结果": "部分",
+    "第二原因": "找到",
+    "多报": 0,
+    "说明": "rec 的延迟找到并归到链路上；但没有报 cartservice 的 CPU 限流，还写明不是 cartservice（丢了第一个原因）",
+    "blind_id": "N01",
+    "tokens": 4123585,
+    "wall_s": 981,
+    "first_tokens": 1655004,
+    "review": "reinvestigate"
+   },
+   "1": {
+    "结果": "部分",
+    "第二原因": "漏",
+    "多报": 0,
+    "说明": "只报 cartservice CPU，把推荐服务那 330ms 算到了取购物车头上",
+    "blind_id": "N12",
+    "tokens": 5131300,
+    "wall_s": 1277,
+    "first_tokens": 2434040,
+    "review": "reinvestigate"
+   },
+   "2": {
+    "结果": "通过",
+    "第二原因": "找到",
+    "多报": 0,
+    "说明": "rec：出向还是入向没分开；cartservice CPU 列为独立的次要问题",
+    "blind_id": "N32",
+    "tokens": 3869790,
+    "wall_s": 914,
+    "first_tokens": 1345967,
+    "review": "reinvestigate"
+   }
+  },
+  "re": {
+   "2": {
+    "结果": "部分",
+    "第二原因": "机制没定",
+    "多报": 0,
+    "说明": "rec 找到；自身处理、调下游、请求路径三种没分开",
+    "blind_id": "N02",
+    "tokens": 2445742,
+    "wall_s": 668,
+    "first_tokens": 776482,
+    "review": null
+   },
+   "3": {
+    "结果": "通过",
+    "第二原因": "找到",
+    "多报": 0,
+    "说明": "rec：请求投递延迟或它调 productcatalog 变慢；cartservice CPU 列为次要",
+    "blind_id": "N07",
+    "tokens": 3478094,
+    "wall_s": 732,
+    "first_tokens": 1132688,
+    "review": null
+   },
+   "1": {
+    "结果": "通过",
+    "第二原因": "找到",
+    "多报": 0,
+    "说明": "rec 路径上的延迟；cartservice CPU 也报了",
+    "blind_id": "N17",
+    "tokens": 3510521,
+    "wall_s": 837,
+    "first_tokens": 1518705,
+    "review": null
+   }
+  },
+  "base": {
+   "3": {
+    "结果": "通过",
+    "第二原因": "找到",
+    "多报": 0,
+    "说明": "rec 的延迟来自网络链路而非计算；cartservice CPU 列为独立缺陷",
+    "blind_id": "N06",
+    "tokens": 2173651,
+    "wall_s": 448,
+    "first_tokens": 2173651,
+    "review": null
+   },
+   "2": {
+    "结果": "部分",
+    "第二原因": "漏",
+    "多报": 0,
+    "说明": "只报 cartservice CPU",
+    "blind_id": "N27",
+    "tokens": 1397384,
+    "wall_s": 289,
+    "first_tokens": 1397384,
+    "review": null
+   },
+   "1": {
+    "结果": "通过",
+    "第二原因": "找到",
+    "多报": 0,
+    "说明": "rec 在等下游调用或该调用的网络路径；cartservice CPU 也报了",
+    "blind_id": "N34",
+    "tokens": 3710036,
+    "wall_s": 739,
+    "first_tokens": 3710036,
+    "review": null
+   }
+  },
+  "m2": {
+   "1": {
+    "结果": "通过",
+    "第二原因": "找到",
+    "多报": 0,
+    "说明": "rec：在等 productcatalog 还是入口/回程被加延迟没分开；cartservice CPU 列为真实回归、贡献小",
+    "blind_id": "N11",
+    "tokens": 1856765,
+    "wall_s": 513,
+    "first_tokens": 1856765,
+    "review": null
+   },
+   "2": {
+    "结果": "部分",
+    "第二原因": "机制没定",
+    "多报": 0,
+    "说明": "rec 找到，网络路径还是进程内等待说分不开；cartservice CPU 被说成贡献约 0、不是原因",
+    "blind_id": "N33",
+    "tokens": 3621825,
+    "wall_s": 633,
+    "first_tokens": 3621825,
+    "review": null
+   },
+   "3": {
+    "结果": "通过",
+    "第二原因": "找到",
+    "多报": 0,
+    "说明": "延迟在 rec 和 productcatalog 之间的链路上；cartservice CPU 列为次因",
+    "blind_id": "N46",
+    "tokens": 1750913,
+    "wall_s": 493,
+    "first_tokens": 1750913,
+    "review": null
+   }
+  },
+  "m6": {
+   "1": {
+    "结果": "部分",
+    "第二原因": "漏",
+    "多报": 0,
+    "说明": "只报 cartservice CPU；把“加购只要 1ms 而看购物车要 350ms”标成未解释，没有往下归因",
+    "blind_id": "(未遮)",
+    "tokens": 1262028,
+    "wall_s": 469,
+    "first_tokens": 1262028,
+    "review": null
+   },
+   "2": {
+    "结果": "部分",
+    "第二原因": "找到",
+    "多报": 0,
+    "说明": "rec 网络路径（最可能）标为独立根因；cartservice 也标为独立根因，但写明不解释本次变慢",
+    "blind_id": "(未遮)",
+    "tokens": 1792742,
+    "wall_s": 452,
+    "first_tokens": 1792742,
+    "review": null
+   },
+   "3": {
+    "结果": "通过",
+    "第二原因": "找到",
+    "多报": 0,
+    "说明": "rec 网络调用路径 + cartservice CPU（解释长尾），两个都标为独立根因",
+    "blind_id": "(未遮)",
+    "tokens": 3035839,
+    "wall_s": 609,
+    "first_tokens": 3035839,
+    "review": null
+   }
+  }
+ },
+ "CL04": {
+  "m5": {
+   "3": {
+    "结果": "部分",
+    "第二原因": "找到",
+    "多报": 0,
+    "说明": "cartservice 的网络路径找到了；但把 currencyservice 的限流说成真实却不致因，撤回了它（丢了第一个原因）",
+    "blind_id": "N03",
+    "tokens": 1998626,
+    "wall_s": 824,
+    "first_tokens": 571906,
+    "review": "reinvestigate"
+   },
+   "1": {
+    "结果": "部分",
+    "第二原因": "机制没定",
+    "多报": 0,
+    "说明": "cartservice 找到；进程内部还是 Pod 网络没分开；currency CPU 列为次因",
+    "blind_id": "N08",
+    "tokens": 2402083,
+    "wall_s": 961,
+    "first_tokens": 459718,
+    "review": "reinvestigate"
+   },
+   "2": {
+    "结果": "部分",
+    "第二原因": "位置错",
+    "多报": 0,
+    "说明": "把延迟判给整个节点的 Pod 间网络，另报 currency CPU",
+    "blind_id": "N41",
+    "tokens": 2050785,
+    "wall_s": 807,
+    "first_tokens": 385055,
+    "review": "reinvestigate"
+   }
+  },
+  "base": {
+   "1": {
+    "结果": "部分",
+    "第二原因": "漏",
+    "多报": 0,
+    "说明": "只报 currency CPU",
+    "blind_id": "N14",
+    "tokens": 654657,
+    "wall_s": 200,
+    "first_tokens": 654657,
+    "review": null
+   },
+   "2": {
+    "结果": "部分",
+    "第二原因": "漏",
+    "多报": 0,
+    "说明": "只报 currency CPU",
+    "blind_id": "N21",
+    "tokens": 492443,
+    "wall_s": 218,
+    "first_tokens": 492443,
+    "review": null
+   },
+   "3": {
+    "结果": "部分",
+    "第二原因": "漏",
+    "多报": 0,
+    "说明": "只报 currency CPU；注意到加购也慢，猜是加购路径也含换算",
+    "blind_id": "N40",
+    "tokens": 1782969,
+    "wall_s": 389,
+    "first_tokens": 1782969,
+    "review": null
+   }
+  },
+  "re": {
+   "3": {
+    "结果": "部分",
+    "第二原因": "找到",
+    "多报": 0,
+    "说明": "cartservice 的网络延迟说对了；但 currency CPU 被说成不是本次变慢的原因（丢了第一个原因）",
+    "blind_id": "N19",
+    "tokens": 2810447,
+    "wall_s": 735,
+    "first_tokens": 690378,
+    "review": null
+   },
+   "1": {
+    "结果": "部分",
+    "第二原因": "找到",
+    "多报": 0,
+    "说明": "cartservice Pod 的报文路径；但把 currency CPU 说成上一版的错误归因（丢了第一个原因）",
+    "blind_id": "N28",
+    "tokens": 4944278,
+    "wall_s": 1114,
+    "first_tokens": 2915882,
+    "review": null
+   },
+   "2": {
+    "结果": "部分",
+    "第二原因": "机制没定",
+    "多报": 0,
+    "说明": "currency CPU + cartservice 写路径的第二处延迟，诱因说无法确认，并误以为读路径正常",
+    "blind_id": "N38",
+    "tokens": 1609362,
+    "wall_s": 600,
+    "first_tokens": 453053,
+    "review": null
+   }
+  },
+  "m2": {
+   "2": {
+    "结果": "部分",
+    "第二原因": "漏",
+    "多报": 0,
+    "说明": "只报 currency CPU；注意到加购也慢、这个原因解释不了，但没有往下归因",
+    "blind_id": "N24",
+    "tokens": 1163040,
+    "wall_s": 465,
+    "first_tokens": 1163040,
+    "review": null
+   },
+   "3": {
+    "结果": "部分",
+    "第二原因": "位置没定",
+    "多报": 0,
+    "说明": "currency CPU + 购物车到 redis 那一侧的延迟，定在 redis 一端",
+    "blind_id": "N39",
+    "tokens": 2806156,
+    "wall_s": 739,
+    "first_tokens": 2806156,
+    "review": null
+   },
+   "1": {
+    "结果": "部分",
+    "第二原因": "机制没定",
+    "多报": 0,
+    "说明": "currency CPU + cartservice 及其到 redis 的路径，没说是网络还是进程内",
+    "blind_id": "N44",
+    "tokens": 2534645,
+    "wall_s": 717,
+    "first_tokens": 2534645,
+    "review": null
+   }
+  },
+  "m6": {
+   "1": {
+    "结果": "部分",
+    "第二原因": "漏",
+    "多报": 0,
+    "说明": "只报 currency CPU",
+    "blind_id": "(未遮)",
+    "tokens": 663470,
+    "wall_s": 223,
+    "first_tokens": 663470,
+    "review": null
+   },
+   "2": {
+    "结果": "部分",
+    "第二原因": "漏",
+    "多报": 0,
+    "说明": "只报 currency CPU",
+    "blind_id": "(未遮)",
+    "tokens": 478416,
+    "wall_s": 241,
+    "first_tokens": 478416,
+    "review": null
+   },
+   "3": {
+    "结果": "部分",
+    "第二原因": "漏",
+    "多报": 0,
+    "说明": "只报 currency CPU；另把支付服务拒收卡种列为一条独立原因并说明只发生一次",
+    "blind_id": "(未遮)",
+    "tokens": 934932,
+    "wall_s": 270,
+    "first_tokens": 934932,
+    "review": null
+   }
+  }
+ }
+}
