@@ -92,6 +92,29 @@
 - 2026 年的论文大多只有 v1，没有同行评审（GALA+ 是 ASE '26，SpecRCA 是 ICSE-NIER '26，Stalled 是 FORGE '26）。各篇的基准、模型都不同，数字不能横向比。
 - GitHub 上的 HolmesGPT 只看了发布页的标题，没看代码改动。博客和排行榜多是自述。
 
+## 6. 第二轮：不靠提示词约束的方法（2026-11-25，用户问）
+
+用户的问题：有没有不在提示词里加规定、也能让 Agent 少犯错的办法。区分的标准是：约束由代码和数据执行（工具算出来的数、程序检查、多次运行合并、训练），还是要模型自己记得遵守一段文字。注意：DiagGuard 的 Verifier 本身也是"通过提示词和工具"接进去的，只是由程序在"写出结论草稿"那一刻触发，不是一开始就写在提示词里。
+
+| 做法 | 怎么起作用 | 文献里的证据 | 对应我们的哪类失败 | 在我们这里的代价和问题 |
+| --- | --- | --- | --- | --- |
+| 1. 换工具、给算力 | 让模型自己写查询或代码去算（每个操作的耗时、调用次数之比），或者由工具直接给出调用图和每一跳的耗时 | Free to Look：只给数据和代码执行的 Codex 77.2%、SQL agent 72.8%，规定步骤的 FoA 53.3%、mABC 15.6%（3 个模型、90 个案例、PR@1）；EviRCA 的调用图工具；GALA+ 的每一跳耗时；Stalled 用窄而确定的工具 | 停在被拖累的上游、漏掉第二个原因、沿调用链算错归属、机制判断（现在 Agent 是从日志里手算比例） | 要做工具（把日志和指标导出到 DuckDB 或 Python 沙箱，或者做调用图工具），基线要重测；Agent 仍须只读；有些工具会直接拆掉题目里的陷阱（比如按容器给限流就没有 sidecar 陷阱了），选工具时不能照着题目设计来 |
+| 2. 程序检查后打回 | 答案出来后，程序拿数据逐条查每个原因，查不过的连同数据一起退回让它重写；退回的是数据，不是新规定 | OpsHarness 的双重门槛（37% 的改动被拦下，不设门槛反而变差，但它管的是 harness 自我改进）；AgentFixer 把规则检查和 LLM 评审结合；GitHub 上的 sre-harness 在返回前用调用记录核对答案；Pydantic 的输出护栏可以拒绝或重试 | 多报（原因的时间和症状窗口对不上、只有一瞬间的事件）、JSON 写坏 | 每次多一轮；检查项必须是一般 SRE 会做的通用检查，不能从我们的题目设计里抄（那就是泄题）；通用检查能抓到的多报有限 |
+| 3. 独立复核（第二次调用） | 新开一个上下文，把第一次的答案和证据交给它，让它带只读工具逐条反驳 | DiagGuard 只加 Verifier：43.5% → 47.6%（Doubao，AIOps 2025，400 个故障），token 从每个故障 17.7 万变成 34.4 万（约 2 倍，摘要，需核对）；TopoEvo 的评审按"时间先后、传播路径、故障类型模式"三项核对，定位 +3.44 个点、故障类型 +4.39 到 16.81 个点；多智能体辩论的研究提醒：大家共有同一个错误假设时会形成假共识 | 多报、停在被拖累的上游 | token 约 1.5 到 2 倍；要在 `holmes_batch` 里加第二次 `holmes ask`；同一个模型复核，盲点也一样 |
+| 4. 多次运行再合并 | 同一题跑几遍，只保留多数遍都报的原因 | RCAgent 在结论阶段采样 10 次做一致性筛选；LATS-RCA 每一步按候选动作的出现频率打分；mABC 用投票（但整体只有 15.6%）。没有找到对整次运行的最终根因做多数投票的论文。Free to Look 发现单次运行噪声大（同一模型三遍 62%、69%、76%） | 多报：学习集的 5 个多报每个都只在 3 遍里出现 1 次 | 每次诊断 3 倍 token；只出现 1 次的真实第二原因也会被删掉（FL08 的 cartservice CPU 3 遍只找到 1 次）。可以用现有的运行离线算，不花钱 |
+| 5. 训练模型 | 微调、强化学习、偏好优化 | ThinkFL（强化微调）；2611.02416 用 DPO 训练 4B 小模型，一次调用在 Telecom、Bank、AIOps 2025 上精确匹配最高；5G 网络 RCA 用 SFT + GRPO | 全部 | 不适用：DeepSeek 只能调 API，学习集只有 30 次运行，也不是本项目要回答的问题 |
+
+另外两条：
+
+- **强制结构化输出**（JSON schema，HolmesGPT 的 HTTP 接口有 `response_format`）：只解决 JSON 写坏（学习集 2/24 次、试跑 1/18 次），不影响对错。
+- **由代码规定步骤**（状态机、FoA 这类）：Free to Look 统计了各个 Agent 有多少次模型调用是程序规定的（FoA 51%、DecompRCA 100%），规定得越多越差，理由是"流程不合适这个案例时，写死在控制流里就有害"。这是反面证据。
+
+**建议（按代价排序）**：
+
+1. **不花钱**：用现有的运行（学习集 30 次、试跑 18 次）离线算"3 遍投票"的结果并按规则判分。能看出多报是随机的（投票就能去掉）还是系统性的，也能看出会丢掉多少只找到一次的真实原因。
+2. **独立复核**（第二次调用，新上下文，带只读工具）：证据最直接（DiagGuard 只加 Verifier +4.1 个点），代价约 2 倍 token；主 Agent 的提示词不动。程序检查打回只适合做 JSON 和明显的时间对不上这类通用检查。
+3. **换工具**：文献里收益最大，但改动也最大、要重测基线，并且要避免工具本身把题目的陷阱拆掉。放在 2 之后单独测。
+
 ## 来源
 
 - [Beyond Fault Localization（DiagGuard），arXiv 2608.21310](https://arxiv.org/html/2608.21310v1)
@@ -109,3 +132,17 @@
 - [HolmesGPT 发布页](https://github.com/HolmesGPT/holmesgpt/releases)
 - [HolmesGPT runbook 经验（博客）](https://www.matthewswong.com/en/blog/holmesgpt-runbooks-prometheus-slack-investigations/)
 - [Open Source SRE Agents in 2026（Aurora 厂商博客，排名仅供参考）](https://www.aurorasre.ai/blog/top-ai-sre-tools-2026)
+- [TopoEvo，arXiv 2605.15611](https://arxiv.org/html/2605.15611)
+- [RCAgent，arXiv 2310.16340](https://arxiv.org/pdf/2310.16340)
+- [LATS-RCA / Multi-Agent Systems for RCA in Microservices，arXiv 2605.03505](https://arxiv.org/html/2605.03505)
+- [mABC，arXiv 2404.12135](https://arxiv.org/abs/2404.12135)
+- [多智能体辩论在编程任务上的实证研究，arXiv 2503.12029](https://arxiv.org/pdf/2503.12029)
+- [ThinkFL，arXiv 2504.18776](https://arxiv.org/pdf/2504.18776)
+- [Fault-Free Profiles and Decision-Level Training（小模型 DPO），arXiv 2611.02416](https://arxiv.org/html/2611.02416)
+- [Reasoning Language Models for RCA in 5G，arXiv 2507.21974](https://arxiv.org/pdf/2507.21974)
+- [AgentFixer，arXiv 2603.29848](https://arxiv.org/html/2603.29848)
+- [Code as Agent Harness（综述），arXiv 2605.18747](https://arxiv.org/pdf/2605.18747)
+- [Simplifying RCA in Kubernetes with StateGraph and LLM，arXiv 2506.02490](https://arxiv.org/html/2506.02490v1)
+- [sre-harness（GitHub）](https://github.com/ajinb/sre-harness)
+- [Pydantic AI 的输入、输出和工具护栏](https://pydantic.dev/docs/ai/harness/guardrails/)
+- [HolmesGPT 结构化输出（DeepWiki，自动生成）](https://deepwiki.com/HolmesGPT/holmesgpt/3.9-structured-output-processing)
