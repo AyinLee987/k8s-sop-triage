@@ -1,5 +1,6 @@
 {
  "status": "规则 2026-11-24 定下，在第四版题库的任何一次运行之前。之后不改；如果必须改，所有组按新规则重判，并说明改了什么。2026-11-25 补充（仍在第四版任何一次运行之前）：每道题加了一个带 log-shipper sidecar 的服务，多报和报告项相应补了一句，其余不变。",
+ "grader_change": "2026-11-25 用户决定：Fable 5.2 用不了（用户账号被封），改由 Claude Opus 5.5 判分、Gemini 4 Neon 交叉判分。判分规则本身不变。第二判分人拿到的是盲判材料（scripts/make_grading_packet.py：同一道题的回答打乱、重新编号），比对用 scripts/compare_grades.py，记录在 results/grading/。",
  "applies_to": "第四版题库 FL/FV/FT（scenarios/boutique_v4.yaml，boutique/make_v4_scenarios.py）。和第三版的通过率不放在一起比。",
  "how": "人工判，判分人 Fable 5.2。先把同一道题的所有运行打乱、遮住组别再判，判完再揭开。以回答末尾 JSON 的 root_causes 为准；JSON 缺失、解析不了，或者和正文明显矛盾时，读正文，并在说明里记一句。每道题的标准答案在 answer、answer.also（真实原因，各带 mechanism 和 decidable）和 answer.harmless_changes（同一次发布里无害的改动，包括新加的 log-shipper sidecar）和 answer.ambient（命名空间里的后台服务）。不用关键词自动判分。",
  "per_cause": {

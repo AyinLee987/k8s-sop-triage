@@ -1,0 +1,110 @@
+{
+ "FL01-A": {
+  "tag": "v4-pilot-cpu",
+  "repeat": 3,
+  "cluster": null,
+  "answer_file": "results/holmes_batch/v4-pilot-cpu/FL01-r3.json"
+ },
+ "FL01-B": {
+  "tag": "v4-pilot-cpu",
+  "repeat": 2,
+  "cluster": null,
+  "answer_file": "results/holmes_batch/v4-pilot-cpu/FL01-r2.json"
+ },
+ "FL01-C": {
+  "tag": "v4-pilot-cpu",
+  "repeat": 1,
+  "cluster": null,
+  "answer_file": "results/holmes_batch/v4-pilot-cpu/FL01-r1.json"
+ },
+ "FL08-A": {
+  "tag": "v4-pilot-cpu2",
+  "repeat": 3,
+  "cluster": "tiktok-k8s-lab",
+  "answer_file": "results/holmes_batch/v4-pilot-cpu2/FL08-r3.json"
+ },
+ "FL08-B": {
+  "tag": "v4-pilot-cpu2",
+  "repeat": 1,
+  "cluster": "sop-lab-2",
+  "answer_file": "results/holmes_batch/v4-pilot-cpu2/FL08-r1.json"
+ },
+ "FL08-C": {
+  "tag": "v4-pilot-cpu2",
+  "repeat": 2,
+  "cluster": "sop-lab-3",
+  "answer_file": "results/holmes_batch/v4-pilot-cpu2/FL08-r2.json"
+ },
+ "FV01-A": {
+  "tag": "v4-pilot-cpu",
+  "repeat": 3,
+  "cluster": null,
+  "answer_file": "results/holmes_batch/v4-pilot-cpu/FV01-r3.json"
+ },
+ "FV01-B": {
+  "tag": "v4-pilot-cpu",
+  "repeat": 2,
+  "cluster": null,
+  "answer_file": "results/holmes_batch/v4-pilot-cpu/FV01-r2.json"
+ },
+ "FV01-C": {
+  "tag": "v4-pilot-cpu",
+  "repeat": 1,
+  "cluster": null,
+  "answer_file": "results/holmes_batch/v4-pilot-cpu/FV01-r1.json"
+ },
+ "FV02-A": {
+  "tag": "v4-pilot-cpu2",
+  "repeat": 3,
+  "cluster": "sop-lab-2",
+  "answer_file": "results/holmes_batch/v4-pilot-cpu2/FV02-r3.json"
+ },
+ "FV02-B": {
+  "tag": "v4-pilot-cpu2",
+  "repeat": 2,
+  "cluster": "tiktok-k8s-lab",
+  "answer_file": "results/holmes_batch/v4-pilot-cpu2/FV02-r2.json"
+ },
+ "FV02-C": {
+  "tag": "v4-pilot-cpu2",
+  "repeat": 1,
+  "cluster": "sop-lab-3",
+  "answer_file": "results/holmes_batch/v4-pilot-cpu2/FV02-r1.json"
+ },
+ "FV07-A": {
+  "tag": "v4-pilot-cpu2",
+  "repeat": 3,
+  "cluster": "sop-lab-3",
+  "answer_file": "results/holmes_batch/v4-pilot-cpu2/FV07-r3.json"
+ },
+ "FV07-B": {
+  "tag": "v4-pilot-cpu2",
+  "repeat": 2,
+  "cluster": "sop-lab-2",
+  "answer_file": "results/holmes_batch/v4-pilot-cpu2/FV07-r2.json"
+ },
+ "FV07-C": {
+  "tag": "v4-pilot-cpu2",
+  "repeat": 1,
+  "cluster": "tiktok-k8s-lab",
+  "answer_file": "results/holmes_batch/v4-pilot-cpu2/FV07-r1.json"
+ },
+ "FV08-A": {
+  "tag": "v4-pilot-cpu2",
+  "repeat": 1,
+  "cluster": "sop-lab-2",
+  "answer_file": "results/holmes_batch/v4-pilot-cpu2/FV08-r1.json"
+ },
+ "FV08-B": {
+  "tag": "v4-pilot-cpu2",
+  "repeat": 2,
+  "cluster": "sop-lab-3",
+  "answer_file": "results/holmes_batch/v4-pilot-cpu2/FV08-r2.json"
+ },
+ "FV08-C": {
+  "tag": "v4-pilot-cpu2",
+  "repeat": 3,
+  "cluster": "tiktok-k8s-lab",
+  "answer_file": "results/holmes_batch/v4-pilot-cpu2/FV08-r3.json"
+ }
+}
