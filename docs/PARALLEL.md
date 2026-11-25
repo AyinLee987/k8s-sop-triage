@@ -12,8 +12,9 @@
 | --- | --- | --- |
 | `tiktok-k8s-lab` | 原有，tiktok-k8s-lab 项目建的 | `..\tiktok-k8s-lab\.local\kubeconfig`（.env 里的 ADMIN_KUBECONFIG） |
 | `sop-lab-2` | 2026-11-25 为并行新建 | `.local\clusters\sop-lab-2\kubeconfig` |
+| `sop-lab-3` | 2026-11-25 用户同意加到 3 个，同样建法 | `.local\clusters\sop-lab-3\kubeconfig` |
 
-`sop-lab-2` 和原集群一样的部分：
+`sop-lab-2`、`sop-lab-3` 和原集群一样的部分：
 - 节点镜像 `kindest/node:v1.36.4`（同一个 digest），kind v0.33.0，单个 control-plane，默认配置。原集群的 `k8s/kind.yaml` 也只写了名字。
 - Online Boutique v0.10.3：12 个服务的镜像 ID 逐个对过。`redis:alpine` 这个标签后来在仓库里更新过，所以按原集群的 digest 拉了同一个版本。
 - tiktok-k8s-lab 实验应用（api、worker、redis），镜像 v1、v2、v3、v3.1。网络注入器用的就是 v3。
@@ -49,6 +50,8 @@
 - 只有 batch 能分片。loop、anchoring、admission 这些脚本还是一次只能在一个集群上跑。
 
 ## 资源
+
+能开几个集群（2026-11-25 量）：电脑 31 GB 内存、8 核 16 线程，Docker 分到 12 核、17.6 GB；Docker 虚拟机的 inotify 上限 8192（kind 多集群常见的 128 上限问题这里没有）。每个集群空闲约 2 GB，跑实验时再加一个 runner 容器，估计最多开到 4 个。现在开 3 个。
 
 笔记本给 Docker 的是 12 核、17.6 GiB。空闲时两个节点：原集群约 1.8 GiB、CPU 20%，新集群约 1.5 GiB、CPU 25 到 30%。一个节点里请求加起来约 2.9 核，上限加起来约 5.3 核。
 两边同时跑，Agent 的 runner 容器也是两个。要担心的是 CPU 争抢让请求变慢：v4 判断"变慢"用的是 180 毫秒，健康时 99 分位只有几十毫秒，所以每次并行跑之前都要量一次两边的健康基线（见下）。
