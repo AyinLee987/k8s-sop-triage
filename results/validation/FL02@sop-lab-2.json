@@ -1,0 +1,369 @@
+{
+ "scenario": "FL02",
+ "cluster": "sop-lab-2",
+ "validate_note": "确认每个故障都生效；无害成员的服务不变慢、不被限流（看验证记录里的限流表）；延迟和丢包场景确认被注入的 Pod 仍是 Ready、重启次数为 0。第四版：确认后台服务都在运行、promo-feed-sync 被限流；标成可分清的延迟（285 毫秒）要在观察期里出现探针超时，但不能让 Pod 重启；标成分不清的不能出现探针超时。第四版加难（sidecar）：productcatalogservice 的 Pod 有 2 个容器、2/2 就绪、不重启；按容器看，log-shipper 被限流、productcatalogservice 的业务容器不被限流（最多零星几次）；按 Pod 合计的窗口限流占比在 15% 到 45% 之间，和真实 CPU 故障在同一量级。",
+ "key_evidence": [
+  "cartservice"
+ ],
+ "confirmed": true,
+ "throttling": {
+  "adservice": {
+   "cpu_m": 5.6,
+   "throttled": "0/214",
+   "throttled_share": 0.0
+  },
+  "cartservice": {
+   "cpu_m": 5.1,
+   "throttled": "0/336",
+   "throttled_share": 0.0
+  },
+  "catalog-crawler": {
+   "cpu_m": 0.3,
+   "throttled": "0/30",
+   "throttled_share": 0.0
+  },
+  "checkoutservice": {
+   "cpu_m": 0.9,
+   "throttled": "0/47",
+   "throttled_share": 0.0
+  },
+  "currencyservice": {
+   "cpu_m": 8.9,
+   "throttled": "1/267",
+   "throttled_share": 0.004
+  },
+  "emailservice": {
+   "cpu_m": 1.3,
+   "throttled": "0/109",
+   "throttled_share": 0.0
+  },
+  "frontend": {
+   "cpu_m": 13.2,
+   "throttled": "0/350",
+   "throttled_share": 0.0
+  },
+  "loadgenerator": {
+   "cpu_m": 2.4,
+   "throttled": "0/193",
+   "throttled_share": 0.0
+  },
+  "paymentservice": {
+   "cpu_m": 1.7,
+   "throttled": "5/44",
+   "throttled_share": 0.114
+  },
+  "productcatalogservice": {
+   "cpu_m": 10.7,
+   "throttled": "99/462",
+   "throttled_share": 0.214
+  },
+  "promo-feed-sync": {
+   "cpu_m": 1.4,
+   "throttled": "48/54",
+   "throttled_share": 0.889
+  },
+  "recommendationservice": {
+   "cpu_m": 5.4,
+   "throttled": "0/252",
+   "throttled_share": 0.0
+  },
+  "redis-cart": {
+   "cpu_m": 1.2,
+   "throttled": "0/125",
+   "throttled_share": 0.0
+  },
+  "shippingservice": {
+   "cpu_m": 0.9,
+   "throttled": "0/92",
+   "throttled_share": 0.0
+  },
+  "uptime-checker": {
+   "cpu_m": 0.1,
+   "throttled": "0/10",
+   "throttled_share": 0.0
+  }
+ },
+ "throttling_by_container": {
+  "adservice/server": {
+   "cpu_m": 5.6,
+   "throttled": "0/214",
+   "throttled_share": 0.0
+  },
+  "cartservice/server": {
+   "cpu_m": 5.1,
+   "throttled": "0/336",
+   "throttled_share": 0.0
+  },
+  "catalog-crawler/crawler": {
+   "cpu_m": 0.3,
+   "throttled": "0/30",
+   "throttled_share": 0.0
+  },
+  "checkoutservice/server": {
+   "cpu_m": 0.9,
+   "throttled": "0/47",
+   "throttled_share": 0.0
+  },
+  "currencyservice/server": {
+   "cpu_m": 8.9,
+   "throttled": "1/267",
+   "throttled_share": 0.004
+  },
+  "emailservice/server": {
+   "cpu_m": 1.3,
+   "throttled": "0/109",
+   "throttled_share": 0.0
+  },
+  "frontend/server": {
+   "cpu_m": 13.2,
+   "throttled": "0/350",
+   "throttled_share": 0.0
+  },
+  "loadgenerator/main": {
+   "cpu_m": 2.4,
+   "throttled": "0/193",
+   "throttled_share": 0.0
+  },
+  "paymentservice/server": {
+   "cpu_m": 1.7,
+   "throttled": "5/44",
+   "throttled_share": 0.114
+  },
+  "productcatalogservice/log-shipper": {
+   "cpu_m": 3.4,
+   "throttled": "99/119",
+   "throttled_share": 0.832
+  },
+  "productcatalogservice/server": {
+   "cpu_m": 6.5,
+   "throttled": "0/343",
+   "throttled_share": 0.0
+  },
+  "promo-feed-sync/sync": {
+   "cpu_m": 1.4,
+   "throttled": "48/54",
+   "throttled_share": 0.889
+  },
+  "recommendationservice/server": {
+   "cpu_m": 5.4,
+   "throttled": "0/252",
+   "throttled_share": 0.0
+  },
+  "redis-cart/redis": {
+   "cpu_m": 1.2,
+   "throttled": "0/125",
+   "throttled_share": 0.0
+  },
+  "shippingservice/server": {
+   "cpu_m": 0.9,
+   "throttled": "0/92",
+   "throttled_share": 0.0
+  },
+  "uptime-checker/checker": {
+   "cpu_m": 0.1,
+   "throttled": "0/10",
+   "throttled_share": 0.0
+  }
+ },
+ "latency_since_confirm": {
+  "requests": 240,
+  "slow_180ms": 199,
+  "share_slow": 0.829,
+  "p50": 399,
+  "p90": 568,
+  "p99": 871
+ },
+ "snapshot": {
+  "pods": "NAME                                     READY   STATUS    RESTARTS   AGE     IP             NODE                      NOMINATED NODE   READINESS GATES\nadservice-6bfc5fc46c-pr46q               1/1     Running   0          5m      10.244.0.234   sop-lab-2-control-plane   <none>           <none>\ncartservice-896c89968-pzlxc              1/1     Running   0          5m      10.244.0.233   sop-lab-2-control-plane   <none>           <none>\ncatalog-crawler-7fbd7d4875-bj72x         1/1     Running   0          5m      10.244.0.232   sop-lab-2-control-plane   <none>           <none>\ncheckoutservice-5d5f4589c5-qvmdq         1/1     Running   0          5m      10.244.0.235   sop-lab-2-control-plane   <none>           <none>\ncurrencyservice-6df4cccbb9-sg8ck         1/1     Running   0          5m      10.244.0.236   sop-lab-2-control-plane   <none>           <none>\nemailservice-77775cc968-47dm7            1/1     Running   0          2m7s    10.244.0.248   sop-lab-2-control-plane   <none>           <none>\nfrontend-fd686dbb-zs8qn                  1/1     Running   0          5m      10.244.0.238   sop-lab-2-control-plane   <none>           <none>\nloadgenerator-6cc58494f4-9m5dw           1/1     Running   0          5m      10.244.0.239   sop-lab-2-control-plane   <none>           <none>\npaymentservice-59fb87999b-fc4km          1/1     Running   0          2m      10.244.0.249   sop-lab-2-control-plane   <none>           <none>\nproductcatalogservice-7fd5f4c867-v2bzk   2/2     Running   0          2m9s    10.244.0.247   sop-lab-2-control-plane   <none>           <none>\npromo-feed-sync-7f5b94958f-6ftcq         1/1     Running   0          5m      10.244.0.242   sop-lab-2-control-plane   <none>           <none>\nrecommendationservice-6c88b5fb59-bpcbd   1/1     Running   0          5m      10.244.0.243   sop-lab-2-control-plane   <none>           <none>\nredis-cart-788fbddc7-8jx9b               1/1     Running   0          5m      10.244.0.244   sop-lab-2-control-plane   <none>           <none>\nshippingservice-78969f44cf-pc559         1/1     Running   0          5m      10.244.0.245   sop-lab-2-control-plane   <none>           <none>\nuptime-checker-845f5c8bfb-fnlkd          1/1     Running   0          4m59s   10.244.0.246   sop-lab-2-control-plane   <none>           <none>\n",
+  "events": "LAST SEEN   TYPE      REASON              OBJECT                                        MESSAGE\n2m9s        Normal    ScalingReplicaSet   deployment/productcatalogservice              Scaled up replica set productcatalogservice-7fd5f4c867 from 0 to 1\n2m8s        Normal    SuccessfulCreate    replicaset/productcatalogservice-7fd5f4c867   Created pod: productcatalogservice-7fd5f4c867-v2bzk\n2m8s        Normal    Scheduled           pod/productcatalogservice-7fd5f4c867-v2bzk    Successfully assigned boutique/productcatalogservice-7fd5f4c867-v2bzk to sop-lab-2-control-plane\n2m8s        Normal    Pulled              pod/productcatalogservice-7fd5f4c867-v2bzk    Container image \"us-central1-docker.pkg.dev/google-samples/microservices-demo/productcatalogservice:v0.10.3\" already present on machine and can be accessed by the pod\n2m8s        Normal    Created             pod/productcatalogservice-7fd5f4c867-v2bzk    Container created\n2m8s        Normal    Started             pod/productcatalogservice-7fd5f4c867-v2bzk    Container started\n2m8s        Normal    Pulled              pod/productcatalogservice-7fd5f4c867-v2bzk    Container image \"us-central1-docker.pkg.dev/google-samples/microservices-demo/loadgenerator:v0.10.3\" already present on machine and can be accessed by the pod\n2m8s        Normal    Created             pod/productcatalogservice-7fd5f4c867-v2bzk    Container created\n2m7s        Normal    ScalingReplicaSet   deployment/productcatalogservice              Scaled down replica set productcatalogservice-7457c7c77f from 1 to 0\n2m7s        Normal    ScalingReplicaSet   deployment/emailservice                       Scaled up replica set emailservice-77775cc968 from 0 to 1\n2m7s        Normal    Killing             pod/productcatalogservice-7457c7c77f-rm2hq    Stopping container server\n2m7s        Normal    Started             pod/productcatalogservice-7fd5f4c867-v2bzk    Container started\n2m7s        Normal    SuccessfulCreate    replicaset/emailservice-77775cc968            Created pod: emailservice-77775cc968-47dm7\n2m7s        Normal    Pulled              pod/emailservice-77775cc968-47dm7             Container image \"us-central1-docker.pkg.dev/google-samples/microservices-demo/emailservice:v0.10.3\" already present on machine and can be accessed by the pod\n2m7s        Normal    Scheduled           pod/emailservice-77775cc968-47dm7             Successfully assigned boutique/emailservice-77775cc968-47dm7 to sop-lab-2-control-plane\n2m7s        Normal    SuccessfulDelete    replicaset/productcatalogservice-7457c7c77f   Deleted pod: productcatalogservice-7457c7c77f-rm2hq\n2m6s        Normal    Started             pod/emailservice-77775cc968-47dm7             Container started\n2m6s        Normal    Created             pod/emailservice-77775cc968-47dm7             Container created\n2m4s        Warning   Unhealthy           pod/emailservice-77775cc968-47dm7             Readiness probe failed: timeout: failed to connect service \"10.244.0.248:8080\" within 1s: context deadline exceeded\n2m          Normal    ScalingReplicaSet   deployment/emailservice                       Scaled down replica set emailservice-558899d44c from 1 to 0\n2m          Normal    ScalingReplicaSet   deployment/paymentservice                     Scaled up replica set paymentservice-59fb87999b from 0 to 1\n2m          Normal    SuccessfulCreate    replicaset/paymentservice-59fb87999b          Created pod: paymentservice-59fb87999b-fc4km\n2m          Normal    Created             pod/paymentservice-59fb87999b-fc4km           Container created\n2m          Normal    Pulled              pod/paymentservice-59fb87999b-fc4km           Container image \"us-central1-docker.pkg.dev/google-samples/microservices-demo/paymentservice:v0.10.3\" already present on machine and can be accessed by the pod\n2m          Normal    Scheduled           pod/paymentservice-59fb87999b-fc4km           Successfully assigned boutique/paymentservice-59fb87999b-fc4km to sop-lab-2-control-plane\n2m          Normal    Killing             pod/emailservice-558899d44c-5mh6k             Stopping container server\n2m          Normal    SuccessfulDelete    replicaset/emailservice-558899d44c            Deleted pod: emailservice-558899d44c-5mh6k\n119s        Normal    Started             pod/paymentservice-59fb87999b-fc4km           Container started\n117s        Warning   Unhealthy           pod/paymentservice-59fb87999b-fc4km           Readiness probe failed: timeout: failed to connect service \"10.244.0.249:50051\" within 1s: context deadline exceeded\n108s        Normal    ScalingReplicaSet   deployment/paymentservice                     Scaled down replica set paymentservice-78f6cfdf7f from 1 to 0\n108s        Normal    SuccessfulDelete    replicaset/paymentservice-78f6cfdf7f          Deleted pod: paymentservice-78f6cfdf7f-phfgw\n108s        Normal    Killing             pod/paymentservice-78f6cfdf7f-phfgw           Stopping container server\n",
+  "workloads": "NAME                                    READY   UP-TO-DATE   AVAILABLE   AGE     CONTAINERS           IMAGES                                                                                                                                                                          SELECTOR\ndeployment.apps/adservice               1/1     1            1           4h20m   server               us-central1-docker.pkg.dev/google-samples/microservices-demo/adservice:v0.10.3                                                                                                  app=adservice\ndeployment.apps/cartservice             1/1     1            1           4h20m   server               us-central1-docker.pkg.dev/google-samples/microservices-demo/cartservice:v0.10.3                                                                                                app=cartservice\ndeployment.apps/catalog-crawler         1/1     1            1           4h16m   crawler              us-central1-docker.pkg.dev/google-samples/microservices-demo/loadgenerator:v0.10.3                                                                                              app=catalog-crawler\ndeployment.apps/checkoutservice         1/1     1            1           4h20m   server               us-central1-docker.pkg.dev/google-samples/microservices-demo/checkoutservice:v0.10.3                                                                                            app=checkoutservice\ndeployment.apps/currencyservice         1/1     1            1           4h20m   server               us-central1-docker.pkg.dev/google-samples/microservices-demo/currencyservice:v0.10.3                                                                                            app=currencyservice\ndeployment.apps/emailservice            1/1     1            1           4h20m   server               us-central1-docker.pkg.dev/google-samples/microservices-demo/emailservice:v0.10.3                                                                                               app=emailservice\ndeployment.apps/frontend                1/1     1            1           4h20m   server               us-central1-docker.pkg.dev/google-samples/microservices-demo/frontend:v0.10.3                                                                                                   app=frontend\ndeployment.apps/loadgenerator           1/1     1            1           4h20m   main                 us-central1-docker.pkg.dev/google-samples/microservices-demo/loadgenerator:v0.10.3                                                                                              app=loadgenerator\ndeployment.apps/paymentservice          1/1     1            1           4h20m   server               us-central1-docker.pkg.dev/google-samples/microservices-demo/paymentservice:v0.10.3                                                                                             app=paymentservice\ndeployment.apps/productcatalogservice   1/1     1            1           4h20m   server,log-shipper   us-central1-docker.pkg.dev/google-samples/microservices-demo/productcatalogservice:v0.10.3,us-central1-docker.pkg.dev/google-samples/microservices-demo/loadgenerator:v0.10.3   app=productcatalogservice\ndeployment.apps/promo-feed-sync         1/1     1            1           4h16m   sync                 us-central1-docker.pkg.dev/google-samples/microservices-demo/loadgenerator:v0.10.3                                                                                              app=promo-feed-sync\ndeployment.apps/recommendationservice   1/1     1            1           4h20m   server               us-central1-docker.pkg.dev/google-samples/microservices-demo/recommendationservice:v0.10.3                                                                                      app=recommendationservice\ndeployment.apps/redis-cart              1/1     1            1           4h20m   redis                redis:alpine                                                                                                                                                                    app=redis-cart\ndeployment.apps/shippingservice         1/1     1            1           4h20m   server               us-central1-docker.pkg.dev/google-samples/microservices-demo/shippingservice:v0.10.3                                                                                            app=shippingservice\ndeployment.apps/uptime-checker          1/1     1            1           4h16m   checker              us-central1-docker.pkg.dev/google-samples/microservices-demo/loadgenerator:v0.10.3                                                                                              app=uptime-checker\n",
+  "endpoints": "NAME                          ADDRESSTYPE   PORTS   ENDPOINTS      AGE\nadservice-plj6t               IPv4          9555    10.244.0.234   4h20m\ncartservice-gffs8             IPv4          7070    10.244.0.233   4h20m\ncheckoutservice-9q7hs         IPv4          5050    10.244.0.235   4h20m\ncurrencyservice-qfnd4         IPv4          7000    10.244.0.236   4h20m\nemailservice-jc2dn            IPv4          8080    10.244.0.248   4h20m\nfrontend-external-j44z8       IPv4          8080    10.244.0.238   4h20m\nfrontend-sc9hw                IPv4          8080    10.244.0.238   4h20m\npaymentservice-frztq          IPv4          50051   10.244.0.249   4h20m\nproductcatalogservice-ccrs8   IPv4          3550    10.244.0.247   4h20m\nrecommendationservice-4cck9   IPv4          8080    10.244.0.243   4h20m\nredis-cart-69djs              IPv4          6379    10.244.0.244   4h20m\nshippingservice-2jzsm         IPv4          50051   10.244.0.245   4h20m\n",
+  "services": "NAME                    TYPE           CLUSTER-IP      EXTERNAL-IP   PORT(S)        AGE     SELECTOR\nadservice               ClusterIP      10.96.124.139   <none>        9555/TCP       4h20m   app=adservice\ncartservice             ClusterIP      10.96.123.220   <none>        7070/TCP       4h20m   app=cartservice\ncheckoutservice         ClusterIP      10.96.225.60    <none>        5050/TCP       4h20m   app=checkoutservice\ncurrencyservice         ClusterIP      10.96.12.17     <none>        7000/TCP       4h20m   app=currencyservice\nemailservice            ClusterIP      10.96.164.18    <none>        5000/TCP       4h20m   app=emailservice\nfrontend                ClusterIP      10.96.36.142    <none>        80/TCP         4h20m   app=frontend\nfrontend-external       LoadBalancer   10.96.199.51    <pending>     80:30632/TCP   4h20m   app=frontend\npaymentservice          ClusterIP      10.96.206.7     <none>        50051/TCP      4h20m   app=paymentservice\nproductcatalogservice   ClusterIP      10.96.211.48    <none>        3550/TCP       4h20m   app=productcatalogservice\nrecommendationservice   ClusterIP      10.96.86.195    <none>        8080/TCP       4h20m   app=recommendationservice\nredis-cart              ClusterIP      10.96.89.179    <none>        6379/TCP       4h20m   app=redis-cart\nshippingservice         ClusterIP      10.96.142.57    <none>        50051/TCP      4h20m   app=shippingservice\n",
+  "logs app=frontend": "[pod/frontend-fd686dbb-zs8qn/server] {\"currency\":\"USD\",\"http.req.id\":\"5cb55735-d635-43c6-ae31-9c3095288b88\",\"http.req.method\":\"GET\",\"http.req.path\":\"/product/9SIQT8TOJO\",\"id\":\"9SIQT8TOJO\",\"message\":\"serving product page\",\"session\":\"898820d7-6fa3-4200-b78e-b96c446e684c\",\"severity\":\"debug\",\"timestamp\":\"2026-11-25T08:07:15.754607701Z\"}\n[pod/frontend-fd686dbb-zs8qn/server] {\"http.req.id\":\"fed00e19-4009-45c1-ac7d-7a92f04d1a60\",\"http.req.method\":\"GET\",\"http.req.path\":\"/product/0PUK6V6EV0\",\"http.resp.bytes\":8027,\"http.resp.status\":200,\"http.resp.took_ms\":362,\"message\":\"request complete\",\"session\":\"685b59d2-78b5-4485-9c94-75ea82ed3049\",\"severity\":\"debug\",\"timestamp\":\"2026-11-25T08:07:15.91488365Z\"}\n[pod/frontend-fd686dbb-zs8qn/server] {\"http.req.id\":\"41aecf69-8734-4f30-9701-7c5bd352a603\",\"http.req.method\":\"GET\",\"http.req.path\":\"/cart\",\"http.resp.bytes\":16434,\"http.resp.status\":200,\"http.resp.took_ms\":381,\"message\":\"request complete\",\"session\":\"78e5c00e-5fe8-4089-8305-ba7263c1e78d\",\"severity\":\"debug\",\"timestamp\":\"2026-11-25T08:07:16.009646143Z\"}\n[pod/frontend-fd686dbb-zs8qn/server] {\"http.req.id\":\"f08283ed-b2c3-4a04-9591-586d76a3d6f9\",\"http.req.method\":\"GET\",\"http.req.path\":\"/cart\",\"http.resp.bytes\":6876,\"http.resp.status\":200,\"http.resp.took_ms\":378,\"message\":\"request complete\",\"session\":\"e11d6cb5-aef6-4f2b-9389-e9fd4d9d8dd0\",\"severity\":\"debug\",\"timestamp\":\"2026-11-25T08:07:16.062438581Z\"}\n[pod/frontend-fd686dbb-zs8qn/server] {\"http.req.id\":\"64095dfd-1208-407f-9b06-4406f3215ef3\",\"http.req.method\":\"POST\",\"http.req.path\":\"/cart\",\"http.resp.bytes\":0,\"http.resp.status\":302,\"http.resp.took_ms\":605,\"message\":\"request complete\",\"session\":\"151dec4b-ac40-4a0d-87c0-288d97866d40\",\"severity\":\"debug\",\"timestamp\":\"2026-11-25T08:07:16.144395839Z\"}\n[pod/frontend-fd686dbb-zs8qn/server] {\"http.req.id\":\"442c2b45-48a8-4ac5-bcd3-4c0087e7f311\",\"http.req.method\":\"GET\",\"http.req.path\":\"/cart\",\"message\":\"request started\",\"session\":\"151dec4b-ac40-4a0d-87c0-288d97866d40\",\"severity\":\"debug\",\"timestamp\":\"2026-11-25T08:07:16.144919789Z\"}\n[pod/frontend-fd686dbb-zs8qn/server] {\"http.req.id\":\"442c2b45-48a8-4ac5-bcd3-4c0087e7f311\",\"http.req.method\":\"GET\",\"http.req.path\":\"/cart\",\"message\":\"view user cart\",\"session\":\"151dec4b-ac40-4a0d-87c0-288d97866d40\",\"severity\":\"debug\",\"timestamp\":\"2026-11-25T08:07:16.144959144Z\"}\n[pod/frontend-fd686dbb-zs8qn/server] {\"http.req.id\":\"5cb55735-d635-43c6-ae31-9c3095288b88\",\"http.req.method\":\"GET\",\"http.req.path\":\"/product/9SIQT8TOJO\",\"http.resp.bytes\":8062,\"http.resp.status\":200,\"http.resp.took_ms\":449,\"message\":\"request complete\",\"session\":\"898820d7-6fa3-4200-b78e-b96c446e684c\",\"severity\":\"debug\",\"timestamp\":\"2026-11-25T08:07:16.203913982Z\"}\n[pod/frontend-fd686dbb-zs8qn/server] {\"http.req.id\":\"be9b5580-fbde-43f0-974f-45d0971f2bef\",\"http.req.method\":\"POST\",\"http.req.path\":\"/cart\",\"message\":\"request started\",\"session\":\"898820d7-6fa3-4200-b78e-b96c446e684c\",\"severity\":\"debug\",\"timestamp\":\"2026-11-25T08:07:16.204280021Z\"}\n[pod/frontend-fd686dbb-zs8qn/server] {\"http.req.id\":\"be9b5580-fbde-43f0-974f-45d0971f2bef\",\"http.req.method\":\"POST\",\"http.req.path\":\"/cart\",\"message\":\"adding to cart\",\"product\":\"9SIQT8TOJO\",\"quantity\":7,\"session\":\"898820d7-6fa3-4200-b78e-b96c446e684c\",\"severity\":\"debug\",\"timestamp\":\"2026-11-25T08:07:16.204369Z\"}\n[pod/frontend-fd686dbb-zs8qn/server] {\"http.req.id\":\"442c2b45-48a8-4ac5-bcd3-4c0087e7f311\",\"http.req.method\":\"GET\",\"http.req.path\":\"/cart\",\"http.resp.bytes\":19289,\"http.resp.status\":200,\"http.resp.took_ms\":379,\"message\":\"request complete\",\"session\":\"151dec4b-ac40-4a0d-87c0-288d97866d40\",\"severity\":\"debug\",\"timestamp\":\"2026-11-25T08:07:16.524660619Z\"}\n[pod/frontend-fd686dbb-zs8qn/server] {\"http.req.id\":\"be9b5580-fbde-43f0-974f-45d0971f2bef\",\"http.req.method\":\"POST\",\"http.req.path\":\"/cart\",\"http.resp.bytes\":0,\"http.resp.status\":302,\"http.resp.took_ms\":692,\"message\":\"request complete\",\"session\":\"898820d7-6fa3-4200-b78e-b96c446e684c\",\"severity\":\"debug\",\"timestamp\":\"2026-11-25T08:07:16.896464981Z\"}\n[pod/frontend-fd686dbb-zs8qn/server] {\"http.req.id\":\"2765af1c-6100-4d68-ba1e-e416e13302fb\",\"http.req.method\":\"GET\",\"http.req.path\":\"/cart\",\"message\":\"request started\",\"session\":\"898820d7-6fa3-4200-b78e-b96c446e684c\",\"severity\":\"debug\",\"timestamp\":\"2026-11-25T08:07:16.897095353Z\"}\n[pod/frontend-fd686dbb-zs8qn/server] {\"http.req.id\":\"2765af1c-6100-4d68-ba1e-e416e13302fb\",\"http.req.method\":\"GET\",\"http.req.path\":\"/cart\",\"message\":\"view user cart\",\"session\":\"898820d7-6fa3-4200-b78e-b96c446e684c\",\"severity\":\"debug\",\"timestamp\":\"2026-11-25T08:07:16.897134898Z\"}\n[pod/frontend-fd686dbb-zs8qn/server] {\"http.req.id\":\"aa4e24ee-b1f0-414a-a6c9-069a380848a7\",\"http.req.method\":\"GET\",\"http.req.path\":\"/product/6E92ZMYYFZ\",\"message\":\"request started\",\"session\":\"a7d9caa6-6854-4b9b-9992-5fed93dfdf48\",\"severity\":\"debug\",\"timestamp\":\"2026-11-25T08:07:16.997649894Z\"}\n[pod/frontend-fd686dbb-zs8qn/server] {\"currency\":\"USD\",\"http.req.id\":\"aa4e24ee-b1f0-414a-a6c9-069a380848a7\",\"http.req.method\":\"GET\",\"http.req.path\":\"/product/6E92ZMYYFZ\",\"id\":\"6E92ZMYYFZ\",\"message\":\"serving product page\",\"session\":\"a7d9caa6-6854-4b9b-9992-5fed93dfdf48\",\"severity\":\"debug\",\"timestamp\":\"2026-11-25T08:07:16.997691614Z\"}\n[pod/frontend-fd686dbb-zs8qn/server] {\"http.req.id\":\"2765af1c-6100-4d68-ba1e-e416e13302fb\",\"http.req.method\":\"GET\",\"http.req.path\":\"/cart\",\"http.resp.bytes\":19277,\"http.resp.status\":200,\"http.resp.took_ms\":379,\"message\":\"request complete\",\"session\":\"898820d7-6fa3-4200-b78e-b96c446e684c\",\"severity\":\"debug\",\"timestamp\":\"2026-11-25T08:07:17.276867522Z\"}\n[pod/frontend-fd686dbb-zs8qn/server] {\"http.req.id\":\"aa4e24ee-b1f0-414a-a6c9-069a380848a7\",\"http.req.method\":\"GET\",\"http.req.path\":\"/product/6E92ZMYYFZ\",\"http.resp.bytes\":8008,\"http.resp.status\":200,\"http.resp.took_ms\":303,\"message\":\"request complete\",\"session\":\"a7d9caa6-6854-4b9b-9992-5fed93dfdf48\",\"severity\":\"debug\",\"timestamp\":\"2026-11-25T08:07:17.301396377Z\"}\n[pod/frontend-fd686dbb-zs8qn/server] {\"http.req.id\":\"fa8dd89c-7eb8-44b6-81af-bbc787ce2204\",\"http.req.method\":\"GET\",\"http.req.path\":\"/product/6E92ZMYYFZ\",\"message\":\"request started\",\"session\":\"a3db459e-5df4-4577-aa33-92c0d185e86d\",\"severity\":\"debug\",\"timestamp\":\"2026-11-25T08:07:17.504400556Z\"}\n[pod/frontend-fd686dbb-zs8qn/server] {\"currency\":\"USD\",\"http.req.id\":\"fa8dd89c-7eb8-44b6-81af-bbc787ce2204\",\"http.req.method\":\"GET\",\"http.req.path\":\"/product/6E92ZMYYFZ\",\"id\":\"6E92ZMYYFZ\",\"message\":\"serving product page\",\"session\":\"a3db459e-5df4-4577-aa33-92c0d185e86d\",\"severity\":\"debug\",\"timestamp\":\"2026-11-25T08:07:17.504456272Z\"}\n[pod/frontend-fd686dbb-zs8qn/server] {\"http.req.id\":\"fa8dd89c-7eb8-44b6-81af-bbc787ce2204\",\"http.req.method\":\"GET\",\"http.req.path\":\"/product/6E92ZMYYFZ\",\"http.resp.bytes\":8028,\"http.resp.status\":200,\"http.resp.took_ms\":288,\"message\":\"request complete\",\"session\":\"a3db459e-5df4-4577-aa33-92c0d185e86d\",\"severity\":\"debug\",\"timestamp\":\"2026-11-25T08:07:17.793331953Z\"}\n[pod/frontend-fd686dbb-zs8qn/server] {\"http.req.id\":\"f56e37b1-250d-4cee-b753-9779d60d62d3\",\"http.req.method\":\"GET\",\"http.req.path\":\"/product/1YMWWN1N4O\",\"message\":\"request started\",\"session\":\"00000000-0000-4000-8000-00000000a002\",\"severity\":\"debug\",\"timestamp\":\"2026-11-25T08:07:18.626083634Z\"}\n[pod/frontend-fd686dbb-zs8qn/server] {\"currency\":\"USD\",\"http.req.id\":\"f56e37b1-250d-4cee-b753-9779d60d62d3\",\"http.req.method\":\"GET\",\"http.req.path\":\"/product/1YMWWN1N4O\",\"id\":\"1YMWWN1N4O\",\"message\":\"serving product page\",\"session\":\"00000000-0000-4000-8000-00000000a002\",\"severity\":\"debug\",\"timestamp\":\"2026-11-25T08:07:18.626142085Z\"}\n[pod/frontend-fd686dbb-zs8qn/server] {\"http.req.id\":\"a79355d0-579a-40be-b53d-7d6c7fe41a2e\",\"http.req.method\":\"GET\",\"http.req.path\":\"/_healthz\",\"message\":\"request started\",\"session\":\"x-liveness-probe\",\"severity\":\"debug\",\"timestamp\":\"2026-11-25T08:07:18.802316436Z\"}\n[pod/frontend-fd686dbb-zs8qn/server] {\"http.req.id\":\"a79355d0-579a-40be-b53d-7d6c7fe41a2e\",\"http.req.method\":\"GET\",\"http.req.path\":\"/_healthz\",\"http.resp.bytes\":2,\"http.resp.status\":200,\"http.resp.took_ms\":0,\"message\":\"request complete\",\"session\":\"x-liveness-probe\",\"severity\":\"debug\",\"timestamp\":\"2026-11-25T08:07:18.802378704Z\"}\n",
+  "previous logs app=frontend": "[error] Error from server (BadRequest): previous terminated container \"server\" in pod \"frontend-fd686dbb-zs8qn\" not found",
+  "logs app=checkoutservice": "[pod/checkoutservice-5d5f4589c5-qvmdq/server] {\"message\":\"order confirmation email sent to \\\"rowetanner@example.org\\\"\",\"severity\":\"info\",\"timestamp\":\"2026-11-25T08:05:06.289890685Z\"}\n[pod/checkoutservice-5d5f4589c5-qvmdq/server] {\"message\":\"[PlaceOrder] user_id=\\\"316f67f5-990f-4835-90d2-b635fd46d664\\\" user_currency=\\\"EUR\\\"\",\"severity\":\"info\",\"timestamp\":\"2026-11-25T08:05:06.854160356Z\"}\n[pod/checkoutservice-5d5f4589c5-qvmdq/server] {\"message\":\"payment went through (transaction_id: 081f2320-0d12-46a5-bb77-cd1a0a0bc8fb)\",\"severity\":\"info\",\"timestamp\":\"2026-11-25T08:05:06.860627343Z\"}\n[pod/checkoutservice-5d5f4589c5-qvmdq/server] {\"message\":\"order confirmation email sent to \\\"melissaortiz@example.com\\\"\",\"severity\":\"info\",\"timestamp\":\"2026-11-25T08:05:06.863100441Z\"}\n[pod/checkoutservice-5d5f4589c5-qvmdq/server] {\"message\":\"[PlaceOrder] user_id=\\\"7a0be703-75de-49d2-a9d1-2abff3d6d0ef\\\" user_currency=\\\"USD\\\"\",\"severity\":\"info\",\"timestamp\":\"2026-11-25T08:05:51.719358966Z\"}\n[pod/checkoutservice-5d5f4589c5-qvmdq/server] {\"message\":\"payment went through (transaction_id: d82816da-28e6-43e6-a665-1f6cc973c395)\",\"severity\":\"info\",\"timestamp\":\"2026-11-25T08:05:51.733877917Z\"}\n[pod/checkoutservice-5d5f4589c5-qvmdq/server] {\"message\":\"order confirmation email sent to \\\"abigailanderson@example.org\\\"\",\"severity\":\"info\",\"timestamp\":\"2026-11-25T08:05:51.737197934Z\"}\n[pod/checkoutservice-5d5f4589c5-qvmdq/server] {\"message\":\"[PlaceOrder] user_id=\\\"151dec4b-ac40-4a0d-87c0-288d97866d40\\\" user_currency=\\\"CAD\\\"\",\"severity\":\"info\",\"timestamp\":\"2026-11-25T08:05:52.860906263Z\"}\n[pod/checkoutservice-5d5f4589c5-qvmdq/server] {\"message\":\"payment went through (transaction_id: fab4734e-0ce0-41a8-b5a2-2a1bc9df2e0c)\",\"severity\":\"info\",\"timestamp\":\"2026-11-25T08:05:52.868333618Z\"}\n[pod/checkoutservice-5d5f4589c5-qvmdq/server] {\"message\":\"order confirmation email sent to \\\"amber67@example.net\\\"\",\"severity\":\"info\",\"timestamp\":\"2026-11-25T08:05:52.870916011Z\"}\n[pod/checkoutservice-5d5f4589c5-qvmdq/server] {\"message\":\"[PlaceOrder] user_id=\\\"e11d6cb5-aef6-4f2b-9389-e9fd4d9d8dd0\\\" user_currency=\\\"GBP\\\"\",\"severity\":\"info\",\"timestamp\":\"2026-11-25T08:06:11.521149618Z\"}\n[pod/checkoutservice-5d5f4589c5-qvmdq/server] {\"message\":\"payment went through (transaction_id: ec8962f0-1524-42c9-aa51-6544cbf188de)\",\"severity\":\"info\",\"timestamp\":\"2026-11-25T08:06:11.859061534Z\"}\n[pod/checkoutservice-5d5f4589c5-qvmdq/server] {\"message\":\"order confirmation email sent to \\\"david99@example.org\\\"\",\"severity\":\"info\",\"timestamp\":\"2026-11-25T08:06:12.220676248Z\"}\n[pod/checkoutservice-5d5f4589c5-qvmdq/server] {\"message\":\"[PlaceOrder] user_id=\\\"a7d9caa6-6854-4b9b-9992-5fed93dfdf48\\\" user_currency=\\\"JPY\\\"\",\"severity\":\"info\",\"timestamp\":\"2026-11-25T08:06:19.894199681Z\"}\n[pod/checkoutservice-5d5f4589c5-qvmdq/server] {\"message\":\"payment went through (transaction_id: f4fa0441-95c4-425d-a390-385fb7615710)\",\"severity\":\"info\",\"timestamp\":\"2026-11-25T08:06:20.386488753Z\"}\n[pod/checkoutservice-5d5f4589c5-qvmdq/server] {\"message\":\"order confirmation email sent to \\\"eboyd@example.org\\\"\",\"severity\":\"info\",\"timestamp\":\"2026-11-25T08:06:20.80872092Z\"}\n[pod/checkoutservice-5d5f4589c5-qvmdq/server] {\"message\":\"[PlaceOrder] user_id=\\\"898820d7-6fa3-4200-b78e-b96c446e684c\\\" user_currency=\\\"USD\\\"\",\"severity\":\"info\",\"timestamp\":\"2026-11-25T08:06:37.707045916Z\"}\n[pod/checkoutservice-5d5f4589c5-qvmdq/server] {\"message\":\"payment went through (transaction_id: e82263f8-52e5-4af9-a818-bb80e4857636)\",\"severity\":\"info\",\"timestamp\":\"2026-11-25T08:06:38.0865179Z\"}\n[pod/checkoutservice-5d5f4589c5-qvmdq/server] {\"message\":\"order confirmation email sent to \\\"chelsea51@example.net\\\"\",\"severity\":\"info\",\"timestamp\":\"2026-11-25T08:06:38.496591015Z\"}\n[pod/checkoutservice-5d5f4589c5-qvmdq/server] {\"message\":\"[PlaceOrder] user_id=\\\"78e5c00e-5fe8-4089-8305-ba7263c1e78d\\\" user_currency=\\\"TRY\\\"\",\"severity\":\"info\",\"timestamp\":\"2026-11-25T08:06:57.471309646Z\"}\n[pod/checkoutservice-5d5f4589c5-qvmdq/server] {\"message\":\"payment went through (transaction_id: e8156067-188c-43e3-81c4-06aca1c42896)\",\"severity\":\"info\",\"timestamp\":\"2026-11-25T08:06:57.958680169Z\"}\n[pod/checkoutservice-5d5f4589c5-qvmdq/server] {\"message\":\"order confirmation email sent to \\\"emilyjohnson@example.net\\\"\",\"severity\":\"info\",\"timestamp\":\"2026-11-25T08:06:58.352681863Z\"}\n[pod/checkoutservice-5d5f4589c5-qvmdq/server] {\"message\":\"[PlaceOrder] user_id=\\\"7a0be703-75de-49d2-a9d1-2abff3d6d0ef\\\" user_currency=\\\"USD\\\"\",\"severity\":\"info\",\"timestamp\":\"2026-11-25T08:06:58.73788728Z\"}\n[pod/checkoutservice-5d5f4589c5-qvmdq/server] {\"message\":\"payment went through (transaction_id: a7331e1f-abc8-4dac-a8ea-654ec32843b5)\",\"severity\":\"info\",\"timestamp\":\"2026-11-25T08:06:59.117319296Z\"}\n[pod/checkoutservice-5d5f4589c5-qvmdq/server] {\"message\":\"order confirmation email sent to \\\"travis60@example.org\\\"\",\"severity\":\"info\",\"timestamp\":\"2026-11-25T08:06:59.603360342Z\"}\n",
+  "previous logs app=checkoutservice": "[error] Error from server (BadRequest): previous terminated container \"server\" in pod \"checkoutservice-5d5f4589c5-qvmdq\" not found",
+  "logs app=cartservice": "[pod/cartservice-896c89968-pzlxc/server] GetCartAsync called with userId=00000000-0000-4000-8000-00000000a002\n[pod/cartservice-896c89968-pzlxc/server] Checking CartService Health\n[pod/cartservice-896c89968-pzlxc/server] GetCartAsync called with userId=79eb1124-a6dc-44f5-95f6-58c1d73af5b7\n[pod/cartservice-896c89968-pzlxc/server] GetCartAsync called with userId=685b59d2-78b5-4485-9c94-75ea82ed3049\n[pod/cartservice-896c89968-pzlxc/server] GetCartAsync called with userId=7a0be703-75de-49d2-a9d1-2abff3d6d0ef\n[pod/cartservice-896c89968-pzlxc/server] GetCartAsync called with userId=a3db459e-5df4-4577-aa33-92c0d185e86d\n[pod/cartservice-896c89968-pzlxc/server] GetCartAsync called with userId=316f67f5-990f-4835-90d2-b635fd46d664\n[pod/cartservice-896c89968-pzlxc/server] GetCartAsync called with userId=a7d9caa6-6854-4b9b-9992-5fed93dfdf48\n[pod/cartservice-896c89968-pzlxc/server] GetCartAsync called with userId=7a0be703-75de-49d2-a9d1-2abff3d6d0ef\n[pod/cartservice-896c89968-pzlxc/server] GetCartAsync called with userId=00000000-0000-4000-8000-00000000a002\n[pod/cartservice-896c89968-pzlxc/server] GetCartAsync called with userId=78e5c00e-5fe8-4089-8305-ba7263c1e78d\n[pod/cartservice-896c89968-pzlxc/server] AddItemAsync called with userId=78e5c00e-5fe8-4089-8305-ba7263c1e78d, productId=6E92ZMYYFZ, quantity=8\n[pod/cartservice-896c89968-pzlxc/server] GetCartAsync called with userId=316f67f5-990f-4835-90d2-b635fd46d664\n[pod/cartservice-896c89968-pzlxc/server] GetCartAsync called with userId=151dec4b-ac40-4a0d-87c0-288d97866d40\n[pod/cartservice-896c89968-pzlxc/server] AddItemAsync called with userId=151dec4b-ac40-4a0d-87c0-288d97866d40, productId=6E92ZMYYFZ, quantity=4\n[pod/cartservice-896c89968-pzlxc/server] GetCartAsync called with userId=685b59d2-78b5-4485-9c94-75ea82ed3049\n[pod/cartservice-896c89968-pzlxc/server] GetCartAsync called with userId=78e5c00e-5fe8-4089-8305-ba7263c1e78d\n[pod/cartservice-896c89968-pzlxc/server] GetCartAsync called with userId=e11d6cb5-aef6-4f2b-9389-e9fd4d9d8dd0\n[pod/cartservice-896c89968-pzlxc/server] GetCartAsync called with userId=898820d7-6fa3-4200-b78e-b96c446e684c\n[pod/cartservice-896c89968-pzlxc/server] GetCartAsync called with userId=151dec4b-ac40-4a0d-87c0-288d97866d40\n[pod/cartservice-896c89968-pzlxc/server] AddItemAsync called with userId=898820d7-6fa3-4200-b78e-b96c446e684c, productId=9SIQT8TOJO, quantity=7\n[pod/cartservice-896c89968-pzlxc/server] GetCartAsync called with userId=898820d7-6fa3-4200-b78e-b96c446e684c\n[pod/cartservice-896c89968-pzlxc/server] GetCartAsync called with userId=a7d9caa6-6854-4b9b-9992-5fed93dfdf48\n[pod/cartservice-896c89968-pzlxc/server] GetCartAsync called with userId=a3db459e-5df4-4577-aa33-92c0d185e86d\n[pod/cartservice-896c89968-pzlxc/server] GetCartAsync called with userId=00000000-0000-4000-8000-00000000a002\n",
+  "previous logs app=cartservice": "[error] Error from server (BadRequest): previous terminated container \"server\" in pod \"cartservice-896c89968-pzlxc\" not found",
+  "logs app=productcatalogservice": "[pod/productcatalogservice-7fd5f4c867-v2bzk/server] {\"message\":\"Tracing disabled.\",\"severity\":\"info\",\"timestamp\":\"2026-11-25T08:05:10.627034326Z\"}\n[pod/productcatalogservice-7fd5f4c867-v2bzk/server] {\"message\":\"Profiling disabled.\",\"severity\":\"info\",\"timestamp\":\"2026-11-25T08:05:10.627100241Z\"}\n[pod/productcatalogservice-7fd5f4c867-v2bzk/server] {\"message\":\"starting grpc server at :3550\",\"severity\":\"info\",\"timestamp\":\"2026-11-25T08:05:10.627468636Z\"}\n[pod/productcatalogservice-7fd5f4c867-v2bzk/server] {\"message\":\"loading catalog from local products.json file...\",\"severity\":\"info\",\"timestamp\":\"2026-11-25T08:05:10.689084878Z\"}\n[pod/productcatalogservice-7fd5f4c867-v2bzk/server] {\"message\":\"successfully parsed product catalog json\",\"severity\":\"info\",\"timestamp\":\"2026-11-25T08:05:10.689507651Z\"}\n[pod/productcatalogservice-7fd5f4c867-v2bzk/log-shipper] {\"timestamp\": \"2026-11-25T08:05:14Z\", \"severity\": \"info\", \"logger\": \"log-shipper\", \"message\": \"log shipper started\", \"target\": \"log-collector.observability.svc.cluster.local:24224\", \"flush_interval_s\": \"4-8\", \"pod\": \"productcatalogservice-7fd5f4c867-v2bzk\"}\n[pod/productcatalogservice-7fd5f4c867-v2bzk/log-shipper] {\"timestamp\": \"2026-11-25T08:05:21Z\", \"severity\": \"info\", \"logger\": \"log-shipper\", \"message\": \"batch flushed\", \"batch\": 1, \"records\": 364, \"bytes\": 66976, \"took_ms\": 937}\n[pod/productcatalogservice-7fd5f4c867-v2bzk/log-shipper] {\"timestamp\": \"2026-11-25T08:05:27Z\", \"severity\": \"info\", \"logger\": \"log-shipper\", \"message\": \"batch flushed\", \"batch\": 2, \"records\": 269, \"bytes\": 66712, \"took_ms\": 1052}\n[pod/productcatalogservice-7fd5f4c867-v2bzk/log-shipper] {\"timestamp\": \"2026-11-25T08:05:36Z\", \"severity\": \"warning\", \"logger\": \"log-shipper\", \"message\": \"collector busy, batch kept for the next flush\", \"batch\": 3, \"records\": 344, \"took_ms\": 1091}\n[pod/productcatalogservice-7fd5f4c867-v2bzk/log-shipper] {\"timestamp\": \"2026-11-25T08:05:43Z\", \"severity\": \"info\", \"logger\": \"log-shipper\", \"message\": \"batch flushed\", \"batch\": 4, \"records\": 210, \"bytes\": 46830, \"took_ms\": 837}\n[pod/productcatalogservice-7fd5f4c867-v2bzk/log-shipper] {\"timestamp\": \"2026-11-25T08:05:50Z\", \"severity\": \"warning\", \"logger\": \"log-shipper\", \"message\": \"collector busy, batch kept for the next flush\", \"batch\": 5, \"records\": 416, \"took_ms\": 905}\n[pod/productcatalogservice-7fd5f4c867-v2bzk/log-shipper] {\"timestamp\": \"2026-11-25T08:05:55Z\", \"severity\": \"info\", \"logger\": \"log-shipper\", \"message\": \"batch flushed\", \"batch\": 6, \"records\": 200, \"bytes\": 49400, \"took_ms\": 1286}\n[pod/productcatalogservice-7fd5f4c867-v2bzk/log-shipper] {\"timestamp\": \"2026-11-25T08:06:02Z\", \"severity\": \"info\", \"logger\": \"log-shipper\", \"message\": \"batch flushed\", \"batch\": 7, \"records\": 363, \"bytes\": 85305, \"took_ms\": 1072}\n[pod/productcatalogservice-7fd5f4c867-v2bzk/log-shipper] {\"timestamp\": \"2026-11-25T08:06:08Z\", \"severity\": \"info\", \"logger\": \"log-shipper\", \"message\": \"batch flushed\", \"batch\": 8, \"records\": 394, \"bytes\": 94166, \"took_ms\": 1114}\n[pod/productcatalogservice-7fd5f4c867-v2bzk/log-shipper] {\"timestamp\": \"2026-11-25T08:06:13Z\", \"severity\": \"info\", \"logger\": \"log-shipper\", \"message\": \"batch flushed\", \"batch\": 9, \"records\": 318, \"bytes\": 73458, \"took_ms\": 950}\n[pod/productcatalogservice-7fd5f4c867-v2bzk/log-shipper] {\"timestamp\": \"2026-11-25T08:06:21Z\", \"severity\": \"info\", \"logger\": \"log-shipper\", \"message\": \"batch flushed\", \"batch\": 10, \"records\": 165, \"bytes\": 41415, \"took_ms\": 772}\n[pod/productcatalogservice-7fd5f4c867-v2bzk/log-shipper] {\"timestamp\": \"2026-11-25T08:06:27Z\", \"severity\": \"info\", \"logger\": \"log-shipper\", \"message\": \"batch flushed\", \"batch\": 11, \"records\": 361, \"bytes\": 86640, \"took_ms\": 1053}\n[pod/productcatalogservice-7fd5f4c867-v2bzk/log-shipper] {\"timestamp\": \"2026-11-25T08:06:32Z\", \"severity\": \"info\", \"logger\": \"log-shipper\", \"message\": \"batch flushed\", \"batch\": 12, \"records\": 401, \"bytes\": 87418, \"took_ms\": 906}\n[pod/productcatalogservice-7fd5f4c867-v2bzk/log-shipper] {\"timestamp\": \"2026-11-25T08:06:40Z\", \"severity\": \"info\", \"logger\": \"log-shipper\", \"message\": \"batch flushed\", \"batch\": 13, \"records\": 333, \"bytes\": 69264, \"took_ms\": 934}\n[pod/productcatalogservice-7fd5f4c867-v2bzk/log-shipper] {\"timestamp\": \"2026-11-25T08:06:48Z\", \"severity\": \"warning\", \"logger\": \"log-shipper\", \"message\": \"collector busy, batch kept for the next flush\", \"batch\": 14, \"records\": 346, \"took_ms\": 1023}\n[pod/productcatalogservice-7fd5f4c867-v2bzk/log-shipper] {\"timestamp\": \"2026-11-25T08:06:53Z\", \"severity\": \"info\", \"logger\": \"log-shipper\", \"message\": \"batch flushed\", \"batch\": 15, \"records\": 355, \"bytes\": 72775, \"took_ms\": 804}\n[pod/productcatalogservice-7fd5f4c867-v2bzk/log-shipper] {\"timestamp\": \"2026-11-25T08:06:59Z\", \"severity\": \"info\", \"logger\": \"log-shipper\", \"message\": \"batch flushed\", \"batch\": 16, \"records\": 167, \"bytes\": 39078, \"took_ms\": 1124}\n[pod/productcatalogservice-7fd5f4c867-v2bzk/log-shipper] {\"timestamp\": \"2026-11-25T08:07:07Z\", \"severity\": \"info\", \"logger\": \"log-shipper\", \"message\": \"batch flushed\", \"batch\": 17, \"records\": 401, \"bytes\": 102656, \"took_ms\": 904}\n[pod/productcatalogservice-7fd5f4c867-v2bzk/log-shipper] {\"timestamp\": \"2026-11-25T08:07:13Z\", \"severity\": \"info\", \"logger\": \"log-shipper\", \"message\": \"batch flushed\", \"batch\": 18, \"records\": 222, \"bytes\": 56610, \"took_ms\": 1221}\n",
+  "previous logs app=productcatalogservice": "[error] Defaulted container \"server\" out of: server, log-shipper\nError from server (BadRequest): previous terminated container \"server\" in pod \"productcatalogservice-7fd5f4c867-v2bzk\" not found",
+  "logs app=redis-cart": "[pod/redis-cart-788fbddc7-8jx9b/redis] 1:M 25 Nov 2026 08:02:20.082 * <timeseries> \t{ ts-ignore-max-val-diff :     0.000000 }\n[pod/redis-cart-788fbddc7-8jx9b/redis] 1:M 25 Nov 2026 08:02:20.082 * <timeseries> \t{ ts-topology-events     :         true }\n[pod/redis-cart-788fbddc7-8jx9b/redis] 1:M 25 Nov 2026 08:02:20.082 * <timeseries> ]\n[pod/redis-cart-788fbddc7-8jx9b/redis] 1:M 25 Nov 2026 08:02:20.083 * <timeseries> Detected redis oss (cluster-enabled=no)\n[pod/redis-cart-788fbddc7-8jx9b/redis] 1:M 25 Nov 2026 08:02:20.083 * <timeseries> Subscribe to ASM events\n[pod/redis-cart-788fbddc7-8jx9b/redis] 1:M 25 Nov 2026 08:02:20.083 * <timeseries> Subscribe to topology changes events\n[pod/redis-cart-788fbddc7-8jx9b/redis] 1:M 25 Nov 2026 08:02:20.083 * <timeseries> Enabled diskless replication\n[pod/redis-cart-788fbddc7-8jx9b/redis] 1:M 25 Nov 2026 08:02:20.083 * Module 'timeseries' loaded from /usr/local/lib/redis/modules//redistimeseries.so\n[pod/redis-cart-788fbddc7-8jx9b/redis] 1:M 25 Nov 2026 08:02:20.155 * <ReJSON> Created new data type 'ReJSON-RL'\n[pod/redis-cart-788fbddc7-8jx9b/redis] 1:M 25 Nov 2026 08:02:20.157 * <ReJSON> version: 81000 git sha: unknown branch: unknown\n[pod/redis-cart-788fbddc7-8jx9b/redis] 1:M 25 Nov 2026 08:02:20.157 * <ReJSON> Exported RedisJSON_V1 API\n[pod/redis-cart-788fbddc7-8jx9b/redis] 1:M 25 Nov 2026 08:02:20.157 * <ReJSON> Exported RedisJSON_V2 API\n[pod/redis-cart-788fbddc7-8jx9b/redis] 1:M 25 Nov 2026 08:02:20.157 * <ReJSON> Exported RedisJSON_V3 API\n[pod/redis-cart-788fbddc7-8jx9b/redis] 1:M 25 Nov 2026 08:02:20.157 * <ReJSON> Exported RedisJSON_V4 API\n[pod/redis-cart-788fbddc7-8jx9b/redis] 1:M 25 Nov 2026 08:02:20.157 * <ReJSON> Exported RedisJSON_V5 API\n[pod/redis-cart-788fbddc7-8jx9b/redis] 1:M 25 Nov 2026 08:02:20.157 * <ReJSON> Exported RedisJSON_V6 API\n[pod/redis-cart-788fbddc7-8jx9b/redis] 1:M 25 Nov 2026 08:02:20.157 * <ReJSON> Exported RedisJSON_V7 API\n[pod/redis-cart-788fbddc7-8jx9b/redis] 1:M 25 Nov 2026 08:02:20.157 * <ReJSON> Exported RedisJSON_V8 API\n[pod/redis-cart-788fbddc7-8jx9b/redis] 1:M 25 Nov 2026 08:02:20.157 * <ReJSON> Enabled diskless replication\n[pod/redis-cart-788fbddc7-8jx9b/redis] 1:M 25 Nov 2026 08:02:20.157 * <ReJSON> Initialized shared string cache, thread safe: true.\n[pod/redis-cart-788fbddc7-8jx9b/redis] 1:M 25 Nov 2026 08:02:20.157 * Module 'ReJSON' loaded from /usr/local/lib/redis/modules//rejson.so\n[pod/redis-cart-788fbddc7-8jx9b/redis] 1:M 25 Nov 2026 08:02:20.157 * <search> Acquired RedisJSON_V8 API\n[pod/redis-cart-788fbddc7-8jx9b/redis] 1:M 25 Nov 2026 08:02:20.181 * Server initialized\n[pod/redis-cart-788fbddc7-8jx9b/redis] 1:M 25 Nov 2026 08:02:20.181 * Ready to accept connections tcp\n[pod/redis-cart-788fbddc7-8jx9b/redis] 1:M 25 Nov 2026 08:02:20.181 # WARNING: Redis does not require authentication and is not protected by network restrictions. Redis will accept connections from any IP address on any network interface.\n",
+  "previous logs app=redis-cart": "[error] Error from server (BadRequest): previous terminated container \"redis\" in pod \"redis-cart-788fbddc7-8jx9b\" not found",
+  "logs app=paymentservice": "[pod/paymentservice-59fb87999b-fc4km/server] {\"severity\":\"info\",\"time\":1795593919900,\"pid\":1,\"hostname\":\"paymentservice-59fb87999b-fc4km\",\"name\":\"paymentservice-server\",\"message\":\"Profiler disabled.\"}\n[pod/paymentservice-59fb87999b-fc4km/server] {\"severity\":\"info\",\"time\":1795593919991,\"pid\":1,\"hostname\":\"paymentservice-59fb87999b-fc4km\",\"name\":\"paymentservice-server\",\"message\":\"Tracing disabled.\"}\n[pod/paymentservice-59fb87999b-fc4km/server] (node:1) DeprecationWarning: Calling start() is no longer necessary. It can be safely omitted.\n[pod/paymentservice-59fb87999b-fc4km/server] (Use `node --trace-deprecation ...` to show where the warning was created)\n[pod/paymentservice-59fb87999b-fc4km/server] {\"severity\":\"info\",\"time\":1795593921594,\"pid\":1,\"hostname\":\"paymentservice-59fb87999b-fc4km\",\"name\":\"paymentservice-server\",\"message\":\"PaymentService gRPC server started on port 50051\"}\n[pod/paymentservice-59fb87999b-fc4km/server] {\"severity\":\"info\",\"time\":1795593951731,\"pid\":1,\"hostname\":\"paymentservice-59fb87999b-fc4km\",\"name\":\"paymentservice-server\",\"message\":\"PaymentService#Charge invoked with request {\\\"amount\\\":{\\\"currency_code\\\":\\\"USD\\\",\\\"units\\\":\\\"1522\\\",\\\"nanos\\\":130000000},\\\"credit_card\\\":{\\\"credit_card_number\\\":\\\"4227215117937154\\\",\\\"credit_card_cvv\\\":425,\\\"credit_card_expiration_year\\\":2032,\\\"credit_card_expiration_month\\\":5}}\"}\n[pod/paymentservice-59fb87999b-fc4km/server] {\"severity\":\"info\",\"time\":1795593951732,\"pid\":1,\"hostname\":\"paymentservice-59fb87999b-fc4km\",\"name\":\"paymentservice-charge\",\"message\":\"Transaction processed: visa ending 7154     Amount: USD1522.130000000\"}\n[pod/paymentservice-59fb87999b-fc4km/server] {\"severity\":\"info\",\"time\":1795593952867,\"pid\":1,\"hostname\":\"paymentservice-59fb87999b-fc4km\",\"name\":\"paymentservice-server\",\"message\":\"PaymentService#Charge invoked with request {\\\"amount\\\":{\\\"currency_code\\\":\\\"CAD\\\",\\\"units\\\":\\\"157\\\",\\\"nanos\\\":743356031},\\\"credit_card\\\":{\\\"credit_card_number\\\":\\\"4897689800071787\\\",\\\"credit_card_cvv\\\":211,\\\"credit_card_expiration_year\\\":2067,\\\"credit_card_expiration_month\\\":3}}\"}\n[pod/paymentservice-59fb87999b-fc4km/server] {\"severity\":\"info\",\"time\":1795593952867,\"pid\":1,\"hostname\":\"paymentservice-59fb87999b-fc4km\",\"name\":\"paymentservice-charge\",\"message\":\"Transaction processed: visa ending 1787     Amount: CAD157.743356031\"}\n[pod/paymentservice-59fb87999b-fc4km/server] {\"severity\":\"info\",\"time\":1795593971858,\"pid\":1,\"hostname\":\"paymentservice-59fb87999b-fc4km\",\"name\":\"paymentservice-server\",\"message\":\"PaymentService#Charge invoked with request {\\\"amount\\\":{\\\"currency_code\\\":\\\"GBP\\\",\\\"units\\\":\\\"760\\\",\\\"nanos\\\":285067661},\\\"credit_card\\\":{\\\"credit_card_number\\\":\\\"4288700388285017\\\",\\\"credit_card_cvv\\\":196,\\\"credit_card_expiration_year\\\":2055,\\\"credit_card_expiration_month\\\":2}}\"}\n[pod/paymentservice-59fb87999b-fc4km/server] {\"severity\":\"info\",\"time\":1795593971858,\"pid\":1,\"hostname\":\"paymentservice-59fb87999b-fc4km\",\"name\":\"paymentservice-charge\",\"message\":\"Transaction processed: visa ending 5017     Amount: GBP760.285067661\"}\n[pod/paymentservice-59fb87999b-fc4km/server] {\"severity\":\"info\",\"time\":1795593980385,\"pid\":1,\"hostname\":\"paymentservice-59fb87999b-fc4km\",\"name\":\"paymentservice-server\",\"message\":\"PaymentService#Charge invoked with request {\\\"amount\\\":{\\\"currency_code\\\":\\\"JPY\\\",\\\"units\\\":\\\"52128\\\",\\\"nanos\\\":679346759},\\\"credit_card\\\":{\\\"credit_card_number\\\":\\\"4461628067102246\\\",\\\"credit_card_cvv\\\":109,\\\"credit_card_expiration_year\\\":2039,\\\"credit_card_expiration_month\\\":2}}\"}\n[pod/paymentservice-59fb87999b-fc4km/server] {\"severity\":\"info\",\"time\":1795593980385,\"pid\":1,\"hostname\":\"paymentservice-59fb87999b-fc4km\",\"name\":\"paymentservice-charge\",\"message\":\"Transaction processed: visa ending 2246     Amount: JPY52128.679346759\"}\n[pod/paymentservice-59fb87999b-fc4km/server] {\"severity\":\"info\",\"time\":1795593998085,\"pid\":1,\"hostname\":\"paymentservice-59fb87999b-fc4km\",\"name\":\"paymentservice-server\",\"message\":\"PaymentService#Charge invoked with request {\\\"amount\\\":{\\\"currency_code\\\":\\\"USD\\\",\\\"units\\\":\\\"1094\\\",\\\"nanos\\\":680000000},\\\"credit_card\\\":{\\\"credit_card_number\\\":\\\"4062173693248181\\\",\\\"credit_card_cvv\\\":442,\\\"credit_card_expiration_year\\\":2094,\\\"credit_card_expiration_month\\\":9}}\"}\n[pod/paymentservice-59fb87999b-fc4km/server] {\"severity\":\"info\",\"time\":1795593998085,\"pid\":1,\"hostname\":\"paymentservice-59fb87999b-fc4km\",\"name\":\"paymentservice-charge\",\"message\":\"Transaction processed: visa ending 8181     Amount: USD1094.680000000\"}\n[pod/paymentservice-59fb87999b-fc4km/server] {\"severity\":\"info\",\"time\":1795594017957,\"pid\":1,\"hostname\":\"paymentservice-59fb87999b-fc4km\",\"name\":\"paymentservice-server\",\"message\":\"PaymentService#Charge invoked with request {\\\"amount\\\":{\\\"currency_code\\\":\\\"TRY\\\",\\\"units\\\":\\\"6794\\\",\\\"nanos\\\":868412227},\\\"credit_card\\\":{\\\"credit_card_number\\\":\\\"4695960197038802\\\",\\\"credit_card_cvv\\\":360,\\\"credit_card_expiration_year\\\":2047,\\\"credit_card_expiration_month\\\":2}}\"}\n[pod/paymentservice-59fb87999b-fc4km/server] {\"severity\":\"info\",\"time\":1795594017957,\"pid\":1,\"hostname\":\"paymentservice-59fb87999b-fc4km\",\"name\":\"paymentservice-charge\",\"message\":\"Transaction processed: visa ending 8802     Amount: TRY6794.868412227\"}\n[pod/paymentservice-59fb87999b-fc4km/server] {\"severity\":\"info\",\"time\":1795594019116,\"pid\":1,\"hostname\":\"paymentservice-59fb87999b-fc4km\",\"name\":\"paymentservice-server\",\"message\":\"PaymentService#Charge invoked with request {\\\"amount\\\":{\\\"currency_code\\\":\\\"USD\\\",\\\"units\\\":\\\"329\\\",\\\"nanos\\\":840000000},\\\"credit_card\\\":{\\\"credit_card_number\\\":\\\"4968118092434234\\\",\\\"credit_card_cvv\\\":220,\\\"credit_card_expiration_year\\\":2043,\\\"credit_card_expiration_month\\\":10}}\"}\n[pod/paymentservice-59fb87999b-fc4km/server] {\"severity\":\"info\",\"time\":1795594019116,\"pid\":1,\"hostname\":\"paymentservice-59fb87999b-fc4km\",\"name\":\"paymentservice-charge\",\"message\":\"Transaction processed: visa ending 4234     Amount: USD329.840000000\"}\n",
+  "previous logs app=paymentservice": "[error] Error from server (BadRequest): previous terminated container \"server\" in pod \"paymentservice-59fb87999b-fc4km\" not found",
+  "logs app=emailservice": "[pod/emailservice-77775cc968-47dm7/server] /usr/local/lib/python3.12/site-packages/google/rpc/__init__.py:18: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.\n[pod/emailservice-77775cc968-47dm7/server]   import pkg_resources\n[pod/emailservice-77775cc968-47dm7/server] {\"timestamp\": 1795593914.3944542, \"severity\": \"INFO\", \"name\": \"emailservice-server\", \"message\": \"starting the email service in dummy mode.\", \"taskName\": null}\n[pod/emailservice-77775cc968-47dm7/server] {\"timestamp\": 1795593914.3945832, \"severity\": \"INFO\", \"name\": \"emailservice-server\", \"message\": \"Profiler disabled.\", \"taskName\": null}\n[pod/emailservice-77775cc968-47dm7/server] {\"timestamp\": 1795593914.3946443, \"severity\": \"INFO\", \"name\": \"emailservice-server\", \"message\": \"Tracing disabled.\", \"taskName\": null}\n[pod/emailservice-77775cc968-47dm7/server] {\"timestamp\": 1795593914.3991215, \"severity\": \"INFO\", \"name\": \"emailservice-server\", \"message\": \"listening on port: 8080\", \"taskName\": null}\n[pod/emailservice-77775cc968-47dm7/server] {\"timestamp\": 1795593951.7368345, \"severity\": \"INFO\", \"name\": \"emailservice-server\", \"message\": \"A request to send order confirmation email to abigailanderson@example.org has been received.\", \"taskName\": null}\n[pod/emailservice-77775cc968-47dm7/server] {\"timestamp\": 1795593952.870552, \"severity\": \"INFO\", \"name\": \"emailservice-server\", \"message\": \"A request to send order confirmation email to amber67@example.net has been received.\", \"taskName\": null}\n[pod/emailservice-77775cc968-47dm7/server] {\"timestamp\": 1795593972.2202992, \"severity\": \"INFO\", \"name\": \"emailservice-server\", \"message\": \"A request to send order confirmation email to david99@example.org has been received.\", \"taskName\": null}\n[pod/emailservice-77775cc968-47dm7/server] {\"timestamp\": 1795593980.8083665, \"severity\": \"INFO\", \"name\": \"emailservice-server\", \"message\": \"A request to send order confirmation email to eboyd@example.org has been received.\", \"taskName\": null}\n[pod/emailservice-77775cc968-47dm7/server] {\"timestamp\": 1795593998.496194, \"severity\": \"INFO\", \"name\": \"emailservice-server\", \"message\": \"A request to send order confirmation email to chelsea51@example.net has been received.\", \"taskName\": null}\n[pod/emailservice-77775cc968-47dm7/server] {\"timestamp\": 1795594018.3523355, \"severity\": \"INFO\", \"name\": \"emailservice-server\", \"message\": \"A request to send order confirmation email to emilyjohnson@example.net has been received.\", \"taskName\": null}\n[pod/emailservice-77775cc968-47dm7/server] {\"timestamp\": 1795594019.6030025, \"severity\": \"INFO\", \"name\": \"emailservice-server\", \"message\": \"A request to send order confirmation email to travis60@example.org has been received.\", \"taskName\": null}\n",
+  "previous logs app=emailservice": "[error] Error from server (BadRequest): previous terminated container \"server\" in pod \"emailservice-77775cc968-47dm7\" not found",
+  "logs app=currencyservice": "[pod/currencyservice-6df4cccbb9-sg8ck/server] {\"severity\":\"info\",\"time\":1795594035684,\"pid\":1,\"hostname\":\"currencyservice-6df4cccbb9-sg8ck\",\"name\":\"currencyservice-server\",\"message\":\"Getting supported currencies...\"}\n[pod/currencyservice-6df4cccbb9-sg8ck/server] {\"severity\":\"info\",\"time\":1795594035755,\"pid\":1,\"hostname\":\"currencyservice-6df4cccbb9-sg8ck\",\"name\":\"currencyservice-server\",\"message\":\"Getting supported currencies...\"}\n[pod/currencyservice-6df4cccbb9-sg8ck/server] {\"severity\":\"info\",\"time\":1795594035908,\"pid\":1,\"hostname\":\"currencyservice-6df4cccbb9-sg8ck\",\"name\":\"currencyservice-server\",\"message\":\"conversion request successful\"}\n[pod/currencyservice-6df4cccbb9-sg8ck/server] {\"severity\":\"info\",\"time\":1795594036007,\"pid\":1,\"hostname\":\"currencyservice-6df4cccbb9-sg8ck\",\"name\":\"currencyservice-server\",\"message\":\"conversion request successful\"}\n[pod/currencyservice-6df4cccbb9-sg8ck/server] {\"severity\":\"info\",\"time\":1795594036008,\"pid\":1,\"hostname\":\"currencyservice-6df4cccbb9-sg8ck\",\"name\":\"currencyservice-server\",\"message\":\"conversion request successful\"}\n[pod/currencyservice-6df4cccbb9-sg8ck/server] {\"severity\":\"info\",\"time\":1795594036061,\"pid\":1,\"hostname\":\"currencyservice-6df4cccbb9-sg8ck\",\"name\":\"currencyservice-server\",\"message\":\"conversion request successful\"}\n[pod/currencyservice-6df4cccbb9-sg8ck/server] {\"severity\":\"info\",\"time\":1795594036145,\"pid\":1,\"hostname\":\"currencyservice-6df4cccbb9-sg8ck\",\"name\":\"currencyservice-server\",\"message\":\"Getting supported currencies...\"}\n[pod/currencyservice-6df4cccbb9-sg8ck/server] {\"severity\":\"info\",\"time\":1795594036198,\"pid\":1,\"hostname\":\"currencyservice-6df4cccbb9-sg8ck\",\"name\":\"currencyservice-server\",\"message\":\"conversion request successful\"}\n[pod/currencyservice-6df4cccbb9-sg8ck/server] {\"severity\":\"info\",\"time\":1795594036520,\"pid\":1,\"hostname\":\"currencyservice-6df4cccbb9-sg8ck\",\"name\":\"currencyservice-server\",\"message\":\"conversion request successful\"}\n[pod/currencyservice-6df4cccbb9-sg8ck/server] {\"severity\":\"info\",\"time\":1795594036522,\"pid\":1,\"hostname\":\"currencyservice-6df4cccbb9-sg8ck\",\"name\":\"currencyservice-server\",\"message\":\"conversion request successful\"}\n[pod/currencyservice-6df4cccbb9-sg8ck/server] {\"severity\":\"info\",\"time\":1795594036523,\"pid\":1,\"hostname\":\"currencyservice-6df4cccbb9-sg8ck\",\"name\":\"currencyservice-server\",\"message\":\"conversion request successful\"}\n[pod/currencyservice-6df4cccbb9-sg8ck/server] {\"severity\":\"info\",\"time\":1795594036523,\"pid\":1,\"hostname\":\"currencyservice-6df4cccbb9-sg8ck\",\"name\":\"currencyservice-server\",\"message\":\"conversion request successful\"}\n[pod/currencyservice-6df4cccbb9-sg8ck/server] {\"severity\":\"info\",\"time\":1795594036897,\"pid\":1,\"hostname\":\"currencyservice-6df4cccbb9-sg8ck\",\"name\":\"currencyservice-server\",\"message\":\"Getting supported currencies...\"}\n[pod/currencyservice-6df4cccbb9-sg8ck/server] {\"severity\":\"info\",\"time\":1795594036998,\"pid\":1,\"hostname\":\"currencyservice-6df4cccbb9-sg8ck\",\"name\":\"currencyservice-server\",\"message\":\"Getting supported currencies...\"}\n[pod/currencyservice-6df4cccbb9-sg8ck/server] {\"severity\":\"info\",\"time\":1795594037272,\"pid\":1,\"hostname\":\"currencyservice-6df4cccbb9-sg8ck\",\"name\":\"currencyservice-server\",\"message\":\"conversion request successful\"}\n[pod/currencyservice-6df4cccbb9-sg8ck/server] {\"severity\":\"info\",\"time\":1795594037274,\"pid\":1,\"hostname\":\"currencyservice-6df4cccbb9-sg8ck\",\"name\":\"currencyservice-server\",\"message\":\"conversion request successful\"}\n[pod/currencyservice-6df4cccbb9-sg8ck/server] {\"severity\":\"info\",\"time\":1795594037275,\"pid\":1,\"hostname\":\"currencyservice-6df4cccbb9-sg8ck\",\"name\":\"currencyservice-server\",\"message\":\"conversion request successful\"}\n[pod/currencyservice-6df4cccbb9-sg8ck/server] {\"severity\":\"info\",\"time\":1795594037276,\"pid\":1,\"hostname\":\"currencyservice-6df4cccbb9-sg8ck\",\"name\":\"currencyservice-server\",\"message\":\"conversion request successful\"}\n[pod/currencyservice-6df4cccbb9-sg8ck/server] {\"severity\":\"info\",\"time\":1795594037295,\"pid\":1,\"hostname\":\"currencyservice-6df4cccbb9-sg8ck\",\"name\":\"currencyservice-server\",\"message\":\"conversion request successful\"}\n[pod/currencyservice-6df4cccbb9-sg8ck/server] {\"severity\":\"info\",\"time\":1795594037505,\"pid\":1,\"hostname\":\"currencyservice-6df4cccbb9-sg8ck\",\"name\":\"currencyservice-server\",\"message\":\"Getting supported currencies...\"}\n[pod/currencyservice-6df4cccbb9-sg8ck/server] {\"severity\":\"info\",\"time\":1795594037787,\"pid\":1,\"hostname\":\"currencyservice-6df4cccbb9-sg8ck\",\"name\":\"currencyservice-server\",\"message\":\"conversion request successful\"}\n[pod/currencyservice-6df4cccbb9-sg8ck/server] {\"severity\":\"info\",\"time\":1795594038627,\"pid\":1,\"hostname\":\"currencyservice-6df4cccbb9-sg8ck\",\"name\":\"currencyservice-server\",\"message\":\"Getting supported currencies...\"}\n[pod/currencyservice-6df4cccbb9-sg8ck/server] {\"severity\":\"info\",\"time\":1795594038998,\"pid\":1,\"hostname\":\"currencyservice-6df4cccbb9-sg8ck\",\"name\":\"currencyservice-server\",\"message\":\"conversion request successful\"}\n[pod/currencyservice-6df4cccbb9-sg8ck/server] {\"severity\":\"info\",\"time\":1795594039409,\"pid\":1,\"hostname\":\"currencyservice-6df4cccbb9-sg8ck\",\"name\":\"currencyservice-server\",\"message\":\"Getting supported currencies...\"}\n[pod/currencyservice-6df4cccbb9-sg8ck/server] {\"severity\":\"info\",\"time\":1795594039478,\"pid\":1,\"hostname\":\"currencyservice-6df4cccbb9-sg8ck\",\"name\":\"currencyservice-server\",\"message\":\"Getting supported currencies...\"}\n",
+  "previous logs app=currencyservice": "[error] Error from server (BadRequest): previous terminated container \"server\" in pod \"currencyservice-6df4cccbb9-sg8ck\" not found",
+  "logs app=recommendationservice": "[pod/recommendationservice-6c88b5fb59-bpcbd/server] {\"timestamp\": 1795594027.7081313, \"severity\": \"INFO\", \"name\": \"recommendationservice-server\", \"message\": \"[Recv ListRecommendations] product_ids=['1YMWWN1N4O', '0PUK6V6EV0', 'LS4PSXUNUM', '2ZYFJ3GM2N', '9SIQT8TOJO']\", \"taskName\": null}\n[pod/recommendationservice-6c88b5fb59-bpcbd/server] {\"timestamp\": 1795594028.650559, \"severity\": \"INFO\", \"name\": \"recommendationservice-server\", \"message\": \"[Recv ListRecommendations] product_ids=['OLJCESPC7Z', '2ZYFJ3GM2N', '1YMWWN1N4O', '6E92ZMYYFZ', '9SIQT8TOJO']\", \"taskName\": null}\n[pod/recommendationservice-6c88b5fb59-bpcbd/server] {\"timestamp\": 1795594028.9429696, \"severity\": \"INFO\", \"name\": \"recommendationservice-server\", \"message\": \"[Recv ListRecommendations] product_ids=['LS4PSXUNUM', '6E92ZMYYFZ', '2ZYFJ3GM2N', '9SIQT8TOJO', 'L9ECAV7KIM']\", \"taskName\": null}\n[pod/recommendationservice-6c88b5fb59-bpcbd/server] {\"timestamp\": 1795594029.1481826, \"severity\": \"INFO\", \"name\": \"recommendationservice-server\", \"message\": \"[Recv ListRecommendations] product_ids=['LS4PSXUNUM', 'OLJCESPC7Z', '0PUK6V6EV0', '2ZYFJ3GM2N', 'L9ECAV7KIM']\", \"taskName\": null}\n[pod/recommendationservice-6c88b5fb59-bpcbd/server] {\"timestamp\": 1795594029.4160578, \"severity\": \"INFO\", \"name\": \"recommendationservice-server\", \"message\": \"[Recv ListRecommendations] product_ids=['LS4PSXUNUM', 'OLJCESPC7Z', '1YMWWN1N4O', '66VCHSJNUP', '6E92ZMYYFZ']\", \"taskName\": null}\n[pod/recommendationservice-6c88b5fb59-bpcbd/server] {\"timestamp\": 1795594029.9128854, \"severity\": \"INFO\", \"name\": \"recommendationservice-server\", \"message\": \"[Recv ListRecommendations] product_ids=['1YMWWN1N4O', '6E92ZMYYFZ', 'LS4PSXUNUM', 'L9ECAV7KIM', '2ZYFJ3GM2N']\", \"taskName\": null}\n[pod/recommendationservice-6c88b5fb59-bpcbd/server] {\"timestamp\": 1795594030.673331, \"severity\": \"INFO\", \"name\": \"recommendationservice-server\", \"message\": \"[Recv ListRecommendations] product_ids=['0PUK6V6EV0', 'L9ECAV7KIM', '66VCHSJNUP', 'OLJCESPC7Z', '2ZYFJ3GM2N']\", \"taskName\": null}\n[pod/recommendationservice-6c88b5fb59-bpcbd/server] {\"timestamp\": 1795594031.4306762, \"severity\": \"INFO\", \"name\": \"recommendationservice-server\", \"message\": \"[Recv ListRecommendations] product_ids=['1YMWWN1N4O', 'L9ECAV7KIM', 'LS4PSXUNUM', '2ZYFJ3GM2N', 'OLJCESPC7Z']\", \"taskName\": null}\n[pod/recommendationservice-6c88b5fb59-bpcbd/server] {\"timestamp\": 1795594031.4316487, \"severity\": \"INFO\", \"name\": \"recommendationservice-server\", \"message\": \"[Recv ListRecommendations] product_ids=['2ZYFJ3GM2N', '0PUK6V6EV0', '66VCHSJNUP', '6E92ZMYYFZ', 'L9ECAV7KIM']\", \"taskName\": null}\n[pod/recommendationservice-6c88b5fb59-bpcbd/server] {\"timestamp\": 1795594033.6686316, \"severity\": \"INFO\", \"name\": \"recommendationservice-server\", \"message\": \"[Recv ListRecommendations] product_ids=['6E92ZMYYFZ', '9SIQT8TOJO', 'L9ECAV7KIM', '1YMWWN1N4O', 'OLJCESPC7Z']\", \"taskName\": null}\n[pod/recommendationservice-6c88b5fb59-bpcbd/server] {\"timestamp\": 1795594033.8350854, \"severity\": \"INFO\", \"name\": \"recommendationservice-server\", \"message\": \"[Recv ListRecommendations] product_ids=['2ZYFJ3GM2N', 'L9ECAV7KIM', '6E92ZMYYFZ', '0PUK6V6EV0', 'LS4PSXUNUM']\", \"taskName\": null}\n[pod/recommendationservice-6c88b5fb59-bpcbd/server] {\"timestamp\": 1795594034.3084044, \"severity\": \"INFO\", \"name\": \"recommendationservice-server\", \"message\": \"[Recv ListRecommendations] product_ids=['6E92ZMYYFZ', 'OLJCESPC7Z', 'LS4PSXUNUM', '1YMWWN1N4O', '0PUK6V6EV0']\", \"taskName\": null}\n[pod/recommendationservice-6c88b5fb59-bpcbd/server] {\"timestamp\": 1795594034.5944538, \"severity\": \"INFO\", \"name\": \"recommendationservice-server\", \"message\": \"[Recv ListRecommendations] product_ids=['0PUK6V6EV0', '66VCHSJNUP', '2ZYFJ3GM2N', 'OLJCESPC7Z', 'LS4PSXUNUM']\", \"taskName\": null}\n[pod/recommendationservice-6c88b5fb59-bpcbd/server] {\"timestamp\": 1795594034.895499, \"severity\": \"INFO\", \"name\": \"recommendationservice-server\", \"message\": \"[Recv ListRecommendations] product_ids=['9SIQT8TOJO', 'OLJCESPC7Z', 'LS4PSXUNUM', '0PUK6V6EV0', '1YMWWN1N4O']\", \"taskName\": null}\n[pod/recommendationservice-6c88b5fb59-bpcbd/server] {\"timestamp\": 1795594035.0040743, \"severity\": \"INFO\", \"name\": \"recommendationservice-server\", \"message\": \"[Recv ListRecommendations] product_ids=['LS4PSXUNUM', '2ZYFJ3GM2N', '0PUK6V6EV0', '1YMWWN1N4O', 'L9ECAV7KIM']\", \"taskName\": null}\n[pod/recommendationservice-6c88b5fb59-bpcbd/server] {\"timestamp\": 1795594035.5344977, \"severity\": \"INFO\", \"name\": \"recommendationservice-server\", \"message\": \"[Recv ListRecommendations] product_ids=['66VCHSJNUP', '0PUK6V6EV0', '2ZYFJ3GM2N', '9SIQT8TOJO', 'OLJCESPC7Z']\", \"taskName\": null}\n[pod/recommendationservice-6c88b5fb59-bpcbd/server] {\"timestamp\": 1795594035.9110029, \"severity\": \"INFO\", \"name\": \"recommendationservice-server\", \"message\": \"[Recv ListRecommendations] product_ids=['L9ECAV7KIM', '1YMWWN1N4O', 'OLJCESPC7Z', '66VCHSJNUP', '2ZYFJ3GM2N']\", \"taskName\": null}\n[pod/recommendationservice-6c88b5fb59-bpcbd/server] {\"timestamp\": 1795594036.0049033, \"severity\": \"INFO\", \"name\": \"recommendationservice-server\", \"message\": \"[Recv ListRecommendations] product_ids=['L9ECAV7KIM', 'OLJCESPC7Z', '66VCHSJNUP', '0PUK6V6EV0', '2ZYFJ3GM2N']\", \"taskName\": null}\n[pod/recommendationservice-6c88b5fb59-bpcbd/server] {\"timestamp\": 1795594036.0593047, \"severity\": \"INFO\", \"name\": \"recommendationservice-server\", \"message\": \"[Recv ListRecommendations] product_ids=['OLJCESPC7Z', '66VCHSJNUP', '9SIQT8TOJO', '2ZYFJ3GM2N', 'L9ECAV7KIM']\", \"taskName\": null}\n[pod/recommendationservice-6c88b5fb59-bpcbd/server] {\"timestamp\": 1795594036.2001872, \"severity\": \"INFO\", \"name\": \"recommendationservice-server\", \"message\": \"[Recv ListRecommendations] product_ids=['6E92ZMYYFZ', '0PUK6V6EV0', 'L9ECAV7KIM', 'OLJCESPC7Z', 'LS4PSXUNUM']\", \"taskName\": null}\n[pod/recommendationservice-6c88b5fb59-bpcbd/server] {\"timestamp\": 1795594036.5173802, \"severity\": \"INFO\", \"name\": \"recommendationservice-server\", \"message\": \"[Recv ListRecommendations] product_ids=['1YMWWN1N4O', 'OLJCESPC7Z', '0PUK6V6EV0', '2ZYFJ3GM2N', 'L9ECAV7KIM']\", \"taskName\": null}\n[pod/recommendationservice-6c88b5fb59-bpcbd/server] {\"timestamp\": 1795594037.2693975, \"severity\": \"INFO\", \"name\": \"recommendationservice-server\", \"message\": \"[Recv ListRecommendations] product_ids=['2ZYFJ3GM2N', '6E92ZMYYFZ', '1YMWWN1N4O', 'L9ECAV7KIM', 'OLJCESPC7Z']\", \"taskName\": null}\n[pod/recommendationservice-6c88b5fb59-bpcbd/server] {\"timestamp\": 1795594037.2973185, \"severity\": \"INFO\", \"name\": \"recommendationservice-server\", \"message\": \"[Recv ListRecommendations] product_ids=['66VCHSJNUP', '0PUK6V6EV0', '9SIQT8TOJO', 'L9ECAV7KIM', 'LS4PSXUNUM']\", \"taskName\": null}\n[pod/recommendationservice-6c88b5fb59-bpcbd/server] {\"timestamp\": 1795594037.7891831, \"severity\": \"INFO\", \"name\": \"recommendationservice-server\", \"message\": \"[Recv ListRecommendations] product_ids=['OLJCESPC7Z', 'LS4PSXUNUM', 'L9ECAV7KIM', '66VCHSJNUP', '0PUK6V6EV0']\", \"taskName\": null}\n[pod/recommendationservice-6c88b5fb59-bpcbd/server] {\"timestamp\": 1795594039.0004077, \"severity\": \"INFO\", \"name\": \"recommendationservice-server\", \"message\": \"[Recv ListRecommendations] product_ids=['6E92ZMYYFZ', '0PUK6V6EV0', 'OLJCESPC7Z', '2ZYFJ3GM2N', 'LS4PSXUNUM']\", \"taskName\": null}\n",
+  "previous logs app=recommendationservice": "[error] Error from server (BadRequest): previous terminated container \"server\" in pod \"recommendationservice-6c88b5fb59-bpcbd\" not found"
+ },
+ "key_evidence_seen": {
+  "cartservice": true
+ },
+ "pods_not_ready_or_restarted": [],
+ "steps": [
+  {
+   "phase": "verify_healthy",
+   "ok": true,
+   "detail": "healthy",
+   "seconds": 0.32
+  },
+  {
+   "phase": "home_latency",
+   "ok": true,
+   "detail": "GET / ok=True median=0.08s of [0.08] (need >= 0s)",
+   "seconds": 0.0
+  },
+  {
+   "phase": "clean_slate",
+   "ok": true,
+   "detail": "background workloads applied; last-applied removed from deployments; last-applied removed from services",
+   "seconds": 33.69
+  },
+  {
+   "phase": "verify_fresh",
+   "ok": true,
+   "detail": "healthy",
+   "seconds": 0.24
+  },
+  {
+   "phase": "home_latency",
+   "ok": true,
+   "detail": "GET / ok=True median=0.08s of [0.08] (need >= 0s)",
+   "seconds": 0.0
+  },
+  {
+   "phase": "settle",
+   "ok": true,
+   "detail": "120s of healthy traffic before the fault",
+   "seconds": 120.0
+  },
+  {
+   "phase": "clear_events",
+   "ok": true,
+   "detail": "",
+   "seconds": 0.0
+  },
+  {
+   "phase": "prune_history",
+   "ok": true,
+   "detail": "7 old replicasets",
+   "seconds": 0.0
+  },
+  {
+   "phase": "inject",
+   "ok": true,
+   "detail": "-n boutique patch deployment productcatalogservice --type=strategic",
+   "seconds": 0.04
+  },
+  {
+   "phase": "inject",
+   "ok": true,
+   "detail": "-n boutique rollout status deployment/productcatalogservice --timeout=140s",
+   "seconds": 1.49
+  },
+  {
+   "phase": "inject",
+   "ok": true,
+   "detail": "-n boutique patch deployment emailservice --type=strategic",
+   "seconds": 0.04
+  },
+  {
+   "phase": "inject",
+   "ok": true,
+   "detail": "-n boutique rollout status deployment/emailservice --timeout=140s",
+   "seconds": 6.65
+  },
+  {
+   "phase": "inject",
+   "ok": true,
+   "detail": "-n boutique patch deployment paymentservice --type=strategic",
+   "seconds": 0.05
+  },
+  {
+   "phase": "inject",
+   "ok": true,
+   "detail": "-n boutique rollout status deployment/paymentservice --timeout=140s",
+   "seconds": 12.14
+  },
+  {
+   "phase": "inject",
+   "ok": true,
+   "detail": "-n infra-tools delete pod net-injector --ignore-not-found",
+   "seconds": 0.04
+  },
+  {
+   "phase": "inject",
+   "ok": true,
+   "detail": "apply -f /work/scenarios/netem/injector-boutique-v4-FL02.yaml",
+   "seconds": 0.19
+  },
+  {
+   "phase": "inject",
+   "ok": true,
+   "detail": "-n infra-tools wait --for=condition=Ready pod/net-injector --timeout=180s",
+   "seconds": 1.09
+  },
+  {
+   "phase": "confirm",
+   "ok": true,
+   "detail": "15/20 requests >= 110 ms since 2026-11-25T08:05:56Z; logs(app=net-injector) contain 'netem applied: 1': True",
+   "seconds": 6.29
+  },
+  {
+   "phase": "reset",
+   "ok": true,
+   "detail": "-n boutique patch deployment productcatalogservice --type=strategic",
+   "seconds": 0.04
+  },
+  {
+   "phase": "reset",
+   "ok": true,
+   "detail": "-n infra-tools delete pod net-injector --ignore-not-found",
+   "seconds": 1.17
+  },
+  {
+   "phase": "reset",
+   "ok": true,
+   "detail": "-n boutique set env deployment/productcatalogservice RELEASE_TAG-",
+   "seconds": 0.05
+  },
+  {
+   "phase": "reset",
+   "ok": true,
+   "detail": "-n boutique set env deployment/emailservice RELEASE_TAG-",
+   "seconds": 0.06
+  },
+  {
+   "phase": "reset",
+   "ok": true,
+   "detail": "-n boutique set env deployment/paymentservice RELEASE_TAG-",
+   "seconds": 0.06
+  },
+  {
+   "phase": "reset",
+   "ok": true,
+   "detail": "-n boutique set resources deployment/paymentservice --limits=cpu=200m",
+   "seconds": 0.04
+  },
+  {
+   "phase": "reset",
+   "ok": true,
+   "detail": "reset steps applied",
+   "seconds": 8.32
+  },
+  {
+   "phase": "verify_recovered",
+   "ok": true,
+   "detail": "healthy",
+   "seconds": 6.53
+  },
+  {
+   "phase": "home_latency",
+   "ok": true,
+   "detail": "GET / ok=True median=0.05s of [0.05] (need >= 0s)",
+   "seconds": 0.0
+  }
+ ]
+}

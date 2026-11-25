@@ -1,0 +1,146 @@
+{
+ "FL02-A": {
+  "tag": "v4-learn-S0",
+  "repeat": 3,
+  "cluster": "tiktok-k8s-lab",
+  "answer_file": "results/holmes_batch/v4-learn-S0/FL02-r3.json"
+ },
+ "FL02-B": {
+  "tag": "v4-learn-S0",
+  "repeat": 2,
+  "cluster": "sop-lab-3",
+  "answer_file": "results/holmes_batch/v4-learn-S0/FL02-r2.json"
+ },
+ "FL02-C": {
+  "tag": "v4-learn-S0",
+  "repeat": 1,
+  "cluster": "sop-lab-2",
+  "answer_file": "results/holmes_batch/v4-learn-S0/FL02-r1.json"
+ },
+ "FL03-A": {
+  "tag": "v4-learn-S0",
+  "repeat": 3,
+  "cluster": "sop-lab-2",
+  "answer_file": "results/holmes_batch/v4-learn-S0/FL03-r3.json"
+ },
+ "FL03-B": {
+  "tag": "v4-learn-S0",
+  "repeat": 1,
+  "cluster": "sop-lab-3",
+  "answer_file": "results/holmes_batch/v4-learn-S0/FL03-r1.json"
+ },
+ "FL03-C": {
+  "tag": "v4-learn-S0",
+  "repeat": 2,
+  "cluster": "tiktok-k8s-lab",
+  "answer_file": "results/holmes_batch/v4-learn-S0/FL03-r2.json"
+ },
+ "FL04-A": {
+  "tag": "v4-learn-S0",
+  "repeat": 3,
+  "cluster": "sop-lab-3",
+  "answer_file": "results/holmes_batch/v4-learn-S0/FL04-r3.json"
+ },
+ "FL04-B": {
+  "tag": "v4-learn-S0",
+  "repeat": 2,
+  "cluster": "sop-lab-2",
+  "answer_file": "results/holmes_batch/v4-learn-S0/FL04-r2.json"
+ },
+ "FL04-C": {
+  "tag": "v4-learn-S0",
+  "repeat": 1,
+  "cluster": "tiktok-k8s-lab",
+  "answer_file": "results/holmes_batch/v4-learn-S0/FL04-r1.json"
+ },
+ "FL05-A": {
+  "tag": "v4-learn-S0",
+  "repeat": 3,
+  "cluster": "tiktok-k8s-lab",
+  "answer_file": "results/holmes_batch/v4-learn-S0/FL05-r3.json"
+ },
+ "FL05-B": {
+  "tag": "v4-learn-S0",
+  "repeat": 2,
+  "cluster": "sop-lab-3",
+  "answer_file": "results/holmes_batch/v4-learn-S0/FL05-r2.json"
+ },
+ "FL05-C": {
+  "tag": "v4-learn-S0",
+  "repeat": 1,
+  "cluster": "sop-lab-2",
+  "answer_file": "results/holmes_batch/v4-learn-S0/FL05-r1.json"
+ },
+ "FL06-A": {
+  "tag": "v4-learn-S0",
+  "repeat": 3,
+  "cluster": "sop-lab-2",
+  "answer_file": "results/holmes_batch/v4-learn-S0/FL06-r3.json"
+ },
+ "FL06-B": {
+  "tag": "v4-learn-S0",
+  "repeat": 2,
+  "cluster": "tiktok-k8s-lab",
+  "answer_file": "results/holmes_batch/v4-learn-S0/FL06-r2.json"
+ },
+ "FL06-C": {
+  "tag": "v4-learn-S0",
+  "repeat": 1,
+  "cluster": "sop-lab-3",
+  "answer_file": "results/holmes_batch/v4-learn-S0/FL06-r1.json"
+ },
+ "FL07-A": {
+  "tag": "v4-learn-S0",
+  "repeat": 1,
+  "cluster": "tiktok-k8s-lab",
+  "answer_file": "results/holmes_batch/v4-learn-S0/FL07-r1.json"
+ },
+ "FL07-B": {
+  "tag": "v4-learn-S0",
+  "repeat": 2,
+  "cluster": "sop-lab-2",
+  "answer_file": "results/holmes_batch/v4-learn-S0/FL07-r2.json"
+ },
+ "FL07-C": {
+  "tag": "v4-learn-S0",
+  "repeat": 3,
+  "cluster": "sop-lab-3",
+  "answer_file": "results/holmes_batch/v4-learn-S0/FL07-r3.json"
+ },
+ "FL09-A": {
+  "tag": "v4-learn-S0",
+  "repeat": 3,
+  "cluster": "tiktok-k8s-lab",
+  "answer_file": "results/holmes_batch/v4-learn-S0/FL09-r3.json"
+ },
+ "FL09-B": {
+  "tag": "v4-learn-S0",
+  "repeat": 2,
+  "cluster": "sop-lab-3",
+  "answer_file": "results/holmes_batch/v4-learn-S0/FL09-r2.json"
+ },
+ "FL09-C": {
+  "tag": "v4-learn-S0",
+  "repeat": 1,
+  "cluster": "sop-lab-2",
+  "answer_file": "results/holmes_batch/v4-learn-S0/FL09-r1.json"
+ },
+ "FL10-A": {
+  "tag": "v4-learn-S0",
+  "repeat": 2,
+  "cluster": "tiktok-k8s-lab",
+  "answer_file": "results/holmes_batch/v4-learn-S0/FL10-r2.json"
+ },
+ "FL10-B": {
+  "tag": "v4-learn-S0",
+  "repeat": 1,
+  "cluster": "sop-lab-3",
+  "answer_file": "results/holmes_batch/v4-learn-S0/FL10-r1.json"
+ },
+ "FL10-C": {
+  "tag": "v4-learn-S0",
+  "repeat": 3,
+  "cluster": "sop-lab-2",
+  "answer_file": "results/holmes_batch/v4-learn-S0/FL10-r3.json"
+ }
+}
