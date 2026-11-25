@@ -1,0 +1,460 @@
+[
+  {
+    "run": "FL01-A",
+    "json_ok": true,
+    "causes": [
+      {
+        "cause": "FL01#1",
+        "location": "对",
+        "mechanism": "对",
+        "fate": "找到",
+        "basis": "root_causes 第 1 条：boutique/deployment/currencyservice，mechanism=cpu，指出 CPU limit 从 200m 改成 25m 导致 CFS 限流"
+      }
+    ],
+    "extra": [],
+    "extra_count": 0,
+    "pass": true,
+    "strict_pass": true,
+    "verdict": "通过",
+    "note": ""
+  },
+  {
+    "run": "FL01-B",
+    "json_ok": true,
+    "causes": [
+      {
+        "cause": "FL01#1",
+        "location": "对",
+        "mechanism": "对",
+        "fate": "找到",
+        "basis": "root_causes 第 1 条：boutique/Deployment/currencyservice，mechanism=cpu，指出 CPU limits 从 200m 改成 25m 导致 CFS 限流"
+      }
+    ],
+    "extra": [],
+    "extra_count": 0,
+    "pass": true,
+    "strict_pass": true,
+    "verdict": "通过",
+    "note": ""
+  },
+  {
+    "run": "FL01-C",
+    "json_ok": true,
+    "causes": [
+      {
+        "cause": "FL01#1",
+        "location": "对",
+        "mechanism": "对",
+        "fate": "找到",
+        "basis": "root_causes 第 1 条：boutique/deployment/currencyservice，mechanism=cpu，指出 CPU limit 从 200m 降到 25m 导致 CFS 限流"
+      }
+    ],
+    "extra": [],
+    "extra_count": 0,
+    "pass": true,
+    "strict_pass": true,
+    "verdict": "通过",
+    "note": ""
+  },
+  {
+    "run": "FL08-A",
+    "json_ok": true,
+    "causes": [
+      {
+        "cause": "FL08#1",
+        "location": "对",
+        "mechanism": "错",
+        "fate": "机制没定",
+        "basis": "root_causes 第 2 条：boutique/Deployment/cartservice（CPU limit 300m→30m），承认对症状有贡献（<1%），但 JSON 中 mechanism 写了 config 而非 cpu"
+      },
+      {
+        "cause": "FL08#2",
+        "location": "对",
+        "mechanism": "错",
+        "fate": "机制没定",
+        "basis": "root_causes 第 1 条：boutique/Deployment/recommendationservice，但 mechanism 写了 app（归因于每次新建到 productcatalog 的连接），本题 decidable=true 且正确机制为 network"
+      }
+    ],
+    "extra": [],
+    "extra_count": 0,
+    "pass": false,
+    "strict_pass": false,
+    "verdict": "部分",
+    "note": "FL08#1 的 cause 文案和正文实际上描述的是 CPU limit 300m→30m 和 CFS 限流，但严格按 JSON 的 mechanism 字段（config≠cpu）判为机制=错；FL08#1 与 FL08#2 均为位置对而机制错，因 fate 允许值中无“机制错”，暂映射为“机制没定”。"
+  },
+  {
+    "run": "FL08-B",
+    "json_ok": true,
+    "causes": [
+      {
+        "cause": "FL08#1",
+        "location": "错",
+        "mechanism": "-",
+        "fate": "漏掉",
+        "basis": "将 cartservice（cpu limit 300m→30m）写入 not_causes，称“实测延迟没有可测变化……与 cart 无关”"
+      },
+      {
+        "cause": "FL08#2",
+        "location": "对",
+        "mechanism": "对",
+        "fate": "找到",
+        "basis": "root_causes 第 1 条：boutique/pod recommendationservice-6c88b5fb59-wfbg5，mechanism=network，指出进入该 Pod 的网络流量被延迟约 300ms"
+      }
+    ],
+    "extra": [
+      {
+        "object": "shippingservice",
+        "kind": "无害改动",
+        "basis": "root_causes 第 2 条把 shippingservice rev 11 换 Pod 导致的 3 次瞬时超时写成了次要原因（其 log-shipper sidecar 在 not_causes 中已排除）"
+      }
+    ],
+    "extra_count": 1,
+    "pass": false,
+    "strict_pass": false,
+    "verdict": "部分",
+    "note": ""
+  },
+  {
+    "run": "FL08-C",
+    "json_ok": true,
+    "causes": [
+      {
+        "cause": "FL08#1",
+        "location": "错",
+        "mechanism": "-",
+        "fate": "漏掉",
+        "basis": "将 cartservice（cpu limit 300m→30m）写入 not_causes，称“对本次延迟无可测量贡献”"
+      },
+      {
+        "cause": "FL08#2",
+        "location": "错",
+        "mechanism": "-",
+        "fate": "判给别处",
+        "basis": "将 recommendationservice 的 ~600ms 延迟归因于 frontend 的 RECOMMENDATION_SERVICE_ADDR 改为 FQDN，并把 recommendationservice 探针超时视为“独立低频卡顿，无用户可见影响”"
+      }
+    ],
+    "extra": [
+      {
+        "object": "frontend",
+        "kind": "无害改动",
+        "basis": "root_causes 第 1 条把本次发布里无害的 RECOMMENDATION_SERVICE_ADDR FQDN 改动写成了主因"
+      }
+    ],
+    "extra_count": 1,
+    "pass": false,
+    "strict_pass": false,
+    "verdict": "错",
+    "note": ""
+  },
+  {
+    "run": "FV01-A",
+    "json_ok": true,
+    "causes": [
+      {
+        "cause": "FV01#1",
+        "location": "对",
+        "mechanism": "对",
+        "fate": "找到",
+        "basis": "root_causes 第 1 条：boutique/deployment/frontend，mechanism=cpu，指出 CPU requests/limits 降到 25m/25m 导致 CFS 限流"
+      }
+    ],
+    "extra": [],
+    "extra_count": 0,
+    "pass": true,
+    "strict_pass": true,
+    "verdict": "通过",
+    "note": ""
+  },
+  {
+    "run": "FV01-B",
+    "json_ok": true,
+    "causes": [
+      {
+        "cause": "FV01#1",
+        "location": "对",
+        "mechanism": "对",
+        "fate": "找到",
+        "basis": "root_causes 第 1 条：boutique/deployment/frontend，mechanism=cpu，指出 CPU limit/request 降到 25m/25m 导致 CFS 限流"
+      }
+    ],
+    "extra": [
+      {
+        "object": "productcatalogservice",
+        "kind": "无害改动",
+        "basis": "root_causes 第 2 条把 productcatalogservice 滚动更新期间约 20 秒连接空窗写成了次要原因（其 log-shipper sidecar 在 not_causes 中已排除）"
+      }
+    ],
+    "extra_count": 1,
+    "pass": false,
+    "strict_pass": false,
+    "verdict": "部分",
+    "note": ""
+  },
+  {
+    "run": "FV01-C",
+    "json_ok": true,
+    "causes": [
+      {
+        "cause": "FV01#1",
+        "location": "对",
+        "mechanism": "对",
+        "fate": "找到",
+        "basis": "root_causes 第 1 条：boutique/deployment/frontend，mechanism=cpu，指出 CPU limit/request 降到 25m/25m 导致 CFS 限流"
+      }
+    ],
+    "extra": [
+      {
+        "object": "productcatalogservice",
+        "kind": "无害改动",
+        "basis": "root_causes 第 2 条把 productcatalogservice rev31→32 滚动替换的可用性空窗写成了次要原因（括号顺带提及的 checkoutservice/emailservice 均在 not_causes 中，只计 1 个）"
+      }
+    ],
+    "extra_count": 1,
+    "pass": false,
+    "strict_pass": false,
+    "verdict": "部分",
+    "note": ""
+  },
+  {
+    "run": "FV02-A",
+    "json_ok": true,
+    "causes": [
+      {
+        "cause": "FV02#1",
+        "location": "对",
+        "mechanism": "对",
+        "fate": "找到",
+        "basis": "root_causes 第 3 条：boutique/Deployment/frontend，mechanism=cpu，指出 CPU request/limit 改成 25m/25m 导致 22–27% CFS 限流"
+      },
+      {
+        "cause": "FV02#2",
+        "location": "对",
+        "mechanism": "对",
+        "fate": "找到",
+        "basis": "root_causes 第 1 条：boutique/Deployment/currencyservice (Pod currencyservice-6df4cccbb9-zdkrz)，mechanism=network，指出每次 RPC 请求进入侧多出约 200ms"
+      }
+    ],
+    "extra": [
+      {
+        "object": "paymentservice",
+        "kind": "不存在的问题",
+        "basis": "root_causes 第 2 条把 checkout 中 GetQuote 到 Charge 之间的 ~200ms（实际是运费货币换算）误报为 paymentservice 入向网络延迟"
+      }
+    ],
+    "extra_count": 1,
+    "pass": false,
+    "strict_pass": false,
+    "verdict": "部分",
+    "note": ""
+  },
+  {
+    "run": "FV02-B",
+    "json_ok": true,
+    "causes": [
+      {
+        "cause": "FV02#1",
+        "location": "对",
+        "mechanism": "对",
+        "fate": "找到",
+        "basis": "root_causes 第 2 条：boutique/deployment/frontend（frontend-7fccc478db-9ct5n），mechanism=cpu，指出 CPU limits 砍到 25m 导致 15–19% 限流"
+      },
+      {
+        "cause": "FV02#2",
+        "location": "对",
+        "mechanism": "对",
+        "fate": "找到",
+        "basis": "root_causes 第 1 条：boutique/service/currencyservice（经 currencyservice-6df4cccbb9-jpzt6），mechanism=network，指出每次 RPC 路径多出 70–150ms"
+      }
+    ],
+    "extra": [],
+    "extra_count": 0,
+    "pass": true,
+    "strict_pass": true,
+    "verdict": "通过",
+    "note": ""
+  },
+  {
+    "run": "FV02-C",
+    "json_ok": true,
+    "causes": [
+      {
+        "cause": "FV02#1",
+        "location": "对",
+        "mechanism": "对",
+        "fate": "找到",
+        "basis": "root_causes 第 2 条：boutique/deployment/frontend（Pod frontend-6f98bb4d74-2ngcs），mechanism=cpu（confidence=low 按规则算对）"
+      },
+      {
+        "cause": "FV02#2",
+        "location": "对",
+        "mechanism": "对",
+        "fate": "找到",
+        "basis": "root_causes 第 1 条：boutique/currencyservice（Pod currencyservice-6df4cccbb9-fqtcb），mechanism=network，指出每个 gRPC RPC 稳定多出约 160–240ms"
+      }
+    ],
+    "extra": [],
+    "extra_count": 0,
+    "pass": true,
+    "strict_pass": true,
+    "verdict": "通过",
+    "note": ""
+  },
+  {
+    "run": "FV07-A",
+    "json_ok": true,
+    "causes": [
+      {
+        "cause": "FV07#1",
+        "location": "对",
+        "mechanism": "对",
+        "fate": "找到",
+        "basis": "root_causes 第 2 条：boutique/Deployment currencyservice（pod currencyservice-554869c55d-9bsvt），mechanism=cpu，指出 CPU limit/request 降到 25m/25m 导致 CFS 限流"
+      },
+      {
+        "cause": "FV07#2",
+        "location": "错",
+        "mechanism": "-",
+        "fate": "判给别处",
+        "basis": "将 ShipOrder→emailservice 收到之间的 ~217ms 延迟算给了 cartservice 新增的 log-shipper sidecar（误判为 EmptyCart 变慢），并把 emailservice 列入 not_causes"
+      }
+    ],
+    "extra": [
+      {
+        "object": "cartservice",
+        "kind": "sidecar 所在的服务",
+        "basis": "root_causes 第 1 条把带 log-shipper sidecar 的 cartservice 写成了主因"
+      }
+    ],
+    "extra_count": 1,
+    "pass": false,
+    "strict_pass": false,
+    "verdict": "部分",
+    "note": ""
+  },
+  {
+    "run": "FV07-B",
+    "json_ok": true,
+    "causes": [
+      {
+        "cause": "FV07#1",
+        "location": "对",
+        "mechanism": "对",
+        "fate": "找到",
+        "basis": "root_causes 第 2 条：boutique/Deployment/currencyservice，mechanism=cpu，指出 CPU limit/request 改为 25m/25m 导致 CFS 限流"
+      },
+      {
+        "cause": "FV07#2",
+        "location": "没定",
+        "mechanism": "对",
+        "fate": "位置没定",
+        "basis": "root_causes 第 1 条 object 写为“boutique/checkoutservice → boutique/Service/emailservice（SendOrderConfirmation 调用路径）”，mechanism=network；not_causes 中对 checkoutservice 亦保留“除 email 段外”，未在 root_causes 中明确指明是 emailservice 一端的 Pod 网络"
+      }
+    ],
+    "extra": [],
+    "extra_count": 0,
+    "pass": false,
+    "strict_pass": false,
+    "verdict": "部分",
+    "note": "FV07#2 较接近边界：unexplained 与 alternatives[0] 中有提到“emailservice 侧”“在 emailservice Pod 的 eth0 上抓包”“入向网络延迟”，但 root_causes 第 1 条 object 仍只写了“checkoutservice → emailservice 调用路径”且 not_causes 未完全排除 checkoutservice 的 email 段，严格按“只说 A 和 B 之间而不说是哪一端的，记没定”判为位置=没定。"
+  },
+  {
+    "run": "FV07-C",
+    "json_ok": true,
+    "causes": [
+      {
+        "cause": "FV07#1",
+        "location": "对",
+        "mechanism": "对",
+        "fate": "找到",
+        "basis": "root_causes 第 1 条：boutique/deployment/currencyservice（Pod currencyservice-554869c55d-r8skx），mechanism=cpu，指出 CPU limit 砍到 25m 导致 CFS 限流"
+      },
+      {
+        "cause": "FV07#2",
+        "location": "对",
+        "mechanism": "对",
+        "fate": "找到",
+        "basis": "root_causes 第 2 条：boutique/deployment/emailservice（Pod emailservice-558899d44c-6vw72），mechanism=network，明确指出延迟在“进入 emailservice”这一侧"
+      }
+    ],
+    "extra": [],
+    "extra_count": 0,
+    "pass": true,
+    "strict_pass": true,
+    "verdict": "通过",
+    "note": ""
+  },
+  {
+    "run": "FV08-A",
+    "json_ok": true,
+    "causes": [
+      {
+        "cause": "FV08#1",
+        "location": "对",
+        "mechanism": "对",
+        "fate": "找到",
+        "basis": "root_causes 第 1 条：boutique/deployment/cartservice，mechanism=cpu，指出 CPU limits 降到 30m 导致 CFS 限流"
+      }
+    ],
+    "extra": [
+      {
+        "object": "adservice",
+        "kind": "无害改动",
+        "basis": "root_causes 第 2 条把缩容到 0 副本的 adservice 写成了次要原因（虽写明对延迟贡献≈0，但写进 root_causes 即算多报）"
+      }
+    ],
+    "extra_count": 1,
+    "pass": false,
+    "strict_pass": false,
+    "verdict": "部分",
+    "note": ""
+  },
+  {
+    "run": "FV08-B",
+    "json_ok": true,
+    "causes": [
+      {
+        "cause": "FV08#1",
+        "location": "对",
+        "mechanism": "对",
+        "fate": "找到",
+        "basis": "root_causes 第 1 条：boutique/Deployment/cartservice，mechanism=cpu，指出 CPU limit 从 300m 砍到 30m 导致 CFS 限流"
+      }
+    ],
+    "extra": [
+      {
+        "object": "recommendationservice",
+        "kind": "sidecar 所在的服务",
+        "basis": "root_causes 第 2 条把带 log-shipper sidecar 的 recommendationservice 写成了次要原因（虽标 confidence=low，写进 root_causes 即算多报）"
+      },
+      {
+        "object": "adservice",
+        "kind": "无害改动",
+        "basis": "root_causes 第 3 条把缩容到 0 副本的 adservice 写成了次要原因"
+      }
+    ],
+    "extra_count": 2,
+    "pass": false,
+    "strict_pass": false,
+    "verdict": "部分",
+    "note": ""
+  },
+  {
+    "run": "FV08-C",
+    "json_ok": false,
+    "causes": [
+      {
+        "cause": "FV08#1",
+        "location": "对",
+        "mechanism": "对",
+        "fate": "找到",
+        "basis": "正文第二步及意图 JSON 均只将 cartservice（CPU limit 从 300m 砍到 30m 导致 CFS 限流）列为根因，mechanism=cpu"
+      }
+    ],
+    "extra": [],
+    "extra_count": 0,
+    "pass": true,
+    "strict_pass": true,
+    "verdict": "通过",
+    "note": "末尾 JSON 存在语法错误（root_causes[0] 的 evidence 数组后多了一个 '}'，紧接 ', \"explains\":'），无法正常解析，按正文判分（正文与意图 JSON 一致，均无多报）。"
+  }
+]
