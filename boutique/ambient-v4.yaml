@@ -1,0 +1,223 @@
+# Background workloads of the fourth bank (docs/V4.md). Applied by the lifecycle before every run of a bank-4 scenario
+# and removed before runs of older banks, so the first three banks keep the environment they were measured in.
+#
+# Why: on the third bank the namespace's logs held nothing but request lines, so any warning the agent filtered for was
+# the fault. These three behave like ordinary residents of a production namespace:
+#   promo-feed-sync  a batch job that syncs promotions from a partner feed. Its log has recurring, harmless warnings and
+#                    errors about external endpoints, and its CPU limit is small, so it is throttled whenever it runs:
+#                    a second throttled pod in the metrics table that has nothing to do with user requests.
+#   uptime-checker   synthetic monitoring: the health endpoint every 10 s and the home page every 60 s.
+#   catalog-crawler  a search-engine crawler: product pages and the odd probe for paths that do not exist (404).
+# None of them is called by the shop, none calls anything but the frontend, and none touches any shop object.
+# The Secret also holds log_shipper.py, the script of the log-shipper sidecar that each bank-4 scenario adds to one shop
+# service in its release batch (boutique/make_v4_scenarios.py). Nothing here starts it.
+# Image: the load generator's (Python 3.12 + requests), already on the node; nothing is pulled. The scripts are mounted
+# from a Secret, not a ConfigMap: the agent's account may read ConfigMaps but not Secrets, so it sees what the jobs log,
+# not code that shows their warnings are drawn at random.
+apiVersion: v1
+kind: Secret
+metadata:
+  name: ops-jobs
+  namespace: boutique
+type: Opaque
+stringData:
+  promo_feed_sync.py: |
+    import hashlib, json, os, random, time
+
+    def log(severity, message, **fields):
+        rec = {"timestamp": time.strftime("%Y-%m-%dT%H:%M:%S", time.gmtime()) + "Z", "severity": severity,
+               "logger": "promo-feed-sync", "message": message}
+        rec.update(fields)
+        print(json.dumps(rec), flush=True)
+
+    log("info", "starting promo feed sync", feed="https://partner-feed.promo.internal/v2/promotions", interval_s="15-25")
+    buf = os.urandom(1 << 20)
+    cycle = 0
+    while True:
+        cycle += 1
+        started = time.time()
+        log("info", "sync cycle started", cycle=cycle)
+        if random.random() < 0.22:
+            log("warning", "partner feed responded slowly, retrying", attempt=2, waited_ms=random.randint(2100, 4800))
+        promotions = random.randint(280, 640)
+        for _ in range(random.randint(55, 85)):   # checksum the downloaded pages (about 150 ms of CPU)
+            hashlib.sha256(buf).digest()
+        if random.random() < 0.12:
+            log("error", "failed to upload snapshot to object storage", target="s3://promo-snapshots/latest.json",
+                error="context deadline exceeded (Client.Timeout exceeded while awaiting headers)", attempt=1)
+            if random.random() < 0.8:
+                log("info", "snapshot upload succeeded on retry", attempt=2)
+        if random.random() < 0.06:
+            log("warning", "skipping promotion with unknown SKU", sku=f"PRM-{random.randint(10000, 99999)}")
+        log("info", "sync cycle finished", cycle=cycle, promotions=promotions, took_ms=int((time.time() - started) * 1000))
+        time.sleep(random.uniform(15, 25))
+  uptime_checker.py: |
+    import json, time
+    import requests
+
+    def log(severity, message, **fields):
+        rec = {"timestamp": time.strftime("%Y-%m-%dT%H:%M:%S", time.gmtime()) + "Z", "severity": severity,
+               "logger": "uptime-checker", "message": message}
+        rec.update(fields)
+        print(json.dumps(rec), flush=True)
+
+    session = requests.Session()
+    session.cookies.set("shop_session-id", "00000000-0000-4000-8000-00000000a001")   # one fixed session: the frontend logs it
+    n = 0
+    while True:
+        path = "/" if n % 6 == 0 else "/_healthz"
+        n += 1
+        started = time.time()
+        try:
+            status = session.get("http://frontend:80" + path, timeout=10).status_code
+        except requests.RequestException as exc:
+            status = type(exc).__name__
+        took = int((time.time() - started) * 1000)
+        log("info" if status == 200 else "warning", "synthetic check", target="frontend", path=path, status=status, took_ms=took)
+        time.sleep(10)
+  catalog_crawler.py: |
+    import json, random, time
+    import requests
+
+    PRODUCTS = ["OLJCESPC7Z", "66VCHSJNUP", "1YMWWN1N4O", "L9ECAV7KIM", "2ZYFJ3GM2N", "0PUK6V6EV0", "LS4PSXUNUM", "9SIQT8TOJO", "6E92ZMYYFZ"]
+    JUNK = ["/wp-login.php", "/.env", "/xmlrpc.php", "/sitemap.xml", "/admin/", "/api/v1/products", "/.git/config"]
+
+    def log(severity, message, **fields):
+        rec = {"timestamp": time.strftime("%Y-%m-%dT%H:%M:%S", time.gmtime()) + "Z", "severity": severity,
+               "logger": "catalog-crawler", "message": message}
+        rec.update(fields)
+        print(json.dumps(rec), flush=True)
+
+    session = requests.Session()
+    session.headers["User-Agent"] = "Mozilla/5.0 (compatible; ShopIndexBot/2.1)"
+    session.cookies.set("shop_session-id", "00000000-0000-4000-8000-00000000a002")
+    while True:
+        path = random.choice(JUNK) if random.random() < 0.2 else "/product/" + random.choice(PRODUCTS)
+        try:
+            r = session.get("http://frontend:80" + path, timeout=15)
+            log("info", "crawled", path=path, status=r.status_code, bytes=len(r.content))
+        except requests.RequestException as exc:
+            log("warning", "crawl failed", path=path, error=type(exc).__name__)
+        time.sleep(random.uniform(2.5, 5.5))
+  log_shipper.py: |
+    import hashlib, json, os, random, time
+
+    def log(severity, message, **fields):
+        rec = {"timestamp": time.strftime("%Y-%m-%dT%H:%M:%S", time.gmtime()) + "Z", "severity": severity,
+               "logger": "log-shipper", "message": message}
+        rec.update(fields)
+        print(json.dumps(rec), flush=True)
+
+    target = "log-collector.observability.svc.cluster.local:24224"
+    log("info", "log shipper started", target=target, flush_interval_s="4-8", pod=os.environ.get("HOSTNAME", ""))
+    buf = os.urandom(1 << 18)
+    batch = 0
+    while True:
+        time.sleep(random.uniform(4, 8))
+        batch += 1
+        started, cpu0 = time.time(), time.process_time()
+        budget = random.uniform(0.018, 0.028)   # compress and checksum the batch: about 20-25 ms of CPU, whatever the CPU
+        while time.process_time() - cpu0 < budget:
+            hashlib.sha256(buf).digest()
+        records = random.randint(140, 420)
+        took = int((time.time() - started) * 1000)
+        if random.random() < 0.04:
+            log("warning", "collector busy, batch kept for the next flush", batch=batch, records=records, took_ms=took)
+        else:
+            log("info", "batch flushed", batch=batch, records=records, bytes=records * random.randint(180, 260), took_ms=took)
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: promo-feed-sync
+  namespace: boutique
+  labels:
+    app: promo-feed-sync
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: promo-feed-sync
+  template:
+    metadata:
+      labels:
+        app: promo-feed-sync
+    spec:
+      terminationGracePeriodSeconds: 5
+      containers:
+      - name: sync
+        image: us-central1-docker.pkg.dev/google-samples/microservices-demo/loadgenerator:v0.10.3
+        imagePullPolicy: IfNotPresent
+        command: ["python3", "-u", "/opt/jobs/promo_feed_sync.py"]
+        resources:
+          requests: {cpu: 20m, memory: 32Mi}
+          limits: {cpu: 20m, memory: 96Mi}
+        volumeMounts:
+        - {name: jobs, mountPath: /opt/jobs}
+      volumes:
+      - name: jobs
+        secret: {secretName: ops-jobs, defaultMode: 0444}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: uptime-checker
+  namespace: boutique
+  labels:
+    app: uptime-checker
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: uptime-checker
+  template:
+    metadata:
+      labels:
+        app: uptime-checker
+    spec:
+      terminationGracePeriodSeconds: 5
+      containers:
+      - name: checker
+        image: us-central1-docker.pkg.dev/google-samples/microservices-demo/loadgenerator:v0.10.3
+        imagePullPolicy: IfNotPresent
+        command: ["python3", "-u", "/opt/jobs/uptime_checker.py"]
+        resources:
+          requests: {cpu: 10m, memory: 48Mi}
+          limits: {cpu: 100m, memory: 128Mi}
+        volumeMounts:
+        - {name: jobs, mountPath: /opt/jobs}
+      volumes:
+      - name: jobs
+        secret: {secretName: ops-jobs, defaultMode: 0444}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: catalog-crawler
+  namespace: boutique
+  labels:
+    app: catalog-crawler
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: catalog-crawler
+  template:
+    metadata:
+      labels:
+        app: catalog-crawler
+    spec:
+      terminationGracePeriodSeconds: 5
+      containers:
+      - name: crawler
+        image: us-central1-docker.pkg.dev/google-samples/microservices-demo/loadgenerator:v0.10.3
+        imagePullPolicy: IfNotPresent
+        command: ["python3", "-u", "/opt/jobs/catalog_crawler.py"]
+        resources:
+          requests: {cpu: 10m, memory: 48Mi}
+          limits: {cpu: 100m, memory: 128Mi}
+        volumeMounts:
+        - {name: jobs, mountPath: /opt/jobs}
+      volumes:
+      - name: jobs
+        secret: {secretName: ops-jobs, defaultMode: 0444}

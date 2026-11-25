@@ -67,6 +67,21 @@ FORMAT_V3 = """回答的最后必须是一个 ```json 代码块，格式如下�
 - root_causes 只写你判断为原因的对象，每个独立的原因写一条；被别的原因拖累、自身没有问题的对象不写进来。
 - mechanism 写你判断最可能的那一种，把握不大就把 confidence 写低。只有在你能拿到的数据下几种机制预测的现象完全一样时才写 unknown，并在 alternatives 里写出候选和能把它们分开的观察。
 - 先找到的原因，没有被证据推翻，就不要因为又找到了别的原因而删掉；在 explains 里写清各自解释了多少。"""
+# Fourth bank (docs/V4.md): on the third bank's pilot the v3 format's not_causes list took in a real but smaller cause
+# (frontend's CPU limit next to a network delay twice as "not the main cause"). Every cause with an effect now goes into
+# root_causes with a role; not_causes is for what was checked and has no effect at all.
+FORMAT_V4 = """回答的最后必须是一个 ```json 代码块，格式如下（没有内容的字段写空数组）：
+```json
+{"root_causes": [{"object": "<命名空间/类型/名字>", "role": "<primary | secondary>", "mechanism": "<network | cpu | config | app | unknown>", "cause": "<原因>", "confidence": "<high | medium | low>", "evidence": ["<支持这个结论的关键观察，带数字>"], "explains": "<它解释了哪些症状、大约占多少>", "alternatives": [{"mechanism": "<另一种排除不了的机制>", "why_not_ruled_out": "<为什么排除不了>", "would_separate": "<哪条观察能把两者分开>"}]}],
+ "not_causes": [{"object": "<查过、并确认对这次症状没有任何影响的对象或改动>", "why": "<依据>"}],
+ "unexplained": ["<还没有被任何根因解释的症状>"],
+ "explanation": "<一两句话>"}
+```
+要求：
+- 对这次症状有影响的原因都写进 root_causes，每个独立的原因写一条：影响最大的标 primary，影响小但确实存在的标 secondary，并在 explains 里写清各自大约占多少。不要因为一个原因的影响小，就把它放进 not_causes。
+- not_causes 只写查过、并确认对这次症状没有任何影响的对象或改动；被别的原因拖累、自身没有问题的对象也写在这里。
+- mechanism 写你判断最可能的那一种，把握不大就把 confidence 写低。只有在你能拿到的数据下几种机制预测的现象完全一样时才写 unknown，并在 alternatives 里写出候选和能把它们分开的观察。
+- 先找到的原因，没有被证据推翻，就不要因为又找到了别的原因而删掉。"""
 SYSTEM_V3 = REPO / "holmes" / "prompts" / "system-v3.md"
 # every HolmesGPT prompt component except the two replaced ones (and TodoWrite, which is off by default anyway)
 ENABLED_PROMPTS_V3 = ("files,time_skills,intro,ask_user,toolset_instructions,permission_errors,cluster_name,scoped_namespaces,"
@@ -74,24 +89,26 @@ ENABLED_PROMPTS_V3 = ("files,time_skills,intro,ask_user,toolset_instructions,per
 
 
 def prompt_version(sc: dict, requested: str = "auto") -> str:
-    """auto: the third bank gets the v3 prompt, everything else the prompt it was built with."""
+    """auto: the third bank gets the v3 prompt, the fourth the v4 prompt, everything else the prompt it was built with."""
     if requested != "auto":
         return requested
-    return "v3" if int(sc.get("bank") or 0) >= 3 else "v2"
+    bank = int(sc.get("bank") or 0)
+    return "v4" if bank >= 4 else "v3" if bank == 3 else "v2"
 
 
 def holmes_overrides(version: str) -> tuple[dict, list[str]]:
     """Environment and `holmes ask` arguments for a prompt version. v2: none (HolmesGPT's own system prompt)."""
-    if version != "v3":
+    if version not in ("v3", "v4"):
         return {}, []
     return {"ENABLED_PROMPTS": ENABLED_PROMPTS_V3}, ["--system-prompt-additions", SYSTEM_V3.read_text(encoding="utf-8")]
 
 
 def build_prompt(sc: dict, ns: str, frame: str, first_obs: dict | None, version: str = "v2") -> str:
-    if version == "v3":
+    if version in ("v3", "v4"):
         return (PROD_FRAME_V3 + f"命名空间 {ns} 里出了问题。用户反馈：{sc['symptom']}\n"
                 f"监控看到的用户侧情况：{remediate.describe(first_obs, checkout=True)}\n\n"
-                f"请排查根因。你只有只读权限；这次只需要定位原因，不需要提出或执行修复。\n\n{CHECK_STEPS}\n\n{FORMAT_V3}")
+                f"请排查根因。你只有只读权限；这次只需要定位原因，不需要提出或执行修复。\n\n{CHECK_STEPS}\n\n"
+                + (FORMAT_V4 if version == "v4" else FORMAT_V3))
     head = (PROD_FRAME if frame == "prod" else "") + f"命名空间 {ns} 里出了问题。用户反馈：{sc['symptom']}\n"
     if first_obs is None:   # the lab application: no user-side measurement
         return head + "请排查根因。"
@@ -111,8 +128,8 @@ def main() -> int:
     ap.add_argument("--metrics", action="store_true", help="also give the agent the boutique_pod_metrics tool (holmes/toolsets-metrics.yaml): "
                     "CPU usage, CPU throttling, memory and pod network counters from the kubelet")
     ap.add_argument("--allow-test", action="store_true", help="run a test scenario of the third bank (only once the method is fixed)")
-    ap.add_argument("--prompt", default="auto", choices=["auto", "v2", "v3"],
-                    help="auto (default) = v3 for the third bank (bank: 3), v2 otherwise; see docs/V3.md")
+    ap.add_argument("--prompt", default="auto", choices=["auto", "v2", "v3", "v4"],
+                    help="auto (default) = v4 for the fourth bank, v3 for the third, v2 otherwise; see docs/V3.md, docs/V4.md")
     ap.add_argument("--out", default=None, help="where to write HolmesGPT's JSON answer (default: results/holmes_pilot/<id>-<time>.json)")
     args = ap.parse_args()
     load_dotenv()
@@ -165,10 +182,19 @@ def main() -> int:
     started = time.monotonic()
     try:
         lc.confirm(sc, log)
-        first_obs = remediate.observe(lc, lc.confirm_since, min_seconds=45, max_seconds=120) if sc.get("app") == "boutique" else None
+        delay = float(sc.get("investigate_after_s") or 0)
+        if delay and sc.get("app") == "boutique":
+            # Fourth bank: the incident is investigated a while after it began, as an on-call engineer would get it; the
+            # user-side numbers are those of the last few minutes before the question.
+            print(f"waiting {delay:.0f}s before the investigation starts", flush=True)
+            time.sleep(delay)
+            recent = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(time.time() - 150))
+            first_obs = remediate.observe(lc, recent, min_seconds=15, max_seconds=90, span_from_since=True)
+        else:
+            first_obs = remediate.observe(lc, lc.confirm_since, min_seconds=45, max_seconds=120) if sc.get("app") == "boutique" else None
         version = prompt_version(sc, args.prompt)
-        if version == "v3" and first_obs is None:
-            sys.exit("the v3 prompt is for Online Boutique scenarios")
+        if version in ("v3", "v4") and first_obs is None:
+            sys.exit(f"the {version} prompt is for Online Boutique scenarios")
         prompt = build_prompt(sc, ns, args.frame, first_obs, version)
         extra_env, extra_args = holmes_overrides(version)
         env.update(extra_env)

@@ -42,6 +42,12 @@ def load_boutique_v3() -> list[dict]:
     return yaml.safe_load(path.read_text(encoding="utf-8"))["scenarios"] if path.exists() else []
 
 
+def load_boutique_v4() -> list[dict]:
+    """The fourth bank (boutique/make_v4_scenarios.py): FL = learning, FV = validation, FT = test. Told apart by `pool`."""
+    path = BOUTIQUE_FILE.with_name("boutique_v4.yaml")
+    return yaml.safe_load(path.read_text(encoding="utf-8"))["scenarios"] if path.exists() else []
+
+
 def load_noises(ids: list[str] | None = None, path: Path | None = None) -> list[dict]:
     """Ambient noise definitions (scenarios/noise.yaml), in the order asked for; unknown ids are an error."""
     items = {n["id"]: n for n in yaml.safe_load((path or REPO / "scenarios" / "noise.yaml").read_text(encoding="utf-8"))["noises"]}
@@ -63,7 +69,7 @@ def load_scenarios(path: Path = SCENARIO_FILE, split: str | None = None, ids: li
         from triage.generator import expand
         items += expand(max_per_template=max_per_template)
     if source == "all":
-        items += load_boutique() + load_boutique(generated=True) + load_boutique(hard=True) + load_boutique_v2() + load_boutique_v3()
+        items += load_boutique() + load_boutique(generated=True) + load_boutique(hard=True) + load_boutique_v2() + load_boutique_v3() + load_boutique_v4()
     if ids:
         source_ids = {s["id"] for s in items}
         missing = set(ids) - source_ids
@@ -372,6 +378,12 @@ BOUTIQUE_DEPLOYMENTS = ("adservice", "cartservice", "checkoutservice", "currency
                         "redis-cart", "shippingservice")
 
 
+# Fourth bank: background workloads that run in the namespace during every bank-4 run (docs/V4.md). Removed before runs
+# of the older banks, which were measured without them.
+AMBIENT_MANIFEST = REPO / "boutique" / "ambient-v4.yaml"
+AMBIENT_DEPLOYMENTS = ("promo-feed-sync", "uptime-checker", "catalog-crawler")
+
+
 class BoutiqueLifecycle(Lifecycle):
     """Online Boutique v0.10.3 in the namespace `boutique` (scripts/Setup-Boutique.ps1). Same phases as the lab app;
     only the definition of "healthy" and the wait after reset differ. Nothing is restarted on reset beyond what the
@@ -418,6 +430,13 @@ class BoutiqueLifecycle(Lifecycle):
         annotation of earlier `rollout restart`s and the managedFields entries that timestamp earlier patches."""
         started = time.monotonic()
         notes = []
+        bank = int((scenario or {}).get("bank") or 0)
+        if bank >= 4:
+            res = self._run(["apply", "-f", str(AMBIENT_MANIFEST)], 90)
+            notes.append("background workloads applied" if res.ok else f"background workloads: {res.stderr.strip()[:120]}")
+        elif self._run(["-n", self.ns, "get", "deployment", AMBIENT_DEPLOYMENTS[0]], 20).ok:
+            res = self._run(["delete", "-f", str(AMBIENT_MANIFEST), "--ignore-not-found", "--wait=true", "--timeout=90s"], 120)
+            notes.append("background workloads removed" if res.ok else f"background workloads: {res.stderr.strip()[:120]}")
         deps = (self._json(["-n", self.ns, "get", "deployments"]) or {}).get("items", [])
         for d in deps:
             ann = ((d.get("spec") or {}).get("template", {}).get("metadata", {}) or {}).get("annotations") or {}
@@ -438,7 +457,7 @@ class BoutiqueLifecycle(Lifecycle):
         res = self._run(["-n", self.ns, "delete", "pods", "--all", "--wait=true", "--timeout=120s"], 150)
         if not res.ok:
             notes.append(f"delete pods: {res.stderr.strip()[:120]}")
-        for name in BOUTIQUE_DEPLOYMENTS:
+        for name in BOUTIQUE_DEPLOYMENTS + (AMBIENT_DEPLOYMENTS if bank >= 4 else ()):
             self._run(["-n", self.ns, "rollout", "status", f"deployment/{name}", f"--timeout={self.rollout_timeout}s"],
                       self.rollout_timeout + 10)
         log.add("clean_slate", True, "; ".join(notes) or "fresh pods", time.monotonic() - started)
@@ -449,10 +468,13 @@ class BoutiqueLifecycle(Lifecycle):
         spec = obj.get("spec") or {}
         if obj.get("kind") == "Service":
             return {"selector": spec.get("selector"), "targetPorts": [p.get("targetPort", p.get("port")) for p in spec.get("ports", []) or []]}
-        c = ((spec.get("template") or {}).get("spec", {}).get("containers") or [{}])[0]
+        containers = (spec.get("template") or {}).get("spec", {}).get("containers") or [{}]
+        c = containers[0]
         return {"replicas": spec.get("replicas", 1), "env": {e.get("name"): e.get("value") or "" for e in c.get("env", []) or []},   # the API drops empty values
                 "cpu_limit": ((c.get("resources") or {}).get("limits") or {}).get("cpu"),
-                "cpu_request": ((c.get("resources") or {}).get("requests") or {}).get("cpu")}
+                "cpu_request": ((c.get("resources") or {}).get("requests") or {}).get("cpu"),
+                # fourth bank: containers beyond the service's own (the log-shipper sidecar of a release batch)
+                "extra_containers": [x.get("name") for x in containers[1:]]}
 
     def _baseline(self) -> dict:
         if not hasattr(self, "_baseline_cache"):

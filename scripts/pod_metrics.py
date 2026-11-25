@@ -34,8 +34,10 @@ LINE = re.compile(r"^(\w+)\{(.*)\}\s+(\S+)(?:\s+(\d+))?$")
 LABEL = re.compile(r'(\w+)="((?:[^"\\]|\\.)*)"')
 
 
-def parse(text: str, namespace: str) -> dict:
-    """{pod: {metric: (value, timestamp_ms)}} summed over the pod's containers (network series are per pod, eth0 only)."""
+def parse(text: str, namespace: str, by_container: bool = False) -> dict:
+    """{pod: {metric: (value, timestamp_ms)}} summed over the pod's containers (network series are per pod, eth0 only).
+    by_container: keys are "pod/container" and the network series are left out. Only the validation script asks for this
+    (to see which container of a pod is throttled); the agent's table stays per pod, like a pod-level dashboard."""
     out: dict = {}
     for line in text.splitlines():
         if not line.startswith("container_"):
@@ -48,7 +50,7 @@ def parse(text: str, namespace: str) -> dict:
             continue
         name = m.group(1)
         if name.startswith("container_network_"):
-            if labels.get("interface") != "eth0":
+            if by_container or labels.get("interface") != "eth0":
                 continue
         elif labels.get("container") in ("", "POD", None):   # the pod-level cgroup and the pause container
             continue
@@ -57,8 +59,9 @@ def parse(text: str, namespace: str) -> dict:
         except ValueError:
             continue
         ts = int(m.group(4)) if m.group(4) else 0
-        old = out.setdefault(labels["pod"], {}).get(name, (0.0, 0))
-        out[labels["pod"]][name] = (old[0] + value, max(old[1], ts))
+        key = f"{labels['pod']}/{labels['container']}" if by_container else labels["pod"]
+        old = out.setdefault(key, {}).get(name, (0.0, 0))
+        out[key][name] = (old[0] + value, max(old[1], ts))
     return out
 
 

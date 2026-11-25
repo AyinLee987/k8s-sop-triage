@@ -121,9 +121,16 @@ def apply_actions(lc, actions: list) -> list[dict]:
     return results
 
 
-def observe(lc, since: str, min_seconds: float = 75, max_seconds: float = 180, sleep=time.sleep) -> dict:
+# The fourth bank's synthetic monitor and crawler (boutique/ambient-v4.yaml) browse with these fixed sessions. They are not
+# users: their requests stay out of the user-side numbers (they still count for the confirm checks).
+AMBIENT_SESSIONS = {"00000000-0000-4000-8000-00000000a001", "00000000-0000-4000-8000-00000000a002"}
+
+
+def observe(lc, since: str, min_seconds: float = 75, max_seconds: float = 180, sleep=time.sleep, span_from_since: bool = False) -> dict:
     """What users see from `since` on: latency of the frontend's requests, HTTP 500s, checkout attempts and failures.
-    Waits at least min_seconds, and up to max_seconds for two checkout attempts (the load generator orders rarely)."""
+    Waits at least min_seconds, and up to max_seconds for two checkout attempts (the load generator orders rarely).
+    span_from_since: report the window as starting at `since` (a window that began before the call), not at the call."""
+    started = time.time()
     waited = 0.0
     while True:
         res = lc._run(["-n", NS, "logs", "-l", "app=frontend", f"--since-time={since}", "--tail=-1", "--max-log-requests=10"], 30)
@@ -134,7 +141,7 @@ def observe(lc, since: str, min_seconds: float = 75, max_seconds: float = 180, s
                 rec = json.loads(line)
             except json.JSONDecodeError:
                 continue
-            if isinstance(rec, dict) and rec.get("message") == "request complete":
+            if isinstance(rec, dict) and rec.get("message") == "request complete" and rec.get("session") not in AMBIENT_SESSIONS:
                 rows.append(rec)
         checkouts = [r for r in rows if r.get("http.req.path") == "/cart/checkout"]
         if waited >= min_seconds and (len(checkouts) >= 2 or waited >= max_seconds):
@@ -144,6 +151,9 @@ def observe(lc, since: str, min_seconds: float = 75, max_seconds: float = 180, s
     times = sorted(float(r.get("http.resp.took_ms") or 0) for r in rows)
     pick = lambda q: round(times[min(len(times) - 1, int(len(times) * q))]) if times else None  # noqa: E731
     slow = sum(t >= 180 for t in times)
+    if span_from_since:
+        import calendar
+        waited = round(time.time() - calendar.timegm(time.strptime(since, "%Y-%m-%dT%H:%M:%SZ"))) if since else round(time.time() - started)
     out = {"since": since, "seconds": waited, "requests": len(rows), "slow_180ms": slow,
            "share_slow": round(slow / len(rows), 3) if rows else None, "p50_ms": pick(0.5), "p90_ms": pick(0.9), "p99_ms": pick(0.99),
            "http_500": sum(int(r.get("http.resp.status") or 0) >= 500 for r in rows),
@@ -216,6 +226,13 @@ def restore_to(lc, target: dict) -> list[str]:
         got = lc._shape(live[(kind, name)])
         cmds = []
         if kind == "Deployment":
+            # an extra container (the fourth bank's log-shipper sidecar) goes first, with its volume of the same name:
+            # `set env` / `set resources` without -c would change it too
+            extra = [n for n in got.get("extra_containers", []) if n and n not in want.get("extra_containers", [])]
+            if extra:
+                cmds.append(["-n", NS, "patch", "deployment", name, "--type=strategic", "-p", json.dumps(
+                    {"spec": {"template": {"spec": {"containers": [{"name": n, "$patch": "delete"} for n in extra],
+                                                    "volumes": [{"name": n, "$patch": "delete"} for n in extra]}}}})])
             env = [f"{k}-" for k in got["env"] if k not in want["env"]] + [f"{k}={v}" for k, v in want["env"].items() if got["env"].get(k) != v]
             if env:
                 cmds.append(["-n", NS, "set", "env", f"deployment/{name}", *env])

@@ -29,28 +29,30 @@ from triage.runner import cfg, load_dotenv, path_cfg  # noqa: E402
 OUT = REPO / "results" / "validation"
 
 
-def cadvisor(k: KubectlRunner, ns: str) -> dict:
+def cadvisor(k: KubectlRunner, ns: str, by_container: bool = False) -> dict:
     """{pod: {metric: (value, ts)}} for every pod of `ns`, read through the API server's node proxy with the admin
-    account (the same numbers the agent's metrics tool shows; read-only)."""
+    account (the same numbers the agent's metrics tool shows; read-only). by_container: keyed "pod/container"."""
     from pod_metrics import parse
     nodes = k.run(["get", "nodes", "-o", "jsonpath={.items[*].metadata.name}"], timeout=20)
     out: dict = {}
     for node in nodes.stdout.split() if nodes.ok else []:
         res = k.run(["get", "--raw", f"/api/v1/nodes/{node}/proxy/metrics/cadvisor"], timeout=40)
         if res.ok:
-            out.update(parse(res.stdout, ns))
+            out.update(parse(res.stdout, ns, by_container=by_container))
     return out
 
 
 def throttling(first: dict, second: dict, wall: float) -> dict:
-    """Per deployment, between two readings: CPU used (millicores) and the share of CFS periods that were throttled."""
+    """Per deployment (or "deployment/container" for by_container readings), between two readings: CPU used (millicores)
+    and the share of CFS periods that were throttled."""
     rows = {}
     for pod, m in second.items():
         a = first.get(pod, {})
         d = lambda name: m.get(name, (0, 0))[0] - a.get(name, (0, 0))[0]  # noqa: E731
         secs = (m.get("container_cpu_usage_seconds_total", (0, 0))[1] - a.get("container_cpu_usage_seconds_total", (0, 0))[1]) / 1000 or wall
         periods, thr = d("container_cpu_cfs_periods_total"), d("container_cpu_cfs_throttled_periods_total")
-        dep = pod.rsplit("-", 2)[0]
+        pod_name, _, container = pod.partition("/")
+        dep = pod_name.rsplit("-", 2)[0] + (f"/{container}" if container else "")
         rows[dep] = {"cpu_m": round(d("container_cpu_usage_seconds_total") / secs * 1000, 1) if secs > 0 else None,
                      "throttled": f"{int(thr)}/{int(periods)}", "throttled_share": round(thr / periods, 3) if periods else 0.0}
     return dict(sorted(rows.items()))
@@ -118,9 +120,12 @@ def main() -> int:
             time.sleep(args.settle)
             if boutique and args.observe:
                 first = cadvisor(admin, lc.ns) if sc.get("bank") else {}
+                first_c = cadvisor(admin, lc.ns, by_container=True) if int(sc.get("bank") or 0) >= 4 else {}
                 time.sleep(args.observe)
                 if first:   # which containers were CPU-throttled while the fault was on (the third bank's harmless CPU changes must not be)
                     record["throttling"] = throttling(first, cadvisor(admin, lc.ns), args.observe)
+                if first_c:   # fourth bank: the sidecar must be the throttled container of its pod, not the service's own
+                    record["throttling_by_container"] = throttling(first_c, cadvisor(admin, lc.ns, by_container=True), args.observe)
                 t = sorted(lc.request_times({"selector": "app=frontend", "field": "http.resp.took_ms", "match": {"message": "request complete"}},
                                             since=getattr(lc, "confirm_since", None)))
                 pick = lambda q: round(t[min(len(t) - 1, int(len(t) * q))]) if t else None  # noqa: E731
@@ -146,7 +151,7 @@ def main() -> int:
             if boutique and "snapshot" in record:
                 import re
                 rows = record["snapshot"]["pods"].splitlines()[1:]
-                record["pods_not_ready_or_restarted"] = [r.split()[0] for r in rows if not re.search(r"\s1/1\s+Running\s+0\s", r)]
+                record["pods_not_ready_or_restarted"] = [r.split()[0] for r in rows if not re.search(r"\s(\d+)/\1\s+Running\s+0\s", r)]
             record["steps"] = log.entries
             path = OUT / f"{sid}.json"
             path.write_text(json.dumps(record, ensure_ascii=False, indent=1), encoding="utf-8")
@@ -155,6 +160,8 @@ def main() -> int:
                   + (f" latency={record['latency_since_confirm']}" if "latency_since_confirm" in record else "") + f" -> {path}")
             if record.get("throttling"):
                 print("    throttled: " + (", ".join(f"{d} {r['throttled']} ({r['cpu_m']}m)" for d, r in record["throttling"].items() if r["throttled_share"] > 0) or "none"))
+            if record.get("throttling_by_container"):
+                print("    by container: " + (", ".join(f"{d} {r['throttled']} ({r['cpu_m']}m)" for d, r in record["throttling_by_container"].items() if r["throttled_share"] > 0) or "none"))
         if status == 2:
             print("reset failed; stopping so the next scenario does not start from a broken environment")
             break

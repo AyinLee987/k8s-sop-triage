@@ -134,7 +134,7 @@ def main() -> int:
     ap.add_argument("--frame", default="prod", choices=["prod", "none"])
     ap.add_argument("--metrics", action="store_true", help="give the agent the boutique_pod_metrics tool")
     ap.add_argument("--tag", default=time.strftime("%Y%m%d-%H%M%S"))
-    ap.add_argument("--prompt", default="auto", choices=["auto", "v2", "v3"], help="see holmes_pilot.py --prompt")
+    ap.add_argument("--prompt", default="auto", choices=["auto", "v2", "v3", "v4"], help="see holmes_pilot.py --prompt")
     ap.add_argument("--finalize", action="store_true", help="required to run holdout scenarios and the third bank's test scenarios")
     args = ap.parse_args()
 
