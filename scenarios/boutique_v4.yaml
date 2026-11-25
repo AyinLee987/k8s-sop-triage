@@ -33,8 +33,8 @@ scenarios:
   - delayed
   - sidecar
   evidence_chain:
-  - currencyservice（cpu）：Deployment currencyservice 的 CPU 上限是 25m，上一版 ReplicaSet 里是 200m；指标表：currencyservice 的 CPU 用量顶在上限附近，被限流的周期占比明显大于 0；另外被限流的还有 adservice 的 Pod（来自同一次发布新加的 log-shipper 容器，这个 Pod 的用量远低于业务容器的上限）和后台的
-    promo-feed-sync；调用 currencyservice 次数多的页面慢得多，不调用它的请求不慢
+  - currencyservice（cpu）：Deployment currencyservice 的 CPU 上限是 25m，上一版 ReplicaSet 里是 200m；指标表：currencyservice 被限流的周期占比明显大于 0，平均 CPU 用量约为上限的四到五成（不一定顶到上限：请求成批到来时会把每 100ms 的配额用完）；另外被限流的还有 adservice 的 Pod（来自同一次发布新加的
+    log-shipper 容器，这个 Pod 的用量远低于业务容器的上限）和后台的 promo-feed-sync；调用 currencyservice 次数多的页面慢得多，不调用它的请求不慢
   - 排除 shippingservice 的改动（cpu limit 80m）：CPU 上限从 200m 调到 80m，仍远高于它的平均用量，最多有零星几次限流，解释不了用户看到的症状
   - 排除 adservice 的改动（RELEASE_TAG，并新增 sidecar 容器 log-shipper（CPU 上限 20m））：同一次发布给 adservice 加了日志转发的 sidecar 容器 log-shipper，CPU 上限只有 20m。它每隔几秒处理一批日志，每批要二十多毫秒 CPU，在 20m 的配额下要排一秒左右，所以一直被限流；指标表按 Pod 合计，adservice
     这个 Pod 的限流占比明显大于 0，上限一列是两个容器之和。但 CPU 配额按容器算：adservice 的业务容器上限 300m，Pod 的用量远低于这个数，业务容器没有被限流；sidecar 不在任何请求的路径上，它自己的日志里每批耗时一秒左右，被拉长的是它自己。所以 adservice 处理请求不慢，解释不了用户看到的症状
@@ -190,10 +190,10 @@ scenarios:
     key_evidence:
     - 25m
     decidable: true
-    decidable_why: 指标表里它的限流周期占比明显大于 0，Deployment 里能看到上限；被限流的服务和变慢的页面对得上。adservice 的 Pod 虽然也被限流，但用量远低于它业务容器的上限，被限流的是新加的 sidecar；真正被限流的业务容器，用量顶在它自己的上限上。
+    decidable_why: 指标表里它的限流周期占比明显大于 0，Deployment 里能看到上限；被限流的服务和变慢的页面对得上。adservice 的 Pod 虽然也被限流，但用量远低于它业务容器的上限，被限流的是新加的 sidecar；真正被限流的业务容器，平均用量占它自己上限的比例要高得多（实测四到五成），sidecar 所在 Pod 的用量只有 Pod 上限的几个百分点。
     evidence:
     - Deployment currencyservice 的 CPU 上限是 25m，上一版 ReplicaSet 里是 200m
-    - 指标表：currencyservice 的 CPU 用量顶在上限附近，被限流的周期占比明显大于 0；另外被限流的还有 adservice 的 Pod（来自同一次发布新加的 log-shipper 容器，这个 Pod 的用量远低于业务容器的上限）和后台的 promo-feed-sync
+    - 指标表：currencyservice 被限流的周期占比明显大于 0，平均 CPU 用量约为上限的四到五成（不一定顶到上限：请求成批到来时会把每 100ms 的配额用完）；另外被限流的还有 adservice 的 Pod（来自同一次发布新加的 log-shipper 容器，这个 Pod 的用量远低于业务容器的上限）和后台的 promo-feed-sync
     - 调用 currencyservice 次数多的页面慢得多，不调用它的请求不慢
     harmless_changes:
     - object: shippingservice
@@ -714,8 +714,8 @@ scenarios:
   - delayed
   - sidecar
   evidence_chain:
-  - frontend（cpu）：Deployment frontend 的 CPU 上限是 25m，上一版 ReplicaSet 里是 200m；指标表：frontend 的 CPU 用量顶在上限附近，被限流的周期占比明显大于 0；另外被限流的还有 cartservice 的 Pod（来自同一次发布新加的 log-shipper 容器，这个 Pod 的用量远低于业务容器的上限）和后台的 promo-feed-sync；所有页面都变慢，一个页面要调的后端越多、要渲染的越多就慢得越多；frontend
-    自己被限流，后端的业务容器不被限流（cartservice 的 Pod 被限流来自 sidecar）
+  - frontend（cpu）：Deployment frontend 的 CPU 上限是 25m，上一版 ReplicaSet 里是 200m；指标表：frontend 被限流的周期占比明显大于 0，平均 CPU 用量约为上限的四到五成（不一定顶到上限：请求成批到来时会把每 100ms 的配额用完）；另外被限流的还有 cartservice 的 Pod（来自同一次发布新加的 log-shipper
+    容器，这个 Pod 的用量远低于业务容器的上限）和后台的 promo-feed-sync；所有页面都变慢，一个页面要调的后端越多、要渲染的越多就慢得越多；frontend 自己被限流，后端的业务容器不被限流（cartservice 的 Pod 被限流来自 sidecar）
   - productcatalogservice（network）：推荐服务慢得最明显（每次要取整个商品列表），但前端直接查商品、加购（先查一次商品）也都多出同样量级的时间；调用 productcatalogservice 的请求每次多出 143 到 267 毫秒左右，不随并发增长；productcatalogservice 的 CPU、限流、重启都正常，没有报错；productcatalogservice
     的探针一直正常
   - 排除 recommendationservice 的改动（RELEASE_TAG）：只是滚动发布了同一个版本（RELEASE_TAG 变了），配置和资源都没变
@@ -930,10 +930,10 @@ scenarios:
     key_evidence:
     - 25m
     decidable: true
-    decidable_why: 指标表里它的限流周期占比明显大于 0，Deployment 里能看到上限；被限流的服务和变慢的页面对得上。cartservice 的 Pod 虽然也被限流，但用量远低于它业务容器的上限，被限流的是新加的 sidecar；真正被限流的业务容器，用量顶在它自己的上限上。
+    decidable_why: 指标表里它的限流周期占比明显大于 0，Deployment 里能看到上限；被限流的服务和变慢的页面对得上。cartservice 的 Pod 虽然也被限流，但用量远低于它业务容器的上限，被限流的是新加的 sidecar；真正被限流的业务容器，平均用量占它自己上限的比例要高得多（实测四到五成），sidecar 所在 Pod 的用量只有 Pod 上限的几个百分点。
     evidence:
     - Deployment frontend 的 CPU 上限是 25m，上一版 ReplicaSet 里是 200m
-    - 指标表：frontend 的 CPU 用量顶在上限附近，被限流的周期占比明显大于 0；另外被限流的还有 cartservice 的 Pod（来自同一次发布新加的 log-shipper 容器，这个 Pod 的用量远低于业务容器的上限）和后台的 promo-feed-sync
+    - 指标表：frontend 被限流的周期占比明显大于 0，平均 CPU 用量约为上限的四到五成（不一定顶到上限：请求成批到来时会把每 100ms 的配额用完）；另外被限流的还有 cartservice 的 Pod（来自同一次发布新加的 log-shipper 容器，这个 Pod 的用量远低于业务容器的上限）和后台的 promo-feed-sync
     - 所有页面都变慢，一个页面要调的后端越多、要渲染的越多就慢得越多；frontend 自己被限流，后端的业务容器不被限流（cartservice 的 Pod 被限流来自 sidecar）
     also:
     - object:
@@ -1669,8 +1669,8 @@ scenarios:
   - delayed
   - sidecar
   evidence_chain:
-  - cartservice（cpu）：Deployment cartservice 的 CPU 上限是 30m，上一版 ReplicaSet 里是 300m；指标表：cartservice 的 CPU 用量顶在上限附近，被限流的周期占比明显大于 0；另外被限流的还有 shippingservice 的 Pod（来自同一次发布新加的 log-shipper 容器，这个 Pod 的用量远低于业务容器的上限）和后台的
-    promo-feed-sync；调用 cartservice 次数多的页面慢得多，不调用它的请求不慢
+  - cartservice（cpu）：Deployment cartservice 的 CPU 上限是 30m，上一版 ReplicaSet 里是 300m；指标表：cartservice 被限流的周期占比明显大于 0，平均 CPU 用量约为上限的四到五成（不一定顶到上限：请求成批到来时会把每 100ms 的配额用完）；另外被限流的还有 shippingservice 的 Pod（来自同一次发布新加的
+    log-shipper 容器，这个 Pod 的用量远低于业务容器的上限）和后台的 promo-feed-sync；调用 cartservice 次数多的页面慢得多，不调用它的请求不慢
   - 'recommendationservice（network）：调用 recommendationservice 的请求每次多出 199 到 371 毫秒左右，不随并发增长；recommendationservice 的 CPU、限流、重启都正常，没有报错；recommendationservice 的就绪/存活探针间歇超时（timeout: health rpc did not complete
     within 1s），而它 CPU 空闲、不被限流'
   - 排除 frontend 的改动（RECOMMENDATION_SERVICE_ADDR=recommendationservice.boutique.svc.cluster.local:8080）：RECOMMENDATION_SERVICE_ADDR 从 recommendationservice:8080 改成了完整域名 recommendationservice.boutique.svc.cluster.local:8080，指向的是同一个
@@ -1855,10 +1855,10 @@ scenarios:
     key_evidence:
     - 30m
     decidable: true
-    decidable_why: 指标表里它的限流周期占比明显大于 0，Deployment 里能看到上限；被限流的服务和变慢的页面对得上。shippingservice 的 Pod 虽然也被限流，但用量远低于它业务容器的上限，被限流的是新加的 sidecar；真正被限流的业务容器，用量顶在它自己的上限上。
+    decidable_why: 指标表里它的限流周期占比明显大于 0，Deployment 里能看到上限；被限流的服务和变慢的页面对得上。shippingservice 的 Pod 虽然也被限流，但用量远低于它业务容器的上限，被限流的是新加的 sidecar；真正被限流的业务容器，平均用量占它自己上限的比例要高得多（实测四到五成），sidecar 所在 Pod 的用量只有 Pod 上限的几个百分点。
     evidence:
     - Deployment cartservice 的 CPU 上限是 30m，上一版 ReplicaSet 里是 300m
-    - 指标表：cartservice 的 CPU 用量顶在上限附近，被限流的周期占比明显大于 0；另外被限流的还有 shippingservice 的 Pod（来自同一次发布新加的 log-shipper 容器，这个 Pod 的用量远低于业务容器的上限）和后台的 promo-feed-sync
+    - 指标表：cartservice 被限流的周期占比明显大于 0，平均 CPU 用量约为上限的四到五成（不一定顶到上限：请求成批到来时会把每 100ms 的配额用完）；另外被限流的还有 shippingservice 的 Pod（来自同一次发布新加的 log-shipper 容器，这个 Pod 的用量远低于业务容器的上限）和后台的 promo-feed-sync
     - 调用 cartservice 次数多的页面慢得多，不调用它的请求不慢
     also:
     - object:
@@ -2352,8 +2352,8 @@ scenarios:
   - delayed
   - sidecar
   evidence_chain:
-  - frontend（cpu）：Deployment frontend 的 CPU 上限是 25m，上一版 ReplicaSet 里是 200m；指标表：frontend 的 CPU 用量顶在上限附近，被限流的周期占比明显大于 0；另外被限流的还有 productcatalogservice 的 Pod（来自同一次发布新加的 log-shipper 容器，这个 Pod 的用量远低于业务容器的上限）和后台的
-    promo-feed-sync；所有页面都变慢，一个页面要调的后端越多、要渲染的越多就慢得越多；frontend 自己被限流，后端的业务容器不被限流（productcatalogservice 的 Pod 被限流来自 sidecar）
+  - frontend（cpu）：Deployment frontend 的 CPU 上限是 25m，上一版 ReplicaSet 里是 200m；指标表：frontend 被限流的周期占比明显大于 0，平均 CPU 用量约为上限的四到五成（不一定顶到上限：请求成批到来时会把每 100ms 的配额用完）；另外被限流的还有 productcatalogservice 的 Pod（来自同一次发布新加的
+    log-shipper 容器，这个 Pod 的用量远低于业务容器的上限）和后台的 promo-feed-sync；所有页面都变慢，一个页面要调的后端越多、要渲染的越多就慢得越多；frontend 自己被限流，后端的业务容器不被限流（productcatalogservice 的 Pod 被限流来自 sidecar）
   - 排除 checkoutservice 的改动（cpu limit 120m）：CPU 上限从 200m 调到 120m，仍远高于它的平均用量，最多有零星几次限流，解释不了用户看到的症状
   - 排除 emailservice 的改动（RELEASE_TAG）：只是滚动发布了同一个版本（RELEASE_TAG 变了），配置和资源都没变
   - 排除 productcatalogservice 的改动（RELEASE_TAG，并新增 sidecar 容器 log-shipper（CPU 上限 20m））：同一次发布给 productcatalogservice 加了日志转发的 sidecar 容器 log-shipper，CPU 上限只有 20m。它每隔几秒处理一批日志，每批要二十多毫秒 CPU，在 20m 的配额下要排一秒左右，所以一直被限流；指标表按
@@ -2534,10 +2534,10 @@ scenarios:
     key_evidence:
     - 25m
     decidable: true
-    decidable_why: 指标表里它的限流周期占比明显大于 0，Deployment 里能看到上限；被限流的服务和变慢的页面对得上。productcatalogservice 的 Pod 虽然也被限流，但用量远低于它业务容器的上限，被限流的是新加的 sidecar；真正被限流的业务容器，用量顶在它自己的上限上。
+    decidable_why: 指标表里它的限流周期占比明显大于 0，Deployment 里能看到上限；被限流的服务和变慢的页面对得上。productcatalogservice 的 Pod 虽然也被限流，但用量远低于它业务容器的上限，被限流的是新加的 sidecar；真正被限流的业务容器，平均用量占它自己上限的比例要高得多（实测四到五成），sidecar 所在 Pod 的用量只有 Pod 上限的几个百分点。
     evidence:
     - Deployment frontend 的 CPU 上限是 25m，上一版 ReplicaSet 里是 200m
-    - 指标表：frontend 的 CPU 用量顶在上限附近，被限流的周期占比明显大于 0；另外被限流的还有 productcatalogservice 的 Pod（来自同一次发布新加的 log-shipper 容器，这个 Pod 的用量远低于业务容器的上限）和后台的 promo-feed-sync
+    - 指标表：frontend 被限流的周期占比明显大于 0，平均 CPU 用量约为上限的四到五成（不一定顶到上限：请求成批到来时会把每 100ms 的配额用完）；另外被限流的还有 productcatalogservice 的 Pod（来自同一次发布新加的 log-shipper 容器，这个 Pod 的用量远低于业务容器的上限）和后台的 promo-feed-sync
     - 所有页面都变慢，一个页面要调的后端越多、要渲染的越多就慢得越多；frontend 自己被限流，后端的业务容器不被限流（productcatalogservice 的 Pod 被限流来自 sidecar）
     harmless_changes:
     - object: checkoutservice
@@ -2600,8 +2600,8 @@ scenarios:
   - delayed
   - sidecar
   evidence_chain:
-  - frontend（cpu）：Deployment frontend 的 CPU 上限是 25m，上一版 ReplicaSet 里是 200m；指标表：frontend 的 CPU 用量顶在上限附近，被限流的周期占比明显大于 0；另外被限流的还有 productcatalogservice 的 Pod（来自同一次发布新加的 log-shipper 容器，这个 Pod 的用量远低于业务容器的上限）和后台的
-    promo-feed-sync；所有页面都变慢，一个页面要调的后端越多、要渲染的越多就慢得越多；frontend 自己被限流，后端的业务容器不被限流（productcatalogservice 的 Pod 被限流来自 sidecar）
+  - frontend（cpu）：Deployment frontend 的 CPU 上限是 25m，上一版 ReplicaSet 里是 200m；指标表：frontend 被限流的周期占比明显大于 0，平均 CPU 用量约为上限的四到五成（不一定顶到上限：请求成批到来时会把每 100ms 的配额用完）；另外被限流的还有 productcatalogservice 的 Pod（来自同一次发布新加的
+    log-shipper 容器，这个 Pod 的用量远低于业务容器的上限）和后台的 promo-feed-sync；所有页面都变慢，一个页面要调的后端越多、要渲染的越多就慢得越多；frontend 自己被限流，后端的业务容器不被限流（productcatalogservice 的 Pod 被限流来自 sidecar）
   - currencyservice（network）：调用 currencyservice 的请求每次多出 129 到 241 毫秒左右，不随并发增长；currencyservice 的 CPU、限流、重启都正常，没有报错；currencyservice 的探针一直正常
   - 排除 checkoutservice 的改动（cpu limit 120m）：CPU 上限从 200m 调到 120m，仍远高于它的平均用量，最多有零星几次限流，解释不了用户看到的症状
   - 排除 emailservice 的改动（RELEASE_TAG）：只是滚动发布了同一个版本（RELEASE_TAG 变了），配置和资源都没变
@@ -2816,10 +2816,10 @@ scenarios:
     key_evidence:
     - 25m
     decidable: true
-    decidable_why: 指标表里它的限流周期占比明显大于 0，Deployment 里能看到上限；被限流的服务和变慢的页面对得上。productcatalogservice 的 Pod 虽然也被限流，但用量远低于它业务容器的上限，被限流的是新加的 sidecar；真正被限流的业务容器，用量顶在它自己的上限上。
+    decidable_why: 指标表里它的限流周期占比明显大于 0，Deployment 里能看到上限；被限流的服务和变慢的页面对得上。productcatalogservice 的 Pod 虽然也被限流，但用量远低于它业务容器的上限，被限流的是新加的 sidecar；真正被限流的业务容器，平均用量占它自己上限的比例要高得多（实测四到五成），sidecar 所在 Pod 的用量只有 Pod 上限的几个百分点。
     evidence:
     - Deployment frontend 的 CPU 上限是 25m，上一版 ReplicaSet 里是 200m
-    - 指标表：frontend 的 CPU 用量顶在上限附近，被限流的周期占比明显大于 0；另外被限流的还有 productcatalogservice 的 Pod（来自同一次发布新加的 log-shipper 容器，这个 Pod 的用量远低于业务容器的上限）和后台的 promo-feed-sync
+    - 指标表：frontend 被限流的周期占比明显大于 0，平均 CPU 用量约为上限的四到五成（不一定顶到上限：请求成批到来时会把每 100ms 的配额用完）；另外被限流的还有 productcatalogservice 的 Pod（来自同一次发布新加的 log-shipper 容器，这个 Pod 的用量远低于业务容器的上限）和后台的 promo-feed-sync
     - 所有页面都变慢，一个页面要调的后端越多、要渲染的越多就慢得越多；frontend 自己被限流，后端的业务容器不被限流（productcatalogservice 的 Pod 被限流来自 sidecar）
     also:
     - object:
@@ -3752,8 +3752,8 @@ scenarios:
   - delayed
   - sidecar
   evidence_chain:
-  - currencyservice（cpu）：Deployment currencyservice 的 CPU 上限是 25m，上一版 ReplicaSet 里是 200m；指标表：currencyservice 的 CPU 用量顶在上限附近，被限流的周期占比明显大于 0；另外被限流的还有 cartservice 的 Pod（来自同一次发布新加的 log-shipper 容器，这个 Pod 的用量远低于业务容器的上限）和后台的
-    promo-feed-sync；调用 currencyservice 次数多的页面慢得多，不调用它的请求不慢
+  - currencyservice（cpu）：Deployment currencyservice 的 CPU 上限是 25m，上一版 ReplicaSet 里是 200m；指标表：currencyservice 被限流的周期占比明显大于 0，平均 CPU 用量约为上限的四到五成（不一定顶到上限：请求成批到来时会把每 100ms 的配额用完）；另外被限流的还有 cartservice 的 Pod（来自同一次发布新加的
+    log-shipper 容器，这个 Pod 的用量远低于业务容器的上限）和后台的 promo-feed-sync；调用 currencyservice 次数多的页面慢得多，不调用它的请求不慢
   - emailservice（network）：checkoutservice 的日志里，从上一步到 emailservice 收到请求（emailservice 自己日志的时间）隔了一段，emailservice 自己处理只要几毫秒；调用 emailservice 的请求每次多出 143 到 267 毫秒左右，不随并发增长；emailservice 的 CPU、限流、重启都正常，没有报错；emailservice
     的探针一直正常
   - 排除 checkoutservice 的改动（RELEASE_TAG）：只是滚动发布了同一个版本（RELEASE_TAG 变了），配置和资源都没变
@@ -3977,10 +3977,10 @@ scenarios:
     key_evidence:
     - 25m
     decidable: true
-    decidable_why: 指标表里它的限流周期占比明显大于 0，Deployment 里能看到上限；被限流的服务和变慢的页面对得上。cartservice 的 Pod 虽然也被限流，但用量远低于它业务容器的上限，被限流的是新加的 sidecar；真正被限流的业务容器，用量顶在它自己的上限上。
+    decidable_why: 指标表里它的限流周期占比明显大于 0，Deployment 里能看到上限；被限流的服务和变慢的页面对得上。cartservice 的 Pod 虽然也被限流，但用量远低于它业务容器的上限，被限流的是新加的 sidecar；真正被限流的业务容器，平均用量占它自己上限的比例要高得多（实测四到五成），sidecar 所在 Pod 的用量只有 Pod 上限的几个百分点。
     evidence:
     - Deployment currencyservice 的 CPU 上限是 25m，上一版 ReplicaSet 里是 200m
-    - 指标表：currencyservice 的 CPU 用量顶在上限附近，被限流的周期占比明显大于 0；另外被限流的还有 cartservice 的 Pod（来自同一次发布新加的 log-shipper 容器，这个 Pod 的用量远低于业务容器的上限）和后台的 promo-feed-sync
+    - 指标表：currencyservice 被限流的周期占比明显大于 0，平均 CPU 用量约为上限的四到五成（不一定顶到上限：请求成批到来时会把每 100ms 的配额用完）；另外被限流的还有 cartservice 的 Pod（来自同一次发布新加的 log-shipper 容器，这个 Pod 的用量远低于业务容器的上限）和后台的 promo-feed-sync
     - 调用 currencyservice 次数多的页面慢得多，不调用它的请求不慢
     also:
     - object:
@@ -4061,8 +4061,8 @@ scenarios:
   - delayed
   - sidecar
   evidence_chain:
-  - cartservice（cpu）：Deployment cartservice 的 CPU 上限是 30m，上一版 ReplicaSet 里是 300m；指标表：cartservice 的 CPU 用量顶在上限附近，被限流的周期占比明显大于 0；另外被限流的还有 recommendationservice 的 Pod（来自同一次发布新加的 log-shipper 容器，这个 Pod 的用量远低于业务容器的上限）和后台的
-    promo-feed-sync；调用 cartservice 次数多的页面慢得多，不调用它的请求不慢
+  - cartservice（cpu）：Deployment cartservice 的 CPU 上限是 30m，上一版 ReplicaSet 里是 300m；指标表：cartservice 被限流的周期占比明显大于 0，平均 CPU 用量约为上限的四到五成（不一定顶到上限：请求成批到来时会把每 100ms 的配额用完）；另外被限流的还有 recommendationservice 的 Pod（来自同一次发布新加的
+    log-shipper 容器，这个 Pod 的用量远低于业务容器的上限）和后台的 promo-feed-sync；调用 cartservice 次数多的页面慢得多，不调用它的请求不慢
   - 排除 paymentservice 的改动（cpu limit 80m）：CPU 上限从 200m 调到 80m，仍远高于它的平均用量，最多有零星几次限流，解释不了用户看到的症状
   - 排除 adservice 的改动（replicas 0）：它的失败被调用方吞掉了，用户报告的症状不是它引起的
   - 排除 recommendationservice 的改动（RELEASE_TAG，并新增 sidecar 容器 log-shipper（CPU 上限 20m））：同一次发布给 recommendationservice 加了日志转发的 sidecar 容器 log-shipper，CPU 上限只有 20m。它每隔几秒处理一批日志，每批要二十多毫秒 CPU，在 20m 的配额下要排一秒左右，所以一直被限流；指标表按
@@ -4232,10 +4232,10 @@ scenarios:
     key_evidence:
     - 30m
     decidable: true
-    decidable_why: 指标表里它的限流周期占比明显大于 0，Deployment 里能看到上限；被限流的服务和变慢的页面对得上。recommendationservice 的 Pod 虽然也被限流，但用量远低于它业务容器的上限，被限流的是新加的 sidecar；真正被限流的业务容器，用量顶在它自己的上限上。
+    decidable_why: 指标表里它的限流周期占比明显大于 0，Deployment 里能看到上限；被限流的服务和变慢的页面对得上。recommendationservice 的 Pod 虽然也被限流，但用量远低于它业务容器的上限，被限流的是新加的 sidecar；真正被限流的业务容器，平均用量占它自己上限的比例要高得多（实测四到五成），sidecar 所在 Pod 的用量只有 Pod 上限的几个百分点。
     evidence:
     - Deployment cartservice 的 CPU 上限是 30m，上一版 ReplicaSet 里是 300m
-    - 指标表：cartservice 的 CPU 用量顶在上限附近，被限流的周期占比明显大于 0；另外被限流的还有 recommendationservice 的 Pod（来自同一次发布新加的 log-shipper 容器，这个 Pod 的用量远低于业务容器的上限）和后台的 promo-feed-sync
+    - 指标表：cartservice 被限流的周期占比明显大于 0，平均 CPU 用量约为上限的四到五成（不一定顶到上限：请求成批到来时会把每 100ms 的配额用完）；另外被限流的还有 recommendationservice 的 Pod（来自同一次发布新加的 log-shipper 容器，这个 Pod 的用量远低于业务容器的上限）和后台的 promo-feed-sync
     - 调用 cartservice 次数多的页面慢得多，不调用它的请求不慢
     harmless_changes:
     - object: paymentservice
@@ -5244,8 +5244,8 @@ scenarios:
   - delayed
   - sidecar
   evidence_chain:
-  - cartservice（cpu）：Deployment cartservice 的 CPU 上限是 30m，上一版 ReplicaSet 里是 300m；指标表：cartservice 的 CPU 用量顶在上限附近，被限流的周期占比明显大于 0；另外被限流的还有 productcatalogservice 的 Pod（来自同一次发布新加的 log-shipper 容器，这个 Pod 的用量远低于业务容器的上限）和后台的
-    promo-feed-sync；调用 cartservice 次数多的页面慢得多，不调用它的请求不慢
+  - cartservice（cpu）：Deployment cartservice 的 CPU 上限是 30m，上一版 ReplicaSet 里是 300m；指标表：cartservice 被限流的周期占比明显大于 0，平均 CPU 用量约为上限的四到五成（不一定顶到上限：请求成批到来时会把每 100ms 的配额用完）；另外被限流的还有 productcatalogservice 的 Pod（来自同一次发布新加的
+    log-shipper 容器，这个 Pod 的用量远低于业务容器的上限）和后台的 promo-feed-sync；调用 cartservice 次数多的页面慢得多，不调用它的请求不慢
   - 排除 frontend 的改动（CURRENCY_SERVICE_ADDR=currencyservice.boutique.svc.cluster.local:7000）：CURRENCY_SERVICE_ADDR 从 currencyservice:7000 改成了完整域名 currencyservice.boutique.svc.cluster.local:7000，指向的是同一个 Service，调用正常
   - 排除 shippingservice 的改动（cpu limit 80m）：CPU 上限从 200m 调到 80m，仍远高于它的平均用量，最多有零星几次限流，解释不了用户看到的症状
   - 排除 productcatalogservice 的改动（RELEASE_TAG，并新增 sidecar 容器 log-shipper（CPU 上限 20m））：同一次发布给 productcatalogservice 加了日志转发的 sidecar 容器 log-shipper，CPU 上限只有 20m。它每隔几秒处理一批日志，每批要二十多毫秒 CPU，在 20m 的配额下要排一秒左右，所以一直被限流；指标表按
@@ -5427,10 +5427,10 @@ scenarios:
     key_evidence:
     - 30m
     decidable: true
-    decidable_why: 指标表里它的限流周期占比明显大于 0，Deployment 里能看到上限；被限流的服务和变慢的页面对得上。productcatalogservice 的 Pod 虽然也被限流，但用量远低于它业务容器的上限，被限流的是新加的 sidecar；真正被限流的业务容器，用量顶在它自己的上限上。
+    decidable_why: 指标表里它的限流周期占比明显大于 0，Deployment 里能看到上限；被限流的服务和变慢的页面对得上。productcatalogservice 的 Pod 虽然也被限流，但用量远低于它业务容器的上限，被限流的是新加的 sidecar；真正被限流的业务容器，平均用量占它自己上限的比例要高得多（实测四到五成），sidecar 所在 Pod 的用量只有 Pod 上限的几个百分点。
     evidence:
     - Deployment cartservice 的 CPU 上限是 30m，上一版 ReplicaSet 里是 300m
-    - 指标表：cartservice 的 CPU 用量顶在上限附近，被限流的周期占比明显大于 0；另外被限流的还有 productcatalogservice 的 Pod（来自同一次发布新加的 log-shipper 容器，这个 Pod 的用量远低于业务容器的上限）和后台的 promo-feed-sync
+    - 指标表：cartservice 被限流的周期占比明显大于 0，平均 CPU 用量约为上限的四到五成（不一定顶到上限：请求成批到来时会把每 100ms 的配额用完）；另外被限流的还有 productcatalogservice 的 Pod（来自同一次发布新加的 log-shipper 容器，这个 Pod 的用量远低于业务容器的上限）和后台的 promo-feed-sync
     - 调用 cartservice 次数多的页面慢得多，不调用它的请求不慢
     harmless_changes:
     - object: frontend
@@ -5494,8 +5494,8 @@ scenarios:
   - delayed
   - sidecar
   evidence_chain:
-  - frontend（cpu）：Deployment frontend 的 CPU 上限是 25m，上一版 ReplicaSet 里是 200m；指标表：frontend 的 CPU 用量顶在上限附近，被限流的周期占比明显大于 0；另外被限流的还有 cartservice 的 Pod（来自同一次发布新加的 log-shipper 容器，这个 Pod 的用量远低于业务容器的上限）和后台的 promo-feed-sync；所有页面都变慢，一个页面要调的后端越多、要渲染的越多就慢得越多；frontend
-    自己被限流，后端的业务容器不被限流（cartservice 的 Pod 被限流来自 sidecar）
+  - frontend（cpu）：Deployment frontend 的 CPU 上限是 25m，上一版 ReplicaSet 里是 200m；指标表：frontend 被限流的周期占比明显大于 0，平均 CPU 用量约为上限的四到五成（不一定顶到上限：请求成批到来时会把每 100ms 的配额用完）；另外被限流的还有 cartservice 的 Pod（来自同一次发布新加的 log-shipper
+    容器，这个 Pod 的用量远低于业务容器的上限）和后台的 promo-feed-sync；所有页面都变慢，一个页面要调的后端越多、要渲染的越多就慢得越多；frontend 自己被限流，后端的业务容器不被限流（cartservice 的 Pod 被限流来自 sidecar）
   - 排除 currencyservice 的改动（RELEASE_TAG）：只是滚动发布了同一个版本（RELEASE_TAG 变了），配置和资源都没变
   - 排除 emailservice 的改动（cpu limit 120m）：CPU 上限从 200m 调到 120m，仍远高于它的平均用量，最多有零星几次限流，解释不了用户看到的症状
   - 排除 cartservice 的改动（RELEASE_TAG，并新增 sidecar 容器 log-shipper（CPU 上限 20m））：同一次发布给 cartservice 加了日志转发的 sidecar 容器 log-shipper，CPU 上限只有 20m。它每隔几秒处理一批日志，每批要二十多毫秒 CPU，在 20m 的配额下要排一秒左右，所以一直被限流；指标表按 Pod 合计，cartservice
@@ -5675,10 +5675,10 @@ scenarios:
     key_evidence:
     - 25m
     decidable: true
-    decidable_why: 指标表里它的限流周期占比明显大于 0，Deployment 里能看到上限；被限流的服务和变慢的页面对得上。cartservice 的 Pod 虽然也被限流，但用量远低于它业务容器的上限，被限流的是新加的 sidecar；真正被限流的业务容器，用量顶在它自己的上限上。
+    decidable_why: 指标表里它的限流周期占比明显大于 0，Deployment 里能看到上限；被限流的服务和变慢的页面对得上。cartservice 的 Pod 虽然也被限流，但用量远低于它业务容器的上限，被限流的是新加的 sidecar；真正被限流的业务容器，平均用量占它自己上限的比例要高得多（实测四到五成），sidecar 所在 Pod 的用量只有 Pod 上限的几个百分点。
     evidence:
     - Deployment frontend 的 CPU 上限是 25m，上一版 ReplicaSet 里是 200m
-    - 指标表：frontend 的 CPU 用量顶在上限附近，被限流的周期占比明显大于 0；另外被限流的还有 cartservice 的 Pod（来自同一次发布新加的 log-shipper 容器，这个 Pod 的用量远低于业务容器的上限）和后台的 promo-feed-sync
+    - 指标表：frontend 被限流的周期占比明显大于 0，平均 CPU 用量约为上限的四到五成（不一定顶到上限：请求成批到来时会把每 100ms 的配额用完）；另外被限流的还有 cartservice 的 Pod（来自同一次发布新加的 log-shipper 容器，这个 Pod 的用量远低于业务容器的上限）和后台的 promo-feed-sync
     - 所有页面都变慢，一个页面要调的后端越多、要渲染的越多就慢得越多；frontend 自己被限流，后端的业务容器不被限流（cartservice 的 Pod 被限流来自 sidecar）
     harmless_changes:
     - object: currencyservice
@@ -6689,8 +6689,8 @@ scenarios:
   - delayed
   - sidecar
   evidence_chain:
-  - frontend（cpu）：Deployment frontend 的 CPU 上限是 25m，上一版 ReplicaSet 里是 200m；指标表：frontend 的 CPU 用量顶在上限附近，被限流的周期占比明显大于 0；另外被限流的还有 cartservice 的 Pod（来自同一次发布新加的 log-shipper 容器，这个 Pod 的用量远低于业务容器的上限）和后台的 promo-feed-sync；所有页面都变慢，一个页面要调的后端越多、要渲染的越多就慢得越多；frontend
-    自己被限流，后端的业务容器不被限流（cartservice 的 Pod 被限流来自 sidecar）
+  - frontend（cpu）：Deployment frontend 的 CPU 上限是 25m，上一版 ReplicaSet 里是 200m；指标表：frontend 被限流的周期占比明显大于 0，平均 CPU 用量约为上限的四到五成（不一定顶到上限：请求成批到来时会把每 100ms 的配额用完）；另外被限流的还有 cartservice 的 Pod（来自同一次发布新加的 log-shipper
+    容器，这个 Pod 的用量远低于业务容器的上限）和后台的 promo-feed-sync；所有页面都变慢，一个页面要调的后端越多、要渲染的越多就慢得越多；frontend 自己被限流，后端的业务容器不被限流（cartservice 的 Pod 被限流来自 sidecar）
   - 'recommendationservice（network）：调用 recommendationservice 的请求每次多出 199 到 371 毫秒左右，不随并发增长；recommendationservice 的 CPU、限流、重启都正常，没有报错；recommendationservice 的就绪/存活探针间歇超时（timeout: health rpc did not complete
     within 1s），而它 CPU 空闲、不被限流'
   - 排除 currencyservice 的改动（RELEASE_TAG）：只是滚动发布了同一个版本（RELEASE_TAG 变了），配置和资源都没变
@@ -6905,10 +6905,10 @@ scenarios:
     key_evidence:
     - 25m
     decidable: true
-    decidable_why: 指标表里它的限流周期占比明显大于 0，Deployment 里能看到上限；被限流的服务和变慢的页面对得上。cartservice 的 Pod 虽然也被限流，但用量远低于它业务容器的上限，被限流的是新加的 sidecar；真正被限流的业务容器，用量顶在它自己的上限上。
+    decidable_why: 指标表里它的限流周期占比明显大于 0，Deployment 里能看到上限；被限流的服务和变慢的页面对得上。cartservice 的 Pod 虽然也被限流，但用量远低于它业务容器的上限，被限流的是新加的 sidecar；真正被限流的业务容器，平均用量占它自己上限的比例要高得多（实测四到五成），sidecar 所在 Pod 的用量只有 Pod 上限的几个百分点。
     evidence:
     - Deployment frontend 的 CPU 上限是 25m，上一版 ReplicaSet 里是 200m
-    - 指标表：frontend 的 CPU 用量顶在上限附近，被限流的周期占比明显大于 0；另外被限流的还有 cartservice 的 Pod（来自同一次发布新加的 log-shipper 容器，这个 Pod 的用量远低于业务容器的上限）和后台的 promo-feed-sync
+    - 指标表：frontend 被限流的周期占比明显大于 0，平均 CPU 用量约为上限的四到五成（不一定顶到上限：请求成批到来时会把每 100ms 的配额用完）；另外被限流的还有 cartservice 的 Pod（来自同一次发布新加的 log-shipper 容器，这个 Pod 的用量远低于业务容器的上限）和后台的 promo-feed-sync
     - 所有页面都变慢，一个页面要调的后端越多、要渲染的越多就慢得越多；frontend 自己被限流，后端的业务容器不被限流（cartservice 的 Pod 被限流来自 sidecar）
     also:
     - object:
@@ -6990,8 +6990,8 @@ scenarios:
   - delayed
   - sidecar
   evidence_chain:
-  - currencyservice（cpu）：Deployment currencyservice 的 CPU 上限是 25m，上一版 ReplicaSet 里是 200m；指标表：currencyservice 的 CPU 用量顶在上限附近，被限流的周期占比明显大于 0；另外被限流的还有 cartservice 的 Pod（来自同一次发布新加的 log-shipper 容器，这个 Pod 的用量远低于业务容器的上限）和后台的
-    promo-feed-sync；调用 currencyservice 次数多的页面慢得多，不调用它的请求不慢
+  - currencyservice（cpu）：Deployment currencyservice 的 CPU 上限是 25m，上一版 ReplicaSet 里是 200m；指标表：currencyservice 被限流的周期占比明显大于 0，平均 CPU 用量约为上限的四到五成（不一定顶到上限：请求成批到来时会把每 100ms 的配额用完）；另外被限流的还有 cartservice 的 Pod（来自同一次发布新加的
+    log-shipper 容器，这个 Pod 的用量远低于业务容器的上限）和后台的 promo-feed-sync；调用 currencyservice 次数多的页面慢得多，不调用它的请求不慢
   - productcatalogservice（network）：推荐服务慢得最明显（每次要取整个商品列表），但前端直接查商品、加购（先查一次商品）也都多出同样量级的时间；调用 productcatalogservice 的请求每次多出 129 到 241 毫秒左右，不随并发增长；productcatalogservice 的 CPU、限流、重启都正常，没有报错；productcatalogservice
     的探针一直正常
   - 排除 recommendationservice 的改动（RELEASE_TAG）：只是滚动发布了同一个版本（RELEASE_TAG 变了），配置和资源都没变
@@ -7206,10 +7206,10 @@ scenarios:
     key_evidence:
     - 25m
     decidable: true
-    decidable_why: 指标表里它的限流周期占比明显大于 0，Deployment 里能看到上限；被限流的服务和变慢的页面对得上。cartservice 的 Pod 虽然也被限流，但用量远低于它业务容器的上限，被限流的是新加的 sidecar；真正被限流的业务容器，用量顶在它自己的上限上。
+    decidable_why: 指标表里它的限流周期占比明显大于 0，Deployment 里能看到上限；被限流的服务和变慢的页面对得上。cartservice 的 Pod 虽然也被限流，但用量远低于它业务容器的上限，被限流的是新加的 sidecar；真正被限流的业务容器，平均用量占它自己上限的比例要高得多（实测四到五成），sidecar 所在 Pod 的用量只有 Pod 上限的几个百分点。
     evidence:
     - Deployment currencyservice 的 CPU 上限是 25m，上一版 ReplicaSet 里是 200m
-    - 指标表：currencyservice 的 CPU 用量顶在上限附近，被限流的周期占比明显大于 0；另外被限流的还有 cartservice 的 Pod（来自同一次发布新加的 log-shipper 容器，这个 Pod 的用量远低于业务容器的上限）和后台的 promo-feed-sync
+    - 指标表：currencyservice 被限流的周期占比明显大于 0，平均 CPU 用量约为上限的四到五成（不一定顶到上限：请求成批到来时会把每 100ms 的配额用完）；另外被限流的还有 cartservice 的 Pod（来自同一次发布新加的 log-shipper 容器，这个 Pod 的用量远低于业务容器的上限）和后台的 promo-feed-sync
     - 调用 currencyservice 次数多的页面慢得多，不调用它的请求不慢
     also:
     - object:
@@ -7291,8 +7291,8 @@ scenarios:
   - delayed
   - sidecar
   evidence_chain:
-  - cartservice（cpu）：Deployment cartservice 的 CPU 上限是 30m，上一版 ReplicaSet 里是 300m；指标表：cartservice 的 CPU 用量顶在上限附近，被限流的周期占比明显大于 0；另外被限流的还有 adservice 的 Pod（来自同一次发布新加的 log-shipper 容器，这个 Pod 的用量远低于业务容器的上限）和后台的
-    promo-feed-sync；调用 cartservice 次数多的页面慢得多，不调用它的请求不慢
+  - cartservice（cpu）：Deployment cartservice 的 CPU 上限是 30m，上一版 ReplicaSet 里是 300m；指标表：cartservice 被限流的周期占比明显大于 0，平均 CPU 用量约为上限的四到五成（不一定顶到上限：请求成批到来时会把每 100ms 的配额用完）；另外被限流的还有 adservice 的 Pod（来自同一次发布新加的 log-shipper
+    容器，这个 Pod 的用量远低于业务容器的上限）和后台的 promo-feed-sync；调用 cartservice 次数多的页面慢得多，不调用它的请求不慢
   - checkoutservice（config）：checkoutservice 的日志里连接 shippingservice 失败（连接被拒或超时）；Deployment checkoutservice 的 SHIPPING_SERVICE_ADDR=shippingservice:50052，Service shippingservice 的端口是 50051
   - 排除 checkoutservice 的改动（CART_SERVICE_ADDR=cartservice.boutique.svc.cluster.local:7070）：CART_SERVICE_ADDR 从 cartservice:7070 改成了完整域名 cartservice.boutique.svc.cluster.local:7070，指向的是同一个 Service，调用正常
   - 排除 adservice 的改动（RELEASE_TAG，并新增 sidecar 容器 log-shipper（CPU 上限 20m））：同一次发布给 adservice 加了日志转发的 sidecar 容器 log-shipper，CPU 上限只有 20m。它每隔几秒处理一批日志，每批要二十多毫秒 CPU，在 20m 的配额下要排一秒左右，所以一直被限流；指标表按 Pod 合计，adservice
@@ -7447,10 +7447,10 @@ scenarios:
     key_evidence:
     - 30m
     decidable: true
-    decidable_why: 指标表里它的限流周期占比明显大于 0，Deployment 里能看到上限；被限流的服务和变慢的页面对得上。adservice 的 Pod 虽然也被限流，但用量远低于它业务容器的上限，被限流的是新加的 sidecar；真正被限流的业务容器，用量顶在它自己的上限上。
+    decidable_why: 指标表里它的限流周期占比明显大于 0，Deployment 里能看到上限；被限流的服务和变慢的页面对得上。adservice 的 Pod 虽然也被限流，但用量远低于它业务容器的上限，被限流的是新加的 sidecar；真正被限流的业务容器，平均用量占它自己上限的比例要高得多（实测四到五成），sidecar 所在 Pod 的用量只有 Pod 上限的几个百分点。
     evidence:
     - Deployment cartservice 的 CPU 上限是 30m，上一版 ReplicaSet 里是 300m
-    - 指标表：cartservice 的 CPU 用量顶在上限附近，被限流的周期占比明显大于 0；另外被限流的还有 adservice 的 Pod（来自同一次发布新加的 log-shipper 容器，这个 Pod 的用量远低于业务容器的上限）和后台的 promo-feed-sync
+    - 指标表：cartservice 被限流的周期占比明显大于 0，平均 CPU 用量约为上限的四到五成（不一定顶到上限：请求成批到来时会把每 100ms 的配额用完）；另外被限流的还有 adservice 的 Pod（来自同一次发布新加的 log-shipper 容器，这个 Pod 的用量远低于业务容器的上限）和后台的 promo-feed-sync
     - 调用 cartservice 次数多的页面慢得多，不调用它的请求不慢
     also:
     - object:
@@ -7519,8 +7519,8 @@ scenarios:
   - delayed
   - sidecar
   evidence_chain:
-  - frontend（cpu）：Deployment frontend 的 CPU 上限是 25m，上一版 ReplicaSet 里是 200m；指标表：frontend 的 CPU 用量顶在上限附近，被限流的周期占比明显大于 0；另外被限流的还有 paymentservice 的 Pod（来自同一次发布新加的 log-shipper 容器，这个 Pod 的用量远低于业务容器的上限）和后台的 promo-feed-sync；所有页面都变慢，一个页面要调的后端越多、要渲染的越多就慢得越多；frontend
-    自己被限流，后端的业务容器不被限流（paymentservice 的 Pod 被限流来自 sidecar）
+  - frontend（cpu）：Deployment frontend 的 CPU 上限是 25m，上一版 ReplicaSet 里是 200m；指标表：frontend 被限流的周期占比明显大于 0，平均 CPU 用量约为上限的四到五成（不一定顶到上限：请求成批到来时会把每 100ms 的配额用完）；另外被限流的还有 paymentservice 的 Pod（来自同一次发布新加的 log-shipper
+    容器，这个 Pod 的用量远低于业务容器的上限）和后台的 promo-feed-sync；所有页面都变慢，一个页面要调的后端越多、要渲染的越多就慢得越多；frontend 自己被限流，后端的业务容器不被限流（paymentservice 的 Pod 被限流来自 sidecar）
   - checkoutservice（network）：调用 checkoutservice 的请求每次多出 193 到 357 毫秒左右，不随并发增长；checkoutservice 的 CPU、限流、重启都正常，没有报错；按操作比较：checkoutservice 的不同操作多出来的时间之比，等于各自进入 checkoutservice 的包（请求加下游回包）的次数之比
   - 排除 shippingservice 的改动（cpu limit 100m）：CPU 上限从 200m 调到 100m，仍远高于它的平均用量，最多有零星几次限流，解释不了用户看到的症状
   - 排除 paymentservice 的改动（RELEASE_TAG，并新增 sidecar 容器 log-shipper（CPU 上限 20m））：同一次发布给 paymentservice 加了日志转发的 sidecar 容器 log-shipper，CPU 上限只有 20m。它每隔几秒处理一批日志，每批要二十多毫秒 CPU，在 20m 的配额下要排一秒左右，所以一直被限流；指标表按 Pod
@@ -7719,10 +7719,10 @@ scenarios:
     key_evidence:
     - 25m
     decidable: true
-    decidable_why: 指标表里它的限流周期占比明显大于 0，Deployment 里能看到上限；被限流的服务和变慢的页面对得上。paymentservice 的 Pod 虽然也被限流，但用量远低于它业务容器的上限，被限流的是新加的 sidecar；真正被限流的业务容器，用量顶在它自己的上限上。
+    decidable_why: 指标表里它的限流周期占比明显大于 0，Deployment 里能看到上限；被限流的服务和变慢的页面对得上。paymentservice 的 Pod 虽然也被限流，但用量远低于它业务容器的上限，被限流的是新加的 sidecar；真正被限流的业务容器，平均用量占它自己上限的比例要高得多（实测四到五成），sidecar 所在 Pod 的用量只有 Pod 上限的几个百分点。
     evidence:
     - Deployment frontend 的 CPU 上限是 25m，上一版 ReplicaSet 里是 200m
-    - 指标表：frontend 的 CPU 用量顶在上限附近，被限流的周期占比明显大于 0；另外被限流的还有 paymentservice 的 Pod（来自同一次发布新加的 log-shipper 容器，这个 Pod 的用量远低于业务容器的上限）和后台的 promo-feed-sync
+    - 指标表：frontend 被限流的周期占比明显大于 0，平均 CPU 用量约为上限的四到五成（不一定顶到上限：请求成批到来时会把每 100ms 的配额用完）；另外被限流的还有 paymentservice 的 Pod（来自同一次发布新加的 log-shipper 容器，这个 Pod 的用量远低于业务容器的上限）和后台的 promo-feed-sync
     - 所有页面都变慢，一个页面要调的后端越多、要渲染的越多就慢得越多；frontend 自己被限流，后端的业务容器不被限流（paymentservice 的 Pod 被限流来自 sidecar）
     also:
     - object:
@@ -7799,10 +7799,10 @@ scenarios:
   - delayed
   - sidecar
   evidence_chain:
-  - currencyservice（cpu）：Deployment currencyservice 的 CPU 上限是 25m，上一版 ReplicaSet 里是 200m；指标表：currencyservice 的 CPU 用量顶在上限附近，被限流的周期占比明显大于 0；另外被限流的还有 productcatalogservice 的 Pod（来自同一次发布新加的 log-shipper 容器，这个
-    Pod 的用量远低于业务容器的上限）和后台的 promo-feed-sync；调用 currencyservice 次数多的页面慢得多，不调用它的请求不慢
-  - frontend（cpu）：Deployment frontend 的 CPU 上限是 25m，上一版 ReplicaSet 里是 200m；指标表：frontend 的 CPU 用量顶在上限附近，被限流的周期占比明显大于 0；另外被限流的还有 productcatalogservice 的 Pod（来自同一次发布新加的 log-shipper 容器，这个 Pod 的用量远低于业务容器的上限）和后台的
-    promo-feed-sync；所有页面都变慢，一个页面要调的后端越多、要渲染的越多就慢得越多；frontend 自己被限流，后端的业务容器不被限流（productcatalogservice 的 Pod 被限流来自 sidecar）
+  - currencyservice（cpu）：Deployment currencyservice 的 CPU 上限是 25m，上一版 ReplicaSet 里是 200m；指标表：currencyservice 被限流的周期占比明显大于 0，平均 CPU 用量约为上限的四到五成（不一定顶到上限：请求成批到来时会把每 100ms 的配额用完）；另外被限流的还有 productcatalogservice
+    的 Pod（来自同一次发布新加的 log-shipper 容器，这个 Pod 的用量远低于业务容器的上限）和后台的 promo-feed-sync；调用 currencyservice 次数多的页面慢得多，不调用它的请求不慢
+  - frontend（cpu）：Deployment frontend 的 CPU 上限是 25m，上一版 ReplicaSet 里是 200m；指标表：frontend 被限流的周期占比明显大于 0，平均 CPU 用量约为上限的四到五成（不一定顶到上限：请求成批到来时会把每 100ms 的配额用完）；另外被限流的还有 productcatalogservice 的 Pod（来自同一次发布新加的
+    log-shipper 容器，这个 Pod 的用量远低于业务容器的上限）和后台的 promo-feed-sync；所有页面都变慢，一个页面要调的后端越多、要渲染的越多就慢得越多；frontend 自己被限流，后端的业务容器不被限流（productcatalogservice 的 Pod 被限流来自 sidecar）
   - 排除 shippingservice 的改动（cpu limit 80m）：CPU 上限从 200m 调到 80m，仍远高于它的平均用量，最多有零星几次限流，解释不了用户看到的症状
   - 排除 productcatalogservice 的改动（RELEASE_TAG，并新增 sidecar 容器 log-shipper（CPU 上限 20m））：同一次发布给 productcatalogservice 加了日志转发的 sidecar 容器 log-shipper，CPU 上限只有 20m。它每隔几秒处理一批日志，每批要二十多毫秒 CPU，在 20m 的配额下要排一秒左右，所以一直被限流；指标表按
     Pod 合计，productcatalogservice 这个 Pod 的限流占比明显大于 0，上限一列是两个容器之和。但 CPU 配额按容器算：productcatalogservice 的业务容器上限 200m，Pod 的用量远低于这个数，业务容器没有被限流；sidecar 不在任何请求的路径上，它自己的日志里每批耗时一秒左右，被拉长的是它自己。所以 productcatalogservice
@@ -7990,10 +7990,10 @@ scenarios:
     key_evidence:
     - 25m
     decidable: true
-    decidable_why: 指标表里它的限流周期占比明显大于 0，Deployment 里能看到上限；被限流的服务和变慢的页面对得上。productcatalogservice 的 Pod 虽然也被限流，但用量远低于它业务容器的上限，被限流的是新加的 sidecar；真正被限流的业务容器，用量顶在它自己的上限上。
+    decidable_why: 指标表里它的限流周期占比明显大于 0，Deployment 里能看到上限；被限流的服务和变慢的页面对得上。productcatalogservice 的 Pod 虽然也被限流，但用量远低于它业务容器的上限，被限流的是新加的 sidecar；真正被限流的业务容器，平均用量占它自己上限的比例要高得多（实测四到五成），sidecar 所在 Pod 的用量只有 Pod 上限的几个百分点。
     evidence:
     - Deployment currencyservice 的 CPU 上限是 25m，上一版 ReplicaSet 里是 200m
-    - 指标表：currencyservice 的 CPU 用量顶在上限附近，被限流的周期占比明显大于 0；另外被限流的还有 productcatalogservice 的 Pod（来自同一次发布新加的 log-shipper 容器，这个 Pod 的用量远低于业务容器的上限）和后台的 promo-feed-sync
+    - 指标表：currencyservice 被限流的周期占比明显大于 0，平均 CPU 用量约为上限的四到五成（不一定顶到上限：请求成批到来时会把每 100ms 的配额用完）；另外被限流的还有 productcatalogservice 的 Pod（来自同一次发布新加的 log-shipper 容器，这个 Pod 的用量远低于业务容器的上限）和后台的 promo-feed-sync
     - 调用 currencyservice 次数多的页面慢得多，不调用它的请求不慢
     also:
     - object:
@@ -8005,10 +8005,11 @@ scenarios:
       key_evidence:
       - 25m
       decidable: true
-      decidable_why: 指标表里它的限流周期占比明显大于 0，Deployment 里能看到上限；被限流的服务和变慢的页面对得上。productcatalogservice 的 Pod 虽然也被限流，但用量远低于它业务容器的上限，被限流的是新加的 sidecar；真正被限流的业务容器，用量顶在它自己的上限上。
+      decidable_why: 指标表里它的限流周期占比明显大于 0，Deployment 里能看到上限；被限流的服务和变慢的页面对得上。productcatalogservice 的 Pod 虽然也被限流，但用量远低于它业务容器的上限，被限流的是新加的 sidecar；真正被限流的业务容器，平均用量占它自己上限的比例要高得多（实测四到五成），sidecar 所在 Pod 的用量只有 Pod
+        上限的几个百分点。
       evidence:
       - Deployment frontend 的 CPU 上限是 25m，上一版 ReplicaSet 里是 200m
-      - 指标表：frontend 的 CPU 用量顶在上限附近，被限流的周期占比明显大于 0；另外被限流的还有 productcatalogservice 的 Pod（来自同一次发布新加的 log-shipper 容器，这个 Pod 的用量远低于业务容器的上限）和后台的 promo-feed-sync
+      - 指标表：frontend 被限流的周期占比明显大于 0，平均 CPU 用量约为上限的四到五成（不一定顶到上限：请求成批到来时会把每 100ms 的配额用完）；另外被限流的还有 productcatalogservice 的 Pod（来自同一次发布新加的 log-shipper 容器，这个 Pod 的用量远低于业务容器的上限）和后台的 promo-feed-sync
       - 所有页面都变慢，一个页面要调的后端越多、要渲染的越多就慢得越多；frontend 自己被限流，后端的业务容器不被限流（productcatalogservice 的 Pod 被限流来自 sidecar）
     harmless_changes:
     - object: shippingservice
@@ -8068,8 +8069,8 @@ scenarios:
   - delayed
   - sidecar
   evidence_chain:
-  - cartservice（cpu）：Deployment cartservice 的 CPU 上限是 30m，上一版 ReplicaSet 里是 300m；指标表：cartservice 的 CPU 用量顶在上限附近，被限流的周期占比明显大于 0；另外被限流的还有 productcatalogservice 的 Pod（来自同一次发布新加的 log-shipper 容器，这个 Pod 的用量远低于业务容器的上限）和后台的
-    promo-feed-sync；调用 cartservice 次数多的页面慢得多，不调用它的请求不慢
+  - cartservice（cpu）：Deployment cartservice 的 CPU 上限是 30m，上一版 ReplicaSet 里是 300m；指标表：cartservice 被限流的周期占比明显大于 0，平均 CPU 用量约为上限的四到五成（不一定顶到上限：请求成批到来时会把每 100ms 的配额用完）；另外被限流的还有 productcatalogservice 的 Pod（来自同一次发布新加的
+    log-shipper 容器，这个 Pod 的用量远低于业务容器的上限）和后台的 promo-feed-sync；调用 cartservice 次数多的页面慢得多，不调用它的请求不慢
   - currencyservice（network）：变慢的只是一部分请求，慢的那些多出来的时间成一个个台阶（重传等待），不是平均地都慢一点；慢的请求都经过 currencyservice；currencyservice 的 CPU、限流、重启都正常；currencyservice 的就绪/存活探针间歇报连接超时（failed to connect … within 1s 或 dial tcp …
     i/o timeout），它的 CPU 空闲、不被限流
   - 排除 frontend 的改动（CURRENCY_SERVICE_ADDR=currencyservice.boutique.svc.cluster.local:7000）：CURRENCY_SERVICE_ADDR 从 currencyservice:7000 改成了完整域名 currencyservice.boutique.svc.cluster.local:7000，指向的是同一个 Service，调用正常
@@ -8286,10 +8287,10 @@ scenarios:
     key_evidence:
     - 30m
     decidable: true
-    decidable_why: 指标表里它的限流周期占比明显大于 0，Deployment 里能看到上限；被限流的服务和变慢的页面对得上。productcatalogservice 的 Pod 虽然也被限流，但用量远低于它业务容器的上限，被限流的是新加的 sidecar；真正被限流的业务容器，用量顶在它自己的上限上。
+    decidable_why: 指标表里它的限流周期占比明显大于 0，Deployment 里能看到上限；被限流的服务和变慢的页面对得上。productcatalogservice 的 Pod 虽然也被限流，但用量远低于它业务容器的上限，被限流的是新加的 sidecar；真正被限流的业务容器，平均用量占它自己上限的比例要高得多（实测四到五成），sidecar 所在 Pod 的用量只有 Pod 上限的几个百分点。
     evidence:
     - Deployment cartservice 的 CPU 上限是 30m，上一版 ReplicaSet 里是 300m
-    - 指标表：cartservice 的 CPU 用量顶在上限附近，被限流的周期占比明显大于 0；另外被限流的还有 productcatalogservice 的 Pod（来自同一次发布新加的 log-shipper 容器，这个 Pod 的用量远低于业务容器的上限）和后台的 promo-feed-sync
+    - 指标表：cartservice 被限流的周期占比明显大于 0，平均 CPU 用量约为上限的四到五成（不一定顶到上限：请求成批到来时会把每 100ms 的配额用完）；另外被限流的还有 productcatalogservice 的 Pod（来自同一次发布新加的 log-shipper 容器，这个 Pod 的用量远低于业务容器的上限）和后台的 promo-feed-sync
     - 调用 cartservice 次数多的页面慢得多，不调用它的请求不慢
     also:
     - object:

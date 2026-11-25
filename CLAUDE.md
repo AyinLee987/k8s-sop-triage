@@ -21,8 +21,8 @@
 - 不强杀 Docker Desktop，不运行 `wsl --shutdown`，不用 Clean / Purge / Reset。
 - 不删 PVC、命名空间、集群。不改 tiktok-k8s-lab 的源码。
 - 以后要做多节点集群，必须新建一个集群，不改现有的。
-- 同一时间只跑一个实验。
-- 中止实验用 `docker stop $(docker ps -q --filter "ancestor=k8s-sop-runner")`，不按 Ctrl+C。不停 kind 节点容器。
+- 每个集群同一时间只跑一个实验。笔记本上做实验的单节点集群：`tiktok-k8s-lab`（原有）和 `sop-lab-2`（2026-11-25 为并行新建，配置相同），说明见 `docs/PARALLEL.md`；第二个集群在验证通过之前不跑正式实验。
+- 中止实验用 `docker stop $(docker ps -q --filter "ancestor=k8s-sop-runner")`（停掉所有集群上的），只停一个集群的用 `docker stop $(docker ps -q --filter "label=k8s-sop.cluster=<集群名>")`，不按 Ctrl+C。不停 kind 节点容器。
 - 实验运行期间不改文件、不动集群。
 - Docker 数据所在的盘要留足空间（笔记本就是因为那个盘满了，Docker 才起不来）。
 

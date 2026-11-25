@@ -106,6 +106,10 @@ SIDECAR_VOLUME = {"name": SIDECAR_NAME, "secret": {"secretName": "ops-jobs", "de
 SIDECAR_DELETE = {"spec": {"template": {"spec": {"containers": [{"name": SIDECAR_NAME, "$patch": "delete"}],
                                                  "volumes": [{"name": SIDECAR_NAME, "$patch": "delete"}]}}}}
 CPU_ALONE = "别的服务不被限流或只有零星几次"
+# v3 wrote that the faulty container's use sits at its limit; measured on the cluster (FV01/FL01 2026-11-25) the average is
+# only about 40-50% of it: CFS throttles when a burst of requests uses up the 100ms quota, not because the average is high.
+CPU_AT_LIMIT = "的 CPU 用量顶在上限附近，被限流的周期占比明显大于 0"
+CPU_MEASURED = "被限流的周期占比明显大于 0，平均 CPU 用量约为上限的四到五成（不一定顶到上限：请求成批到来时会把每 100ms 的配额用完）"
 
 
 def sidecar_container() -> dict:
@@ -279,12 +283,14 @@ def main() -> None:
         side = SIDECAR[sid]
         for c in causes:   # a real CPU fault is no longer the only throttled shop pod
             if c["mechanism"] == "cpu":
-                assert CPU_ALONE in c["evidence"][1], sid
+                assert CPU_ALONE in c["evidence"][1] and CPU_AT_LIMIT in c["evidence"][1], sid
+                c["evidence"][1] = c["evidence"][1].replace(CPU_AT_LIMIT, CPU_MEASURED)
                 c["evidence"][1] = c["evidence"][1].replace(CPU_ALONE, f"另外被限流的还有 {side} 的 Pod（来自同一次发布新加的 {SIDECAR_NAME} 容器，"
                                                                       f"这个 Pod 的用量远低于业务容器的上限）和后台的 promo-feed-sync")
                 c["evidence"] = [e.replace("后端不被限流", f"后端的业务容器不被限流（{side} 的 Pod 被限流来自 sidecar）") for e in c["evidence"]]
                 c["decidable_why"] += (f"{side} 的 Pod 虽然也被限流，但用量远低于它业务容器的上限，被限流的是新加的 sidecar；"
-                                       f"真正被限流的业务容器，用量顶在它自己的上限上。")
+                                       f"真正被限流的业务容器，平均用量占它自己上限的比例要高得多（实测四到五成），"
+                                       f"sidecar 所在 Pod 的用量只有 Pod 上限的几个百分点。")
         if nets:
             names = "、".join(t for t, _ in nets)
             specs = " ".join(f'"{t}|{x}"' for t, x in nets)

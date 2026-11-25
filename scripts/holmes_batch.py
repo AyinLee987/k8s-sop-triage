@@ -9,11 +9,18 @@ Grading here is PROVISIONAL: HolmesGPT answers in free text, so a run counts as 
 answer names the expected cause (accept_cause_keywords) and quotes at least one key_evidence string.
 Every answer is kept, so runs can be re-graded once the structured-output adapter exists (ISSUES E-010).
 Holdout scenarios are refused unless --finalize is given.
+
+Two clusters at once (docs/PARALLEL.md): start one batch per cluster with the same arguments and tag, and --shard 1/2 on
+one, --shard 2/2 on the other. Run (scenario, repeat) goes to shard (index of the scenario + repeat) mod n, so each
+scenario's repeats alternate between the clusters (a cluster that is a little slower cannot pass for a harder scenario).
+Each shard keeps its own runs-shard<k>of<n>.jsonl; after every run it rewrites runs.jsonl and summary.md as the union of
+all the shard files, so the tag reads the same as an unsharded batch. Every record says which cluster ran it.
 """
 from __future__ import annotations
 
 import argparse
 import json
+import os
 import random
 import statistics
 import subprocess
@@ -65,6 +72,47 @@ def grade(answer_text: str, expected: dict, noise_ids: list[str] | None = None) 
         # a real anomaly that is not the cause: naming it is fine, blaming it is not. Keywords cannot tell, so read these.
         out["decoy_named"] = [d["name"] for d in expected["not_cause"] if d["name"].lower() in low]
     return out
+
+
+def parse_shard(text: str) -> tuple[int, int]:
+    """'k/n' -> (k, n) with 1 <= k <= n."""
+    try:
+        k, n = (int(x) for x in text.split("/"))
+    except ValueError:
+        raise SystemExit(f"--shard must look like 1/2, not {text!r}")
+    if not 1 <= k <= n:
+        raise SystemExit(f"--shard {text}: need 1 <= k <= n")
+    return k, n
+
+
+def shard_of(ids: list[str], sc_id: str, rep: int, n: int) -> int:
+    """Which shard (1..n) runs this (scenario, repeat): the repeats of each scenario alternate between the shards."""
+    return (ids.index(sc_id) + rep) % n + 1
+
+
+def shard_files(out_dir: Path) -> list[Path]:
+    return sorted(out_dir.glob("runs-shard*of*.jsonl"))
+
+
+def read_runs(path: Path) -> list[dict]:
+    return [json.loads(l) for l in path.read_text(encoding="utf-8").splitlines() if l.strip()] if path.exists() else []
+
+
+def write_atomic(path: Path, text: str) -> None:
+    """Two shards may rewrite the merged files at about the same time; a reader never sees half a file."""
+    tmp = path.with_name(f".{path.name}.{os.getpid()}.tmp")
+    tmp.write_text(text, encoding="utf-8")
+    os.replace(tmp, path)
+
+
+def merge_shards(out_dir: Path, ids: list[str], plan: list[tuple[str, int]]) -> list[dict]:
+    """runs.jsonl and summary.md = the union of the shard files, in plan order."""
+    by_key = {(r["scenario"], r["repeat"]): r for f in shard_files(out_dir) for r in read_runs(f)}
+    order = {key: i for i, key in enumerate(plan)}
+    runs = sorted(by_key.values(), key=lambda r: order.get((r["scenario"], r["repeat"]), len(order)))
+    write_atomic(out_dir / "runs.jsonl", "".join(json.dumps(r, ensure_ascii=False) + "\n" for r in runs))
+    write_atomic(out_dir / "summary.md", summarise(runs, ids))
+    return runs
 
 
 def run_one(sc_id: str, out: Path, max_steps: int, noise_ids: list[str], skills: str = "", frame: str = "prod", metrics: bool = False,
@@ -136,7 +184,10 @@ def main() -> int:
     ap.add_argument("--tag", default=time.strftime("%Y%m%d-%H%M%S"))
     ap.add_argument("--prompt", default="auto", choices=["auto", "v2", "v3", "v4"], help="see holmes_pilot.py --prompt")
     ap.add_argument("--finalize", action="store_true", help="required to run holdout scenarios and the third bank's test scenarios")
+    ap.add_argument("--shard", default="1/1", help="k/n: run only this cluster's share of the plan (see the module docstring)")
     args = ap.parse_args()
+    shard, shards = parse_shard(args.shard)
+    cluster = os.environ.get("ADMIN_CONTEXT", "").removeprefix("kind-")
 
     all_sc = {s["id"]: s for s in load_scenarios(split="all", source="all")}
     in_source = {s["id"] for s in load_scenarios(split="all", source=args.source)}
@@ -151,14 +202,28 @@ def main() -> int:
 
     out_dir = REPO / "results" / "holmes_batch" / args.tag
     out_dir.mkdir(parents=True, exist_ok=True)
-    runs_file = out_dir / "runs.jsonl"
-    runs = [json.loads(l) for l in runs_file.read_text(encoding="utf-8").splitlines()] if runs_file.exists() else []
-    done = {(r["scenario"], r["repeat"]) for r in runs if not r.get("error")}
-
     plan = [(sc_id, rep) for rep in range(1, args.repeats + 1) for sc_id in ids]  # round-robin: repeat 1 of all, then 2...
-    print(f"{len(plan)} runs planned, {len(done)} already done in {out_dir.relative_to(REPO)}", flush=True)
+    if shards == 1:
+        if shard_files(out_dir):
+            sys.exit(f"{out_dir.relative_to(REPO)} was run in shards: continue it with the same --shard values")
+        runs_file = out_dir / "runs.jsonl"
+        runs = read_runs(runs_file)
+        done = {(r["scenario"], r["repeat"]) for r in runs if not r.get("error")}
+    else:
+        if (out_dir / "runs.jsonl").exists() and not shard_files(out_dir):
+            sys.exit(f"{out_dir.relative_to(REPO)} already holds an unsharded batch: use a new tag for a sharded one")
+        others = [f.name for f in shard_files(out_dir) if not f.name.endswith(f"of{shards}.jsonl")]
+        if others:
+            sys.exit(f"{out_dir.relative_to(REPO)} has shard files for another number of shards: {others}")
+        runs_file = out_dir / f"runs-shard{shard}of{shards}.jsonl"
+        runs = read_runs(runs_file)
+        done = {(r["scenario"], r["repeat"]) for f in shard_files(out_dir) for r in read_runs(f) if not r.get("error")}
+    mine = {(sc_id, rep) for sc_id, rep in plan if shard_of(ids, sc_id, rep, shards) == shard}
+    print(f"{len(plan)} runs planned"
+          + (f", {len(mine)} of them on this shard ({shard}/{shards}, cluster {cluster or '?'})" if shards > 1 else "")
+          + f", {len(done)} already done in {out_dir.relative_to(REPO)}", flush=True)
     for n, (sc_id, rep) in enumerate(plan, 1):
-        if (sc_id, rep) in done:
+        if (sc_id, rep) in done or (sc_id, rep) not in mine:
             continue
         print(f"[{n}/{len(plan)}] {sc_id} repeat {rep} ...", flush=True)
         noise_ids = pick_noise(args.noise, sc_id, rep)
@@ -166,6 +231,9 @@ def main() -> int:
         rec = run_one(sc_id, out_dir / f"{sc_id}-r{rep}.json", args.max_steps, noise_ids, args.skills, args.frame, args.metrics,
                       args.prompt, allow_test=args.finalize)
         rec["repeat"] = rep
+        rec["cluster"] = cluster
+        if shards > 1:
+            rec["shard"] = f"{shard}/{shards}"
         rec["grade"] = grade(rec.get("answer", ""), all_sc[sc_id]["answer"], noise_ids) if not rec.get("error") else None
         status = "ERROR" if rec.get("error") else ("ok" if rec["grade"]["auto_correct"] else "WRONG?")
         print(f"    skills read: {rec.get('skills_fetched')}", flush=True)
@@ -174,8 +242,14 @@ def main() -> int:
         rec.pop("answer", None)  # the full answer stays in the per-run JSON
         runs = [r for r in runs if (r["scenario"], r["repeat"]) != (sc_id, rep)] + [rec]
         runs_file.write_text("".join(json.dumps(r, ensure_ascii=False) + "\n" for r in runs), encoding="utf-8")
-        (out_dir / "summary.md").write_text(summarise(runs, ids), encoding="utf-8")
-    print((out_dir / "summary.md").read_text(encoding="utf-8"))
+        if shards == 1:
+            (out_dir / "summary.md").write_text(summarise(runs, ids), encoding="utf-8")
+        else:
+            merge_shards(out_dir, ids, plan)
+    if shards > 1:   # the shard that finishes last leaves the complete union behind
+        merge_shards(out_dir, ids, plan)
+    summary = out_dir / "summary.md"
+    print(summary.read_text(encoding="utf-8") if summary.exists() else "no runs recorded yet")
     return 0
 
 

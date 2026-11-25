@@ -14,6 +14,11 @@
 #   .\scripts\Run-Laptop.ps1 -Action noise                       # check the ambient noise applies and removes cleanly
 #   .\scripts\Run-Laptop.ps1 -Action batch -Noise random -Tag noise1   # same scenarios with ambient noise
 #
+# Two clusters at once (docs/PARALLEL.md): the same batch in two windows, one per cluster, same tag, -Shard 1/2 and 2/2:
+#   .\scripts\Run-Laptop.ps1 -Action batch -Scenarios FV01,FL01 -Repeats 4 -Tag x -Shard 1/2
+#   .\scripts\Run-Laptop.ps1 -Action batch -Scenarios FV01,FL01 -Repeats 4 -Tag x -Shard 2/2 -Cluster sop-lab-2
+# Each cluster runs one experiment at a time; files that belong to a cluster live in .local\clusters\<cluster>\.
+#
 # HolmesGPT and the harness run in a Linux container (docker/runner.Dockerfile) on Docker's "kind" network.
 # The LLM key is read from this repo's .env inside the container; it is never printed or passed on a command line.
 # Safety (same rules as tiktok-k8s-lab AGENTS.md): Docker Desktop is only started normally, never force-killed;
@@ -37,6 +42,7 @@ param(
     [string]$Prompt = '',       # batch/pilot: auto (default) | v2 | v3; auto = v3 for the third bank (docs/V3.md)
     [switch]$Finalize,          # batch: allow holdout scenarios and the third bank's test scenarios (only once the method is fixed)
     [switch]$Metrics,           # batch/pilot/loop: also give the agent the boutique_pod_metrics tool (CPU throttling, memory, pod network counters)
+    [string]$Shard = '',        # batch: k/n, this cluster's share of the plan when n clusters run the same batch (docs/PARALLEL.md)
     [string]$Cluster = '',          # kind cluster name; empty = from .env / default (scripts\_cluster.ps1)
     [string]$KindExe = '',          # path to kind.exe; empty = lab copy or kind on PATH
     [string]$AdminKubeconfig = '',  # admin kubeconfig on this machine; empty = lab copy or ~\.kube\config
@@ -135,7 +141,8 @@ foreach ($v in 'v1', 'v2') {
 }
 
 # The app must be deployed and healthy. Applying the lab manifests is idempotent.
-function K { & kubectl --kubeconfig $labKube --context "kind-$Cluster" -n $Cluster --request-timeout=30s @args }
+# The lab app's namespace is tiktok-k8s-lab on every cluster (k8s\namespace.yaml in the lab), whatever the cluster is called.
+function K { & kubectl --kubeconfig $labKube --context "kind-$Cluster" -n tiktok-k8s-lab --request-timeout=30s @args }
 K get deploy api 2>&1 | Out-Null
 if ($LASTEXITCODE -ne 0) {
     Step 'deploying the lab app'
@@ -161,11 +168,13 @@ foreach ($w in 'statefulset/redis', 'deployment/api', 'deployment/worker') {
 
 Step 'kubeconfig for containers on the kind network'
 $local = Join-Path $Repo '.local'
-New-Item -ItemType Directory -Force -Path $local | Out-Null
+# one folder per cluster (scripts/laptop_entry.sh reads the same path), so two clusters' runs never share credentials
+$clusterDir = Join-Path $local "clusters\$Cluster"
+New-Item -ItemType Directory -Force -Path $clusterDir | Out-Null
 $internal = (& $Kind get kubeconfig --internal --name $Cluster 2>$null) -join "`n"
 Need ($LASTEXITCODE -eq 0 -and $internal) 'kind get kubeconfig --internal failed'
 # UTF-8 without BOM: kubectl in the container rejects a BOM.
-[System.IO.File]::WriteAllText((Join-Path $local 'admin-internal.kubeconfig'), $internal + "`n", (New-Object System.Text.UTF8Encoding($false)))
+[System.IO.File]::WriteAllText((Join-Path $clusterDir 'admin-internal.kubeconfig'), $internal + "`n", (New-Object System.Text.UTF8Encoding($false)))
 
 & docker image inspect $Image 2>&1 | Out-Null
 if ($Rebuild -or $LASTEXITCODE -ne 0) {
@@ -227,21 +236,25 @@ switch ($Action) {
         if ($Prompt) { $runArgs += @('--prompt', $Prompt) }
         if ($Finalize) { $runArgs += '--finalize' }
         if ($Metrics) { $runArgs += '--metrics' }
+        if ($Shard) { $runArgs += @('--shard', $Shard) }
     }
 }
 $tty = if ($Action -eq 'shell') { @('-it') } else { @() }
 
-# One run at a time. Ctrl+C in this window stops the docker client, not the container: the run goes on in the
-# background, and a second run on the same cluster mixes two scenarios' faults (2026-11-17).
+# One run at a time on each cluster. Ctrl+C in this window stops the docker client, not the container: the run goes on
+# in the background, and a second run on the same cluster mixes two scenarios' faults (2026-11-17). Runner containers
+# carry the cluster's name as a label; one without the label was started before the label existed and is counted for
+# every cluster.
 if ($Action -ne 'shell') {
-    $active = @(& docker ps -q --filter "ancestor=$Image")
+    $active = @(& docker ps -q --filter "ancestor=$Image" --filter "label=k8s-sop.cluster=$Cluster")
+    $active += @(& docker ps --filter "ancestor=$Image" --format '{{.ID}} {{.Label "k8s-sop.cluster"}}' | Where-Object { $_ -match '^\S+\s*$' } | ForEach-Object { $_.Trim() })
     if ($active.Count -gt 0) {
-        throw "another run is still active (container $($active -join ', ')). Stop it first with: docker stop $($active -join ' ')"
+        throw "another run is still active on cluster '$Cluster' (container $($active -join ', ')). Stop it first with: docker stop $($active -join ' ')"
     }
 }
 $mounts = @('-v', "${Repo}:/work")
 if ($HasLab) { $mounts += @('-v', "${Lab}:/lab:ro") }
-Step "running: $($runArgs -join ' ')"
-& docker run --rm @tty --network kind @mounts -e "ADMIN_CONTEXT=kind-$Cluster" `
+Step "running on cluster '$Cluster': $($runArgs -join ' ')"
+& docker run --rm @tty --network kind @mounts -e "ADMIN_CONTEXT=kind-$Cluster" --label "k8s-sop.cluster=$Cluster" `
     $Image @runArgs
 exit $LASTEXITCODE

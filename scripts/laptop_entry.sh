@@ -8,16 +8,20 @@ set -euo pipefail
 cd /work
 
 # Container paths win over the Windows paths in .env (load_dotenv never overrides the environment).
-export ADMIN_KUBECONFIG=/work/.local/admin-internal.kubeconfig
 # Run-Laptop.ps1 passes ADMIN_CONTEXT=kind-<cluster>; the fallback is the laptop's original cluster.
 export ADMIN_CONTEXT=${ADMIN_CONTEXT:-kind-tiktok-k8s-lab}
+# Everything that belongs to one cluster lives in .local/clusters/<cluster>/ (Run-Laptop.ps1 writes the admin
+# kubeconfig there), so runs on two clusters at the same time never overwrite each other's credentials (docs/PARALLEL.md).
+CLUSTER_DIR=/work/.local/clusters/${ADMIN_CONTEXT#kind-}
+mkdir -p "$CLUSTER_DIR"
+export ADMIN_KUBECONFIG=$CLUSTER_DIR/admin-internal.kubeconfig
 export LAB_K8S_DIR=/lab/k8s
-export DIAG_KUBECONFIG=/work/.local/diag-laptop.kubeconfig
+export DIAG_KUBECONFIG=$CLUSTER_DIR/diag.kubeconfig
 export HOLMES_BIN=holmes
 export PYTHONDONTWRITEBYTECODE=1
 export PYTHONUNBUFFERED=1
 
-export METRICS_TOKEN_FILE=/work/.local/metrics-laptop.token
+export METRICS_TOKEN_FILE=$CLUSTER_DIR/metrics.token
 
 mint_diag() { python scripts/make_diag_kubeconfig.py --out "$DIAG_KUBECONFIG" --hours 24 >/dev/null; }
 # The account that may read the kubelet's metrics endpoints and nothing else (k8s/rbac-metrics.yaml). Only created when

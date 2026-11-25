@@ -5,7 +5,9 @@
 # Order for each value: script parameter > this repo's .env > what exists on this machine > default.
 #   cluster     -Cluster  > ADMIN_CONTEXT=kind-<name> in .env > 'sg-prod-01'
 #   kind.exe    -KindExe  > KIND_EXE in .env > <lab>\.tools\kind.exe > kind on PATH
-#   kubeconfig  -AdminKubeconfig > ADMIN_KUBECONFIG in .env > <lab>\.local\kubeconfig > $env:KUBECONFIG > ~\.kube\config
+#   kubeconfig  -AdminKubeconfig > .local\clusters\<cluster>\kubeconfig in this repo (a cluster this repo created, such as
+#               the second laptop cluster of docs/PARALLEL.md) > ADMIN_KUBECONFIG in .env > <lab>\.local\kubeconfig
+#               > $env:KUBECONFIG > ~\.kube\config
 # The lab folder (tiktok-k8s-lab next to this repo) is optional: without it only the Online Boutique scenarios run.
 
 function Read-DotEnv([string]$Path) {
@@ -30,6 +32,8 @@ function Resolve-ClusterConfig([string]$Repo, [string]$Cluster, [string]$KindExe
     if (-not $KindExe -and (Test-Path -LiteralPath (Join-Path $lab '.tools\kind.exe'))) { $KindExe = Join-Path $lab '.tools\kind.exe' }
     if (-not $KindExe) { $cmd = Get-Command kind -ErrorAction SilentlyContinue; if ($cmd) { $KindExe = $cmd.Source } }
 
+    $own = Join-Path $Repo ".local\clusters\$Cluster\kubeconfig"
+    if (-not $AdminKubeconfig -and (Test-Path -LiteralPath $own)) { $AdminKubeconfig = $own }
     if (-not $AdminKubeconfig) { $AdminKubeconfig = $dotenv['ADMIN_KUBECONFIG'] }
     if (-not $AdminKubeconfig -and (Test-Path -LiteralPath (Join-Path $lab '.local\kubeconfig'))) { $AdminKubeconfig = Join-Path $lab '.local\kubeconfig' }
     if (-not $AdminKubeconfig -and $env:KUBECONFIG) { $AdminKubeconfig = ($env:KUBECONFIG -split ';')[0] }

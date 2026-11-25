@@ -95,6 +95,7 @@ def main() -> int:
     pw_file = Path(cfg("LAB_K8S_DIR")).parent / ".local" / "redis-password.txt"
     secret = pw_file.read_text().strip() if pw_file.exists() else None
     OUT.mkdir(parents=True, exist_ok=True)
+    cluster = (cfg("ADMIN_CONTEXT") or "").removeprefix("kind-")
     scenarios = {s["id"]: s for s in load_scenarios(split="all", source="all")}
     status = 0
     # "BG*" = every scenario whose id starts with BG
@@ -104,7 +105,7 @@ def main() -> int:
         lc = make_lifecycle(sc, admin, ns, cfg("LAB_K8S_DIR"))
         boutique = sc.get("app") == "boutique"
         log = StepLog()
-        record = {"scenario": sid, "validate_note": sc.get("realism", {}).get("validate_note"),
+        record = {"scenario": sid, "cluster": cluster, "validate_note": sc.get("realism", {}).get("validate_note"),
                   "key_evidence": sc["answer"].get("key_evidence"), "confirmed": False}
         injected = False
         try:
@@ -153,7 +154,8 @@ def main() -> int:
                 rows = record["snapshot"]["pods"].splitlines()[1:]
                 record["pods_not_ready_or_restarted"] = [r.split()[0] for r in rows if not re.search(r"\s(\d+)/\1\s+Running\s+0\s", r)]
             record["steps"] = log.entries
-            path = OUT / f"{sid}.json"
+            # the laptop's original cluster keeps the plain name; another cluster (docs/PARALLEL.md) gets its own file
+            path = OUT / (f"{sid}.json" if cluster in ("", "tiktok-k8s-lab", "sg-prod-01") else f"{sid}@{cluster}.json")
             path.write_text(json.dumps(record, ensure_ascii=False, indent=1), encoding="utf-8")
             seen = record.get("key_evidence_seen", {})
             print(f"{sid}: confirmed={record['confirmed']} evidence={seen} reset_ok={'reset_error' not in record}"
