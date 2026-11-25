@@ -75,9 +75,9 @@
     {
      "cause": "FL08#1",
      "location": "对",
-     "mechanism": "错",
-     "fate": "机制没定",
-     "basis": "root_causes 第 2 条：cartservice，CPU limit 300m→30m，限流造成 cart RPC 停顿"
+     "mechanism": "对",
+     "fate": "找到",
+     "basis": "root_causes 第 2 条：cartservice，CPU limit 300m→30m，限流造成 cart RPC 停顿（按内容判：内容是 CPU 限流，字段写 config）"
     },
     {
      "cause": "FL08#2",
@@ -483,5 +483,6 @@
    "verdict": "通过",
    "note": "末尾 JSON 有语法错误（evidence 数组后多了一个 }，脚本解析不了），按正文判；adservice、paymentservice、recommendationservice 都写在 not_causes 里"
   }
- ]
+ ],
+ "rule_change": "2026-11-25 规则修改（用户决定）：机制按这条原因写的内容判，不按 mechanism 字段上的词判（模型核心回答正确就算对；同时决定不在提示词里给类名加定义，免得变成选择题）。这是看过学习集结果之后的改动，第四版已判的两批全部按新规则重判。本批改动：FL08-A 的 FL08#1 机制 错→对，结论不变。"
 }

@@ -1,5 +1,5 @@
 {
- "status": "规则 2026-11-24 定下，在第四版题库的任何一次运行之前。之后不改；如果必须改，所有组按新规则重判，并说明改了什么。2026-11-25 补充（仍在第四版任何一次运行之前）：每道题加了一个带 log-shipper sidecar 的服务，多报和报告项相应补了一句，其余不变。",
+ "status": "规则 2026-11-24 定下，在第四版题库的任何一次运行之前。之后不改；如果必须改，所有组按新规则重判，并说明改了什么。2026-11-25 补充（仍在第四版任何一次运行之前）：每道题加了一个带 log-shipper sidecar 的服务，多报和报告项相应补了一句，其余不变。2026-11-25 规则修改（用户决定）：机制按这条原因写的内容判，不按 mechanism 字段上的词判（模型核心回答正确就算对；同时决定不在提示词里给类名加定义，免得变成选择题）。这是看过学习集结果之后的改动，第四版已判的两批全部按新规则重判。试跑：FL08 r3 cartservice 的机制 错→对（字段写 config、内容是 CPU 限流），结论不变，仍是 8/18。学习集：FL09 三次的机制 错→对（字段写 config、内容是应用自己每个请求等 290 毫秒），r1、r3 由部分改为通过，r2 因多报仍不通过，14/24→16/24。",
  "grader_change": "2026-11-25 用户决定：Fable 5.2 用不了（用户账号被封），改由 Claude Opus 5.5 判分、Gemini 4 Neon 交叉判分。判分规则本身不变。第二判分人拿到的是盲判材料（scripts/make_grading_packet.py：同一道题的回答打乱、重新编号），比对用 scripts/compare_grades.py，记录在 results/grading/。",
  "applies_to": "第四版题库 FL/FV/FT（scenarios/boutique_v4.yaml，boutique/make_v4_scenarios.py）。和第三版的通过率不放在一起比。",
  "how": "人工判，判分人 Fable 5.2。先把同一道题的所有运行打乱、遮住组别再判，判完再揭开。以回答末尾 JSON 的 root_causes 为准；JSON 缺失、解析不了，或者和正文明显矛盾时，读正文，并在说明里记一句。每道题的标准答案在 answer、answer.also（真实原因，各带 mechanism 和 decidable）和 answer.harmless_changes（同一次发布里无害的改动，包括新加的 log-shipper sidecar）和 answer.ambient（命名空间里的后台服务）。不用关键词自动判分。",
@@ -12,10 +12,10 @@
   },
   "机制": {
    "大类": "network（网络延迟、丢包）、cpu（CPU 上限过低、限流）、config（地址、selector、端口配错）、app（应用自己配置的延迟）。大类对就行，不要求说出具体数值。",
-   "对": "root_causes 里这一条的 mechanism 是正确的大类（把握程度写低也算）。",
+   "对": "root_causes 里这一条说的机制是正确的大类（把握程度写低也算）。按这条原因写的内容判（cause、evidence，必要时看正文），mechanism 字段只作参考；字段上的词和内容对不上时按内容（2026-11-25 改，见 status）。",
    "如实未定": "mechanism 写 unknown 或在正文里说分不开，同时满足三条：候选不超过两个大类；正确的大类在候选里；写出了哪条观察能把它们分开，或者缺的是什么数据。",
    "没定": "不表态，且不满足“如实未定”的三条（候选里没有正确的大类、候选太多、或者没说缺什么）。",
-   "错": "mechanism 是错误的大类。",
+   "错": "这条原因说的机制是错误的大类（同样按内容判）。",
    "位置错时": "这条原因的机制不判，记“-”。"
   },
   "能不能分清": "每个真实原因带 decidable（见题目的 decidable_why 和 evidence_chain）。decidable=true：用 Agent 自己的工具（对象、日志、事件、Pod 指标表）能把正确机制和其它解释分开，要求表态。第四版里网络故障在三种情况下算能分清：出故障的服务各操作进入它的包数不同（cartservice、checkoutservice、frontend）；丢包（探针的连接会间歇超时）；gRPC 探针加上每个包约 285 毫秒的延迟（探针新建连接要三个包进入 Pod，会间歇超过 1 秒的超时）。decidable=false：每个包的延迟不超过 215 毫秒的不调用别的服务的服务和 recommendationservice，以及 redis-cart 的延迟（它的探针只有一个包进入 Pod），表态对或如实未定都算对。"
