@@ -1,0 +1,514 @@
+{
+ "grader": "Gemini 4 Neon 盲判（用户提供）",
+ "source": "C:/Users/Ayin/Desktop/k8s-cluster/gemini-eval2.json（纯 JSON 数组，原样包入 runs，未改判分内容）",
+ "rules": "boutique/eval_grades_v4.json（未改）",
+ "runs": [
+  {
+   "run": "FL02-A",
+   "json_ok": true,
+   "causes": [
+    {
+     "cause": "FL02#1",
+     "location": "对",
+     "mechanism": "对",
+     "fate": "找到",
+     "basis": "root_causes 第 1 条：boutique/Pod/cartservice-896c89968-frsxz，mechanism=network，明确指出该 Pod 出方向每个包延迟约 190ms（GetCart 2d、AddItem 3d）"
+    }
+   ],
+   "extra": [],
+   "extra_count": 0,
+   "pass": true,
+   "strict_pass": true,
+   "verdict": "通过",
+   "note": ""
+  },
+  {
+   "run": "FL02-B",
+   "json_ok": true,
+   "causes": [
+    {
+     "cause": "FL02#1",
+     "location": "对",
+     "mechanism": "对",
+     "fate": "找到",
+     "basis": "root_causes 第 1 条：boutique/deployment/cartservice，mechanism=network，指出每个出向报文约 165–200ms 延迟"
+    }
+   ],
+   "extra": [],
+   "extra_count": 0,
+   "pass": true,
+   "strict_pass": true,
+   "verdict": "通过",
+   "note": "正文与 unexplained 说明只读权限下无法直接取证区分 cartservice 出口与 redis-cart 出口，但 root_causes.object 明确表态为 boutique/deployment/cartservice 且 cause 指向 cartservice 出向报文，故位置记对"
+  },
+  {
+   "run": "FL02-C",
+   "json_ok": true,
+   "causes": [
+    {
+     "cause": "FL02#1",
+     "location": "对",
+     "mechanism": "对",
+     "fate": "找到",
+     "basis": "root_causes 第 1 条：boutique/pod/cartservice-896c89968-mvb6v，mechanism=network，明确延迟落在该 Pod 自身网络路径上并排除 redis-cart 侧"
+    }
+   ],
+   "extra": [],
+   "extra_count": 0,
+   "pass": true,
+   "strict_pass": true,
+   "verdict": "通过",
+   "note": ""
+  },
+  {
+   "run": "FL03-A",
+   "json_ok": true,
+   "causes": [
+    {
+     "cause": "FL03#1",
+     "location": "对",
+     "mechanism": "对",
+     "fate": "找到",
+     "basis": "root_causes 第 1 条：boutique/pod/redis-cart-788fbddc7-sdtph，mechanism=network，并用 AddItem 2 倍往返定量排除了 cartservice 出口延迟"
+    }
+   ],
+   "extra": [],
+   "extra_count": 0,
+   "pass": true,
+   "strict_pass": true,
+   "verdict": "通过",
+   "note": ""
+  },
+  {
+   "run": "FL03-B",
+   "json_ok": true,
+   "causes": [
+    {
+     "cause": "FL03#1",
+     "location": "错",
+     "mechanism": "-",
+     "fate": "判给别处",
+     "basis": "root_causes 唯一一条将对象定为 boutique/deployment+pod/cartservice（含新 RS 75b8964496），将 redis-cart 归入 not_causes，未定位到 redis-cart"
+    }
+   ],
+   "extra": [
+    {
+     "object": "cartservice",
+     "kind": "被拖累的上游",
+     "basis": "root_causes 第 1 条把被 redis-cart 拖累的上游 cartservice（并关联其无害发布 RS 75b8964496）写成主因"
+    }
+   ],
+   "extra_count": 1,
+   "pass": false,
+   "strict_pass": false,
+   "verdict": "错",
+   "note": "正文第 726 行与 alternatives[2] 虽提及到 redis 的报文延迟不能排除，但 JSON 的 root_causes 仅将 cartservice 单独列为高把握主因、未测 POST /cart 的 2 倍关系且将 redis-cart 放进 not_causes，故按 root_causes 记位置错（判给别处）并对 cartservice 记多报 1"
+  },
+  {
+   "run": "FL03-C",
+   "json_ok": false,
+   "causes": [
+    {
+     "cause": "FL03#1",
+     "location": "没定",
+     "mechanism": "对",
+     "fate": "位置没定",
+     "basis": "JSON 与正文均将延迟定在 cartservice↔redis-cart 每次 Redis 往返上，且正文第 840 行与 unexplained 明确表示无法区分 cartservice Pod 侧还是 redis-cart 侧；root_causes[0].mechanism=network"
+    }
+   ],
+   "extra": [],
+   "extra_count": 0,
+   "pass": false,
+   "strict_pass": false,
+   "verdict": "错",
+   "note": "json_ok=false：not_causes[0].why 与 unexplained[1] 中存在未转义的英文双引号，已结合正文判分。因唯一一条 root_causes 是在 cartservice↔redis-cart 链路上未定哪一端（且已将 cartservice 发布排除在 not_causes），未将其额外重复计为多报；正文虽同时表示 network 与 app 难以完全区分，但 root_causes 明确表态 mechanism=network（即便按正文判如实未定，因位置没定总评仍为错）"
+  },
+  {
+   "run": "FL04-A",
+   "json_ok": true,
+   "causes": [
+    {
+     "cause": "FL04#1",
+     "location": "对",
+     "mechanism": "对",
+     "fate": "找到",
+     "basis": "root_causes 第 1 条：boutique/deployments/frontend，mechanism=cpu（CPU limit 200m→25m 导致限流）"
+    },
+    {
+     "cause": "FL04#2",
+     "location": "错",
+     "mechanism": "-",
+     "fate": "漏掉",
+     "basis": "将 productcatalogservice 列入 not_causes（称其 0% 限流无异常），未发现其网络延迟，仅把 checkout 183–868ms 留在 unexplained"
+    }
+   ],
+   "extra": [],
+   "extra_count": 0,
+   "pass": false,
+   "strict_pass": false,
+   "verdict": "部分",
+   "note": "双因题：找到 FL04#1 且未在后续结论中丢掉；漏掉 FL04#2（其造成的商品页/购物车页延迟大部分被归入 frontend CPU，checkout 准备阶段 183–868ms 留在 unexplained）"
+  },
+  {
+   "run": "FL04-B",
+   "json_ok": true,
+   "causes": [
+    {
+     "cause": "FL04#1",
+     "location": "对",
+     "mechanism": "对",
+     "fate": "找到",
+     "basis": "root_causes 第 3 条：boutique/Deployment/frontend，role=secondary，mechanism=cpu（limit 200m→25m，confidence=low 亦算对）"
+    },
+    {
+     "cause": "FL04#2",
+     "location": "对",
+     "mechanism": "错",
+     "fate": "机制没定",
+     "basis": "root_causes 第 1 条：boutique/Deployment/productcatalogservice，位置对，但 mechanism=app 且 cause 明确否定网络故障，判错机制大类"
+    }
+   ],
+   "extra": [
+    {
+     "object": "cartservice",
+     "kind": "sidecar 所在的服务",
+     "basis": "root_causes 第 2 条将新增 log-shipper sidecar 的 cartservice 写成次要根因（mechanism=cpu）"
+    }
+   ],
+   "extra_count": 1,
+   "pass": false,
+   "strict_pass": false,
+   "verdict": "部分",
+   "note": "双因题：两个原因均未出现先找到又丢掉的情况；FL04#2 位置对但机制判错（app≠network，未写 unknown），因 fate 枚举无单独“机制错”项，故归入“机制没定”并在此注明"
+  },
+  {
+   "run": "FL04-C",
+   "json_ok": false,
+   "causes": [
+    {
+     "cause": "FL04#1",
+     "location": "对",
+     "mechanism": "对",
+     "fate": "找到",
+     "basis": "root_causes 第 3 条及正文：boutique/deployment/frontend，role=secondary，mechanism=cpu（limit 200m→25m，confidence=low 亦算对）"
+    },
+    {
+     "cause": "FL04#2",
+     "location": "对",
+     "mechanism": "如实未定",
+     "fate": "找到",
+     "basis": "root_causes 第 2 条及正文：boutique/pod/productcatalogservice，mechanism=unknown，仅保留 network（传输延迟）与 app（容器内固定 sleep）两个候选大类（cpu 已明确排除），并写出容器内处理耗时或 in-pod RTT 探测可分开；因 decidable=false，如实未定记找到"
+    }
+   ],
+   "extra": [
+    {
+     "object": "recommendationservice",
+     "kind": "被拖累的上游",
+     "basis": "root_causes 第 1 条将 recommendationservice 写成主因（mechanism=network），实际它只是被下游 productcatalogservice 拖慢（同时为本次发布的无害 RELEASE_TAG 改动）"
+    }
+   ],
+   "extra_count": 1,
+   "pass": false,
+   "strict_pass": false,
+   "verdict": "部分",
+   "note": "json_ok=false：unexplained 字段末尾误写为 ]} 导致 explanation 落在 JSON 对象外，且结尾残留 DSML 标签，已结合正文判分。双因题：两个真实原因均达到通过标准且未被丢掉，但因多报 recommendationservice 整体判部分"
+  },
+  {
+   "run": "FL05-A",
+   "json_ok": true,
+   "causes": [
+    {
+     "cause": "FL05#1",
+     "location": "对",
+     "mechanism": "对",
+     "fate": "找到",
+     "basis": "root_causes 第 1 条：boutique/Deployment/checkoutservice，mechanism=config（PAYMENT_SERVICE_ADDR 被改为 emailservice:5000）"
+    }
+   ],
+   "extra": [],
+   "extra_count": 0,
+   "pass": true,
+   "strict_pass": true,
+   "verdict": "通过",
+   "note": ""
+  },
+  {
+   "run": "FL05-B",
+   "json_ok": true,
+   "causes": [
+    {
+     "cause": "FL05#1",
+     "location": "对",
+     "mechanism": "对",
+     "fate": "找到",
+     "basis": "root_causes 第 1 条：boutique/Deployment/checkoutservice，mechanism=config（PAYMENT_SERVICE_ADDR 被改为 emailservice:5000）"
+    }
+   ],
+   "extra": [],
+   "extra_count": 0,
+   "pass": true,
+   "strict_pass": true,
+   "verdict": "通过",
+   "note": ""
+  },
+  {
+   "run": "FL05-C",
+   "json_ok": true,
+   "causes": [
+    {
+     "cause": "FL05#1",
+     "location": "对",
+     "mechanism": "对",
+     "fate": "找到",
+     "basis": "root_causes 第 1 条：boutique/Deployment/checkoutservice，mechanism=config（PAYMENT_SERVICE_ADDR 被改为 emailservice:5000）"
+    }
+   ],
+   "extra": [],
+   "extra_count": 0,
+   "pass": true,
+   "strict_pass": true,
+   "verdict": "通过",
+   "note": ""
+  },
+  {
+   "run": "FL06-A",
+   "json_ok": true,
+   "causes": [
+    {
+     "cause": "FL06#1",
+     "location": "对",
+     "mechanism": "对",
+     "fate": "找到",
+     "basis": "root_causes 第 1 条：boutique/service/shippingservice，mechanism=config（selector 被改为 app=paymentservice）"
+    }
+   ],
+   "extra": [],
+   "extra_count": 0,
+   "pass": true,
+   "strict_pass": true,
+   "verdict": "通过",
+   "note": ""
+  },
+  {
+   "run": "FL06-B",
+   "json_ok": true,
+   "causes": [
+    {
+     "cause": "FL06#1",
+     "location": "对",
+     "mechanism": "对",
+     "fate": "找到",
+     "basis": "root_causes 第 1 条：boutique/Service/shippingservice，mechanism=config（spec.selector 被 kubectl-patch 为 app: paymentservice）"
+    }
+   ],
+   "extra": [],
+   "extra_count": 0,
+   "pass": true,
+   "strict_pass": true,
+   "verdict": "通过",
+   "note": ""
+  },
+  {
+   "run": "FL06-C",
+   "json_ok": true,
+   "causes": [
+    {
+     "cause": "FL06#1",
+     "location": "对",
+     "mechanism": "对",
+     "fate": "找到",
+     "basis": "root_causes 第 1 条：boutique/Service/shippingservice，mechanism=config（selector 被 kubectl-patch 为 app: paymentservice）"
+    }
+   ],
+   "extra": [],
+   "extra_count": 0,
+   "pass": true,
+   "strict_pass": true,
+   "verdict": "通过",
+   "note": ""
+  },
+  {
+   "run": "FL07-A",
+   "json_ok": true,
+   "causes": [
+    {
+     "cause": "FL07#1",
+     "location": "对",
+     "mechanism": "对",
+     "fate": "找到",
+     "basis": "root_causes 第 1 条：boutique/Pod/currencyservice-6df4cccbb9-c4ffl (10.244.0.226 网络路径)，mechanism=network（间歇性丢包/TCP 重传）"
+    }
+   ],
+   "extra": [],
+   "extra_count": 0,
+   "pass": true,
+   "strict_pass": true,
+   "verdict": "通过",
+   "note": ""
+  },
+  {
+   "run": "FL07-B",
+   "json_ok": true,
+   "causes": [
+    {
+     "cause": "FL07#1",
+     "location": "对",
+     "mechanism": "错",
+     "fate": "机制没定",
+     "basis": "root_causes 第 1 条定位到 boutique/Pod/currencyservice-6df4cccbb9-26srx，但 mechanism=app（归因为进程周期性停顿而非网络丢包），FL07#1 为 decidable=true"
+    }
+   ],
+   "extra": [],
+   "extra_count": 0,
+   "pass": false,
+   "strict_pass": false,
+   "verdict": "部分",
+   "note": "位置对但机制大类判错（app≠network，未用 kubelet TCP connect 1s 超时与网络丢包区分）；因 fate 枚举无单独“机制错”项，故归入“机制没定”并在此注明"
+  },
+  {
+   "run": "FL07-C",
+   "json_ok": true,
+   "causes": [
+    {
+     "cause": "FL07#1",
+     "location": "对",
+     "mechanism": "对",
+     "fate": "找到",
+     "basis": "root_causes 第 1 条：boutique/pod/currencyservice-6df4cccbb9-mnksg，mechanism=network（Pod 网络路径丢包/重传）"
+    }
+   ],
+   "extra": [],
+   "extra_count": 0,
+   "pass": true,
+   "strict_pass": true,
+   "verdict": "通过",
+   "note": ""
+  },
+  {
+   "run": "FL09-A",
+   "json_ok": true,
+   "causes": [
+    {
+     "cause": "FL09#1",
+     "location": "对",
+     "mechanism": "对",
+     "fate": "找到",
+     "basis": "root_causes 第 1 条：boutique/Deployment/productcatalogservice，明确指出新增环境变量 EXTRA_LATENCY=290ms 导致每次 gRPC 调用固定 sleep 290ms（实质为应用自己配置的延迟）"
+    }
+   ],
+   "extra": [],
+   "extra_count": 0,
+   "pass": true,
+   "strict_pass": true,
+   "verdict": "通过",
+   "note": "取舍说明：JSON 的 mechanism 字段填了 config（因 EXTRA_LATENCY=290ms 是 Deployment 环境变量配置），但 cause 与正文均明确说明是该环境变量让应用进程每次调用主动 sleep 290ms 并排除了网络抖动与 CPU 限流，与本规则对 app（应用自己配置的延迟）的定义完全一致，属标签口径差异而非机制判错，故记机制对"
+  },
+  {
+   "run": "FL09-B",
+   "json_ok": true,
+   "causes": [
+    {
+     "cause": "FL09#1",
+     "location": "对",
+     "mechanism": "对",
+     "fate": "找到",
+     "basis": "root_causes 第 1 条：boutique/deployment/productcatalogservice，明确指出新增 EXTRA_LATENCY=290ms 导致对每个 gRPC 请求固定 sleep 290ms"
+    }
+   ],
+   "extra": [
+    {
+     "object": "paymentservice",
+     "kind": "不存在的问题",
+     "basis": "root_causes 第 2 条将 paymentservice 正常拒收 visa_electron 测试卡的既有校验逻辑写成次要根因，该服务本身并无故障且与本次变慢症状无关"
+    }
+   ],
+   "extra_count": 1,
+   "pass": false,
+   "strict_pass": false,
+   "verdict": "部分",
+   "note": "同 FL09-A，FL09#1 的 JSON mechanism 标签写为 config，但 cause 与正文准确指出是 EXTRA_LATENCY=290ms 引起的应用固定 sleep 290ms，实质符合 app 定义故记机制对；但因多报 paymentservice 导致不通过"
+  },
+  {
+   "run": "FL09-C",
+   "json_ok": true,
+   "causes": [
+    {
+     "cause": "FL09#1",
+     "location": "对",
+     "mechanism": "对",
+     "fate": "找到",
+     "basis": "root_causes 第 1 条：boutique/Deployment/productcatalogservice，明确指出新增 EXTRA_LATENCY=290ms 导致进程对每个 catalog RPC 固定 sleep 290ms"
+    }
+   ],
+   "extra": [],
+   "extra_count": 0,
+   "pass": true,
+   "strict_pass": true,
+   "verdict": "通过",
+   "note": "同 FL09-A，JSON 的 mechanism 字段填了 config，但 cause 与正文明确阐述了 EXTRA_LATENCY=290ms 导致应用固定 sleep 290ms 并排除网络与资源原因，实质符合 app（应用自己配置的延迟），故记机制对"
+  },
+  {
+   "run": "FL10-A",
+   "json_ok": true,
+   "causes": [
+    {
+     "cause": "FL10#1",
+     "location": "对",
+     "mechanism": "对",
+     "fate": "找到",
+     "basis": "root_causes 第 1 条：boutique/Pod/paymentservice-78f6cfdf7f-pnhcb，mechanism=network（Charge 请求方向约 170–284ms 延迟，正文归属 paymentservice 入向路径）"
+    }
+   ],
+   "extra": [],
+   "extra_count": 0,
+   "pass": true,
+   "strict_pass": true,
+   "verdict": "通过",
+   "note": ""
+  },
+  {
+   "run": "FL10-B",
+   "json_ok": true,
+   "causes": [
+    {
+     "cause": "FL10#1",
+     "location": "对",
+     "mechanism": "对",
+     "fate": "找到",
+     "basis": "root_causes 第 1 条：boutique/pod/paymentservice-78f6cfdf7f-7g2l5，mechanism=network（Charge 请求方向单向约 200ms 延迟）"
+    }
+   ],
+   "extra": [],
+   "extra_count": 0,
+   "pass": true,
+   "strict_pass": true,
+   "verdict": "通过",
+   "note": ""
+  },
+  {
+   "run": "FL10-C",
+   "json_ok": true,
+   "causes": [
+    {
+     "cause": "FL10#1",
+     "location": "对",
+     "mechanism": "对",
+     "fate": "找到",
+     "basis": "root_causes 第 1 条：boutique/paymentservice，mechanism=network（Charge 请求方向稳定加约 200ms 单向延迟）"
+    }
+   ],
+   "extra": [
+    {
+     "object": "shippingservice",
+     "kind": "无害改动",
+     "basis": "root_causes 第 2 条将本次发布里 shippingservice rev14 滚动替换造成的瞬时 9 个 /cart 500 写成次要根因（该发布属无害改动，且发生在用户监控窗口之外、对下单延迟贡献为 0）"
+    }
+   ],
+   "extra_count": 1,
+   "pass": false,
+   "strict_pass": false,
+   "verdict": "部分",
+   "note": "FL10-C 正确排除了 shippingservice 的 log-shipper sidecar 限流，但仍把 shippingservice rev14 滚动替换过程写入 root_causes，按规则记多报 1"
+  }
+ ]
+}

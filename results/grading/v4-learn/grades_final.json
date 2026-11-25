@@ -1,0 +1,554 @@
+{
+ "grader": "定稿：Opus 5.5 独立判 + Gemini 4 Neon 盲判，分歧按规则字面裁定（2026-11-25）",
+ "rules": "boutique/eval_grades_v4.json（未改）",
+ "independent_agreement": "结论 22/24 一致（不一致的是 FL09 r1、r3）；每个真实原因的位置和机制 49/54 格一致；5 次多报的对象和个数完全一样（类型标签有 2 处不同）",
+ "kept_from_opus": [
+  "FL09 三次：机制按字段记错（规则“mechanism 是正确的大类”；config 指地址、selector、端口配错，应用自己配置的延迟是 app；同上批 FL08-A 先例）。Gemini 按内容记对，按它的口径通过 16/24",
+  "FL03-B（r1）：位置记没定，不记错（回答在备选里写了 redis-cart 侧网络，说三处分不开；“错”要求没提到或说贡献为零）"
+ ],
+ "changes_from_opus": [
+  "FL03-B（r1）：FL03#1 机制 - → 如实未定（规则只在位置错时记“-”；mechanism=unknown，候选 app / network，写了缺什么数据）",
+  "FL03-C（r2）：FL03#1 机制 - → 对（同上；正文 JSON 写的是 network）",
+  "FL04-C（r1）：多报 recommendationservice 的类型 无害改动 → 被拖累的上游（怪的是它变慢，不是它的发布）",
+  "FL10-C（r3）：多报 shippingservice 的类型 sidecar 所在的服务 → 无害改动（怪的是加 sidecar 引起的滚动更新，不是 sidecar 的限流）",
+  "去向：位置对、机制写错的 5 格按枚举记“机制没定”，basis 里注明实际是机制写错"
+ ],
+ "boundaries": [
+  "FL02 r2、FL03 r3、FL10 r2：object 只写对的一端，但备选或 unexplained 说分不清是哪一端，两人都记位置对；严读记没定的话 11/24。Gemini 只在 FL02 r2 写明看到了这点，FL03 r3 的理由和回答不符，FL10 r2 没说理由，所以这三处的一致不算独立印证",
+  "FL10 r3 是同一种写法（已因多报不通过，只影响位置统计）",
+  "口径不对称：备选里提到正确对象能把“错”抬成“没定”（FL03 r1），但 object 写对时备选里的另一端不把“对”降成“没定”。这来自规则对“对”和“错”的写法不同"
+ ],
+ "runs": [
+  {
+   "run": "FL02-A",
+   "id": "v4-learn-S0 FL02 r3",
+   "json_ok": true,
+   "causes": [
+    {
+     "cause": "FL02#1",
+     "location": "对",
+     "mechanism": "对",
+     "fate": "找到",
+     "basis": "root_causes 唯一一条：cartservice Pod，mechanism=network，2×190ms / 3×190ms 按往返次数算"
+    }
+   ],
+   "extra": [],
+   "extra_count": 0,
+   "pass": true,
+   "strict_pass": true,
+   "verdict": "通过",
+   "note": "备选里提到 redis-cart 网卡排除不了，但 object 只写 cartservice，conf=high"
+  },
+  {
+   "run": "FL02-B",
+   "id": "v4-learn-S0 FL02 r2",
+   "json_ok": true,
+   "causes": [
+    {
+     "cause": "FL02#1",
+     "location": "对",
+     "mechanism": "对",
+     "fate": "找到",
+     "basis": "root_causes 唯一一条：cartservice，mechanism=network"
+    }
+   ],
+   "extra": [],
+   "extra_count": 0,
+   "pass": true,
+   "strict_pass": true,
+   "verdict": "通过",
+   "note": "边界：cause 写 cartservice↔redis-cart／cartservice↔调用方 的路径（两端都是 cartservice），unexplained 说分不清延迟加在 cartservice 出口还是 redis-cart 出口；object 只写了 cartservice，按 object 记位置对。严读记“没定”的话这次不通过"
+  },
+  {
+   "run": "FL02-C",
+   "id": "v4-learn-S0 FL02 r1",
+   "json_ok": true,
+   "causes": [
+    {
+     "cause": "FL02#1",
+     "location": "对",
+     "mechanism": "对",
+     "fate": "找到",
+     "basis": "root_causes 唯一一条：cartservice Pod，mechanism=network"
+    }
+   ],
+   "extra": [],
+   "extra_count": 0,
+   "pass": true,
+   "strict_pass": true,
+   "verdict": "通过",
+   "note": "备选只在 cartservice 内部分方向，以及 network/app 之分"
+  },
+  {
+   "run": "FL03-A",
+   "id": "v4-learn-S0 FL03 r3",
+   "json_ok": true,
+   "causes": [
+    {
+     "cause": "FL03#1",
+     "location": "对",
+     "mechanism": "对",
+     "fate": "找到",
+     "basis": "root_causes 唯一一条：redis-cart Pod，mechanism=network"
+    }
+   ],
+   "extra": [],
+   "extra_count": 0,
+   "pass": true,
+   "strict_pass": true,
+   "verdict": "通过",
+   "note": "边界：object 写“redis-cart Pod（即 cartservice ↔ redis-cart:6379 这条链路）”，备选说也可能挂在 cartservice 出向只过滤 6379；object 先写的是 redis-cart 的 Pod，记位置对。严读记“没定”的话这次不通过"
+  },
+  {
+   "run": "FL03-B",
+   "id": "v4-learn-S0 FL03 r1",
+   "json_ok": true,
+   "causes": [
+    {
+     "cause": "FL03#1",
+     "location": "没定",
+     "mechanism": "如实未定",
+     "fate": "位置没定",
+     "basis": "root_causes 唯一一条是 cartservice（mechanism=unknown）；redis-cart 侧网络只是三条备选之一，not_causes 里说 redis-cart 自身不是瓶颈"
+    }
+   ],
+   "extra": [
+    {
+     "object": "cartservice",
+     "kind": "被拖累的上游",
+     "basis": "cartservice 自身不慢，是 redis-cart 的延迟拖累的；本次发布只给它加了 RELEASE_TAG（也是工单里的猜测）"
+    }
+   ],
+   "extra_count": 1,
+   "pass": false,
+   "strict_pass": false,
+   "verdict": "错",
+   "note": "位置记没定（不是错）是因为 redis-cart 侧网络出现在备选里；记错也不影响结论"
+  },
+  {
+   "run": "FL03-C",
+   "id": "v4-learn-S0 FL03 r2",
+   "json_ok": false,
+   "causes": [
+    {
+     "cause": "FL03#1",
+     "location": "没定",
+     "mechanism": "对",
+     "fate": "位置没定",
+     "basis": "末尾 JSON 字符串里有未转义的引号，解析不了，按正文判：object 写成“cartservice Pod（cartservice↔redis-cart 路径）”，redis-cart 侧网络在备选里，unexplained 说 Pod 侧网络 / redis-cart 侧网络 / 应用等待三者分不开"
+    }
+   ],
+   "extra": [],
+   "extra_count": 0,
+   "pass": false,
+   "strict_pass": false,
+   "verdict": "错",
+   "note": "按 FV07-B 的先例，路径式写法记位置没定、不另记多报；把 cartservice 记成多报也不影响结论。正文已算出延迟和 Redis 往返次数成正比，但没落到 redis-cart"
+  },
+  {
+   "run": "FL04-A",
+   "id": "v4-learn-S0 FL04 r3",
+   "json_ok": true,
+   "causes": [
+    {
+     "cause": "FL04#1",
+     "location": "对",
+     "mechanism": "对",
+     "fate": "找到",
+     "basis": "root_causes 唯一一条：frontend，mechanism=cpu"
+    },
+    {
+     "cause": "FL04#2",
+     "location": "错",
+     "mechanism": "-",
+     "fate": "漏掉",
+     "basis": "productcatalogservice 写在 not_causes 里（0% 限流、无错误）"
+    }
+   ],
+   "extra": [],
+   "extra_count": 0,
+   "pass": false,
+   "strict_pass": false,
+   "verdict": "部分",
+   "note": "unexplained 里自己写了 checkoutservice 内部 183–868ms 和页面 0–0.5s 的残差解释不了，但没有追下去"
+  },
+  {
+   "run": "FL04-B",
+   "id": "v4-learn-S0 FL04 r2",
+   "json_ok": true,
+   "causes": [
+    {
+     "cause": "FL04#1",
+     "location": "对",
+     "mechanism": "对",
+     "fate": "找到",
+     "basis": "root_causes 第 3 条：frontend，mechanism=cpu，conf=low"
+    },
+    {
+     "cause": "FL04#2",
+     "location": "对",
+     "mechanism": "错",
+     "fate": "机制没定",
+     "basis": "root_causes 第 1 条：productcatalogservice，mechanism=app（network 只在备选里）（去向枚举里没有“机制错”，记机制没定；实际是机制写错）"
+    }
+   ],
+   "extra": [
+    {
+     "object": "cartservice",
+     "kind": "sidecar 所在的服务",
+     "basis": "root_causes 第 2 条：把 log-shipper sidecar 的限流当成 cartservice 变慢的原因，mechanism=cpu"
+    }
+   ],
+   "extra_count": 1,
+   "pass": false,
+   "strict_pass": false,
+   "verdict": "部分",
+   "note": ""
+  },
+  {
+   "run": "FL04-C",
+   "id": "v4-learn-S0 FL04 r1",
+   "json_ok": false,
+   "causes": [
+    {
+     "cause": "FL04#1",
+     "location": "对",
+     "mechanism": "对",
+     "fate": "找到",
+     "basis": "root_causes 第 3 条：frontend，mechanism=cpu，conf=low，承认有影响（估 ≤10%）"
+    },
+    {
+     "cause": "FL04#2",
+     "location": "对",
+     "mechanism": "如实未定",
+     "fate": "找到",
+     "basis": "root_causes 第 2 条：productcatalogservice，mechanism=unknown；备选 network（cpu 已基本排除），写了 in-pod RTT 探测能分开"
+    }
+   ],
+   "extra": [
+    {
+     "object": "recommendationservice",
+     "kind": "被拖累的上游",
+     "basis": "root_causes 第 1 条（primary）：recommendationservice 网络；它在本次发布里只加了 RELEASE_TAG，慢是 productcatalogservice 的延迟经它传上来的"
+    }
+   ],
+   "extra_count": 1,
+   "pass": false,
+   "strict_pass": false,
+   "verdict": "部分",
+   "note": "末尾 JSON 在 explanation 前多了一个 }，解析不了，按正文判"
+  },
+  {
+   "run": "FL05-A",
+   "id": "v4-learn-S0 FL05 r3",
+   "json_ok": true,
+   "causes": [
+    {
+     "cause": "FL05#1",
+     "location": "对",
+     "mechanism": "对",
+     "fate": "找到",
+     "basis": "root_causes 唯一一条：checkoutservice，mechanism=config"
+    }
+   ],
+   "extra": [],
+   "extra_count": 0,
+   "pass": true,
+   "strict_pass": true,
+   "verdict": "通过",
+   "note": ""
+  },
+  {
+   "run": "FL05-B",
+   "id": "v4-learn-S0 FL05 r2",
+   "json_ok": true,
+   "causes": [
+    {
+     "cause": "FL05#1",
+     "location": "对",
+     "mechanism": "对",
+     "fate": "找到",
+     "basis": "root_causes 唯一一条：checkoutservice，mechanism=config"
+    }
+   ],
+   "extra": [],
+   "extra_count": 0,
+   "pass": true,
+   "strict_pass": true,
+   "verdict": "通过",
+   "note": ""
+  },
+  {
+   "run": "FL05-C",
+   "id": "v4-learn-S0 FL05 r1",
+   "json_ok": true,
+   "causes": [
+    {
+     "cause": "FL05#1",
+     "location": "对",
+     "mechanism": "对",
+     "fate": "找到",
+     "basis": "root_causes 唯一一条：checkoutservice，PAYMENT_SERVICE_ADDR 改成 emailservice:5000，mechanism=config"
+    }
+   ],
+   "extra": [],
+   "extra_count": 0,
+   "pass": true,
+   "strict_pass": true,
+   "verdict": "通过",
+   "note": ""
+  },
+  {
+   "run": "FL06-A",
+   "id": "v4-learn-S0 FL06 r3",
+   "json_ok": true,
+   "causes": [
+    {
+     "cause": "FL06#1",
+     "location": "对",
+     "mechanism": "对",
+     "fate": "找到",
+     "basis": "root_causes 唯一一条：Service shippingservice selector，mechanism=config"
+    }
+   ],
+   "extra": [],
+   "extra_count": 0,
+   "pass": true,
+   "strict_pass": true,
+   "verdict": "通过",
+   "note": ""
+  },
+  {
+   "run": "FL06-B",
+   "id": "v4-learn-S0 FL06 r2",
+   "json_ok": true,
+   "causes": [
+    {
+     "cause": "FL06#1",
+     "location": "对",
+     "mechanism": "对",
+     "fate": "找到",
+     "basis": "root_causes 唯一一条：Service shippingservice selector，mechanism=config"
+    }
+   ],
+   "extra": [],
+   "extra_count": 0,
+   "pass": true,
+   "strict_pass": true,
+   "verdict": "通过",
+   "note": ""
+  },
+  {
+   "run": "FL06-C",
+   "id": "v4-learn-S0 FL06 r1",
+   "json_ok": true,
+   "causes": [
+    {
+     "cause": "FL06#1",
+     "location": "对",
+     "mechanism": "对",
+     "fate": "找到",
+     "basis": "root_causes 唯一一条：Service shippingservice 的 selector 改成 app=paymentservice，mechanism=config"
+    }
+   ],
+   "extra": [],
+   "extra_count": 0,
+   "pass": true,
+   "strict_pass": true,
+   "verdict": "通过",
+   "note": ""
+  },
+  {
+   "run": "FL07-A",
+   "id": "v4-learn-S0 FL07 r1",
+   "json_ok": true,
+   "causes": [
+    {
+     "cause": "FL07#1",
+     "location": "对",
+     "mechanism": "对",
+     "fate": "找到",
+     "basis": "root_causes 唯一一条：currencyservice Pod 的网络路径间歇丢包，mechanism=network"
+    }
+   ],
+   "extra": [],
+   "extra_count": 0,
+   "pass": true,
+   "strict_pass": true,
+   "verdict": "通过",
+   "note": ""
+  },
+  {
+   "run": "FL07-B",
+   "id": "v4-learn-S0 FL07 r2",
+   "json_ok": true,
+   "causes": [
+    {
+     "cause": "FL07#1",
+     "location": "对",
+     "mechanism": "错",
+     "fate": "机制没定",
+     "basis": "root_causes 唯一一条：currencyservice 周期性停顿，mechanism=app（network 只在备选里）（去向枚举里没有“机制错”，记机制没定；实际是机制写错）"
+    }
+   ],
+   "extra": [],
+   "extra_count": 0,
+   "pass": false,
+   "strict_pass": false,
+   "verdict": "部分",
+   "note": "正文提到 200ms 恰是 TCP 最小 RTO、1s 探针拨号超时符合 SYN 重传，但仍选了 app"
+  },
+  {
+   "run": "FL07-C",
+   "id": "v4-learn-S0 FL07 r3",
+   "json_ok": true,
+   "causes": [
+    {
+     "cause": "FL07#1",
+     "location": "对",
+     "mechanism": "对",
+     "fate": "找到",
+     "basis": "root_causes 唯一一条：currencyservice Pod 网络丢包/重传，mechanism=network"
+    }
+   ],
+   "extra": [],
+   "extra_count": 0,
+   "pass": true,
+   "strict_pass": true,
+   "verdict": "通过",
+   "note": ""
+  },
+  {
+   "run": "FL09-A",
+   "id": "v4-learn-S0 FL09 r3",
+   "json_ok": true,
+   "causes": [
+    {
+     "cause": "FL09#1",
+     "location": "对",
+     "mechanism": "错",
+     "fate": "机制没定",
+     "basis": "root_causes 唯一一条：productcatalogservice，EXTRA_LATENCY=290ms，mechanism=config（去向枚举里没有“机制错”，记机制没定；实际是机制写错）"
+    }
+   ],
+   "extra": [],
+   "extra_count": 0,
+   "pass": false,
+   "strict_pass": false,
+   "verdict": "部分",
+   "note": "原因内容完全正确，按字段记机制错。Gemini 按内容判机制对、结论通过；定稿按规则字面（mechanism 是正确的大类）维持机制错"
+  },
+  {
+   "run": "FL09-B",
+   "id": "v4-learn-S0 FL09 r2",
+   "json_ok": true,
+   "causes": [
+    {
+     "cause": "FL09#1",
+     "location": "对",
+     "mechanism": "错",
+     "fate": "机制没定",
+     "basis": "root_causes 第 1 条：productcatalogservice，EXTRA_LATENCY=290ms，mechanism=config（去向枚举里没有“机制错”，记机制没定；实际是机制写错）"
+    }
+   ],
+   "extra": [
+    {
+     "object": "paymentservice",
+     "kind": "不存在的问题",
+     "basis": "root_causes 第 2 条：paymentservice 拒收 visa_electron 卡导致 1 次下单 500；这是演示应用正常的卡种校验"
+    }
+   ],
+   "extra_count": 1,
+   "pass": false,
+   "strict_pass": false,
+   "verdict": "部分",
+   "note": "机制同 FL09 另两次，按字段记错"
+  },
+  {
+   "run": "FL09-C",
+   "id": "v4-learn-S0 FL09 r1",
+   "json_ok": true,
+   "causes": [
+    {
+     "cause": "FL09#1",
+     "location": "对",
+     "mechanism": "错",
+     "fate": "机制没定",
+     "basis": "root_causes 唯一一条：productcatalogservice，EXTRA_LATENCY=290ms，mechanism=config（去向枚举里没有“机制错”，记机制没定；实际是机制写错）"
+    }
+   ],
+   "extra": [],
+   "extra_count": 0,
+   "pass": false,
+   "strict_pass": false,
+   "verdict": "部分",
+   "note": "原因内容完全正确，只是 mechanism 写成 config；按规则 config 是“地址、selector、端口配错”，应用自己配置的延迟属于 app，按字段记机制错（同 FL08-A 的先例）。Gemini 按内容判机制对、结论通过；定稿按规则字面（mechanism 是正确的大类）维持机制错"
+  },
+  {
+   "run": "FL10-A",
+   "id": "v4-learn-S0 FL10 r2",
+   "json_ok": true,
+   "causes": [
+    {
+     "cause": "FL10#1",
+     "location": "对",
+     "mechanism": "对",
+     "fate": "找到",
+     "basis": "root_causes 唯一一条：paymentservice Pod，mechanism=network"
+    }
+   ],
+   "extra": [],
+   "extra_count": 0,
+   "pass": true,
+   "strict_pass": true,
+   "verdict": "通过",
+   "note": "边界：unexplained 说分不清延迟挂在 checkoutservice 出口（只过滤 paymentservice）还是 paymentservice 入向；object 只写 paymentservice，按 object 记位置对。严读记“没定”的话这次不通过"
+  },
+  {
+   "run": "FL10-B",
+   "id": "v4-learn-S0 FL10 r1",
+   "json_ok": true,
+   "causes": [
+    {
+     "cause": "FL10#1",
+     "location": "对",
+     "mechanism": "对",
+     "fate": "找到",
+     "basis": "root_causes 唯一一条：paymentservice Pod，mechanism=network"
+    }
+   ],
+   "extra": [],
+   "extra_count": 0,
+   "pass": true,
+   "strict_pass": true,
+   "verdict": "通过",
+   "note": ""
+  },
+  {
+   "run": "FL10-C",
+   "id": "v4-learn-S0 FL10 r3",
+   "json_ok": true,
+   "causes": [
+    {
+     "cause": "FL10#1",
+     "location": "对",
+     "mechanism": "对",
+     "fate": "找到",
+     "basis": "root_causes 第 1 条：paymentservice，mechanism=network"
+    }
+   ],
+   "extra": [
+    {
+     "object": "shippingservice",
+     "kind": "无害改动",
+     "basis": "root_causes 第 2 条：加 log-shipper sidecar 引起的滚动更新期间 9 个 GET /cart 同时失败，写成 network"
+    }
+   ],
+   "extra_count": 1,
+   "pass": false,
+   "strict_pass": false,
+   "verdict": "部分",
+   "note": "那 9 个失败是一瞬间的事，不是用户报的持续变慢"
+  }
+ ]
+}
